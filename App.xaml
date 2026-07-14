@@ -4,6 +4,9 @@
              xmlns:local="clr-namespace:ArcadeStick"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <!-- [SECTION: ArcadeDarkScrollBar Style] -->
+        <!-- Global reusable dark scrollbar (track/thumb/repeat buttons), themed via ScrollTrack*/ScrollThumb* bindings.
+             Used across Options window tabs; MainWindow.xaml has its own local copy keyed the same way. -->
         <Style x:Key="ArcadeDarkScrollBar" TargetType="{x:Type ScrollBar}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -61,7 +64,10 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- [END SECTION: ArcadeDarkScrollBar Style] -->
 
+        <!-- [SECTION: ArcadeDarkScrollViewer Style] -->
+        <!-- Pairs with ArcadeDarkScrollBar above: routes the ScrollViewer's vertical scrollbar through the themed style. -->
         <Style x:Key="ArcadeDarkScrollViewer" TargetType="{x:Type ScrollViewer}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -82,7 +88,11 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- [END SECTION: ArcadeDarkScrollViewer Style] -->
 
+        <!-- [SECTION: ThemedActionButtonStyle] -->
+        <!-- Shared button template used across Options window tabs (Save/Load/Browse etc.).
+             Hover background is theme-bound (BtnBgColorHoverHex); disabled state dims via opacity. -->
         <Style x:Key="ThemedActionButtonStyle" TargetType="Button">
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -103,5 +113,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- [END SECTION: ThemedActionButtonStyle] -->
     </Application.Resources>
 </Application>

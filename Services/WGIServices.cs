@@ -1,4 +1,4 @@
-﻿// 🏁 START
+﻿// [SECTION: File Overrides] - Windows.Gaming.Input gamepad polling, navigation, and diagnostics service
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +36,9 @@ namespace ArcadeStick.Services
         // High-reliability discrete structural event for action execution engines
         public event Action<GamepadButtons>? GamepadButtonDownTriggered;
 
+        // [SECTION: Constructor & Gamepad Enumeration]
+        // Hooks native gamepad attach/detach listeners, enumerates any controllers already connected at
+        // startup, assigns the tracked device, and auto-starts polling if enabled in settings.
         public WGIService(ConfigurationSettings settings)
         {
             _settings = settings;
@@ -63,10 +66,14 @@ namespace ArcadeStick.Services
                 StartPollingLoop();
             }
         }
+        // [END SECTION: Constructor & Gamepad Enumeration]
 
-        // =========================================================================
-        // 🏁 START: SUB-SYSTEM BACKGROUND POLLING LOOP CORE ENGINE
-        // =========================================================================
+        // [SECTION: Background Polling Loop Core Engine]
+        // ~60Hz background task that polls gamepad state while the app is focused, and idles/reports
+        // "None" when unfocused (e.g. MAME is running) to avoid ghost navigation. StopPollingLoopAsync is
+        // the awaitable variant used by ProcessLaunchService before launching a game - required to avoid
+        // the polling-loop deadlock that was fixed previously; don't swap it back to the sync StopPollingLoop
+        // in that call path.
         public void StartPollingLoop()
         {
             if (_pollingTask != null) return; // Engine is already alive
@@ -135,6 +142,8 @@ namespace ArcadeStick.Services
             }, token);
         }
 
+        // Synchronous cancel + blocking wait for the polling task to exit. Prefer StopPollingLoopAsync
+        // from async contexts (e.g. UI thread call paths) to avoid blocking the caller.
         public void StopPollingLoop()
         {
             if (_pollingCancelTokenSource != null)
@@ -152,6 +161,8 @@ namespace ArcadeStick.Services
             }
         }
 
+        // Awaitable cancel + wait for the polling task to exit. This is the deadlock-safe variant used
+        // before launching MAME (see ProcessLaunchService.LaunchGameAsync).
         public async Task StopPollingLoopAsync()
         {
             if (_pollingCancelTokenSource != null)
@@ -171,8 +182,10 @@ namespace ArcadeStick.Services
                 _pollingTask = null;
             }
         }
-        // 🏗️ END
+        // [END SECTION: Background Polling Loop Core Engine]
 
+        // [SECTION: Gamepad State Polling & Input Parsing]
+        // Reads the tracked gamepad's current state each tick and routes it into button/navigation parsing.
         private void PollGamepadState()
         {
             Gamepad? currentGamepad = null;
@@ -205,7 +218,8 @@ namespace ArcadeStick.Services
             }
         }
 
-        // 🏁 START
+        // Evaluates all tracked buttons/triggers/sticks for the current reading, builds a human-readable
+        // diagnostics string, and fires GamepadButtonDownTriggered on clean press transitions.
         private void ParseButtons(GamepadReading reading)
         {
             var parts = new List<string>();
@@ -278,8 +292,8 @@ namespace ArcadeStick.Services
             string diagnosticText = parts.Count > 0 ? string.Join(" + ", parts) : "None";
             ActiveInputUpdated?.Invoke($"Active Inputs: {diagnosticText}");
         }
-        // 🏗️ END
 
+        // Fires GamepadButtonDownTriggered only on the rising edge of a button press (not while held).
         private void CheckButtonTransition(GamepadButtons currentMask, GamepadButtons buttonFlag, string label, List<string> activePartsList)
         {
             if ((currentMask & buttonFlag) != 0)
@@ -293,8 +307,10 @@ namespace ArcadeStick.Services
                 }
             }
         }
-        // 🏗️ END
 
+        // Resolves D-Pad/analog stick input into a single directional string and fires GamepadDirectionTriggered,
+        // applying an initial-delay-then-repeat timing curve (JoystickInitialDelayMs / JoystickRepeatDelayMs)
+        // for held-direction continuous scrolling.
         private void ParseNavigation(GamepadReading reading)
         {
             string currentDirection = "None";
@@ -353,7 +369,11 @@ namespace ArcadeStick.Services
                 _isInitialDelayActive = true; // Reset safety clock anchor
             }
         }
+        // [END SECTION: Gamepad State Polling & Input Parsing]
 
+        // [SECTION: Hotplug Handlers]
+        // Keeps _activeGamepads in sync as controllers are physically connected/disconnected, and
+        // re-resolves which gamepad is actively tracked (by configured DirectInputDeviceId).
         private void OnGamepadAdded(object? sender, Gamepad gpad)
         {
             lock (_lock)
@@ -384,6 +404,8 @@ namespace ArcadeStick.Services
             TriggerDiagnosticsUpdate();
         }
 
+        // Resolves _trackedGamepad from the configured DirectInputDeviceId, falling back to index 0
+        // if the configured index is out of range or no gamepads are connected.
         private void AssignTrackedGamepad()
         {
             // Map index cleanly. If device ID is out of range, default to index 0.
@@ -402,10 +424,11 @@ namespace ArcadeStick.Services
                 _trackedGamepad = null;
             }
         }
+        // [END SECTION: Hotplug Handlers]
 
-        // =========================================================================
-        // 🏁 START: HARDWARE SUBSYSTEM LIVE DIAGNOSTIC STREAM HOOKS
-        // =========================================================================
+        // [SECTION: Hardware Subsystem Live Diagnostic Stream Hooks]
+        // Publishes per-port connection status (name + connected flag) for the diagnostics UI, resolving
+        // friendly controller names via RawGameController where available.
         public void TriggerDiagnosticsUpdate()
         {
             lock (_lock)
@@ -449,12 +472,14 @@ namespace ArcadeStick.Services
             }
         }
 
+        // Stops polling and unhooks the native hardware attach/detach listeners.
         public void Dispose()
         {
             StopPollingLoop();
             Gamepad.GamepadAdded -= OnGamepadAdded;
             Gamepad.GamepadRemoved -= OnGamepadRemoved;
         }
+        // [END SECTION: Hardware Subsystem Live Diagnostic Stream Hooks]
     }
 }
-// 🏗️ END
+// [END SECTION: File Overrides]

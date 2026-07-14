@@ -96,6 +96,7 @@ namespace ArcadeStick.Models
         public string GameSelectedColorHex { get; set; } = "#FF000000";
         public string GameSelectedBgColorHex { get; set; } = "#FF00D4FF";
         public string FavoritesColorHex { get; set; } = "#FFFFCC00";
+        public string ArrowColorHex { get; set; } = "#FFA0A0A2";
         public int TabFontSize { get; set; } = 12;
         public string TabColorHex { get; set; } = "#FFA0A0A2";
         public string TabBgColorHex { get; set; } = "Transparent";
@@ -131,7 +132,7 @@ namespace ArcadeStick.Models
         // =========================================================================
         // 🏗️ START: HOST MACHINE FILE SYSTEM DIRECTORY STRUCTURE
         // =========================================================================
-        public string ArcadeStickFilesFolder { get; set; } = "arcadestick_files";
+        public string ArcadeStickFilesFolder { get; set; } = "4rcade5tick_files";
         public string RomsSubFolder { get; set; } = "roms";
         public string MediaSubFolder { get; set; } = "media";
         public string ConfigSubFolder { get; set; } = "config";
@@ -167,8 +168,10 @@ namespace ArcadeStick.Models
         public bool AllowBackgroundInput { get; set; } = false;
         public int DirectInputDeviceId { get; set; } = 0;
         public int JoystickDeadzonePercentage { get; set; } = 15;
+
+        // Joystick Delay defaults
         public int JoystickInitialDelayMs { get; set; } = 500;
-        public int JoystickRepeatDelayMs { get; set; } = 150;
+        public int JoystickRepeatDelayMs { get; set; } = 75;
         public string NavigationMode { get; set; } = "D-Pad & Analog";
         // =========================================================================
         // 🛑 END: CORE CACHE TRACKING FILES CONFIGURATION RECORDS
@@ -181,6 +184,7 @@ namespace ArcadeStick.Models
         public string GetArcadeStickFilesPath() => Path.Combine(BaseDirectory, ArcadeStickFilesFolder);
         public string GetConfigPath() => Path.Combine(GetArcadeStickFilesPath(), ConfigSubFolder);
 
+        [System.Text.Json.Serialization.JsonIgnore]
         public System.Windows.Media.ImageSource? BmacButtonAsset
         {
             get
@@ -241,6 +245,7 @@ namespace ArcadeStick.Models
             this.GameSelectedColorHex = source.GameSelectedColorHex;
             this.GameSelectedBgColorHex = source.GameSelectedBgColorHex;
             this.FavoritesColorHex = source.FavoritesColorHex;
+            this.ArrowColorHex = source.ArrowColorHex;
 
             this.TabFontSize = source.TabFontSize;
             this.TabColorHex = source.TabColorHex;

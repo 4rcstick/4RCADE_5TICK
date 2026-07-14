@@ -36,6 +36,7 @@ namespace ArcadeStick.Models
         public string GameSelectedColorHex { get; set; } = "#FF00D4FF";
         public string GameSelectedBgColorHex { get; set; } = "#FF2C2C2E";
         public string FavoritesColorHex { get; set; } = "#FFFFCC00";
+        public string ArrowColorHex { get; set; } = "#FFA0A0A2";
 
         public int TabFontSize { get; set; } = 12;
         public string TabColorHex { get; set; } = "#FFA0A0A2";

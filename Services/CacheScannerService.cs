@@ -11,20 +11,18 @@ namespace ArcadeStick.Services
     {
         private readonly ConfigurationSettings _settings;
 
-        // =========================================================================
-        // 🏁 START: LIFECYCLE AND DEPENDENCY INJECTION
-        // =========================================================================
+        // [SECTION: Lifecycle & Dependency Injection]
+        // Stores the shared ConfigurationSettings instance used to locate the MAME cache file.
         public CacheScannerService(ConfigurationSettings settings)
         {
             _settings = settings;
         }
-        // =========================================================================
-        // 🛑 END: LIFECYCLE AND DEPENDENCY INJECTION
-        // =========================================================================
+        // [END SECTION: Lifecycle & Dependency Injection]
 
-        // =========================================================================
-        // 🏁 START: ASYNCHRONOUS MAME CACHE STREAM PARSER ENGINE
-        // =========================================================================
+        // [SECTION: Asynchronous MAME Cache Stream Parser Engine]
+        // Parses mame_cache.txt line-by-line to build a RomName -> GameItem map, filtered against
+        // discoveredZipNames so only physically present ROMs are included. Falls back to a bare-bones
+        // map (rom name as title) if the cache file doesn't exist yet.
         public async Task<Dictionary<string, GameItem>> ParseCacheFileAsync(HashSet<string> discoveredZipNames, Dictionary<string, string> folderMap)
         {
             var databaseMap = new Dictionary<string, GameItem>(StringComparer.OrdinalIgnoreCase);
@@ -86,8 +84,6 @@ namespace ArcadeStick.Services
 
             return databaseMap;
         }
-        // =========================================================================
-        // 🛑 END: ASYNCHRONOUS MAME CACHE STREAM PARSER ENGINE
-        // =========================================================================
+        // [END SECTION: Asynchronous MAME Cache Stream Parser Engine]
     }
 }

@@ -13,6 +13,9 @@ namespace ArcadeStick.Views
             InitializeComponent();
         }
 
+        // [SECTION: Load / Save Sync]
+        // Load side: populates gamepad settings fields from ConfigurationSettings, including mapping the
+        // NavigationMode string to the correct ComboBox index.
         public void Initialize(ArcadeStick.Models.ConfigurationSettings settings)
         {
             _settings = settings;
@@ -31,6 +34,8 @@ namespace ArcadeStick.Views
             };
         }
 
+        // Save side: writes gamepad settings fields back into ConfigurationSettings. Numeric fields are
+        // parsed defensively - an invalid/empty TextBox value simply leaves the existing setting unchanged.
         public void SyncToSettings()
         {
             _settings.EnableGamepadPolling = ChkGamepad.IsChecked == true;
@@ -42,11 +47,17 @@ namespace ArcadeStick.Views
 
             _settings.NavigationMode = (CboNavigationMode.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "D-Pad & Analog";
         }
+        // [END SECTION: Load / Save Sync]
 
+        // [SECTION: Live Diagnostics Wiring]
+        // Subscribes to WGIService's PortStatusUpdated and ActiveInputUpdated events to drive the
+        // diagnostics panel in real time. Called by MainWindow.OpenOptionsWindow when this tab's parent
+        // Options window is opened. All UI updates are marshaled back to the UI thread via Dispatcher.
         public void WireLiveDiagnostics(ArcadeStick.Services.WGIService inputService)
         {
             if (inputService == null) return;
 
+            // Updates one port's status dot + label (green/connected vs gray/disconnected)
             inputService.PortStatusUpdated += (port, friendlyName, active) =>
             {
                 this.Dispatcher.BeginInvoke(new System.Action(() =>
@@ -73,6 +84,7 @@ namespace ArcadeStick.Views
                 }));
             };
 
+            // Updates the live "currently pressed" input readout line
             inputService.ActiveInputUpdated += (inputReadout) =>
             {
                 this.Dispatcher.BeginInvoke(new System.Action(() =>
@@ -81,5 +93,6 @@ namespace ArcadeStick.Views
                 }));
             };
         }
+        // [END SECTION: Live Diagnostics Wiring]
     }
 }

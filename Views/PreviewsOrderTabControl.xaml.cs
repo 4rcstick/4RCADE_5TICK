@@ -19,6 +19,10 @@ namespace ArcadeStick.Views
             InitializeComponent();
         }
 
+        // [SECTION: Load - Merge Saved Order with Defaults]
+        // Builds the displayed order from preview_order.cfg on disk, falling back to the view model's
+        // current PreviewPriorityOrder (or a hardcoded default list) for any category not yet saved.
+        // Displayed as uppercase in the ListBox; stored/compared lowercase internally.
         public void Initialize(ArcadeStick.ViewModels.MainViewModel viewModel, ArcadeStick.Models.ConfigurationSettings settings)
         {
             _viewModel = viewModel;
@@ -56,7 +60,11 @@ namespace ArcadeStick.Views
             LstMediaOrder.ItemsSource = _mediaCategories;
             if (LstMediaOrder.Items.Count > 0) LstMediaOrder.SelectedIndex = 0;
         }
+        // [END SECTION: Load - Merge Saved Order with Defaults]
 
+        // [SECTION: Reorder Controls]
+        // Moves the selected list item one position up or down within _mediaCategories, keeping selection
+        // on the moved item.
         private void BtnMediaUp_Click(object sender, RoutedEventArgs e)
         {
             int selectedIndex = LstMediaOrder.SelectedIndex;
@@ -80,7 +88,13 @@ namespace ArcadeStick.Views
                 LstMediaOrder.SelectedIndex = selectedIndex + 1;
             }
         }
+        // [END SECTION: Reorder Controls]
 
+        // [SECTION: Save Preview Order]
+        // Persists the current order to preview_order.cfg and pushes it live into
+        // MainViewModel.PreviewPriorityOrder. The SelectedGame null-then-restore toggle below is a
+        // deliberate trick to force UpdateActiveMediaPreviews to re-run immediately with the new order -
+        // don't remove it as unnecessary, it's what makes the change visible without reselecting the game.
         private void BtnSaveMediaOrder_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -109,5 +123,6 @@ namespace ArcadeStick.Views
                 MessageBox.Show($"Failed to commit media sequence: {ex.Message}", "Storage Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        // [END SECTION: Save Preview Order]
     }
 }

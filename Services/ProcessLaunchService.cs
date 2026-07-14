@@ -11,20 +11,21 @@ namespace ArcadeStick.Services
     {
         private readonly ConfigurationSettings _settings;
 
-        // =========================================================================
-        // 🏁 START: LIFECYCLE AND DEPENDENCY INJECTION
-        // =========================================================================
+        // [SECTION: Lifecycle & Dependency Injection]
+        // Stores the shared ConfigurationSettings instance used to locate mame.exe, mame.ini, and the error log path.
         public ProcessLaunchService(ConfigurationSettings settings)
         {
             _settings = settings;
         }
-        // =========================================================================
-        // 🛑 END: LIFECYCLE AND DEPENDENCY INJECTION
-        // =========================================================================
+        // [END SECTION: Lifecycle & Dependency Injection]
 
-        // =========================================================================
-        // 🏁 START: ASYNCHRONOUS EMULATOR EXECUTION AND LIFECYCLE TRACKER ENGINE
-        // =========================================================================
+        // [SECTION: Asynchronous Emulator Execution & Lifecycle Tracker Engine]
+        // Launches MAME for a given game: pauses gamepad polling, hides the launcher window, optionally
+        // patches mame.ini to force mouse support on for this run, starts the process on a background
+        // thread and waits for it to exit, captures stderr for error reporting, then reverts the ini
+        // patch and restores the launcher window + gamepad polling in the finally block regardless of
+        // success/failure. IMPORTANT: the pause/resume of inputService polling here is tied to the
+        // StopPollingLoopAsync deadlock fix - don't reorder these calls without retesting that fix.
         public async Task LaunchGameAsync(GameItem game, Window parentWindow, WGIService? inputService = null)
         {
             if (game == null) return;
@@ -65,6 +66,7 @@ namespace ArcadeStick.Services
             try
             {
                 // Dynamic configuration pass: injection matching specific game mouse rules
+                // Temporarily flips the "mouse" line in mame.ini to 1 for this launch only - reverted in the finally block below
                 if (game.IsMouseSupported && File.Exists(iniPath))
                 {
                     try
@@ -130,6 +132,7 @@ namespace ArcadeStick.Services
             finally
             {
                 // Dynamic configuration cleanup pass: revert changes to pristine default states
+                // Only runs if we actually flipped the mouse line above - restores it to 0 no matter how the launch ended
                 if (iniModified && File.Exists(iniPath))
                 {
                     try
@@ -161,12 +164,10 @@ namespace ArcadeStick.Services
                     catch { /* Prevent orphaned reference updates on sudden shutdown handles */ }
                 });
 
-                // Safely wake the physical hardware polling engine back up
+                // Safely wake the physical hardware polling engine back up - pairs with StopPollingLoopAsync() above
                 inputService?.StartPollingLoop();
             }
         }
-        // =========================================================================
-        // 🛑 END: ASYNCHRONOUS EMULATOR EXECUTION AND LIFECYCLE TRACKER ENGINE
-        // =========================================================================
+        // [END SECTION: Asynchronous Emulator Execution & Lifecycle Tracker Engine]
     }
 }

@@ -10,6 +10,9 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
             <StackPanel>
 
+                <!-- [SECTION: About Header / Legal / Donate] -->
+                <!-- Colors here are intentionally hardcoded (not theme-bound) so this text stays readable
+                     regardless of the active theme - see project notes on About tab text colors. -->
                 <Border Background="#F2F2F2" CornerRadius="4" Padding="10" Margin="0,0,0,15">
                     <StackPanel>
                         <TextBlock Text="ABOUT" 
@@ -51,6 +54,7 @@
                             <Run Text="If you have found 4RCADE 5TICK to be worthy of your hard drive space, feel free to donate:"/>
                         </TextBlock>
 
+                        <!-- Buy Me a Coffee button/link -->
                         <Image Source="{Binding BmacButtonAsset}"
                                Width="130"
                                HorizontalAlignment="Left"
@@ -59,9 +63,11 @@
                                MouseLeftButtonUp="BmacImage_MouseLeftButtonUp"/>
                     </StackPanel>
                 </Border>
+                <!-- [END SECTION: About Header / Legal / Donate] -->
 
                 <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
+                <!-- [SECTION: Features List] -->
                 <TextBlock Text="FEATURES" 
                            FontWeight="Bold" Margin="0,0,0,15"
                            FontSize="{Binding HeaderFontSize, FallbackValue=14}"
@@ -111,14 +117,17 @@
                     <LineBreak/>
                     <Run Text="* For those looking for a feature that auto-sorts games into folders, it's planned for a later release." FontStyle="Italic"/>
                 </TextBlock>
+                <!-- [END SECTION: Features List] -->
 
                 <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
+                <!-- [SECTION: Keyboard Shortcuts] -->
                 <TextBlock Text="KEYBOARD SHORTCUTS" 
                            FontWeight="Bold" Margin="0,0,0,15"
                            FontSize="{Binding HeaderFontSize, FallbackValue=14}"
                            Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
 
+                <!-- Ctrl+F: Favorites -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -130,6 +139,7 @@
                     <TextBlock Grid.Column="1" Text="Adds/Removes Selected Game From Favorites" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
+                <!-- Ctrl+G: Custom Folders -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -141,6 +151,7 @@
                     <TextBlock Grid.Column="1" Text="Select Game, Then Hit Hotkey To Create And Manage Custom Folders." Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
+                <!-- Ctrl+M: Mouse Support -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -152,6 +163,7 @@
                     <TextBlock Grid.Column="1" Text="Activate Persistent Mouse Support For Selected Game" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
+                <!-- Ctrl+O: Options Window -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -163,6 +175,7 @@
                     <TextBlock Grid.Column="1" Text="Opens This Options Window" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
+                <!-- F11: Fullscreen Toggle -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -174,6 +187,7 @@
                     <TextBlock Grid.Column="1" Text="Toggles Fullscreen Mode" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
+                <!-- Esc: Close App -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -184,14 +198,17 @@
                     </Border>
                     <TextBlock Grid.Column="1" Text="Closes Arcade Stick" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
+                <!-- [END SECTION: Keyboard Shortcuts] -->
 
                 <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
+                <!-- [SECTION: Joystick Controls] -->
                 <TextBlock Text="JOYSTICK CONTROLS (Xbox 360 controller)" 
                            FontWeight="Bold" Margin="0,0,0,15"
                            FontSize="{Binding HeaderFontSize, FallbackValue=14}"
                            Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
 
+                <!-- D-Pad/Joystick: Navigate -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -203,6 +220,7 @@
                     <TextBlock Grid.Column="1" Text="Navigate Games List" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
+                <!-- Start: Launch Game -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -214,6 +232,7 @@
                     <TextBlock Grid.Column="1" Text="Launches Selected Game" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
+                <!-- A: Open/Close Folders -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -225,6 +244,7 @@
                     <TextBlock Grid.Column="1" Text="Opens/Closes Folders" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
+                <!-- Y: Toggle Favorite -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="110"/>
@@ -235,7 +255,7 @@
                     </Border>
                     <TextBlock Grid.Column="1" Text="Adds/Removes Selected Game From Favorites" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
-
+                <!-- [END SECTION: Joystick Controls] -->
 
 
 

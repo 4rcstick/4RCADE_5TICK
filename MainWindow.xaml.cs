@@ -1,8 +1,9 @@
-﻿// 🏗️ START: LAYERED PREVIEW AND ASSET MANAGEMENT OVERRIDES
+﻿// [SECTION: File Overrides] - Layered preview and asset management overrides for MainWindow
 using ArcadeStick.Services;
 using ArcadeStick.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -15,6 +16,7 @@ using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 
 namespace ArcadeStick.Services
 {
+    // Directional/action inputs normalized from raw gamepad events for navigation handling below
     public enum GamepadAction
     {
         None,
@@ -39,9 +41,12 @@ namespace ArcadeStick
         public WGIService? GamepadService => _gamepadService;
         public MediaPlayer? VlcMediaPlayer { get; private set; }
 
+        // [SECTION: Constructor & LibVLC Setup]
+        // Initializes LibVLC (portable path if bundled, else system install), wires media player events,
+        // sets up the view model, and hooks window lifecycle + gamepad input.
         public MainWindow()
         {
-            string libVlcPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "arcadestick_files", "libvlc");
+            string libVlcPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "4rcade5tick_files", "libvlc");
 
             if (Directory.Exists(libVlcPath))
             {
@@ -56,6 +61,7 @@ namespace ArcadeStick
             VlcMediaPlayer = new MediaPlayer(_libVLC);
             VlcMediaPlayer.Mute = true;
 
+            // Loop the preview video when it reaches the end
             VlcMediaPlayer.EndReached += (s, e) =>
             {
                 Dispatcher.BeginInvoke(new Action(() =>
@@ -65,6 +71,7 @@ namespace ArcadeStick
                 }));
             };
 
+            // Swallow playback errors (e.g. missing/corrupt preview file) by stopping cleanly
             VlcMediaPlayer.EncounteredError += (s, e) =>
             {
                 Dispatcher.BeginInvoke(new Action(() => VlcMediaPlayer.Stop()));
@@ -76,7 +83,9 @@ namespace ArcadeStick
             DataContext = _viewModel;
 
             _viewModel.GameLaunchCompleted += RefreshVideoPreview;
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
 
+            // Post-load startup sequence: sync ROM paths, load the database, set idle media state, start gamepad polling
             Loaded += async (s, e) =>
             {
                 _ = _viewModel.SyncMameRomPathsAsync();
@@ -85,6 +94,7 @@ namespace ArcadeStick
                 InitializeGamepadInput();
             };
 
+            // Dispose native/unmanaged resources on window close
             Unloaded += (s, e) =>
             {
                 _gamepadService?.Dispose();
@@ -94,7 +104,10 @@ namespace ArcadeStick
 
             KeyDown += MainWindow_KeyDown;
         }
+        // [END SECTION: Constructor & LibVLC Setup]
 
+        // [SECTION: Gamepad Input Handling]
+        // Subscribes to WGIService events and routes directional/button input into tree navigation and launch actions.
         private void InitializeGamepadInput()
         {
             _gamepadService = new WGIService(_viewModel.Configuration);
@@ -113,6 +126,13 @@ namespace ArcadeStick
                 {
                     HandleGamepadButton(GamepadAction.Select);
                 }
+                else if (button == Windows.Gaming.Input.GamepadButtons.Y)
+                {
+                    if (_viewModel.SelectedGame != null)
+                    {
+                        Dispatcher.BeginInvoke(new Action(() => _viewModel.ToggleFavorite(_viewModel.SelectedGame)));
+                    }
+                }
                 else if (button == Windows.Gaming.Input.GamepadButtons.Menu)
                 {
                     Dispatcher.BeginInvoke(new Action(() => TriggerActiveSelectionLaunch()));
@@ -122,6 +142,7 @@ namespace ArcadeStick
             _gamepadService.StartPollingLoop();
         }
 
+        // Handles Up/Down gamepad movement by walking the flattened visible tree rows
         private void HandleGamepadMovement(GamepadAction action)
         {
             Dispatcher.Invoke(() =>
@@ -131,6 +152,7 @@ namespace ArcadeStick
             });
         }
 
+        // Handles Select/Back gamepad button presses: expand/collapse a folder or launch the selected game
         private void HandleGamepadButton(GamepadAction action)
         {
             Dispatcher.Invoke(() =>
@@ -157,7 +179,11 @@ namespace ArcadeStick
                 }
             });
         }
+        // [END SECTION: Gamepad Input Handling]
 
+        // [SECTION: TreeView Navigation / Flattening]
+        // Builds a flat list of currently visible TreeViewItems (respecting expand/collapse state) to
+        // support linear Up/Down gamepad navigation across nested folders and games.
         private void NavigateTreeRowsFlat(int offset)
         {
             var visibleContainers = new List<TreeViewItem>();
@@ -203,6 +229,7 @@ namespace ArcadeStick
             }
         }
 
+        // Recursively appends a container and its expanded children to the flat visible-rows list
         private void BuildFlatVisibleTreeList(TreeViewItem container, List<TreeViewItem> flatList)
         {
             flatList.Add(container);
@@ -219,24 +246,19 @@ namespace ArcadeStick
                 }
             }
         }
+        // [END SECTION: TreeView Navigation / Flattening]
 
-        // 🏗️ START MEDIA CLEANUP
-        private void TriggerActiveSelectionLaunch()
+        // [SECTION: Video Preview & Media Cleanup]
+        // Manages the LibVLC VideoPreview control's visibility and playback state as game selection changes.
+        // NOTE: known beta trade-off - preview stays black after returning from MAME until reselection.
+
+        // Fired whenever the ViewModel's SelectedGame/VideoSourcePath actually resolves (post-debounce) -
+        // starts/stops video preview here rather than in GameTree_SelectedItemChanged, so rapid gamepad
+        // scrolling doesn't trigger a LibVLC Media load on every intermediate step, only the final selection.
+        private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (_viewModel.SelectedGame != null && _viewModel.LaunchGameCommand.CanExecute(this))
+            if (e.PropertyName == nameof(_viewModel.VideoSourcePath))
             {
-                VlcMediaPlayer?.Stop();
-                VideoPreview.Visibility = Visibility.Collapsed;
-                _viewModel.LaunchGameCommand.Execute(this);
-            }
-        }
-
-        private void GameTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (_viewModel != null)
-            {
-                _viewModel.SelectedGame = e.NewValue as Models.GameItem;
-
                 if (_viewModel.SelectedGame != null && !string.IsNullOrEmpty(_viewModel.VideoSourcePath))
                 {
                     VideoPreview.Visibility = Visibility.Visible;
@@ -250,6 +272,17 @@ namespace ArcadeStick
             }
         }
 
+        // Fired when the TreeView selection changes; just updates SelectedGame - video preview playback
+        // is handled separately in ViewModel_PropertyChanged, once VideoSourcePath actually resolves.
+        private void GameTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (_viewModel != null)
+            {
+                _viewModel.SelectedGame = e.NewValue as Models.GameItem;
+            }
+        }
+
+        // Stops any current playback and starts the video preview at the given path
         private void PlayVideoPreview(string path)
         {
             if (_libVLC == null || VlcMediaPlayer == null) return;
@@ -259,6 +292,7 @@ namespace ArcadeStick
             VlcMediaPlayer.Play(media);
         }
 
+        // Re-evaluates and restarts the video preview for the currently selected game (called after returning from a game launch)
         private void RefreshVideoPreview()
         {
             if (_viewModel.SelectedGame != null && !string.IsNullOrEmpty(_viewModel.VideoSourcePath))
@@ -273,13 +307,16 @@ namespace ArcadeStick
             }
         }
 
+        // Sets the idle/boot-splash media state at startup (no game selected, no video playing)
         private void ApplyDefaultMedia()
         {
             VideoPreview.Visibility = Visibility.Collapsed;
             VlcMediaPlayer?.Stop();
         }
-        // 🏗️ END MEDIA CLEANUP
+        // [END SECTION: Video Preview & Media Cleanup]
 
+        // [SECTION: Mouse Double-Click Launch]
+        // Double-clicking a game row launches it; double-clicking a folder row toggles expand/collapse.
         private void GameTree_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var rowContainer = FindVisualParent<TreeViewItem>(e.OriginalSource as DependencyObject);
@@ -301,6 +338,7 @@ namespace ArcadeStick
             }
         }
 
+        // Walks up the visual tree from a click/event source to find the nearest ancestor of type T
         private static T? FindVisualParent<T>(DependencyObject? child) where T : DependencyObject
         {
             while (child != null)
@@ -310,7 +348,22 @@ namespace ArcadeStick
             }
             return null;
         }
+        // [END SECTION: Mouse Double-Click Launch]
 
+        // Stops the video preview and hands off to the LaunchGameCommand for the currently selected game
+        private void TriggerActiveSelectionLaunch()
+        {
+            if (_viewModel.SelectedGame != null && _viewModel.LaunchGameCommand.CanExecute(this))
+            {
+                VlcMediaPlayer?.Stop();
+                VideoPreview.Visibility = Visibility.Collapsed;
+                _viewModel.LaunchGameCommand.Execute(this);
+            }
+        }
+
+        // [SECTION: Keyboard Shortcuts]
+        // Global hotkey handling: Ctrl+O (Options), F11 (fullscreen toggle), Ctrl+F (favorite),
+        // Ctrl+D (dev mode), Ctrl+C (copy ROM name), Escape (close), Ctrl+G (playlists), Ctrl+M (mouse support toggle).
         private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             bool isCtrl = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
@@ -419,7 +472,11 @@ namespace ArcadeStick
                 return;
             }
         }
+        // [END SECTION: Keyboard Shortcuts]
 
+        // [SECTION: Options Window]
+        // Opens the Options window modally, pauses video playback while it's open, wires live gamepad
+        // diagnostics, and refreshes theme bindings + the video preview once it closes.
         private void OpenOptionsWindow()
         {
             VlcMediaPlayer?.Stop();
@@ -437,11 +494,15 @@ namespace ArcadeStick
             RefreshVideoPreview();
         }
 
+        // Footer gear icon click handler - opens the Options window
         private void BtnOpenOptionsGear_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             OpenOptionsWindow();
         }
+        // [END SECTION: Options Window]
 
+        // [SECTION: Options Gear Icon Hover]
+        // Brightens/dims the footer gear icon on mouse enter/leave for a simple hover affordance.
         private void OptionsGearIcon_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
             OptionsGearIcon.Foreground = System.Windows.Media.Brushes.White;
@@ -452,7 +513,11 @@ namespace ArcadeStick
             OptionsGearIcon.Foreground = new System.Windows.Media.SolidColorBrush(
                 (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#888888"));
         }
+        // [END SECTION: Options Gear Icon Hover]
 
+        // [SECTION: TreeView Expand/Collapse Sync]
+        // Enforces single-branch-open behavior: expanding a folder collapses sibling folders that
+        // aren't ancestors of the expanded node, and scrolls the expanded node into view.
         private void GameTree_Expanded(object sender, RoutedEventArgs e)
         {
             if (_isTogglingMouseSupport) return;
@@ -470,6 +535,7 @@ namespace ArcadeStick
             }
         }
 
+        // Recursively collapses any sibling node that is not the expanded node or one of its ancestors
         private void CollapseSiblingsRecursive(ItemContainerGenerator generator, System.Collections.IEnumerable items, object expandedDataContext)
         {
             foreach (var item in items)
@@ -491,6 +557,7 @@ namespace ArcadeStick
             }
         }
 
+        // Recursively checks whether targetItem is a descendant (sub-folder or game) of parentNode
         private bool IsChildOfNode(object parentNode, object targetItem)
         {
             if (parentNode is ViewModels.TreeCategoryNode categoryNode)
@@ -504,7 +571,10 @@ namespace ArcadeStick
             }
             return false;
         }
+        // [END SECTION: TreeView Expand/Collapse Sync]
 
+        // [SECTION: TreeView Container Lookup Helpers]
+        // Recursively searches the TreeView's generated containers to find the TreeViewItem for a given data item.
         private TreeViewItem? FindTreeViewItemContainer(ItemsControl parent, object item)
         {
             var container = parent.ItemContainerGenerator.ContainerFromItem(item) as TreeViewItem;
@@ -521,6 +591,7 @@ namespace ArcadeStick
             }
             return null;
         }
+        // [END SECTION: TreeView Container Lookup Helpers]
     }
 }
-// 🏗️ END: LAYERED PREVIEW AND ASSET MANAGEMENT OVERRIDES
+// [END SECTION: File Overrides]

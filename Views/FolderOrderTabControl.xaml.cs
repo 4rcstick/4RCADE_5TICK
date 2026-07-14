@@ -19,6 +19,10 @@ namespace ArcadeStick.Views
             InitializeComponent();
         }
 
+        // [SECTION: Load - Discover & Merge Folder Order]
+        // Discovers all current top-level folder headers from the live tree (excluding FAVORITES, which
+        // isn't user-orderable), merges them against the saved order in folder_order.cfg, and appends any
+        // newly discovered folders (not yet in the saved order) alphabetically at the end.
         public void Initialize(ArcadeStick.ViewModels.MainViewModel viewModel, ArcadeStick.Models.ConfigurationSettings settings)
         {
             _viewModel = viewModel;
@@ -58,7 +62,11 @@ namespace ArcadeStick.Views
             LstFolderOrder.ItemsSource = _folderCategories;
             if (LstFolderOrder.Items.Count > 0) LstFolderOrder.SelectedIndex = 0;
         }
+        // [END SECTION: Load - Discover & Merge Folder Order]
 
+        // [SECTION: Reorder Controls]
+        // Moves the selected list item one position up or down within _folderCategories, keeping selection
+        // on the moved item.
         private void BtnFolderUp_Click(object sender, RoutedEventArgs e)
         {
             int selectedIndex = LstFolderOrder.SelectedIndex;
@@ -82,7 +90,11 @@ namespace ArcadeStick.Views
                 LstFolderOrder.SelectedIndex = selectedIndex + 1;
             }
         }
+        // [END SECTION: Reorder Controls]
 
+        // [SECTION: Save Folder Order]
+        // Persists the current _folderCategories order to folder_order.cfg and triggers a live tree
+        // rebuild so the Game List panel immediately reflects the new order.
         private void BtnSaveFolderOrder_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -98,5 +110,6 @@ namespace ArcadeStick.Views
                 MessageBox.Show($"Failed to commit category sequence: {ex.Message}", "Storage Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        // [END SECTION: Save Folder Order]
     }
 }

@@ -14,7 +14,11 @@
         BorderThickness="1"
         Foreground="White">
 
+    <!-- This window handles both creating a new custom folder (playlist) and editing/deleting an
+         existing one - which mode is active is driven by FolderComboBox selection in code-behind. -->
     <Window.Resources>
+        <!-- [SECTION: Custom ComboBoxItem Style] -->
+        <!-- Themed dropdown item style used by FolderComboBox below -->
         <Style TargetType="ComboBoxItem">
             <Setter Property="Padding" Value="8,5"/>
             <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2D2D35}"/>
@@ -42,7 +46,10 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- [END SECTION: Custom ComboBoxItem Style] -->
 
+        <!-- [SECTION: Standard Button Style] -->
+        <!-- Shared button style for this window's action buttons (Confirm/Cancel/Delete/Remove) -->
         <Style x:Key="StandardButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="{Binding BtnBgColorHex, FallbackValue=#2D2D35}"/>
             <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=White}"/>
@@ -66,6 +73,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <!-- [END SECTION: Standard Button Style] -->
     </Window.Resources>
 
     <Border Margin="20" 
@@ -82,6 +90,9 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
+            <!-- [SECTION: Folder Picker ComboBox] -->
+            <!-- Custom-templated dropdown: "Create New Folder..." plus existing custom folders.
+                 Selection here drives whether the window is in create-new vs edit-existing mode. -->
             <ComboBox x:Name="FolderComboBox" 
                   Grid.Row="0" 
                   Height="35" 
@@ -148,7 +159,10 @@
                     </ControlTemplate>
                 </ComboBox.Template>
             </ComboBox>
+            <!-- [END SECTION: Folder Picker ComboBox] -->
 
+            <!-- [SECTION: Folder Name Input] -->
+            <!-- Only relevant/visible when creating a new folder - hidden when editing an existing one -->
             <StackPanel Grid.Row="1" Margin="0,0,0,20">
                 <TextBlock Text="Folder Name:" 
                        Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" 
@@ -163,7 +177,11 @@
                      VerticalContentAlignment="Center"
                      Padding="5,0"/>
             </StackPanel>
+            <!-- [END SECTION: Folder Name Input] -->
 
+            <!-- [SECTION: Hex Color + Remove Row] -->
+            <!-- Optional #hexcolor override for the folder tag, plus a button to remove the currently
+                 selected game from the active custom folder (edit mode only) -->
             <UniformGrid Grid.Row="2" Columns="2" Margin="0,0,0,15">
                 <TextBox x:Name="HexColorTextBox" 
                      Height="35" 
@@ -172,16 +190,18 @@
                      Foreground="White" 
                      VerticalContentAlignment="Center"
                      Padding="5,0"/>
-            <Button x:Name="RemoveButton" 
+                <Button x:Name="RemoveButton" 
                     Style="{StaticResource StandardButtonStyle}"
                     Content="Remove From Custom Folder" 
                     Height="35" 
                     Margin="10,0,0,0" 
                     Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#CC1111}" 
                     FontWeight="Bold"/>
-        </UniformGrid>
+            </UniformGrid>
+            <!-- [END SECTION: Hex Color + Remove Row] -->
 
-        <Button x:Name="DeleteFolderButton" 
+            <!-- Deletes the entire selected custom folder (edit mode only) -->
+            <Button x:Name="DeleteFolderButton" 
                 Grid.Row="3" 
                 Style="{StaticResource StandardButtonStyle}"
                 Content="Delete Entire Folder" 
@@ -189,14 +209,15 @@
                 Margin="0,0,0,20" 
                 Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#CC1111}"/>
 
-        <Grid Grid.Row="5">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="10"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+            <!-- [SECTION: Confirm / Cancel Row] -->
+            <Grid Grid.Row="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <Button x:Name="ConfirmButton" 
+                <Button x:Name="ConfirmButton" 
                     Grid.Column="0" 
                     Style="{StaticResource StandardButtonStyle}"
                     Content="Confirm Add" 
@@ -213,5 +234,6 @@
                     Height="35"/>
             </Grid>
         </Grid>
+        <!-- [END SECTION: Confirm / Cancel Row] -->
     </Border>
 </Window>

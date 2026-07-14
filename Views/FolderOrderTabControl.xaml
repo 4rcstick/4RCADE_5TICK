@@ -22,14 +22,14 @@
                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
                    Text="To adjust what order the folders are displayed in the Game List Panel, select one below and use the up/down buttons to move it to it's desired position."/>
 
-   
-        
+        <!-- [SECTION: Folder Order List + Controls] -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="240"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            <!-- Displays the current folder order; selection drives BtnFolderUp/Down -->
             <ListBox x:Name="LstFolderOrder" Grid.Column="0" 
                      Background="#000000" Foreground="#F2F2F7" 
                      BorderBrush="#3A3A3C" BorderThickness="1" 
@@ -41,6 +41,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
+                <!-- Reorder buttons: move the selected list item up/down -->
                 <StackPanel Grid.Row="0" HorizontalAlignment="Left">
                     <Button x:Name="BtnFolderUp" Content="Up ▲" 
                             Width="100" Height="35" Margin="0,0,0,15"
@@ -59,6 +60,7 @@
                             FontWeight="SemiBold" Click="BtnFolderDown_Click"/>
                 </StackPanel>
 
+                <!-- Persists the current list order to the folder_order config file -->
                 <Button x:Name="BtnSaveFolderOrder" Content="Save Folders" 
                         Grid.Row="1" Width="120" Height="35" 
                         HorizontalAlignment="Left" VerticalAlignment="Bottom"
@@ -69,5 +71,6 @@
                         FontWeight="SemiBold" Click="BtnSaveFolderOrder_Click"/>
             </Grid>
         </Grid>
+        <!-- [END SECTION: Folder Order List + Controls] -->
     </Grid>
 </UserControl>

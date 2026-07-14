@@ -12,6 +12,9 @@ namespace ArcadeStick.Views
             InitializeComponent();
         }
 
+        // [SECTION: Load / Save Sync]
+        // Load side: populates ROMs/BIOS/CHD path TextBoxes from ConfigurationSettings. Called by
+        // OptionsWindow when this tab is shown.
         public void Initialize(ArcadeStick.Models.ConfigurationSettings settings)
         {
             _settings = settings;
@@ -21,13 +24,23 @@ namespace ArcadeStick.Views
             TxtChdPath.Text = _settings.ChdPath;
         }
 
+        // Save side: writes each TextBox's current text back into ConfigurationSettings. NOTE: these
+        // paths feed the boot-time ROM scan (see MainViewModel.InitializeDatabaseAsync /
+        // SyncMameRomPathsAsync) - changes here require an app restart to actually take effect, they're
+        // not picked up live.
         public void SyncToSettings()
         {
             _settings.RomsSubFolder = TxtRomsPath.Text;
             _settings.BiosPath = TxtBiosPath.Text;
             _settings.ChdPath = TxtChdPath.Text;
         }
+        // [END SECTION: Load / Save Sync]
 
+        // [SECTION: Folder Browse Handler]
+        // Shared handler for all three "..." browse buttons. Resolves which TextBox to update from the
+        // clicked button's name, opens a folder picker starting from the current path (or the MAME root
+        // if unset/invalid), then converts the selected path back to a relative path when it's on the same
+        // drive as the MAME root - keeps paths portable for USB/relocatable deployments.
         private void BtnBrowseDirectory_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button clickedButton)
@@ -43,6 +56,7 @@ namespace ArcadeStick.Views
                 string mameRoot = _settings.GetMamePath();
                 string initialDir = mameRoot;
 
+                // Start the picker at the currently configured path if it's valid, otherwise fall back to MAME root
                 if (associatedTextBox != null && !string.IsNullOrWhiteSpace(associatedTextBox.Text))
                 {
                     try
@@ -73,6 +87,8 @@ namespace ArcadeStick.Views
                     string appDrive = System.IO.Path.GetPathRoot(mameRoot) ?? "";
                     string selectedDrive = System.IO.Path.GetPathRoot(selectedPath) ?? "";
 
+                    // Same-drive selections get converted to a relative path for portability;
+                    // cross-drive selections are kept absolute since a relative path wouldn't make sense
                     if (!string.IsNullOrEmpty(appDrive) && appDrive.Equals(selectedDrive, System.StringComparison.OrdinalIgnoreCase))
                     {
                         string relativePath = System.IO.Path.GetRelativePath(mameRoot, selectedPath);
@@ -83,5 +99,6 @@ namespace ArcadeStick.Views
                 }
             }
         }
+        // [END SECTION: Folder Browse Handler]
     }
 }

@@ -19,12 +19,17 @@ namespace ArcadeStick.Views
         private string MameDirectory => _settings.GetMamePath();
         private string MameIniPath => Path.Combine(MameDirectory, "mame.ini");
 
+        // [SECTION: Load mame.ini Values]
+        // Reads mame.ini directly and maps recognized keys onto this tab's controls.
         public void Initialize(ArcadeStick.Models.ConfigurationSettings settings)
         {
             _settings = settings;
             LoadMameIniSettings();
         }
 
+        // Parses mame.ini line-by-line ("key value" pairs, # comments skipped) and populates the
+        // matching ComboBox/CheckBox. Note "throttle" and "disable throttling" are inverted (throttle=0 means
+        // throttling IS disabled, so ChkDisableThrottle is checked when the raw value is "0").
         private void LoadMameIniSettings()
         {
             if (string.IsNullOrEmpty(MameIniPath) || !File.Exists(MameIniPath)) return;
@@ -63,8 +68,16 @@ namespace ArcadeStick.Views
                 MessageBox.Show($"Error reading mame.ini: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        // [END SECTION: Load mame.ini Values]
 
-        public void UpdateMameIniAndSyncPaths()
+        // [SECTION: Save mame.ini Values]
+        // Writes this tab's own control values back into mame.ini in place, preserving all other lines
+        // including rompath. NOTE: rompath is intentionally NOT touched here - it is only written by
+        // MainViewModel.SyncMameRomPathsAsync's boot-time sync. This method used to also rebuild and
+        // overwrite rompath on every save via BuildPortableRomPathString, which clobbered manually-organized
+        // category subfolders (Fighters/Shooters/Maze/etc.) any time the user saved unrelated MAME.ini tab
+        // settings. Don't reintroduce a rompath write in this method without re-checking that history.
+        public void UpdateMameIniSettings()
         {
             if (string.IsNullOrEmpty(MameIniPath) || !File.Exists(MameIniPath))
             {
@@ -86,7 +99,6 @@ namespace ArcadeStick.Views
                 string valTriple = (ChkTripleBuffer.IsChecked == true) ? "1" : "0";
                 string valSyncRefresh = (ChkSyncRefresh.IsChecked == true) ? "1" : "0";
 
-                string finalizedRomPath = BuildPortableRomPathString();
                 List<string> fileLines = File.ReadAllLines(MameIniPath).ToList();
 
                 for (int i = 0; i < fileLines.Count; i++)
@@ -109,7 +121,6 @@ namespace ArcadeStick.Views
                     else if (key == "vsync") fileLines[i] = FormatIniLine(key, valVsync);
                     else if (key == "triplebuffer") fileLines[i] = FormatIniLine(key, valTriple);
                     else if (key == "syncrefresh") fileLines[i] = FormatIniLine(key, valSyncRefresh);
-                    else if (key == "rompath") fileLines[i] = FormatIniLine(key, finalizedRomPath);
                 }
                 File.WriteAllLines(MameIniPath, fileLines);
             }
@@ -119,7 +130,10 @@ namespace ArcadeStick.Views
             }
         }
 
-        private string BuildPortableRomPathString()
+        // Builds the rompath value: bios folder, base roms folder, plus every immediate subfolder of the
+        // roms folder, all as paths relative to the MAME directory (portable-friendly). Called only from
+        // MainViewModel.SyncMameRomPathsAsync's boot-time sync, not from this tab's Save.
+        public string BuildPortableRomPathString()
         {
             List<string> relativePaths = new List<string>();
             string biosDir = string.IsNullOrEmpty(_settings.BiosPath) ? "bios" : _settings.BiosPath;
@@ -143,9 +157,13 @@ namespace ArcadeStick.Views
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to scan subfolders: {ex.Message}"); }
             return string.Join(";", relativePaths);
         }
+        // [END SECTION: Save mame.ini Values]
 
+        // [SECTION: Helpers]
+        // Formats a single mame.ini "key value" line with consistent key column padding.
         private string FormatIniLine(string key, string value) => $"{key.PadRight(26)}{value}";
 
+        // Selects the ComboBoxItem whose Content matches the given raw ini value
         private void SetComboBoxValue(ComboBox box, string value)
         {
             foreach (ComboBoxItem item in box.Items)
@@ -153,5 +171,6 @@ namespace ArcadeStick.Views
                 if (item.Content.ToString() == value) { box.SelectedItem = item; break; }
             }
         }
+        // [END SECTION: Helpers]
     }
 }

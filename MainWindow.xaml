@@ -15,6 +15,8 @@
         SizeToContent="Manual">
 
     <Grid>
+        <!-- [SECTION: Root Grid Background Style] -->
+        <!-- Wallpaper image if set, else falls back to ThemeMainColor solid fill -->
         <Grid.Style>
             <Style TargetType="Grid">
                 <Setter Property="Background">
@@ -33,6 +35,7 @@
                 </Style.Triggers>
             </Style>
         </Grid.Style>
+        <!-- [END SECTION: Root Grid Background Style] -->
 
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -44,12 +47,14 @@
             <ColumnDefinition Width="880*"/>
         </Grid.ColumnDefinitions>
 
+        <!-- [SECTION: Left Column - Search + Game TreeView] -->
         <Grid Grid.Column="0" Margin="20,20,10,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <!-- Search label + textbox row -->
             <Grid Grid.Row="0" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="60"/>
@@ -59,6 +64,7 @@
                 <TextBox Grid.Column="1" x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="{Binding ThemeGamesColor, FallbackValue=#000000}" Foreground="#F2F2F7" FontSize="16" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" Padding="4"/>
             </Grid>
 
+            <!-- Game list panel container (wallpaper/color themed border wrapping the TreeView) -->
             <Border Grid.Row="1" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}">
                 <Border.Style>
                     <Style TargetType="Border">
@@ -88,6 +94,8 @@
                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
 
                     <TreeView.Resources>
+                        <!-- [SECTION: TreeView Scrollbar Template] -->
+                        <!-- Custom dark scrollbar (track/thumb/repeat buttons) themed via ThemeScrollTrack*/ThemeScrollThumb* bindings -->
                         <Style x:Key="ArcadeDarkScrollBar" TargetType="{x:Type ScrollBar}">
                             <Setter Property="Template">
                                 <Setter.Value>
@@ -146,6 +154,7 @@
                             </Setter>
                         </Style>
 
+                        <!-- ScrollViewer template wired to the custom scrollbar above -->
                         <Style TargetType="{x:Type ScrollViewer}">
                             <Setter Property="Template">
                                 <Setter.Value>
@@ -166,14 +175,18 @@
                                 </Setter.Value>
                             </Setter>
                         </Style>
+                        <!-- [END SECTION: TreeView Scrollbar Template] -->
 
+                        <!-- [SECTION: TreeView Folder/Game DataTemplates] -->
+                        <!-- Category/folder row template (e.g. SHOOTERS, FIGHTERS) -->
                         <HierarchicalDataTemplate DataType="{x:Type ViewModels:TreeCategoryNode}" ItemsSource="{Binding DisplayItems}">
-                            <Border x:Name="FolderRowBorder" Background="Transparent" HorizontalAlignment="Stretch" Padding="3,0,6,0">
+                            <Border x:Name="FolderRowBorder" Background="Transparent" HorizontalAlignment="Stretch" Padding="0,0,6,0">
                                 <Grid VerticalAlignment="Center" Margin="0,-1,0,-1">
                                     <TextBlock x:Name="FolderHeaderText" Text="{Binding HeaderText}" Foreground="{Binding FolderColor}" FontWeight="Bold" FontSize="{Binding DataContext.ThemeFolderFontSize, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=16}" Padding="2,0,2,0" Margin="0,1,0,1" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </Border>
                             <HierarchicalDataTemplate.Triggers>
+                                <!-- Selected folder row: swap background + text color -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
                                     <Setter TargetName="FolderRowBorder" Property="Background" Value="{Binding DataContext.ThemeFolderSelectedBgColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#2C2C2E}"/>
                                     <Setter TargetName="FolderHeaderText" Property="Foreground" Value="{Binding DataContext.ThemeFolderSelectedColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#00D4FF}"/>
@@ -181,13 +194,15 @@
                             </HierarchicalDataTemplate.Triggers>
                         </HierarchicalDataTemplate>
 
+                        <!-- Individual game row template (leaf nodes) -->
                         <DataTemplate DataType="{x:Type Models:GameItem}">
-                            <Border x:Name="GameRowBorder" Background="Transparent" HorizontalAlignment="Stretch" Padding="2,0,0,0">
-                                <Grid VerticalAlignment="Center" Margin="0,-1,0,-1">
+                            <Border x:Name="GameRowBorder" Background="Transparent" HorizontalAlignment="Stretch" Padding="0,0,0,0">
+                                <Grid VerticalAlignment="Center" Margin="0,-2,0,-2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
+                                    <!-- Mouse-support glyph, only shown when IsMouseSupported is true -->
                                     <Image x:Name="MouseGlyph" Grid.Column="0" Source="{Binding DataContext.MouseSupportIcon, RelativeSource={RelativeSource AncestorType=TreeView}}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,0,0" Visibility="Collapsed"/>
                                     <TextBlock x:Name="GameTitleText" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="{Binding DataContext.ThemeGameColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding DataContext.ThemeGameFontSize, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=14}" Padding="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
@@ -196,17 +211,22 @@
                                 <DataTrigger Binding="{Binding IsMouseSupported}" Value="True">
                                     <Setter TargetName="MouseGlyph" Property="Visibility" Value="Visible"/>
                                 </DataTrigger>
+                                <!-- Hover state -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsMouseOver}" Value="True">
                                     <Setter TargetName="GameTitleText" Property="Foreground" Value="{Binding DataContext.ThemeGameHoverColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#FFFFFF}"/>
                                 </DataTrigger>
+                                <!-- Selected state: swap row background + text color -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
                                     <Setter TargetName="GameRowBorder" Property="Background" Value="{Binding DataContext.ThemeGameSelectedBgColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#2C2C2E}"/>
                                     <Setter TargetName="GameTitleText" Property="Foreground" Value="{Binding DataContext.ThemeGameSelectedColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#00D4FF}"/>
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
+                        <!-- [END SECTION: TreeView Folder/Game DataTemplates] -->
                     </TreeView.Resources>
 
+                    <!-- [SECTION: TreeViewItem Expander Template] -->
+                    <!-- Custom TreeViewItem template: expand/collapse arrow + header + child items host -->
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="TreeViewItem">
                             <Setter Property="IsExpanded" Value="{Binding IsNodeExpanded, Mode=TwoWay}" />
@@ -218,10 +238,11 @@
                                         <StackPanel>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="19"/>
+                                                    <ColumnDefinition Width="20"/>
                                                     <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
 
+                                                <!-- Expand/collapse toggle arrow -->
                                                 <ToggleButton x:Name="Expander"
                                                               Grid.Column="0"
                                                               Width="16" Height="16"
@@ -233,13 +254,15 @@
                                                             <Setter Property="Template">
                                                                 <Setter.Value>
                                                                     <ControlTemplate TargetType="ToggleButton">
-                                                                        <Border Background="Transparent" Width="16" Height="16">
+                                                                        <!-- Arrows -->
+                                                                        <Border Background="Transparent" Width="16" Height="16" Margin="4,1,0,0">
                                                                             <Path x:Name="ExpandArrow"
                                                                                   Data="M 0 0 L 6 4 L 0 8 Z"
-                                                                                  Fill="#A0A0A2"
+                                                                                  Fill="{Binding DataContext.ThemeArrowColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#A0A0A2}"
                                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                         </Border>
                                                                         <ControlTemplate.Triggers>
+                                                                            <!-- Rotate arrow shape (right-pointing to down-pointing) when expanded -->
                                                                             <Trigger Property="IsChecked" Value="True">
                                                                                 <Setter TargetName="ExpandArrow" Property="Data" Value="M 0 0 L 8 0 L 4 6 Z"/>
                                                                             </Trigger>
@@ -251,12 +274,14 @@
                                                     </ToggleButton.Style>
                                                 </ToggleButton>
 
+                                                <!-- Row header content (folder name or game title, from the DataTemplates above) -->
                                                 <ContentPresenter x:Name="PART_Header"
                                                                   Grid.Column="1"
                                                                   ContentSource="Header"
                                                                   HorizontalAlignment="Stretch"/>
                                             </Grid>
 
+                                            <!-- Child items (nested categories/games), hidden until expanded -->
                                             <ItemsPresenter x:Name="ItemsHost" Margin="19,0,0,0" Visibility="Collapsed"/>
                                         </StackPanel>
 
@@ -264,6 +289,7 @@
                                             <Trigger Property="IsExpanded" Value="True">
                                                 <Setter TargetName="ItemsHost" Property="Visibility" Value="Visible"/>
                                             </Trigger>
+                                            <!-- Hide arrow entirely for leaf nodes with no children -->
                                             <Trigger Property="HasItems" Value="False">
                                                 <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
                                             </Trigger>
@@ -273,16 +299,21 @@
                             </Setter>
                         </Style>
                     </TreeView.ItemContainerStyle>
+                    <!-- [END SECTION: TreeViewItem Expander Template] -->
                 </TreeView>
             </Border>
         </Grid>
+        <!-- [END SECTION: Left Column - Search + Game TreeView] -->
 
+        <!-- [SECTION: Right Column - Marquee + Media Panels] -->
         <Grid Grid.Column="1" Margin="10,20,20,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="0.4*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <!-- ROW 0: MARQUEE / LOGO PANEL -->
+            <!-- Shows the theme logo asset by default, swaps to the game's marquee image once a game is selected -->
             <Border Grid.Row="0" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" Margin="0,0,0,20" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}">
                 <Border.Style>
                     <Style TargetType="Border">
@@ -303,6 +334,7 @@
                     </Style>
                 </Border.Style>
                 <Grid>
+                    <!-- Default logo, hidden once a game is selected -->
                     <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" Margin="10,10">
                         <Image.Style>
                             <Style TargetType="Image">
@@ -315,6 +347,7 @@
                             </Style>
                         </Image.Style>
                     </Image>
+                    <!-- Selected game's marquee image -->
                     <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" Margin="10,10"/>
                 </Grid>
             </Border>
@@ -322,6 +355,7 @@
 
 
             <!-- ROW 1: THE RIGHT SIDE MAIN MEDIA PANEL CONTAINER -->
+            <!-- Layered preview area: boot splash (idle) -> media wallpaper (game selected) -> flyer/video preview on top -->
             <Border Grid.Row="1" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" ClipToBounds="True" Padding="20">
                 <Border.Style>
                     <Style TargetType="Border">
@@ -335,6 +369,7 @@
 
                 <Grid>
 
+                    <!-- Layer 0 (back): boot splash image shown only when no game is selected -->
                     <Border x:Name="MediaLayer0_Back" Margin="-20" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
                         <Border.Style>
                             <Style TargetType="Border">
@@ -352,6 +387,7 @@
                         </Border.Style>
                     </Border>
 
+                    <!-- Layer 1 (back): themed media wallpaper, shown behind the preview once a game is selected -->
                     <Border x:Name="MediaLayer1_Back" Margin="-20" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
                         <Border.Style>
                             <Style TargetType="Border">
@@ -372,6 +408,7 @@
                         </Border.Style>
                     </Border>
 
+                    <!-- Layer 1 (front): flyer image + video preview, with a "missing preview" fallback wallpaper -->
                     <Grid x:Name="MediaLayer1_Front">
                         <Grid.Style>
                             <Style TargetType="Grid">
@@ -393,6 +430,7 @@
                             </Style>
                         </Grid.Style>
 
+                        <!-- Fixed 1600x900 canvas scaled to fit; flyer image and LibVLC video view are stacked in the same spot -->
                         <Viewbox Stretch="Uniform">
                             <Grid Width="1600" Height="900" Background="Transparent">
                                 <Image x:Name="FlyerPreview" Source="{Binding PreviewImage}" Stretch="Uniform"/>
@@ -406,7 +444,9 @@
 
 
         </Grid>
+        <!-- [END SECTION: Right Column - Marquee + Media Panels] -->
 
+        <!-- [SECTION: Footer Bar - Version + Options Gear] -->
         <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="20,0,20,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -415,11 +455,13 @@
             <TextBlock Grid.Column="0" Text="Version 1.0 Beta" FontSize="10" FontWeight="Bold" Foreground="DimGray" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="5,0,0,0"/>
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,5,0">
                 <TextBlock Text="© 2026 4RCHIMEDE5" FontSize="10" FontWeight="Bold" Foreground="DimGray" VerticalAlignment="Center"/>
+                <!-- Gear icon that opens the Options window -->
                 <Border x:Name="BtnOpenOptionsGear" Background="Transparent" Padding="6,2,2,2" Cursor="Hand" MouseLeftButtonUp="BtnOpenOptionsGear_MouseLeftButtonUp">
                     <TextBlock x:Name="OptionsGearIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#888888" VerticalAlignment="Center"
                                MouseEnter="OptionsGearIcon_MouseEnter" MouseLeave="OptionsGearIcon_MouseLeave"/>
                 </Border>
             </StackPanel>
         </Grid>
+        <!-- [END SECTION: Footer Bar - Version + Options Gear] -->
     </Grid>
 </Window>

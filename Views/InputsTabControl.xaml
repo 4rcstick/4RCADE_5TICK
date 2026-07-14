@@ -8,10 +8,13 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="15">
 
+            <!-- [SECTION: Subsystem Configuration] -->
+            <!-- Gamepad polling toggle + WGIService tuning values (device ID, deadzone, repeat timing, nav mode) -->
             <TextBlock Text="SUBSYSTEM CONFIGURATION" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,12"/>
 
             <CheckBox x:Name="ChkGamepad" Content="Enable Gamepad Polling Subsystem" Foreground="#F2F2F7" FontSize="13" IsChecked="True" Margin="0,0,0,8"/>
 
+            <!-- Which physical gamepad index to track (see WGIService.AssignTrackedGamepad) -->
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="220"/>
@@ -21,6 +24,7 @@
                 <TextBox Grid.Column="1" x:Name="TxtDeviceID" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Width="60" HorizontalAlignment="Left"/>
             </Grid>
 
+            <!-- Analog stick deadzone threshold, as a percentage -->
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="220"/>
@@ -30,6 +34,7 @@
                 <TextBox Grid.Column="1" x:Name="TxtJoystickDeadzone" Text="15" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Width="60" HorizontalAlignment="Left"/>
             </Grid>
 
+            <!-- Delay before held-direction repeat navigation kicks in -->
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="220"/>
@@ -39,6 +44,7 @@
                 <TextBox Grid.Column="1" x:Name="TxtJoystickInitialDelay" Text="500" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Width="60" HorizontalAlignment="Left"/>
             </Grid>
 
+            <!-- Interval between repeat-navigation ticks once held-direction repeat is active -->
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="220"/>
@@ -48,6 +54,7 @@
                 <TextBox Grid.Column="1" x:Name="TxtJoystickDelay" Text="150" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Width="60" HorizontalAlignment="Left"/>
             </Grid>
 
+            <!-- D-Pad / Analog / Both, controls which inputs ParseNavigation listens to -->
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="220"/>
@@ -60,13 +67,18 @@
                     <ComboBoxItem Content="Analog Only"/>
                 </ComboBox>
             </Grid>
+            <!-- [END SECTION: Subsystem Configuration] -->
 
             <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
+            <!-- [SECTION: Diagnostics & Real-Time Feedback] -->
+            <!-- Live-updated by WGIService.TriggerDiagnosticsUpdate (port dots/status) and
+                 ActiveInputUpdated (input readout line) via WireLiveDiagnostics in code-behind. -->
             <TextBlock Text="DIAGNOSTICS &amp; REAL-TIME FEEDBACK" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,12"/>
 
             <Border Background="#000000" Padding="10">
                 <StackPanel>
+                    <!-- Port 0 status dot + label -->
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="20"/>
@@ -78,6 +90,7 @@
                         <TextBlock x:Name="TxtPort0Status" Grid.Column="2" Text="No device detected" Foreground="#A0A0A2" FontSize="13" VerticalAlignment="Center"/>
                     </Grid>
 
+                    <!-- Port 1 status dot + label -->
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="20"/>
@@ -89,6 +102,7 @@
                         <TextBlock x:Name="TxtPort1Status" Grid.Column="2" Text="No device detected" Foreground="#A0A0A2" FontSize="13" VerticalAlignment="Center"/>
                     </Grid>
 
+                    <!-- Port 2 status dot + label -->
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="20"/>
@@ -100,6 +114,7 @@
                         <TextBlock x:Name="TxtPort2Status" Grid.Column="2" Text="No device detected" Foreground="#A0A0A2" FontSize="13" VerticalAlignment="Center"/>
                     </Grid>
 
+                    <!-- Port 3 status dot + label -->
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="20"/>
@@ -111,6 +126,7 @@
                         <TextBlock x:Name="TxtPort3Status" Grid.Column="2" Text="No device detected" Foreground="#A0A0A2" FontSize="13" VerticalAlignment="Center"/>
                     </Grid>
 
+                    <!-- Live readout of currently active button/stick input (from ActiveInputUpdated) -->
                     <Grid Margin="5,10,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="auto"/>
@@ -120,6 +136,7 @@
                     </Grid>
                 </StackPanel>
             </Border>
+            <!-- [END SECTION: Diagnostics & Real-Time Feedback] -->
 
         </StackPanel>
     </ScrollViewer>

@@ -23,6 +23,9 @@
                     BorderThickness="1" 
                     Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}">
 
+            <!-- [SECTION: Custom TabControl Template] -->
+            <!-- WPF's default TabControl template has internal overlap math that can't be fixed with
+                 margin nudges - this fully custom Grid/TabPanel/ContentPresenter layout replaces it entirely. -->
             <TabControl.Template>
                 <ControlTemplate TargetType="TabControl">
                     <Grid>
@@ -45,7 +48,10 @@
                     </Grid>
                 </ControlTemplate>
             </TabControl.Template>
+            <!-- [END SECTION: Custom TabControl Template] -->
 
+            <!-- [SECTION: Custom TabItem Style] -->
+            <!-- Themed tab header: normal / hover / selected states, all theme-bound with fallbacks -->
             <TabControl.Resources>
                 <Style TargetType="TabItem">
                     <Setter Property="Height" Value="25"/>
@@ -87,7 +93,11 @@
                     </Setter>
                 </Style>
             </TabControl.Resources>
+            <!-- [END SECTION: Custom TabItem Style] -->
 
+            <!-- [SECTION: Tab Pages] -->
+            <!-- Each tab hosts its own UserControl (see Views folder); OptionsWindow.xaml.cs calls each
+                 tab's Initialize()/SyncToSettings() to load/save its portion of ConfigurationSettings. -->
             <TabItem Header="ABOUT">
                 <views:AboutTabControl/>
             </TabItem>
@@ -119,8 +129,10 @@
             <TabItem Header="MAME.ini">
                 <views:MAMEiniTabControl x:Name="MameIniTab"/>
             </TabItem>
+            <!-- [END SECTION: Tab Pages] -->
         </TabControl>
 
+        <!-- [SECTION: Save / Close Button Row] -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
             <Button Content="Save Adjustments" x:Name="BtnSaveOptions" Click="BtnSaveOptions_Click" 
                     Style="{StaticResource ThemedActionButtonStyle}"
@@ -135,5 +147,6 @@
                     BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}"
                     BorderThickness="1" Padding="15,6"/>
         </StackPanel>
+        <!-- [END SECTION: Save / Close Button Row] -->
     </Grid>
 </Window>

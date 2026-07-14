@@ -5,360 +5,409 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ArcadeStick.Views"
         mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
+    <!-- Theme Builder property sync points live in code-behind (ThemesTabControl.xaml.cs):
+         LoadCurrentThemeValuesIntoUi(), the themeDto builder in BtnSaveTheme_Click, and
+         BtnLoadTheme_Click. Any new theme control added here must be wired into all three,
+         or it will silently revert to XAML defaults - see project notes on Theme Builder sync points. -->
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
             <StackPanel Margin="15">
 
-            <TextBlock Text="THEME BUILDER GUIDE" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-            <TextBlock Text="Select an existing theme and click Load Theme to edit it, or choose [New Theme...] and enter a name to start fresh. Save/Apply Changes writes your edits to the named theme file and applies them immediately. Save Adjustments (below) only saves your current settings so they persist on next launch, without updating the theme file itself. Delete Theme permanently removes the selected theme." Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" TextWrapping="Wrap" Margin="0,0,0,15"/>
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+                <!-- [SECTION: Theme Builder Guide] -->
+                <TextBlock Text="THEME BUILDER GUIDE" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <TextBlock Text="Select an existing theme and click Load Theme to edit it, or choose [New Theme...] and enter a name to start fresh. Save/Apply Changes writes your edits to the named theme file and applies them immediately. Save Adjustments (below) only saves your current settings so they persist on next launch, without updating the theme file itself. Delete Theme permanently removes the selected theme." Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+                <!-- [END SECTION: Theme Builder Guide] -->
 
-            <TextBlock Text="THEMES MANAGER" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-            <Grid Margin="0,0,0,15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="8"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                <!-- [SECTION: Themes Manager] -->
+                <!-- Custom-templated ComboBox listing saved themes (+ "New Theme..."), a conditional
+                 New Theme Name field, and Load/Save-Apply/Delete buttons. -->
+                <TextBlock Text="THEMES MANAGER" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Text="Active Theme:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox x:Name="CboThemePresets" Width="150" Height="25" 
+                    <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
+                        <TextBlock Text="Active Theme:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="CboThemePresets" Width="150" Height="25" 
           Foreground="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=White}">
-                        <ComboBox.Template>
-                            <ControlTemplate TargetType="ComboBox">
-                                <Grid>
-                                    <ToggleButton x:Name="ToggleButton" Focusable="false" 
+                            <ComboBox.Template>
+                                <ControlTemplate TargetType="ComboBox">
+                                    <Grid>
+                                        <ToggleButton x:Name="ToggleButton" Focusable="false" 
                               IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press">
-                                        <ToggleButton.Template>
-                                            <ControlTemplate TargetType="ToggleButton">
-                                                <Border Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
+                                            <ToggleButton.Template>
+                                                <ControlTemplate TargetType="ToggleButton">
+                                                    <Border Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
                                     BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" 
                                     BorderThickness="1">
-                                                    <Path x:Name="Arrow" 
+                                                        <Path x:Name="Arrow" 
                                       Fill="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}" 
                                       HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Data="M 0 0 L 4 4 L 8 0 Z"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </ToggleButton.Template>
-                                    </ToggleButton>
-                                    <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" 
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </ToggleButton.Template>
+                                        </ToggleButton>
+                                        <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" 
                                   Content="{TemplateBinding SelectionBoxItem}" Margin="8,0,25,0" 
                                   VerticalAlignment="Center" HorizontalAlignment="Left" />
-                                    <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
-                                        <Grid x:Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                            <Border x:Name="DropDownBorder" 
+                                        <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                            <Grid x:Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                                <Border x:Name="DropDownBorder" 
                                 Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
                                 BorderThickness="1" 
                                 BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                            <ScrollViewer Margin="1" SnapsToDevicePixels="True">
-                                                <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
-                                            </ScrollViewer>
-                                        </Grid>
-                                    </Popup>
-                                </Grid>
-                            </ControlTemplate>
-                        </ComboBox.Template>
-                        <ComboBox.ItemContainerStyle>
-                            <Style TargetType="ComboBoxItem">
-                                <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
-                                <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
-                                <Setter Property="Padding" Value="8,4"/>
-                                <Setter Property="BorderThickness" Value="0"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsHighlighted" Value="True">
-                                        <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
-                                        <Setter Property="Foreground" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ComboBox.ItemContainerStyle>
-                    </ComboBox>
-                </StackPanel>
+                                                <ScrollViewer Margin="1" SnapsToDevicePixels="True">
+                                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                                </ScrollViewer>
+                                            </Grid>
+                                        </Popup>
+                                    </Grid>
+                                </ControlTemplate>
+                            </ComboBox.Template>
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="ComboBoxItem">
+                                    <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                    <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
+                                    <Setter Property="Padding" Value="8,4"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsHighlighted" Value="True">
+                                            <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
+                                            <Setter Property="Foreground" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ComboBox.ItemContainerStyle>
+                        </ComboBox>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="0" Grid.Row="2" x:Name="PnlNewThemeName" Orientation="Horizontal" Visibility="Collapsed">
-                    <TextBlock Text="New Theme Name:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBox x:Name="TxtNewThemeName" Width="123" Height="25" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                    <!-- Only visible when "[New Theme...]" is selected in the dropdown above -->
+                    <StackPanel Grid.Column="0" Grid.Row="2" x:Name="PnlNewThemeName" Orientation="Horizontal" Visibility="Collapsed">
+                        <TextBlock Text="New Theme Name:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBox x:Name="TxtNewThemeName" Width="123" Height="25" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" Orientation="Horizontal" VerticalAlignment="Top" Margin="10,0,0,0">
-                    <Button x:Name="BtnLoadTheme" Content="Load Theme" Width="95" Height="25" 
+                    <!-- Load / Save-Apply / Delete theme actions -->
+                    <StackPanel Grid.Column="1" Grid.Row="0" Grid.RowSpan="3" Orientation="Horizontal" VerticalAlignment="Top" Margin="10,0,0,0">
+                        <Button x:Name="BtnLoadTheme" Content="Load Theme" Width="95" Height="25" 
                             Style="{StaticResource ThemedActionButtonStyle}"
                             Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
                             Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" 
                             BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" 
                             BorderThickness="1" FontWeight="SemiBold" Margin="0,0,5,0"/>
-                    <Button x:Name="BtnSaveTheme" Content="Save/Apply Changes" Width="130" Height="25" 
+                        <Button x:Name="BtnSaveTheme" Content="Save/Apply Changes" Width="130" Height="25" 
                             Style="{StaticResource ThemedActionButtonStyle}"
                             Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
                             Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
                             BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" 
                             BorderThickness="1" FontWeight="SemiBold" Margin="0,0,5,0"/>
-                    <Button x:Name="BtnDeleteTheme" Content="Delete Theme" Width="95" Height="25" 
+                        <Button x:Name="BtnDeleteTheme" Content="Delete Theme" Width="95" Height="25" 
                             Style="{StaticResource ThemedActionButtonStyle}"
                             Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
                             Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FF453A}" 
                             BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FF453A}" 
                             BorderThickness="1" FontWeight="SemiBold"/>
-                </StackPanel>
-            </Grid>
+                    </StackPanel>
+                </Grid>
+                <!-- [END SECTION: Themes Manager] -->
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-            <TextBlock Text="BACKGROUND IMAGES" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <!-- [SECTION: Background Images] -->
+                <!-- Repeating pattern: path TextBox + "..." browse Button (BtnBrowseFile_Click), one per
+                 themeable image asset. Falls back to bundled defaults in assets/ when unset (see
+                 MainViewModel's Theme*Asset / Theme*Wallpaper properties). -->
+                <TextBlock Text="BACKGROUND IMAGES" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Main Window Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtMainBgPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <Button Grid.Column="1" x:Name="BtnBrowseMainBg" Click="BtnBrowseFile_Click" Content="..." 
+                <!-- Main window wallpaper (or disable it entirely and use solid color below) -->
+                <TextBlock Text="Main Window Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtMainBgPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <Button Grid.Column="1" x:Name="BtnBrowseMainBg" Click="BtnBrowseFile_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
                         Margin="5,0,0,0"/>
-            </Grid>
-            <CheckBox x:Name="ChkDisableMainBgImage" Content="Disable Main Window Background Image (use solid Main Window Background Color only)" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=12}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-            <TextBlock Text="Games List Panel Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtGamesBgPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <Button Grid.Column="1" x:Name="BtnBrowseGamesBg" Click="BtnBrowseFile_Click" Content="..." 
+                </Grid>
+                <CheckBox x:Name="ChkDisableMainBgImage" Content="Disable Main Window Background Image (use solid Main Window Background Color only)" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=12}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+
+                <!-- Games list panel wallpaper -->
+                <TextBlock Text="Games List Panel Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtGamesBgPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <Button Grid.Column="1" x:Name="BtnBrowseGamesBg" Click="BtnBrowseFile_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
                         Margin="5,0,0,0"/>
-            </Grid>
+                </Grid>
 
-            <TextBlock Text="Marquee Panel Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtMarqueeBgPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <Button Grid.Column="1" x:Name="BtnBrowseMarqueeBg" Click="BtnBrowseFile_Click" Content="..." 
+                <!-- Marquee panel wallpaper -->
+                <TextBlock Text="Marquee Panel Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtMarqueeBgPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <Button Grid.Column="1" x:Name="BtnBrowseMarqueeBg" Click="BtnBrowseFile_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
                         Margin="5,0,0,0"/>
-            </Grid>
+                </Grid>
 
-            <TextBlock Text="Preview Panel Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtMediaBgPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <Button Grid.Column="1" x:Name="BtnBrowseMediaBg" Click="BtnBrowseFile_Click" Content="..." 
+                <!-- Media/preview panel wallpaper -->
+                <TextBlock Text="Preview Panel Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtMediaBgPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <Button Grid.Column="1" x:Name="BtnBrowseMediaBg" Click="BtnBrowseFile_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
                         Margin="5,0,0,0"/>
-            </Grid>
+                </Grid>
 
-            <TextBlock Text="Marquee Panel Logo (Replaces Default Logo):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtThemeLogoPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <Button Grid.Column="1" x:Name="BtnBrowseThemeLogo" Click="BtnBrowseFile_Click" Content="..." 
+                <!-- Marquee panel default logo (shown before a game is selected) -->
+                <TextBlock Text="Marquee Panel Logo (Replaces Default Logo):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtThemeLogoPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <Button Grid.Column="1" x:Name="BtnBrowseThemeLogo" Click="BtnBrowseFile_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
                         Margin="5,0,0,0"/>
-            </Grid>
+                </Grid>
 
-            <TextBlock Text="Preview Panel Splash (Replaces Default Splash Image):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtThemeBootSplashPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <Button Grid.Column="1" x:Name="BtnBrowseThemeBootSplash" Click="BtnBrowseFile_Click" Content="..." 
+                <!-- Boot splash image (media panel idle state, before a game is selected) -->
+                <TextBlock Text="Preview Panel Splash (Replaces Default Splash Image):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtThemeBootSplashPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <Button Grid.Column="1" x:Name="BtnBrowseThemeBootSplash" Click="BtnBrowseFile_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
                         Margin="5,0,0,0"/>
-            </Grid>
+                </Grid>
 
-            <TextBlock Text="No Preview Found (Replaces Default):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="50"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtThemeMissingPreviewPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <Button Grid.Column="1" x:Name="BtnBrowseThemeMissingPreview" Click="BtnBrowseFile_Click" Content="..." 
+                <!-- Fallback image shown when a selected game has no matching preview media -->
+                <TextBlock Text="No Preview Found (Replaces Default):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtThemeMissingPreviewPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <Button Grid.Column="1" x:Name="BtnBrowseThemeMissingPreview" Click="BtnBrowseFile_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
                         Margin="5,0,0,0"/>
-            </Grid>
+                </Grid>
+                <!-- [END SECTION: Background Images] -->
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-            <TextBlock Text="BACKGROUND COLORS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-            <Grid Margin="0,0,0,15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="15"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="8"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="8"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                <!-- [SECTION: Background Colors] -->
+                <!-- Solid-color fallbacks/overrides for each panel background -->
+                <TextBlock Text="BACKGROUND COLORS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <StackPanel Grid.Column="0" Grid.Row="0">
-                    <TextBlock Text="Main Window and Options Window:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtMainColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="Main Window and Options Window:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtMainColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="2" Grid.Row="0">
-                    <TextBlock Text="Games List Panel:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtGamesColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Games List Panel:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtGamesColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="0" Grid.Row="2">
-                    <TextBlock Text="Marquee Panel:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtMarqueeColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                    <StackPanel Grid.Column="0" Grid.Row="2">
+                        <TextBlock Text="Marquee Panel:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtMarqueeColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="2" Grid.Row="2">
-                    <TextBlock Text="Preview Panel:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtMediaColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                    <StackPanel Grid.Column="2" Grid.Row="2">
+                        <TextBlock Text="Preview Panel:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtMediaColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="0" Grid.Row="4">
-                    <TextBlock Text="Options Window Content:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtOptionsColorHex" Text="" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
-            </Grid>
+                    <StackPanel Grid.Column="0" Grid.Row="4">
+                        <TextBlock Text="Options Window Content:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtOptionsColorHex" Text="" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+                </Grid>
+                <!-- [END SECTION: Background Colors] -->
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-            <TextBlock Text="GAMES LIST PANEL FONTS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-            <TextBlock Text="Folders:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtFolderFontSize" Text="14" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <TextBox Grid.Column="2" x:Name="TxtFolderColorHex" Text="#FFF2F2F7" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                <!-- [SECTION: Games List Panel Fonts] -->
+                <!-- Folder/game text sizes and colors, including hover/selected states and the Favorites folder override -->
+                <TextBlock Text="GAMES LIST PANEL FONTS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <TextBlock Text="Folders:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtFolderFontSize" Text="14" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <TextBox Grid.Column="2" x:Name="TxtFolderColorHex" Text="#FFF2F2F7" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                </Grid>
 
-            <TextBlock Text="Folders (Selected - Foreground/Background):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtFolderSelectedColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <TextBox Grid.Column="2" x:Name="TxtFolderSelectedBgColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                <TextBlock Text="Folders (Selected - Foreground/Background):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtFolderSelectedColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <TextBox Grid.Column="2" x:Name="TxtFolderSelectedBgColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                </Grid>
 
-            <TextBlock Text="Game Titles:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtGameFontSize" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <TextBox Grid.Column="2" x:Name="TxtGameColorHex" Text="#FFA0A0A2" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                <TextBlock Text="Game Titles:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtGameFontSize" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <TextBox Grid.Column="2" x:Name="TxtGameColorHex" Text="#FFA0A0A2" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                </Grid>
 
-            <TextBlock Text="Game Titles - Hover Color (Mouse Only):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtGameHoverColorHex" Text="#FFFFFFFF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Margin="0,0,0,8"/>
+               
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-            <TextBlock Text="Game Titles (Selected Foreground/Background):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtGameSelectedColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <TextBox Grid.Column="2" x:Name="TxtGameSelectedBgColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Game Titles - Hover Color (Mouse Only):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtGameHoverColorHex" Text="#FFFFFFFF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-            <TextBlock Text="Favorites Folder Color (Replaces Default):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtFavoritesColorHex" Text="#FFFFCC00" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Folder Arrow Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtArrowColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+                </Grid>
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <TextBlock Text="Game Titles (Selected Foreground/Background):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtGameSelectedColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <TextBox Grid.Column="2" x:Name="TxtGameSelectedBgColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                </Grid>
 
-            <TextBlock Text="OPTIONS WINDOW FONTS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <TextBlock Text="Favorites Folder Color (Replaces Default):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtFavoritesColorHex" Text="#FFFFCC00" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                </Grid>
+                <!-- [END SECTION: Games List Panel Fonts] -->
 
-            <TextBlock Text="Options Window - Headers:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtHeaderFontSize" Text="12" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <TextBox Grid.Column="2" x:Name="TxtHeaderColorHex" Text="#FFFFCC00" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-            <TextBlock Text="Options Window - Sub Headers:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtSubHeaderFontSize" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <TextBox Grid.Column="2" x:Name="TxtSubHeaderColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                <!-- [SECTION: Options Window Fonts] -->
+                <TextBlock Text="OPTIONS WINDOW FONTS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Options Window - Standard Text:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtStandardFontSize" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <TextBox Grid.Column="2" x:Name="TxtStandardColorHex" Text="#FFF2F2F7" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                <TextBlock Text="Options Window - Headers:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtHeaderFontSize" Text="12" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <TextBox Grid.Column="2" x:Name="TxtHeaderColorHex" Text="#FFFFCC00" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                </Grid>
+
+                <TextBlock Text="Options Window - Sub Headers:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtSubHeaderFontSize" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <TextBox Grid.Column="2" x:Name="TxtSubHeaderColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                </Grid>
+
+                <TextBlock Text="Options Window - Standard Text:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" x:Name="TxtStandardFontSize" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <TextBox Grid.Column="2" x:Name="TxtStandardColorHex" Text="#FFF2F2F7" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                </Grid>
 
 
-            <!---save for another time 
-            
+                <!---save for another time - Options Window Form Input Fields (font size / color).
+                 Intentionally deferred/disabled, not yet wired into a Theme Builder property. Leave commented.
+
             <TextBlock Text="Options Window - Form Input Fields:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
@@ -370,129 +419,186 @@
                 <TextBox Grid.Column="2" x:Name="TxtInputColorHex" Text="#FFFFFFFF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
             </Grid>
             -->
+                <!-- [END SECTION: Options Window Fonts] -->
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-            <TextBlock Text="TAB OPTIONS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <!-- [SECTION: Tab Options] -->
+                <!-- Options window TabItem font/background colors (normal + active states) -->
+                <TextBlock Text="TAB OPTIONS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Tab Font Size / Font Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="80"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" x:Name="TxtTabFontSize" Text="12" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                <TextBox Grid.Column="2" x:Name="TxtTabColorHex" Text="#FFA0A0A2" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-            </Grid>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-            <TextBlock Text="Tab Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtTabBgColorHex" Text="Transparent" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Margin="0,0,0,8"/>
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="Tab Font Size / Font Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" x:Name="TxtTabFontSize" Text="12" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                            <TextBox Grid.Column="2" x:Name="TxtTabColorHex" Text="#FFA0A0A2" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                        </Grid>
+                    </StackPanel>
 
-            <TextBlock Text="Tab Font Color (Active):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtTabActiveColorHex" Text="#000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Margin="0,0,0,8"/>
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Tab Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtTabBgColorHex" Text="Transparent" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-            <TextBlock Text="Tab Background Color (Active):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtTabActiveBgColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Margin="0,0,0,12"/>
+                    <StackPanel Grid.Column="0" Grid.Row="2">
+                        <TextBlock Text="Tab Font Color (Active):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtTabActiveColorHex" Text="#000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                    <StackPanel Grid.Column="2" Grid.Row="2">
+                        <TextBlock Text="Tab Background Color (Active):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtTabActiveBgColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+                </Grid>
+                <!-- [END SECTION: Tab Options] -->
 
-            <TextBlock Text="BORDER AND LINE OPTIONS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-            <TextBlock Text="Border Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtFrameworkBorderColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Margin="0,0,0,8"/>
+                <!-- [SECTION: Border and Line Options] -->
+                <!-- Framework-wide border color/width/corner-radius and the separator line color -->
+                <TextBlock Text="BORDER AND LINE OPTIONS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
 
-            <TextBlock Text="Border Width:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtBorderWidthValue" Text="1" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Margin="0,0,0,8"/>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-            <TextBlock Text="Border Curve (Corner Radius):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtBorderCurveValue" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Margin="0,0,0,8"/>
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="Border Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtFrameworkBorderColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-            <TextBlock Text="Separator Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <TextBox x:Name="TxtSeparatorColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Margin="0,0,0,12"/>
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Border Width:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtBorderWidthValue" Text="1" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                    <StackPanel Grid.Column="0" Grid.Row="2">
+                        <TextBlock Text="Border Curve (Corner Radius):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtBorderCurveValue" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-            <TextBlock Text="GLOBAL BUTTONS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="15"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="8"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                    <StackPanel Grid.Column="2" Grid.Row="2">
+                        <TextBlock Text="Separator Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtSeparatorColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+                </Grid>
+                <!-- [END SECTION: Border and Line Options] -->
 
-                <StackPanel Grid.Column="0" Grid.Row="0">
-                    <TextBlock Text="Button Text Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtBtnTextColorNormalHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-                <StackPanel Grid.Column="2" Grid.Row="0">
-                    <TextBlock Text="Button Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtBtnBgColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                <!-- [SECTION: Global Buttons] -->
+                <!-- Feeds ThemedActionButtonStyle in App.xaml - applies to every themed button across the app -->
+                <TextBlock Text="GLOBAL BUTTONS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <StackPanel Grid.Column="0" Grid.Row="2">
-                    <TextBlock Text="Button Border Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtBtnBorderColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="Button Text Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtBtnTextColorNormalHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="2" Grid.Row="2">
-                    <TextBlock Text="Button Background Color (Hover):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtBtnBgColorHoverHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
-            </Grid>
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Button Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtBtnBgColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                    <StackPanel Grid.Column="0" Grid.Row="2">
+                        <TextBlock Text="Button Border Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtBtnBorderColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-            <TextBlock Text="GLOBAL SCROLLBARS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-            <Grid Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="15"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="8"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                    <StackPanel Grid.Column="2" Grid.Row="2">
+                        <TextBlock Text="Button Background Color (Hover):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtBtnBgColorHoverHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+                </Grid>
+                <!-- [END SECTION: Global Buttons] -->
 
-                <StackPanel Grid.Column="0" Grid.Row="0">
-                    <TextBlock Text="Main Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtScrollThumbColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-                <StackPanel Grid.Column="2" Grid.Row="0">
-                    <TextBlock Text="Hover Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtScrollThumbHoverColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                <!-- [SECTION: Global Scrollbars] -->
+                <!-- Feeds ArcadeDarkScrollBar in App.xaml / MainWindow.xaml's local copy -->
+                <TextBlock Text="GLOBAL SCROLLBARS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <StackPanel Grid.Column="0" Grid.Row="2">
-                    <TextBlock Text="Drag Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtScrollThumbDragColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
+                    <StackPanel Grid.Column="0" Grid.Row="0">
+                        <TextBlock Text="Main Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtScrollThumbColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="2" Grid.Row="2">
-                    <TextBlock Text="Track Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                    <TextBox x:Name="TxtScrollTrackColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </StackPanel>
-            </Grid>
-            <TextBlock Text="Track Hover Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-            <Grid Margin="0,0,0,15">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="2" Grid.Row="0">
+                        <TextBlock Text="Hover Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtScrollThumbHoverColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0" Grid.Row="2">
+                        <TextBlock Text="Drag Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtScrollThumbDragColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="2">
+                        <TextBlock Text="Track Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtScrollTrackColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="Track Hover Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0" x:Name="TxtScrollTrackHoverColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
                 </Grid>
             </StackPanel>
+            <!-- [END SECTION: Global Scrollbars] -->
         </ScrollViewer>
+
+        <!-- Transient "Theme Saved" confirmation flash, toggled visible briefly by code-behind after a save -->
         <TextBlock x:Name="TxtThemeSavedFlash" Text="Theme Saved" Foreground="#4CD964" Background="#000000" Padding="6,3" FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,35,0" Visibility="Collapsed"/>
     </Grid>
 </UserControl>

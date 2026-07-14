@@ -18,8 +18,12 @@
                        Text="These asset paths have been structured to be in MAME's default folders for each asset.  If yours are somewhere else, you can change it here."/>
 
             <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
-            
-            
+
+            <!-- [SECTION: Asset Path Rows] -->
+            <!-- Repeating pattern: a path TextBox + a "..." browse Button, all wired to the same
+                 BtnBrowseDirectory_Click handler in code-behind (which resolves the target TextBox from the sender). -->
+
+            <!-- Marquees -->
             <TextBlock Text="Marquees Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
@@ -35,6 +39,7 @@
                         Margin="5,0,0,0"/>
             </Grid>
 
+            <!-- Videos -->
             <TextBlock Text="Videos Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
@@ -50,6 +55,7 @@
                         Margin="5,0,0,0"/>
             </Grid>
 
+            <!-- Flyers -->
             <TextBlock Text="Flyers Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
@@ -65,6 +71,7 @@
                         Margin="5,0,0,0"/>
             </Grid>
 
+            <!-- Gameplay Captures -->
             <TextBlock Text="Gameplay Captures Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
@@ -80,6 +87,7 @@
                         Margin="5,0,0,0"/>
             </Grid>
 
+            <!-- Title Screens -->
             <TextBlock Text="Title Screens Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
@@ -95,6 +103,7 @@
                         Margin="5,0,0,0"/>
             </Grid>
 
+            <!-- Cabinets -->
             <TextBlock Text="Cabinets Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,5">
                 <Grid.ColumnDefinitions>
@@ -109,6 +118,7 @@
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
                         Margin="5,0,0,0"/>
             </Grid>
+            <!-- [END SECTION: Asset Path Rows] -->
 
         </StackPanel>
     </ScrollViewer>

@@ -19,7 +19,9 @@
                            Text="These settings control the core MAME.ini options that govern video rendering and emulation behavior."/>
 
                 <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
-                
+
+                <!-- [SECTION: Video / Rendering Combos] -->
+                <!-- Video OSD renderer and frameskip - written directly into mame.ini on save -->
                 <Grid Margin="0,0,0,25">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="180"/>
@@ -63,7 +65,10 @@
                         <ComboBoxItem Content="10"/>
                     </ComboBox>
                 </Grid>
+                <!-- [END SECTION: Video / Rendering Combos] -->
 
+                <!-- [SECTION: MAME.ini Feature Checkboxes] -->
+                <!-- 5x2 grid of boolean mame.ini flags, two per row -->
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -77,21 +82,27 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
+                    <!-- Row 0: windowed mode / cheat engine -->
                     <CheckBox x:Name="ChkWindow" Grid.Row="0" Grid.Column="0" Content="Run in Windowed Mode" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkCheat" Grid.Row="0" Grid.Column="1" Content="Enable Core Diagnostic Cheat Engines" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
+                    <!-- Row 1: CRT/shader matrix / strict pixel aspect ratio -->
                     <CheckBox x:Name="ChkHlslEnable" Grid.Row="1" Grid.Column="0" Content="Enable CRT Scanline / Shaders Matrix" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkKeepAspect" Grid.Row="1" Grid.Column="1" Content="Enforce Strict Pixel Aspect Ratios" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
+                    <!-- Row 2: skip info screen / disable throttling -->
                     <CheckBox x:Name="ChkSkipGameInfo" Grid.Row="2" Grid.Column="0" Content="Skip Mandatory System Information Screen" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkDisableThrottle" Grid.Row="2" Grid.Column="1" Content="Disable Throttling" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
+                    <!-- Row 3: multithreading / vsync -->
                     <CheckBox x:Name="ChkMultithreading" Grid.Row="3" Grid.Column="0" Content="Enable Multithreading" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkVsync" Grid.Row="3" Grid.Column="1" Content="Enable Vertical Sync" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
+                    <!-- Row 4: triple buffering / sync refresh rate -->
                     <CheckBox x:Name="ChkTripleBuffer" Grid.Row="4" Grid.Column="0" Content="Enable Triple Buffering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkSyncRefresh" Grid.Row="4" Grid.Column="1" Content="Synchronize Refresh Rate" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                 </Grid>
+                <!-- [END SECTION: MAME.ini Feature Checkboxes] -->
             </StackPanel>
         </ScrollViewer>
     </Grid>

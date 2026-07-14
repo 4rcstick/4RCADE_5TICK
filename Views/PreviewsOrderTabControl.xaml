@@ -22,14 +22,16 @@
                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
                    Text="To adjust what order the previews are displayed in the Preview Panel, select one below and use the up/down buttons to move it to it's desired position. The program will start with the top and work through each asset and display the first matching asset it finds. If none are found it will display the default &quot;no preview found&quot; Image, or you can select your own image in the THEMES tab."/>
 
-        
-        
+        <!-- [SECTION: Preview Priority List + Controls] -->
+        <!-- This order corresponds to PreviewPriorityOrder in MainViewModel, consumed by
+             UpdateActiveMediaPreviews to decide which media type to show first for the selected game. -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="240"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            <!-- Displays the current preview-type priority order; selection drives BtnMediaUp/Down -->
             <ListBox x:Name="LstMediaOrder" Grid.Column="0" 
                      Height="220" VerticalAlignment="Top"
                      Background="#000000" Foreground="#F2F2F7" 
@@ -37,6 +39,7 @@
                      FontSize="14" FontWeight="Bold" Padding="5"/>
 
             <StackPanel Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Left">
+                <!-- Reorder buttons: move the selected list item up/down -->
                 <Button x:Name="BtnMediaUp" Content="Up ▲" 
                         Width="100" Height="35" Margin="0,0,0,15"
                         Style="{StaticResource ThemedActionButtonStyle}"
@@ -53,6 +56,7 @@
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="1"
                         FontWeight="SemiBold" Click="BtnMediaDown_Click"/>
 
+                <!-- Persists the current list order to preview_order.cfg -->
                 <Button x:Name="BtnSaveMediaOrder" Content="Save Priority" 
                         Width="100" Height="35" Margin="0,100,0,0"
                         Style="{StaticResource ThemedActionButtonStyle}"
@@ -62,5 +66,6 @@
                         FontWeight="SemiBold" Click="BtnSaveMediaOrder_Click"/>
             </StackPanel>
         </Grid>
+        <!-- [END SECTION: Preview Priority List + Controls] -->
     </Grid>
 </UserControl>

@@ -1,4 +1,4 @@
-﻿// 🏗️ START: MAIN VIEW MODEL LAYERED PREVIEW BINDING EXTENSIONS
+﻿// [SECTION: File Overrides] - MainViewModel layered preview binding extensions
 using ArcadeStick.Models;
 using ArcadeStick.Services;
 using ArcadeStick.ViewModels;
@@ -19,6 +19,9 @@ using System.Windows.Threading;
 
 namespace ArcadeStick.ViewModels
 {
+    // [SECTION: TreeCategoryNode Model]
+    // Represents a folder/category row in the TreeView (e.g. SHOOTERS, FAVORITES, a custom playlist).
+    // Holds child games, nested sub-folders, expand state (single-branch-open enforced here), and color.
     public class TreeCategoryNode : INotifyPropertyChanged
     {
         private bool _isNodeExpanded;
@@ -40,6 +43,7 @@ namespace ArcadeStick.ViewModels
         public ObservableCollection<GameItem> ChildGames { get; set; } = new ObservableCollection<GameItem>();
         public ObservableCollection<TreeCategoryNode> SubFolders { get; set; } = new ObservableCollection<TreeCategoryNode>();
 
+        // Combines SubFolders + ChildGames into a single display sequence for the TreeView's HierarchicalDataTemplate
         public System.Collections.IEnumerable DisplayItems
         {
             get
@@ -49,6 +53,7 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+        // Collapsing this node also collapses all of its sub-folders (prevents stale expanded state underneath)
         public bool IsNodeExpanded
         {
             get => _isNodeExpanded;
@@ -76,6 +81,7 @@ namespace ArcadeStick.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
+    // [END SECTION: TreeCategoryNode Model]
 
     public class MainViewModel : INotifyPropertyChanged
     {
@@ -83,6 +89,7 @@ namespace ArcadeStick.ViewModels
         private readonly ProcessLaunchService _launchService;
         private string _searchText = string.Empty;
         private DispatcherTimer? _searchDebounceTimer;
+        private DispatcherTimer? _previewDebounceTimer;
         private GameItem? _selectedGame;
         private BitmapImage? _marqueeImage;
         private string _videoSourcePath = string.Empty;
@@ -90,6 +97,10 @@ namespace ArcadeStick.ViewModels
 
         public List<string> PreviewPriorityOrder { get; private set; } = new List<string>();
 
+        // [SECTION: Constructor & Settings Load]
+        // Creates ConfigurationSettings, loads settings.json (theme + path overrides) if present via
+        // ApplyThemeSettings, wires up the cache/launch services, initializes collections/commands, and
+        // loads favorites/mouse-support/preview-order from disk before doing an initial theme refresh.
         public MainViewModel()
         {
             Configuration = new ConfigurationSettings();
@@ -136,7 +147,11 @@ namespace ArcadeStick.ViewModels
             LoadPreviewOrderConfig();
             RefreshThemeBindings();
         }
+        // [END SECTION: Constructor & Settings Load]
 
+        // [SECTION: Preview Order Config]
+        // Loads (or creates with defaults) preview_order.cfg, which controls the priority order media
+        // types are checked in when resolving what to show in the main media panel (see UpdateActiveMediaPreviews).
         private void LoadPreviewOrderConfig()
         {
             string configDir = Configuration.GetConfigPath();
@@ -161,7 +176,9 @@ namespace ArcadeStick.ViewModels
                                           .ToList();
             }
         }
+        // [END SECTION: Preview Order Config]
 
+        // [SECTION: Core Properties, Collections & Commands]
         public ConfigurationSettings Configuration { get; }
         public ObservableCollection<GameItem> GamesCollection { get; }
         public ObservableCollection<TreeCategoryNode> TreeNodesCollection { get; }
@@ -170,7 +187,10 @@ namespace ArcadeStick.ViewModels
         public HashSet<string> MouseSupportRoms { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public ICommand RefreshCacheCommand { get; }
         public ICommand LaunchGameCommand { get; }
+        // [END SECTION: Core Properties, Collections & Commands]
 
+        // [SECTION: Search & Dev Mode]
+        // Dev mode toggles ROM name prefixing in the tree (see UpdateLiveTreeDisplay -> GetFormattedTitle).
         public bool IsDevMode
         {
             get => _isDevMode;
@@ -185,6 +205,7 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+        // Debounces search input 400ms before rebuilding the tree, so the tree isn't rebuilt on every keystroke
         public string SearchText
         {
             get => _searchText;
@@ -212,7 +233,14 @@ namespace ArcadeStick.ViewModels
             _searchDebounceTimer?.Stop();
             UpdateLiveTreeDisplay();
         }
+        // [END SECTION: Search & Dev Mode]
 
+        // [SECTION: Selection & Media State Properties]
+        // SelectedGame drives the whole media preview pipeline. UpdateActiveMediaPreviews is debounced
+        // (~150ms) rather than called directly, since rapid gamepad scrolling through titles was
+        // triggering a full preview load (marquee bitmap read + video/image resolution) on every single
+        // intermediate step, causing navigation to stutter. Only the final selection once scrolling
+        // pauses actually loads media.
         public GameItem? SelectedGame
         {
             get => _selectedGame;
@@ -223,7 +251,18 @@ namespace ArcadeStick.ViewModels
                     _selectedGame = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(IsGameSelected));
-                    UpdateActiveMediaPreviews();
+
+                    _previewDebounceTimer?.Stop();
+                    _previewDebounceTimer = new DispatcherTimer
+                    {
+                        Interval = TimeSpan.FromMilliseconds(600)
+                    };
+                    _previewDebounceTimer.Tick += (s, e) =>
+                    {
+                        _previewDebounceTimer.Stop();
+                        UpdateActiveMediaPreviews();
+                    };
+                    _previewDebounceTimer.Start();
                 }
             }
         }
@@ -272,7 +311,13 @@ namespace ArcadeStick.ViewModels
                 }
             }
         }
+        // [END SECTION: Selection & Media State Properties]
 
+        // [SECTION: Theme Property Forwarders]
+        // DANGER - SYNC POINT 1 of 3: these are pass-through bindings from ConfigurationSettings to XAML.
+        // Any new theme property added to ConfigurationSettings needs a forwarder here too, or XAML bindings
+        // referencing "Theme*" names will silently fail. This list must also be raised in RefreshThemeBindings()
+        // below (sync point 2) - a property added here but missing there won't update live after Theme Builder saves.
         public string ThemeMainColor => Configuration.BackgroundColor;
         public string ThemeGamesColor => Configuration.FileListBg;
         public string ThemeMarqueeColor => Configuration.MarqueeBoxBg;
@@ -294,11 +339,16 @@ namespace ArcadeStick.ViewModels
         public string ThemeGameHoverColor => Configuration.GameHoverColorHex;
         public string ThemeGameSelectedColor => Configuration.GameSelectedColorHex;
         public string ThemeGameSelectedBgColor => Configuration.GameSelectedBgColorHex;
+        public string ThemeArrowColor => Configuration.ArrowColorHex;
         public string ThemeTabColor => Configuration.TabColorHex;
         public string ThemeTabBgColor => Configuration.TabBgColorHex;
         public string ThemeTabActiveColor => Configuration.TabActiveColorHex;
         public string ThemeTabActiveBgColor => Configuration.TabActiveBgColorHex;
+        // [END SECTION: Theme Property Forwarders]
 
+        // [SECTION: Theme Wallpaper & Asset Loading]
+        // Resolves theme-configured image paths to ImageSource, falling back to bundled defaults in
+        // 4rcade5tick_files/assets when a theme doesn't specify its own asset.
         public ImageSource? ThemeMainWallpaper => Configuration.DisableMainBgImage
             ? null
             : LoadThemeImage(
@@ -329,6 +379,7 @@ namespace ArcadeStick.ViewModels
         public ImageSource? MouseSupportIcon => LoadThemeImage(
             Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "mouseicon.png"));
 
+        // Resolves a possibly-relative theme asset path to an absolute path and loads it as a frozen BitmapImage
         private ImageSource? LoadThemeImage(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) return null;
@@ -360,7 +411,12 @@ namespace ArcadeStick.ViewModels
             }
             catch { return null; }
         }
+        // [END SECTION: Theme Wallpaper & Asset Loading]
 
+        // [SECTION: Theme Refresh - Sync Points 2 & 3]
+        // DANGER: RefreshThemeBindings must raise OnPropertyChanged for every forwarder property above -
+        // this is called after the Options window closes and after theme load/save, so a missing line here
+        // means a new theme property silently keeps showing stale/default values until app restart.
         public void RefreshThemeBindings()
         {
             OnPropertyChanged(nameof(ThemeMainColor));
@@ -384,6 +440,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeGameHoverColor));
             OnPropertyChanged(nameof(ThemeGameSelectedColor));
             OnPropertyChanged(nameof(ThemeGameSelectedBgColor));
+            OnPropertyChanged(nameof(ThemeArrowColor));
             OnPropertyChanged(nameof(ThemeTabColor));
             OnPropertyChanged(nameof(ThemeTabBgColor));
             OnPropertyChanged(nameof(ThemeTabActiveColor));
@@ -400,6 +457,8 @@ namespace ArcadeStick.ViewModels
             RefreshFolderColorsLive();
         }
 
+        // Walks the existing tree in-place and reapplies folder/favorites colors from the current theme.
+        // Does NOT rebuild the tree (that would lose expand state) - see project notes on RefreshFolderColorsLive.
         public void RefreshFolderColorsLive()
         {
             var mainFolderBrush = (SolidColorBrush)new BrushConverter().ConvertFrom(Configuration.FolderColorHex)!;
@@ -425,7 +484,12 @@ namespace ArcadeStick.ViewModels
                 Walk(root);
             }
         }
+        // [END SECTION: Theme Refresh - Sync Points 2 & 3]
 
+        // [SECTION: MAME ROM Path Sync]
+        // Rewrites mame.ini's rompath line to match the ROM subfolders currently on disk. IMPORTANT:
+        // only ever call this at startup/boot-time - rompath must never be overwritten mid-session
+        // (see BtnSaveOptions_Click history - a prior bug did this incorrectly on every options save).
         public Task SyncMameRomPathsAsync()
         {
             return Task.Run(() =>
@@ -513,7 +577,12 @@ namespace ArcadeStick.ViewModels
                 }
             });
         }
+        // [END SECTION: MAME ROM Path Sync]
 
+        // [SECTION: Database Initialization & Game Discovery]
+        // Discovers ROM zip files on disk (respecting an optional storage-options override for the roms path,
+        // skipping the "bios" folder), parses them through CacheScannerService, populates GamesCollection,
+        // then rebuilds the live tree.
         public async Task InitializeDatabaseAsync()
         {
             await Task.Run(async () =>
@@ -574,7 +643,13 @@ namespace ArcadeStick.ViewModels
                 });
             });
         }
+        // [END SECTION: Database Initialization & Game Discovery]
 
+        // [SECTION: Tree Building - Categories, Playlists & Search]
+        // Rebuilds TreeNodesCollection from scratch: groups GamesCollection by FolderPath into nested
+        // TreeCategoryNodes, merges in custom playlists from the playlists/*.cfg folder, applies the
+        // Favorites node and configured folder ordering (folder_order file), and swaps in a
+        // "SEARCH RESULTS" / "No results found..." node when SearchText is active.
         public void UpdateLiveTreeDisplay()
         {
             string configDir = Configuration.GetConfigPath();
@@ -589,11 +664,13 @@ namespace ArcadeStick.ViewModels
             var rootCategories = new Dictionary<string, TreeCategoryNode>(StringComparer.OrdinalIgnoreCase);
             var mainFolderBrush = (SolidColorBrush)new BrushConverter().ConvertFrom(Configuration.FolderColorHex)!;
 
+            // Prefixes the rom name onto the title when Dev Mode is active
             string GetFormattedTitle(GameItem gameItem)
             {
                 return IsDevMode ? $"[{gameItem.RomName}] {gameItem.FullTitle}" : gameItem.FullTitle;
             }
 
+            // Pass 1: group games into root categories / nested sub-folders based on FolderPath
             foreach (var game in GamesCollection)
             {
                 game.DisplayTitle = GetFormattedTitle(game);
@@ -643,6 +720,7 @@ namespace ArcadeStick.ViewModels
                 }
             }
 
+            // Pass 2: merge in custom playlist folders (playlists/*.cfg), each optionally starting with a #hexcolor line
             if (Directory.Exists(playlistsDir))
             {
                 foreach (var cfgFile in Directory.GetFiles(playlistsDir, "*.cfg"))
@@ -671,6 +749,7 @@ namespace ArcadeStick.ViewModels
                 }
             }
 
+            // Pass 3: apply configured folder ordering, with any unlisted folders appended alphabetically
             var orderedHeaders = new List<string>();
             if (File.Exists(folderOrderPath))
             {
@@ -682,6 +761,7 @@ namespace ArcadeStick.ViewModels
 
             var finalSortedNodes = new List<TreeCategoryNode>();
 
+            // Favorites always pinned to the top when non-empty
             if (FavoriteRoms.Count > 0)
             {
                 var favoritesRoot = new TreeCategoryNode
@@ -725,6 +805,7 @@ namespace ArcadeStick.ViewModels
                 }
             }
 
+            // Pass 4: commit to TreeNodesCollection - either the sorted category tree, or search results
             TreeNodesCollection.Clear();
             string query = SearchText.Trim().ToLower();
             bool isSearching = !string.IsNullOrEmpty(query);
@@ -781,6 +862,7 @@ namespace ArcadeStick.ViewModels
 
             RebuildFlatVisibleRows();
         }
+        // [END SECTION: Tree Building - Categories, Playlists & Search]
 
         private BitmapImage? _previewImage;
 
@@ -797,8 +879,10 @@ namespace ArcadeStick.ViewModels
             }
         }
 
-        // 🏗️ START MEDIA PATH RESOLUTION FIX
-        // 🏗️ START MARQUEE FALLBACK LOGIC
+        // [SECTION: Media Preview Resolution]
+        // Resolves marquee image (with fallback to the default theme logo) and the active preview media
+        // (video/flyer/screenshot/etc, in PreviewPriorityOrder) for the currently selected game.
+        // NOTE: known beta trade-off - video preview can stay black after returning from MAME until reselection.
         private void UpdateActiveMediaPreviews()
         {
             if (SelectedGame == null)
@@ -830,7 +914,7 @@ namespace ArcadeStick.ViewModels
             string marqueeDir = ResolvePath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "media/marquees" : Configuration.MarqueesPath);
             string targetMarqueeFile = Path.Combine(marqueeDir, $"{SelectedGame.RomName}.png");
 
-            // FALLBACK LOGIC: If the specific game's marquee is missing, load the default boot logo
+            // Marquee fallback: if the specific game's marquee is missing, load the default boot logo
             if (!File.Exists(targetMarqueeFile))
             {
                 targetMarqueeFile = !string.IsNullOrWhiteSpace(Configuration.ThemeLogo)
@@ -864,6 +948,7 @@ namespace ArcadeStick.ViewModels
             string foundMediaFile = string.Empty;
             bool gameHasMedia = false;
 
+            // Walk PreviewPriorityOrder (from preview_order.cfg) checking each media type's folder for a matching file
             foreach (var category in PreviewPriorityOrder)
             {
                 string targetFolder = string.Empty;
@@ -945,9 +1030,11 @@ namespace ArcadeStick.ViewModels
                 VideoSourcePath = string.Empty;
             }
         }
-        // 🏗️ END MARQUEE FALLBACK LOGIC
-        // 🏗️ END MEDIA PATH RESOLUTION FIX
+        // [END SECTION: Media Preview Resolution]
 
+        // [SECTION: Game Launch]
+        // Dispatches to ProcessLaunchService with the right Window overload depending on the passed
+        // command parameter, then fires GameLaunchCompleted so MainWindow can refresh the video preview.
         private async Task ExecuteLaunchAsync(object? parameter)
         {
             if (parameter is MainWindow mainWin && SelectedGame != null)
@@ -963,7 +1050,10 @@ namespace ArcadeStick.ViewModels
         }
 
         public event Action? GameLaunchCompleted;
+        // [END SECTION: Game Launch]
 
+        // [SECTION: Mouse Support Persistence]
+        // Toggles per-ROM mouse support on/off and persists the full MouseSupportRoms set to disk.
         public void ToggleMouseSupport(GameItem? game)
         {
             if (game == null) return;
@@ -1005,6 +1095,7 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+        // Loads the previously saved mouse-support ROM set from disk at startup
         private void LoadMouseSupportFromDisk()
         {
             try
@@ -1024,7 +1115,11 @@ namespace ArcadeStick.ViewModels
             }
             catch { }
         }
+        // [END SECTION: Mouse Support Persistence]
 
+        // [SECTION: Favorites Persistence]
+        // Toggles a game's favorite status, persists FavoriteRoms to disk, rebuilds the tree, then
+        // re-expands and re-selects the game inside the Favorites node if it was just added.
         public void ToggleFavorite(GameItem? game)
         {
             if (game == null) return;
@@ -1077,6 +1172,7 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+        // Loads the previously saved favorites ROM set from disk at startup
         private void LoadFavoritesFromDisk()
         {
             try
@@ -1096,7 +1192,12 @@ namespace ArcadeStick.ViewModels
             }
             catch { }
         }
+        // [END SECTION: Favorites Persistence]
 
+        // [SECTION: Flat Row Navigation Support]
+        // Maintains FlatVisibleRows, a flattened projection of the tree (respecting expand state) used
+        // for linear navigation. Expanding one root category collapses all sibling roots and sub-folders
+        // (single-branch-open behavior).
         public void ToggleNodeExpanded(TreeCategoryNode targetNode)
         {
             if (targetNode == null) return;
@@ -1126,6 +1227,7 @@ namespace ArcadeStick.ViewModels
             RebuildFlatVisibleRows();
         }
 
+        // Rebuilds FlatVisibleRows from scratch by walking TreeNodesCollection
         public void RebuildFlatVisibleRows()
         {
             FlatVisibleRows.Clear();
@@ -1135,6 +1237,7 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+        // Recursively appends a node (and, if expanded, its sub-folders/games) to FlatVisibleRows
         private void AddNodeToFlatList(TreeCategoryNode node)
         {
             FlatVisibleRows.Add(node);
@@ -1150,6 +1253,7 @@ namespace ArcadeStick.ViewModels
                 }
             }
         }
+        // [END SECTION: Flat Row Navigation Support]
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
@@ -1158,6 +1262,4 @@ namespace ArcadeStick.ViewModels
         }
     }
 }
-
-
-// 🏗️ END: MAIN VIEW MODEL LAYERED PREVIEW BINDING EXTENSIONS
+// [END SECTION: File Overrides]

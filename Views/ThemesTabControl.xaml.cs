@@ -18,6 +18,11 @@ namespace ArcadeStick.Views
             InitializeComponent();
         }
 
+        // [SECTION: Constructor & Initialization]
+        // Wires up theme dropdown/button events, populates the theme list, and loads current settings
+        // into the UI. persistToDisk/refreshOptionsBindings are callbacks from OptionsWindow so this tab
+        // can save settings.json and force-refresh the parent window's bindings independently of the
+        // main Save Adjustments button.
         public void Initialize(ArcadeStick.ViewModels.MainViewModel viewModel, ArcadeStick.Models.ConfigurationSettings settings, Action persistToDisk, Action refreshOptionsBindings)
         {
             _viewModel = viewModel;
@@ -35,11 +40,15 @@ namespace ArcadeStick.Views
         }
 
         public void SyncUiToSettings() => SyncUiEntriesToSettingsLayer();
+        // [END SECTION: Constructor & Initialization]
 
+        // [SECTION: Theme List Management]
+        // Rebuilds the theme dropdown from *.cfg files in the Themes folder, plus a "[New Theme...]"
+        // entry, and re-selects the currently active theme if it still exists.
         private void RefreshThemeList()
         {
             CboThemePresets.Items.Clear();
-            string themeDirectory = Path.Combine(_settings.GetConfigPath(), "Themes"); //[cite: 2]
+            string themeDirectory = Path.Combine(_settings.GetConfigPath(), "Themes");
 
             if (Directory.Exists(themeDirectory))
             {
@@ -60,7 +69,9 @@ namespace ArcadeStick.Views
                 CboThemePresets.SelectedItem = "[New Theme...]";
             }
         }
+        // [END SECTION: Theme List Management]
 
+        // Normalizes a hex color string to #RRGGBB (uppercase, # prefix, stripping alpha if present)
         private string FormatHexCode(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return string.Empty;
@@ -70,6 +81,11 @@ namespace ArcadeStick.Views
             return cleanInput;
         }
 
+        // [SECTION: Load Current Values Into UI - SYNC POINT 3 of 3]
+        // Populates every Theme Builder control from the current ConfigurationSettings. DANGER: any new
+        // theme property must be added here too, or the Theme Builder UI will show stale/default values
+        // even though the underlying setting is correct - see project notes on the three Theme Builder
+        // sync points (this method, the themeDto builder in BtnSaveTheme_Click, and BtnLoadTheme_Click).
         private void LoadCurrentThemeValuesIntoUi()
         {
             // Background Theme Wallpapers & Branding Assets
@@ -111,6 +127,7 @@ namespace ArcadeStick.Views
             TxtGameSelectedColorHex.Text = FormatHexCode(_settings.GameSelectedColorHex);
             TxtGameSelectedBgColorHex.Text = FormatHexCode(_settings.GameSelectedBgColorHex);
             TxtFavoritesColorHex.Text = FormatHexCode(_settings.FavoritesColorHex);
+            TxtArrowColorHex.Text = FormatHexCode(_settings.ArrowColorHex);
             TxtTabFontSize.Text = _settings.TabFontSize.ToString();
             TxtTabColorHex.Text = FormatHexCode(_settings.TabColorHex);
             TxtTabBgColorHex.Text = _settings.TabBgColorHex;
@@ -131,7 +148,9 @@ namespace ArcadeStick.Views
             TxtBtnTextColorNormalHex.Text = FormatHexCode(_settings.BtnTextColorNormalHex);
             TxtBtnBgColorHoverHex.Text = FormatHexCode(_settings.BtnBgColorHoverHex);
         }
+        // [END SECTION: Load Current Values Into UI - SYNC POINT 3 of 3]
 
+        // Shows/hides the "New Theme Name" input based on whether "[New Theme...]" is selected
         private void CboThemePresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (CboThemePresets.SelectedItem is string selectedTheme)
@@ -140,7 +159,12 @@ namespace ArcadeStick.Views
             }
         }
 
-        // 🏗️ START: UPDATED THEME SERIALIZATION LOGIC
+        // [SECTION: Theme Serialization Logic]
+
+        // [SUB-SECTION: Load Theme - SYNC POINT 1 of 3]
+        // Deserializes the selected theme's .cfg (JSON) file into a ThemeSettings DTO and copies every
+        // field onto _settings. DANGER: any new theme property must be added here too - see the sync
+        // point warning on LoadCurrentThemeValuesIntoUi above.
         private void BtnLoadTheme_Click(object sender, RoutedEventArgs e)
         {
             if (CboThemePresets.SelectedItem is string selectedTheme && selectedTheme != "[New Theme...]")
@@ -188,6 +212,7 @@ namespace ArcadeStick.Views
                             _settings.GameSelectedColorHex = themeData.GameSelectedColorHex;
                             _settings.GameSelectedBgColorHex = themeData.GameSelectedBgColorHex;
                             _settings.FavoritesColorHex = themeData.FavoritesColorHex;
+                            _settings.ArrowColorHex = themeData.ArrowColorHex;
                             _settings.TabFontSize = themeData.TabFontSize;
                             _settings.TabColorHex = themeData.TabColorHex;
                             _settings.TabBgColorHex = themeData.TabBgColorHex;
@@ -221,7 +246,12 @@ namespace ArcadeStick.Views
                 }
             }
         }
+        // [END SUB-SECTION: Load Theme - SYNC POINT 1 of 3]
 
+        // [SUB-SECTION: Save Theme - SYNC POINT 2 of 3]
+        // Validates the theme name (prompting for one if "[New Theme...]" is selected), syncs the UI into
+        // _settings, builds a ThemeSettings DTO, and writes it as JSON to the theme's .cfg file. DANGER:
+        // any new theme property must be added to this DTO too - see the sync point warning above.
         private void BtnSaveTheme_Click(object sender, RoutedEventArgs e)
         {
             string themeName = CboThemePresets.SelectedItem as string;
@@ -279,6 +309,7 @@ namespace ArcadeStick.Views
                     GameSelectedColorHex = _settings.GameSelectedColorHex,
                     GameSelectedBgColorHex = _settings.GameSelectedBgColorHex,
                     FavoritesColorHex = _settings.FavoritesColorHex,
+                    ArrowColorHex = _settings.ArrowColorHex,
                     TabFontSize = _settings.TabFontSize,
                     TabColorHex = _settings.TabColorHex,
                     TabBgColorHex = _settings.TabBgColorHex,
@@ -317,7 +348,9 @@ namespace ArcadeStick.Views
                 MessageBox.Show($"Failed to save theme: {ex.Message}", "Write Crash", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        // [END SUB-SECTION: Save Theme - SYNC POINT 2 of 3]
 
+        // Briefly flashes the "Theme Saved" confirmation text for 2 seconds after a successful save
         private void ShowThemeSavedFlash()
         {
             TxtThemeSavedFlash.Visibility = Visibility.Visible;
@@ -334,8 +367,10 @@ namespace ArcadeStick.Views
             };
             _themeSavedFlashTimer.Start();
         }
-        // 🏗️ END: UPDATED THEME SERIALIZATION LOGIC
+        // [END SECTION: Theme Serialization Logic]
 
+        // [SECTION: Delete Theme]
+        // Prompts for confirmation, then deletes the selected theme's .cfg file and refreshes the dropdown.
         private void BtnDeleteTheme_Click(object sender, RoutedEventArgs e)
         {
             if (CboThemePresets.SelectedItem is string selectedTheme && selectedTheme != "[New Theme...]")
@@ -358,7 +393,13 @@ namespace ArcadeStick.Views
                 }
             }
         }
+        // [END SECTION: Delete Theme]
 
+        // [SECTION: Sync UI to Settings]
+        // Writes every Theme Builder control's current value back into _settings. Called before saving
+        // a theme file (BtnSaveTheme_Click) and from OptionsWindow's main Save Adjustments button
+        // (via SyncUiToSettings). Numeric fields are parsed defensively - invalid input leaves the
+        // existing setting unchanged rather than throwing.
         private void SyncUiEntriesToSettingsLayer()
         {
             _settings.MainWindowWallpaper = TxtMainBgPath.Text;
@@ -397,6 +438,7 @@ namespace ArcadeStick.Views
             _settings.GameSelectedColorHex = TxtGameSelectedColorHex.Text;
             _settings.GameSelectedBgColorHex = TxtGameSelectedBgColorHex.Text;
             _settings.FavoritesColorHex = TxtFavoritesColorHex.Text;
+            _settings.ArrowColorHex = TxtArrowColorHex.Text;
 
             if (int.TryParse(TxtTabFontSize.Text, out int tSize)) _settings.TabFontSize = tSize;
             _settings.TabColorHex = TxtTabColorHex.Text;
@@ -417,7 +459,12 @@ namespace ArcadeStick.Views
             _settings.BtnTextColorNormalHex = TxtBtnTextColorNormalHex.Text;
             _settings.BtnBgColorHoverHex = TxtBtnBgColorHoverHex.Text;
         }
+        // [END SECTION: Sync UI to Settings]
 
+        // [SECTION: File Browse Handler]
+        // Shared handler for all seven image-asset browse buttons. Opens an image file picker, converts
+        // the selection to a path relative to the MAME root when on the same drive (portable-friendly),
+        // then routes the result to the correct TextBox based on which button raised the event.
         private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
         {
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
@@ -450,5 +497,6 @@ namespace ArcadeStick.Views
                 else if (sender == BtnBrowseThemeMissingPreview) TxtThemeMissingPreviewPath.Text = selectedPath;
             }
         }
+        // [END SECTION: File Browse Handler]
     }
 }
