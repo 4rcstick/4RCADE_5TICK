@@ -33,7 +33,7 @@ The project started life as a ~1600-line PowerShell prototype before being rebui
 
 1. Download the latest release zip from the [Releases](../../releases) page.
 2. Extract the contents into your MAME folder.
-3. If your ROMs live in MAME's default `roms` folder, 4RCADE 5TICK will find them automatically. Otherwise, point it at your ROMs folder via Options → Asset Paths.
+3. If your ROMs live in MAME's default `roms` folder, 4RCADE 5TICK will find them automatically. Otherwise, point it at your ROMs folder via Options → System Paths.
 4. Run `ArcadeStick.exe` — no installer needed.
 
 ## Requirements
