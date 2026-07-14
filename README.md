@@ -31,8 +31,8 @@ The project started life as a ~1600-line PowerShell prototype before being rebui
 *A feature to auto-sort games into folders (via catver.ini) is planned for a later release.*
 
 <img width="1280" height="720" alt="github02" src="https://github.com/user-attachments/assets/a33316d8-d7f1-4d42-98bc-165dd8f43ffa" />
-
-
+<br>
+<br>
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
 
 ## Installation
