@@ -5,6 +5,8 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 **Status:** v1.0 Beta
 
+<img width="1280" height="720" alt="github01" src="https://github.com/user-attachments/assets/54dbdf2c-e463-4c41-b1bf-a007ab6fd8ec" />
+
 ## About
 
 4RCADE 5TICK was not "vibe coded" — it took months of diligent planning. All visual elements and architecture were designed by the author, with heavy use of AI-assisted support (Claude, Anthropic) for coding and troubleshooting. AI was also used to create the images included in this beta release.
@@ -28,9 +30,8 @@ The project started life as a ~1600-line PowerShell prototype before being rebui
 
 *A feature to auto-sort games into folders (via catver.ini) is planned for a later release.*
 
-<img width="1280" height="720" alt="github01" src="https://github.com/user-attachments/assets/54dbdf2c-e463-4c41-b1bf-a007ab6fd8ec" />
-
 <img width="1280" height="720" alt="github02" src="https://github.com/user-attachments/assets/a33316d8-d7f1-4d42-98bc-165dd8f43ffa" />
+
 
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
 
