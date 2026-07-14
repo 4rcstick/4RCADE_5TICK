@@ -1,0 +1,217 @@
+﻿<Window x:Class="ArcadeStick.Views.ManagePlayListsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Manage Custom Folders" 
+        Height="400" 
+        Width="500" 
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#1E1E24"
+        BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}"
+        BorderThickness="1"
+        Foreground="White">
+
+    <Window.Resources>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2D2D35}"/>
+            <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=White}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder" 
+                                Background="{TemplateBinding Background}" 
+                                BorderThickness="0" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
+                                <Setter Property="Foreground" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                <Setter Property="Foreground" Value="{Binding DataContext.TabActiveColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#000000}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StandardButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{Binding BtnBgColorHex, FallbackValue=#2D2D35}"/>
+            <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=White}"/>
+            <Setter Property="BorderBrush" Value="{Binding BtnBorderColorHex, FallbackValue=Transparent}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="BtnBorder" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BtnBorder" Property="Background" Value="{Binding BtnBgColorHoverHex, FallbackValue=#3A3A42}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border Margin="20" 
+            BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" 
+            BorderThickness="1" 
+            Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <ComboBox x:Name="FolderComboBox" 
+                  Grid.Row="0" 
+                  Height="35" 
+                  Margin="0,0,0,20"
+                  Background="{Binding BtnBgColorHex, FallbackValue=#2D2D35}" 
+                  Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}">
+                <ComboBox.Template>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton" 
+                                      Focusable="false"
+                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                      ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Border" 
+                                            Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2D2D35}" 
+                                            BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" 
+                                            BorderThickness="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition />
+                                                    <ColumnDefinition Width="30" />
+                                                </Grid.ColumnDefinitions>
+                                                <Path x:Name="Arrow" 
+                                                  Grid.Column="1" 
+                                                  Fill="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}" 
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center" 
+                                                  Data="M 0 0 L 4 4 L 8 0 Z" />
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite" 
+                                          IsHitTestVisible="False" 
+                                          Content="{TemplateBinding SelectionBoxItem}"
+                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                          Margin="10,0,30,0" 
+                                          VerticalAlignment="Center" 
+                                          HorizontalAlignment="Left" />
+                            <Popup x:Name="Popup" 
+                               Placement="Bottom" 
+                               IsOpen="{TemplateBinding IsDropDownOpen}" 
+                               AllowsTransparency="True" 
+                               Focusable="False" 
+                               PopupAnimation="Slide">
+                                <Grid x:Name="DropDown" 
+                                  SnapsToDevicePixels="True" 
+                                  MinWidth="{TemplateBinding ActualWidth}" 
+                                  MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder" 
+                                        Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2D2D35}" 
+                                        BorderThickness="1" 
+                                        BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" />
+                                    <ScrollViewer Margin="4" SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </ComboBox.Template>
+            </ComboBox>
+
+            <StackPanel Grid.Row="1" Margin="0,0,0,20">
+                <TextBlock Text="Folder Name:" 
+                       Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" 
+                       FontSize="{Binding HeaderFontSize, FallbackValue=14}" 
+                       FontWeight="Bold" 
+                       Margin="0,0,0,5"
+                       Visibility="{Binding Visibility, ElementName=FolderNameTextBox}"/>
+                <TextBox x:Name="FolderNameTextBox" 
+                     Height="35" 
+                     Background="Black" 
+                     Foreground="White" 
+                     VerticalContentAlignment="Center"
+                     Padding="5,0"/>
+            </StackPanel>
+
+            <UniformGrid Grid.Row="2" Columns="2" Margin="0,0,0,15">
+                <TextBox x:Name="HexColorTextBox" 
+                     Height="35" 
+                     Margin="0,0,10,0" 
+                     Background="#2D2D35" 
+                     Foreground="White" 
+                     VerticalContentAlignment="Center"
+                     Padding="5,0"/>
+            <Button x:Name="RemoveButton" 
+                    Style="{StaticResource StandardButtonStyle}"
+                    Content="Remove From Custom Folder" 
+                    Height="35" 
+                    Margin="10,0,0,0" 
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#CC1111}" 
+                    FontWeight="Bold"/>
+        </UniformGrid>
+
+        <Button x:Name="DeleteFolderButton" 
+                Grid.Row="3" 
+                Style="{StaticResource StandardButtonStyle}"
+                Content="Delete Entire Folder" 
+                Height="35" 
+                Margin="0,0,0,20" 
+                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#CC1111}"/>
+
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="ConfirmButton" 
+                    Grid.Column="0" 
+                    Style="{StaticResource StandardButtonStyle}"
+                    Content="Confirm Add" 
+                    Height="35" 
+                    Background="{Binding BtnBgColorHex, FallbackValue=#1E1E24}" 
+                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00CBCB}" 
+                    BorderThickness="1" 
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00CBCB}"/>
+
+                <Button x:Name="CancelButton" 
+                    Grid.Column="2" 
+                    Style="{StaticResource StandardButtonStyle}"
+                    Content="Cancel" 
+                    Height="35"/>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

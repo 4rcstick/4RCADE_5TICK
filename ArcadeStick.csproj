@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWpf>true</UseWpf>
+
+		<PublishSingleFile>true</PublishSingleFile>
+
+		<IncludeNativeLibrariesForSelfContained>true</IncludeNativeLibrariesForSelfContained>
+
+		<ApplicationIcon>Assets\arcade.ico</ApplicationIcon>
+		<AssemblyName>4RCADE_5TICK</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="LibVLCSharp" Version="3.10.0" />
+		<PackageReference Include="LibVLCSharp.WPF" Version="3.10.0" />
+		<PackageReference Include="System.Management" Version="10.0.0-preview.2.25163.2" />
+		<PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23.1" />
+	</ItemGroup>
+
+	<Target Name="PruneLibVlcPlugins" AfterTargets="Publish">
+		<ItemGroup>
+			<UnneededPluginFolders Include="$(PublishDir)libvlc\win-x64\plugins\lua" />
+			<UnneededPluginFolders Include="$(PublishDir)libvlc\win-x64\plugins\visualization" />
+			<UnneededPluginFolders Include="$(PublishDir)libvlc\win-x64\plugins\services_discovery" />
+			<UnneededPluginFolders Include="$(PublishDir)libvlc\win-x64\plugins\gui" />
+			<UnneededPluginFolders Include="$(PublishDir)libvlc\win-x64\plugins\control" />
+			<UnneededPluginFolders Include="$(PublishDir)libvlc\win-x64\plugins\stream_out" />
+			<UnneededPluginFolders Include="$(PublishDir)libvlc\win-x64\plugins\mux" />
+			<UnneededTopLevelFolders Include="$(PublishDir)libvlc\win-x64\lua" />
+			<UnneededTopLevelFolders Include="$(PublishDir)libvlc\win-x64\hrtfs" />
+			<UnneededArchFolders Include="$(PublishDir)libvlc\win-arm64" />
+			<UnneededArchFolders Include="$(PublishDir)libvlc\win-x86" />
+			<UnneededLibFiles Include="$(PublishDir)libvlc\win-x64\libvlc.lib" />
+			<UnneededLibFiles Include="$(PublishDir)libvlc\win-x64\libvlccore.lib" />
+		</ItemGroup>
+
+		<RemoveDir Directories="@(UnneededPluginFolders)" Condition="Exists('%(UnneededPluginFolders.Identity)')" />
+		<RemoveDir Directories="@(UnneededTopLevelFolders)" Condition="Exists('%(UnneededTopLevelFolders.Identity)')" />
+		<RemoveDir Directories="@(UnneededArchFolders)" Condition="Exists('%(UnneededArchFolders.Identity)')" />
+		<Delete Files="@(UnneededLibFiles)" Condition="Exists('%(UnneededLibFiles.Identity)')" />
+
+		<MakeDir Directories="$(PublishDir)arcadestick_files" Condition="!Exists('$(PublishDir)arcadestick_files')" />
+		<RemoveDir Directories="$(PublishDir)arcadestick_files\libvlc" Condition="Exists('$(PublishDir)arcadestick_files\libvlc')" />
+
+		<Exec Command="move &quot;$(PublishDir)libvlc\win-x64&quot; &quot;$(PublishDir)arcadestick_files\libvlc&quot;" Condition="Exists('$(PublishDir)libvlc\win-x64')" />
+
+		<RemoveDir Directories="$(PublishDir)libvlc" Condition="Exists('$(PublishDir)libvlc')" />
+	</Target>
+
+</Project>

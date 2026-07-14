@@ -1,0 +1,139 @@
+﻿<Window x:Class="ArcadeStick.Views.OptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ArcadeStick"
+        xmlns:views="clr-namespace:ArcadeStick.Views"
+        Title="ArcadeStick Options" Height="680" Width="680"
+        WindowStartupLocation="CenterOwner" 
+        Background="{Binding BackgroundColor, FallbackValue=#1C1C1E}" 
+        BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" 
+        BorderThickness="1">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0"
+                    Background="{Binding OptionsBg, FallbackValue=#000000}" 
+                    BorderBrush="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" 
+                    BorderThickness="1" 
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}">
+
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TabPanel Grid.Row="0"
+                                  IsItemsHost="True"
+                                  Panel.ZIndex="1"
+                                  Margin="0"/>
+
+                        <Border Grid.Row="1"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter ContentSource="SelectedContent"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
+
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Height" Value="25"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="FontSize" Value="{Binding TabFontSize, FallbackValue=12}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="TabBorder" 
+                                        Background="{Binding DataContext.OptionsBg, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
+                                        BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}" 
+                                        BorderThickness="1,1,1,0" 
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter x:Name="ContentSite"
+                                                      ContentSource="Header"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Margin="5,2"/>
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
+                                        <Setter Property="Foreground" Value="{Binding DataContext.TabHoverColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                    </Trigger>
+
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabActiveBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                        <Setter Property="Foreground" Value="{Binding DataContext.TabActiveColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#000000}"/>
+                                    </Trigger>
+
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                        <Setter Property="Foreground" Value="{Binding DataContext.TabColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#A0A0A2}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+
+            <TabItem Header="ABOUT">
+                <views:AboutTabControl/>
+            </TabItem>
+
+            <TabItem Header="FOLDER ORDER">
+                <views:FolderOrderTabControl x:Name="FolderOrderTab"/>
+            </TabItem>
+
+            <TabItem Header="PREVIEWS ORDER">
+                <views:PreviewsOrderTabControl x:Name="PreviewsOrderTab"/>
+            </TabItem>
+
+            <TabItem Header="THEMES">
+                <views:ThemesTabControl x:Name="ThemesTab"/>
+            </TabItem>
+
+            <TabItem Header="SYSTEM PATHS">
+                <views:SystemPathsTabControl x:Name="SystemPathsTab"/>
+            </TabItem>
+
+            <TabItem Header="ASSET PATHS">
+                <views:AssetPathsTabControl x:Name="AssetPathsTab"/>
+            </TabItem>
+
+            <TabItem Header="INPUTS">
+                <views:InputsTabControl x:Name="InputsTab"/>
+            </TabItem>
+
+            <TabItem Header="MAME.ini">
+                <views:MAMEiniTabControl x:Name="MameIniTab"/>
+            </TabItem>
+        </TabControl>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Save Adjustments" x:Name="BtnSaveOptions" Click="BtnSaveOptions_Click" 
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" 
+                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
+                    BorderThickness="1" FontWeight="Bold" Padding="15,6" Margin="0,0,10,0"/>
+            <Button Content="Close Panel" x:Name="BtnCloseOptions" Click="BtnCloseOptions_Click"
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}"
+                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}"
+                    BorderThickness="1" Padding="15,6"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ArcadeStick": {
+      "commandName": "Project",
+      "workingDirectory": "F:\\Arcade Stick\\Data"
+    }
+  }
+}

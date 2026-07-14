@@ -1,0 +1,246 @@
+﻿<UserControl x:Class="ArcadeStick.Views.AboutTabControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:ArcadeStick.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="550" d:DesignWidth="620">
+    <Grid Margin="15">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+            <StackPanel>
+
+                <Border Background="#F2F2F2" CornerRadius="4" Padding="10" Margin="0,0,0,15">
+                    <StackPanel>
+                        <TextBlock Text="ABOUT" 
+                                   FontWeight="Bold" Margin="0,0,0,8"
+                                   FontSize="{Binding HeaderFontSize, FallbackValue=14}"
+                                   Foreground="#1A2A4a"/>
+
+                        <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,0"
+                                   FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                                   Foreground="#000000">
+                            <Run Text="4RCADE 5TICK — v1.0 (Beta)"/>
+                            <LineBreak/>
+                            <Run Text="A highly customizable MAME® frontend launcher."/>
+                            <LineBreak/>
+                            <Run Text="Created by 4RCHIMEDE5"/>
+                            <LineBreak/>
+                            <LineBreak/>
+                            <Run Text="4RCADE 5TICK was not 'Vibe Coded' and took months of diligent planning. All visual elements and architecture were desinged by me, however, I did rely heavily on AI-assisted support using Claude (Anthropic) for most of the coding and troubleshooting. AI was also utilized to create all of the images used in this beta release." />
+                            <LineBreak/>
+                            <LineBreak/>
+                            <Run Text="If you are an artist and would like to contribute to creating backgrounds, logos or splash art, feel free to contact me at the email address below." />
+                            <LineBreak/>
+                            <LineBreak/>
+                            <Run Text="4RCADE 5TICK contains no ROMs, BIOS files, or copyrighted game assets. You are responsible for supplying your own legally obtained files."/>
+                            <LineBreak/>
+                            <LineBreak/>
+                            <Run Text="Powered by MAME® — 4RCADE 5TICK is not affiliated with or endorsed by the MAME development team."/>
+                            <LineBreak/>
+                            <LineBreak/>
+                            <Run Text="4RCADE 5TICK is free to use and modify. No warranty is provided or implied."/>
+                            <LineBreak/>
+                            <LineBreak/>
+                            <Run Text="Please send any feedback or bug reports to Archimedes2012@hotmail.com"/>
+                            <LineBreak/>
+                            <LineBreak/>
+                            <Run Text="You can find the source code and contribute on "/><Hyperlink Click="GitHubLink_Click" Foreground="#1A2A4a"><Run Text="GitHub"/></Hyperlink><Run Text="."/>
+                            <LineBreak/>
+                            <LineBreak/>
+                            <Run Text="If you have found 4RCADE 5TICK to be worthy of your hard drive space, feel free to donate:"/>
+                        </TextBlock>
+
+                        <Image Source="{Binding BmacButtonAsset}"
+                               Width="130"
+                               HorizontalAlignment="Left"
+                               Margin="0,10,0,0"
+                               Cursor="Hand"
+                               MouseLeftButtonUp="BmacImage_MouseLeftButtonUp"/>
+                    </StackPanel>
+                </Border>
+
+                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+
+                <TextBlock Text="FEATURES" 
+                           FontWeight="Bold" Margin="0,0,0,15"
+                           FontSize="{Binding HeaderFontSize, FallbackValue=14}"
+                           Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+
+                <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
+                           FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                           Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                    <Run Text="4RCADE 5TICK is packed with features designed to make your arcade experience smooth and personal — here are a few highlights:"/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Theme Builder" FontWeight="Bold"/><Run Text=" — Customize the look of the launcher to your specific needs at any time. Save them, load them, share them — as simple, shareable files."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Auto ROM Scan" FontWeight="Bold"/><Run Text=" — Automatically scans your ROM folder(s) on every boot and builds your game list; updates your mame.ini file automatically so you never get that missing ROM files error."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Controller Support" FontWeight="Bold"/><Run Text=" — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games. Troubleshoot controller issues in the Options → Inputs tab."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Easy MAME Settings Access" FontWeight="Bold"/><Run Text=" — Adjust several MAME settings directly from the Options → MAME.ini tab, such as Video Renderer, Pixel Aspect Ratios, and more."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Custom Folders" FontWeight="Bold"/><Run Text=" — Create custom folders easily by selecting a game and hitting Ctrl+G. Add or remove games from it at any time. If that's too much work, just use the built-in Favorites folder by hitting Ctrl+F."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Custom Folder Ordering" FontWeight="Bold"/><Run Text=" — Completely rearrange the folder order at any time in Options → Folder Order. Never feel stuck in an alphabetical list again."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Media Previews" FontWeight="Bold"/><Run Text=" — Large preview window to display game videos and art assets. Rearrange the display order at any time in Options → Previews Order."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Media Asset Paths" FontWeight="Bold"/><Run Text=" — Uses MAME's standard folders for artwork, flyers, and screenshots out of the box, plus a default folder for preview videos. Every path can be changed anytime in Options → Asset Paths."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Search" FontWeight="Bold"/><Run Text=" — Find games easily in your giant game collection with the search box directly above the games list."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="No Installation Required" FontWeight="Bold"/><Run Text=" — no installer, no setup wizard — just unzip the file(s) to your MAME folder and run it."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Fullscreen Toggle" FontWeight="Bold"/><Run Text=" — Quickly jump in and out of fullscreen mode with one hotkey (F11)."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="• "/><Run Text="Mouse Toggle" FontWeight="Bold"/><Run Text=" — Lock in games that require mouse support with a hotkey (Ctrl+M). Automatically updates MAME settings to turn on mouse support, then off when closing the game."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="* For those looking for a feature that auto-sorts games into folders, it's planned for a later release." FontStyle="Italic"/>
+                </TextBlock>
+
+                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+
+                <TextBlock Text="KEYBOARD SHORTCUTS" 
+                           FontWeight="Bold" Margin="0,0,0,15"
+                           FontSize="{Binding HeaderFontSize, FallbackValue=14}"
+                           Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="CTRL + F" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Adds/Removes Selected Game From Favorites" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="CTRL + G" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Select Game, Then Hit Hotkey To Create And Manage Custom Folders." Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="CTRL + M" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Activate Persistent Mouse Support For Selected Game" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="CTRL + O" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Opens This Options Window" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="F11" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Toggles Fullscreen Mode" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="ESC" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Closes Arcade Stick" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+
+                <TextBlock Text="JOYSTICK CONTROLS (Xbox 360 controller)" 
+                           FontWeight="Bold" Margin="0,0,0,15"
+                           FontSize="{Binding HeaderFontSize, FallbackValue=14}"
+                           Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="JOY/D-PAD" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Navigate Games List" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="START" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Launches Selected Game" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="A" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Opens/Closes Folders" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
+                        <TextBlock Text="Y" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Adds/Removes Selected Game From Favorites" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+
+
+
+
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
