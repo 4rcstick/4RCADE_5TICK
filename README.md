@@ -1,14 +1,15 @@
+
 # 4RCADE 5TICK
 
 A highly customizable, portable MAME® frontend launcher built in C#/WPF — designed for arcade cabinets, USB deployments, and anyone who wants full control over how their game list looks and feels.
 
 **Status:** v1.0 Beta
 
-![Default theme with custom folder tree](github01.png)
+<img width="1280" height="720" alt="github01" src="https://github.com/user-attachments/assets/54dbdf2c-e463-4c41-b1bf-a007ab6fd8ec" />
 
-![Summer theme](github02.png)
+<img width="1280" height="720" alt="github02" src="https://github.com/user-attachments/assets/a33316d8-d7f1-4d42-98bc-165dd8f43ffa" />
 
-![Theme Builder comparison](github03.png)
+<img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
 
 ## About
 
