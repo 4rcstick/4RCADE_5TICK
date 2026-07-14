@@ -56,7 +56,7 @@ Found a bug or have a feature request? Please [open an issue](../../issues).
 
 For general feedback, reach out at Archimedes2012@hotmail.com.
 
-If you've found 4RCADE 5TICK worth your hard drive space, consider [buying me a coffee](https://buymeacoffee.com/4rchimede5) — it helps me keep improving the project.
+If you've found 4RCADE 5TICK worthy of your hard drive space, consider [buying me a coffee](https://buymeacoffee.com/4rchimede5) — it helps me keep improving the project.
 
 ## License
 
