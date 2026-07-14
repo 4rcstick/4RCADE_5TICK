@@ -4,7 +4,11 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 **Status:** v1.0 Beta
 
-<!-- Screenshot or GIF of the main window goes here -->
+![Default theme with custom folder tree](github01.png)
+
+![Summer theme](github02.png)
+
+![Theme Builder comparison](github03.png)
 
 ## About
 
