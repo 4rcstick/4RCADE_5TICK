@@ -26,7 +26,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 - **Search** — Quickly find games in a large collection with the search box above the game list.
 - **No Installation Required** — No installer, no setup wizard. Unzip to your MAME folder and run.
 - **Fullscreen Toggle** — Jump in and out of fullscreen mode with one hotkey (`F11`).
-- **Mouse Toggle — Lock in mouse support for games that benefit from it with a hotkey (`Ctrl+M`). Shows a visual cue next to the game and automatically updates `mame.ini` to enable mouse support on launch and disable it on exit. Works great for trackball, light gun, and some paddle games.
+- **Mouse Toggle** — Lock in mouse support for games that benefit from it with a hotkey (`Ctrl+M`). Shows a visual cue next to the game and automatically updates `mame.ini` to enable mouse support on launch and disable it on exit. Works great for trackball, light gun, and some paddle games.
 - **Theme Builder** — Customize the look of the launcher to your specific needs at any time. Save, load, and share themes as simple files.
 
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
