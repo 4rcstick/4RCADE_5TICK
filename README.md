@@ -35,9 +35,10 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 [#planned-for-v20](#planned-for-v20)
 
-- Auto-Sort via catver.ini — sort games into folders automatically based on category data.
+- Auto-Sort via catver.ini — sort games into virtual folders automatically based on category data.
 - On-screen virtual keyboard — joystick/button-driven search, no keyboard needed.
-- Full controller UI navigation — extend controller support to the entire Options window, replacing mouse and keyboard.
+- Full controller UI navigation — extend controller support to the entire Options Menu, replacing mouse and keyboard.
+- Portable theme packages — bundle a theme's data and images into a single shareable file (like a zip), so sharing themes doesn't mean sending a folder.
 
 ## Installation
 
