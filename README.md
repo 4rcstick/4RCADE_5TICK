@@ -20,13 +20,13 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 - **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options Menu, such as Video Renderer, Pixel Aspect Ratios, and more.
 - **Custom Folders** — Create custom folders by selecting a game and hitting `Ctrl+G`. Or just use the built-in Favorites folder with `Ctrl+F`.
 - **Custom Folder Ordering** — Rearrange folder order at any time — never feel stuck in an alphabetical list again.
-- **Marquees Window** — Displays marquee images above the preview window, or a logo if no marquees are found for the selected game.
+- **Marquees Window** — Displays marquee images above the preview window, falling back to the default logo (or a custom one set in Theme Builder) if no marquee is found for the selected game.
 - **Media Previews** — A large preview window for game videos and art assets, with rearrangeable display order.
 - **Media Asset Paths** — Uses MAME's standard folders for marquees, flyers, snaps, titlescreens and cabinets out of the box, plus a default folder for preview videos. Every path is configurable.
 - **Search** — Quickly find games in a large collection with the search box above the game list.
 - **No Installation Required** — No installer, no setup wizard. Unzip to your MAME folder and run.
 - **Fullscreen Toggle** — Jump in and out of fullscreen mode with one hotkey (`F11`).
-- **Mouse Toggle** — Lock in mouse support, for games that benefit from it, with a hotkey (`Ctrl+M`). Toggling mouse support with a visual cue next to the game, updating mame.ini to turn it on when launched, and off when exiting the game. Works great for trackball, light gun and some paddle games.
+- ** Mouse Toggle — Lock in mouse support for games that benefit from it with a hotkey (`Ctrl+M`). Shows a visual cue next to the game and automatically updates `mame.ini` to enable mouse support on launch and disable it on exit. Works great for trackball, light gun, and some paddle games.
 - **Theme Builder** — Customize the look of the launcher to your specific needs at any time. Save, load, and share themes as simple files.
 
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
