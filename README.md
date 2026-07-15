@@ -17,9 +17,10 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 - **Auto ROM Scan** — Automatically scans your ROM folder(s) on every boot and builds your game list, updating `mame.ini` automatically so you never get a missing ROM files error.
 - **Controller Support** — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games.
-- **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options window, such as Video Renderer, Pixel Aspect Ratios, and more.
+- **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options Menu, such as Video Renderer, Pixel Aspect Ratios, and more.
 - **Custom Folders** — Create custom folders by selecting a game and hitting `Ctrl+G`. Or just use the built-in Favorites folder with `Ctrl+F`.
 - **Custom Folder Ordering** — Rearrange folder order at any time — never feel stuck in an alphabetical list again.
+- **Marquees Window** — Displays marquee images above the preview window, or a logo if no marquees are found for the selected game.
 - **Media Previews** — A large preview window for game videos and art assets, with rearrangeable display order.
 - **Media Asset Paths** — Uses MAME's standard folders for artwork, flyers, and screenshots out of the box, plus a default folder for preview videos. Every path is configurable.
 - **Search** — Quickly find games in a large collection with the search box above the game list.
