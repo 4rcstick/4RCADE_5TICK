@@ -11,8 +11,6 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 4RCADE 5TICK was not "vibe coded" — it took months of diligent planning. All visual elements and architecture were designed by the author, with heavy use of AI-assisted support (Claude, Anthropic) for coding and troubleshooting. AI was also used to create the images included in this beta release.
 
-The project started life as a ~1600-line PowerShell prototype before being rebuilt from the ground up in C#/WPF.
-
 <img width="1280" height="720" alt="github02" src="https://github.com/user-attachments/assets/a33316d8-d7f1-4d42-98bc-165dd8f43ffa" />
 
 ## Features
@@ -31,7 +29,7 @@ The project started life as a ~1600-line PowerShell prototype before being rebui
 - **Mouse Toggle** — Lock in games that require mouse support with a hotkey (`Ctrl+M`), automatically updating MAME settings on launch and close.
 
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
-<br>
+<br><br>
 
 _It is recommended for users with large mame collections to manually sort them into subfolders.  4RCADE 5TICK can currenly only auto-sort roms located in the root roms folder into a generic "Games" folder, that is still searchable with the search box. Auto-sorting into folders into categories (via catver.ini) is planned for a later release._
 
