@@ -15,7 +15,6 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 ## Features
 
-- **Theme Builder** — Customize the look of the launcher to your specific needs at any time. Save, load, and share themes as simple files.
 - **Auto ROM Scan** — Automatically scans your ROM folder(s) on every boot and builds your game list, updating `mame.ini` automatically so you never get a missing ROM files error.
 - **Controller Support** — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games.
 - **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options window, such as Video Renderer, Pixel Aspect Ratios, and more.
@@ -27,6 +26,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 - **No Installation Required** — No installer, no setup wizard. Unzip to your MAME folder and run.
 - **Fullscreen Toggle** — Jump in and out of fullscreen mode with one hotkey (`F11`).
 - **Mouse Toggle** — Lock in games that require mouse support with a hotkey (`Ctrl+M`), automatically updating MAME settings on launch and close.
+- **Theme Builder** — Customize the look of the launcher to your specific needs at any time. Save, load, and share themes as simple files.
 
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
 <br><br>
