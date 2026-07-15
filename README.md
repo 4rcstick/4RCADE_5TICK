@@ -29,7 +29,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 - **Theme Builder** — Customize the look of the launcher to your specific needs at any time. Save, load, and share themes as simple files.
 
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
-<br><br>
+<br>
 
 ## Planned for v2.0
 
