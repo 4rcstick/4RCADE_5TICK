@@ -31,7 +31,13 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
 <br><br>
 
-_It is recommended that users with large ROM collections manually sort them into subfolders. 4RCADE 5TICK can currently only auto-sort roms into a generic virtual "Games" folder, which is still searchable with the search box. Auto-sorting into virtual folders (via catver.ini) is planned for a later release._
+## Planned for v2.0
+
+[#planned-for-v20](#planned-for-v20)
+
+- Auto-Sort via catver.ini — sort games into folders automatically based on category data.
+- On-screen virtual keyboard — joystick/button-driven search, no keyboard needed.
+- Full controller UI navigation — extend controller support to the entire Options window, replacing mouse and keyboard.
 
 ## Installation
 
