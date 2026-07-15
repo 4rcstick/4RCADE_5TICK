@@ -22,7 +22,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 - **Custom Folder Ordering** — Rearrange folder order at any time — never feel stuck in an alphabetical list again.
 - **Marquees Window** — Displays marquee images above the preview window, falling back to the default logo (or a custom one set in Theme Builder) if no marquee is found for the selected game.
 - **Media Previews** — A large preview window for game videos and art assets, with rearrangeable display order.
-- **Media Asset Paths** — Uses MAME's standard folders for marquees, flyers, snaps, titlescreens and cabinets out of the box, plus a default folder for preview videos. Every path is configurable.
+- **Media Asset Paths** — Easily point to all your media assets (marquees/videos/flyers/screen caps/title screens/cabinets) in the Options Menu - Assets Path tab.
 - **Search** — Quickly find games in a large collection with the search box above the game list.
 - **No Installation Required** — No installer, no setup wizard. Unzip to your MAME folder and run.
 - **Fullscreen Toggle** — Jump in and out of fullscreen mode with one hotkey (`F11`).
