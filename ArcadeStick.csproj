@@ -44,10 +44,10 @@
 		<RemoveDir Directories="@(UnneededArchFolders)" Condition="Exists('%(UnneededArchFolders.Identity)')" />
 		<Delete Files="@(UnneededLibFiles)" Condition="Exists('%(UnneededLibFiles.Identity)')" />
 
-		<MakeDir Directories="$(PublishDir)arcadestick_files" Condition="!Exists('$(PublishDir)arcadestick_files')" />
-		<RemoveDir Directories="$(PublishDir)arcadestick_files\libvlc" Condition="Exists('$(PublishDir)arcadestick_files\libvlc')" />
+		<MakeDir Directories="$(PublishDir)4rcade_5tick_files" Condition="!Exists('$(PublishDir)4rcade_5tick_files')" />
+		<RemoveDir Directories="$(PublishDir)4rcade_5tick_files\libvlc" Condition="Exists('$(PublishDir)4rcade_5tick_files\libvlc')" />
 
-		<Exec Command="move &quot;$(PublishDir)libvlc\win-x64&quot; &quot;$(PublishDir)arcadestick_files\libvlc&quot;" Condition="Exists('$(PublishDir)libvlc\win-x64')" />
+		<Exec Command="move &quot;$(PublishDir)libvlc\win-x64&quot; &quot;$(PublishDir)4rcade_5tick_files\libvlc&quot;" Condition="Exists('$(PublishDir)libvlc\win-x64')" />
 
 		<RemoveDir Directories="$(PublishDir)libvlc" Condition="Exists('$(PublishDir)libvlc')" />
 	</Target>

@@ -13,7 +13,7 @@
                 <!-- [SECTION: About Header / Legal / Donate] -->
                 <!-- Colors here are intentionally hardcoded (not theme-bound) so this text stays readable
                      regardless of the active theme - see project notes on About tab text colors. -->
-                <Border Background="#F2F2F2" CornerRadius="4" Padding="10" Margin="0,0,0,15">
+                <Border Background="#FAF7F2" CornerRadius="4" Padding="10" Margin="0,0,0,15">
                     <StackPanel>
                         <TextBlock Text="ABOUT" 
                                    FontWeight="Bold" Margin="0,0,0,8"
@@ -115,7 +115,7 @@
                     <Run Text="• "/><Run Text="Mouse Toggle" FontWeight="Bold"/><Run Text=" — Lock in games that require mouse support with a hotkey (Ctrl+M). Automatically updates MAME settings to turn on mouse support, then off when closing the game."/>
                     <LineBreak/>
                     <LineBreak/>
-                    <Run Text="* For those looking for a feature that auto-sorts games into folders, it's planned for a later release." FontStyle="Italic"/>
+                    <Run Text="* It is recommended that users with large ROM collections manually sort them into subfolders. 4RCADE 5TICK can currently only auto-sort roms located in the root roms folder into a generic 'Games' folder, which is still searchable with the search box. Auto-sorting into folders (via catver.ini) is planned for a later release." FontStyle="Italic"/>
                 </TextBlock>
                 <!-- [END SECTION: Features List] -->
 
@@ -196,7 +196,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="ESC" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Closes Arcade Stick" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Closes 4RCADE 5TICK" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
                 <!-- [END SECTION: Keyboard Shortcuts] -->
 
@@ -241,7 +241,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="A" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Opens/Closes Folders" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Opens/Closes Folders and Launches Selected Game" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- Y: Toggle Favorite -->

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ArcadeStick"
         xmlns:views="clr-namespace:ArcadeStick.Views"
-        Title="ArcadeStick Options" Height="680" Width="680"
+        Title="4RCADE 5TICK Options" Height="700" Width="680"
         WindowStartupLocation="CenterOwner" 
         Background="{Binding BackgroundColor, FallbackValue=#1C1C1E}" 
         BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" 

@@ -15,7 +15,7 @@
             <TextBlock TextWrapping="Wrap" Margin="0,0,0,15"
                        FontSize="{Binding StandardFontSize, FallbackValue=13}"
                        Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
-                       Text="Set the folder locations for your ROMs, BIOS files, and CHDs. These can be absolute paths or relative to the ArcadeStick base directory. (Restart required for changes to take effect)"/>
+                       Text="Set the folder locations for your ROMs, BIOS files, and CHDs. These can be absolute paths or relative to the MAME root directory. (Restart required for changes to take effect)"/>
 
             <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
