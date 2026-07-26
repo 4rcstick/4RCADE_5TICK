@@ -1,33 +1,43 @@
+
 # 4RCADE 5TICK
 
-A highly customizable, portable MAME® frontend launcher built in C#/WPF — designed for arcade cabinets, USB deployments, and anyone who wants full control over how their game list looks and feels.
+A highly customizable, portable MAME® frontend launcher built in C#/WPF — designed for arcade cabinets, USB deployments, or any MAME enthusiast who wants more control over their MAME collection, without having to worry about digging into confusing, cfg, json, or ini files.
 
 **Status:** v1.0 Beta
 
-<!-- Screenshot or GIF of the main window goes here -->
+<img width="1280" height="720" alt="github01" src="https://github.com/user-attachments/assets/54dbdf2c-e463-4c41-b1bf-a007ab6fd8ec" />
 
 ## About
 
-4RCADE 5TICK was not "vibe coded" — it took months of diligent planning. All visual elements and architecture were designed by the author, with heavy use of AI-assisted support (Claude, Anthropic) for coding and troubleshooting. AI was also used to create the images included in this beta release.
+4RCADE 5TICK took months of diligent planning. All visual elements and architecture were designed by the author, with heavy use of AI-assisted support (Claude, Anthropic) for coding and troubleshooting. AI was also used to create most of the images included in this beta release.  If you would like to contribute to logos, backgrounds, or splash art, please shoot me an email.
 
-The project started life as a ~1600-line PowerShell prototype before being rebuilt from the ground up in C#/WPF.
+<img width="1280" height="720" alt="github02" src="https://github.com/user-attachments/assets/a33316d8-d7f1-4d42-98bc-165dd8f43ffa" />
 
 ## Features
 
-- **Theme Builder** — Customize the look of the launcher to your specific needs at any time. Save, load, and share themes as simple files.
 - **Auto ROM Scan** — Automatically scans your ROM folder(s) on every boot and builds your game list, updating `mame.ini` automatically so you never get a missing ROM files error.
 - **Controller Support** — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games.
-- **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options window, such as Video Renderer, Pixel Aspect Ratios, and more.
+- **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options Menu, such as Video Renderer, Pixel Aspect Ratios, and more.
 - **Custom Folders** — Create custom folders by selecting a game and hitting `Ctrl+G`. Or just use the built-in Favorites folder with `Ctrl+F`.
 - **Custom Folder Ordering** — Rearrange folder order at any time — never feel stuck in an alphabetical list again.
+- **Marquees Window** — Displays marquee images above the preview window, falling back to the default logo (or a custom one set in Theme Builder) if no marquee is found for the selected game.
 - **Media Previews** — A large preview window for game videos and art assets, with rearrangeable display order.
-- **Media Asset Paths** — Uses MAME's standard folders for artwork, flyers, and screenshots out of the box, plus a default folder for preview videos. Every path is configurable.
+- **Media Asset Paths** — Easily point to all your media assets (marquees/videos/flyers/screen caps/title screens/cabinets) in the Options Menu - Assets Path tab.
 - **Search** — Quickly find games in a large collection with the search box above the game list.
 - **No Installation Required** — No installer, no setup wizard. Unzip to your MAME folder and run.
 - **Fullscreen Toggle** — Jump in and out of fullscreen mode with one hotkey (`F11`).
-- **Mouse Toggle** — Lock in games that require mouse support with a hotkey (`Ctrl+M`), automatically updating MAME settings on launch and close.
+- **Mouse Toggle** — Lock in mouse support for games that benefit from it with a hotkey (`Ctrl+M`). Shows a visual cue next to the game and automatically updates `mame.ini` to enable mouse support on launch and disable it on exit. Works great for trackball, light gun, and some paddle games.
+- **Theme Builder** — Customize the look of the launcher to your specific needs at any time. Save, load, and share themes as simple files.
 
-*A feature to auto-sort games into folders (via catver.ini) is planned for a later release.*
+<img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
+<br>
+
+## Planned for v2.0
+
+- Auto-Sort via catver.ini — sort games into virtual folders automatically based on category data.
+- On-screen virtual keyboard — joystick/button-driven search, no keyboard needed.
+- Full controller UI navigation — extend controller support to the entire Options Menu, replacing mouse and keyboard.
+- Portable theme packages — bundle a theme's data and images into a single shareable file (like a zip), so sharing themes doesn't mean sending a folder.
 
 ## Installation
 
