@@ -5,7 +5,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 **Status:** v1.0.0-beta.2
 
-[![4RCADE 5TICK v1.0.0-beta.2 Demo](https://www.youtube.com/watch?v=lwM2RMsJVRc/hqdefault.jpg)](https://www.youtube.com/watch?v=lwM2RMsJVRc)
+[![4RCADE 5TICK v1.0.0-beta.2 Demo](https://youtu.be/A4R58FO2hvA/hqdefault.jpg)](https://youtu.be/A4R58FO2hvA)
 
 
 
