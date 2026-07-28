@@ -75,7 +75,9 @@ namespace ArcadeStick.Views
         private string FormatHexCode(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return string.Empty;
-            string cleanInput = input.Trim().ToUpper();
+            string cleanInput = input.Trim();
+            if (cleanInput.Equals("transparent", StringComparison.OrdinalIgnoreCase)) return "Transparent";
+            cleanInput = cleanInput.ToUpper();
             if (!cleanInput.StartsWith("#")) cleanInput = "#" + cleanInput;
             if (cleanInput.Length == 9) return "#" + cleanInput.Substring(3);
             return cleanInput;
@@ -115,6 +117,8 @@ namespace ArcadeStick.Views
             TxtBorderWidthValue.Text = _settings.BorderWidthValue.ToString();
             TxtBorderCurveValue.Text = _settings.BorderCurveValue.ToString();
             TxtSeparatorColorHex.Text = FormatHexCode(_settings.SeparatorColorHex);
+            TxtMarqueeBorderColorHex.Text = FormatHexCode(_settings.MarqueeBorderColorHex);
+            TxtMarqueeBorderWidthValue.Text = _settings.MarqueeBorderWidthValue.ToString();
 
             // Typography & State Colors (Filtered through Gatekeeper)
             TxtFolderFontSize.Text = _settings.FolderFontSize.ToString();
@@ -202,6 +206,8 @@ namespace ArcadeStick.Views
                             _settings.BorderWidthValue = themeData.BorderWidthValue;
                             _settings.BorderCurveValue = themeData.BorderCurveValue;
                             _settings.SeparatorColorHex = themeData.SeparatorColorHex;
+                            _settings.MarqueeBorderColorHex = themeData.MarqueeBorderColorHex;
+                            _settings.MarqueeBorderWidthValue = themeData.MarqueeBorderWidthValue;
                             _settings.FolderFontSize = themeData.FolderFontSize;
                             _settings.FolderColorHex = themeData.FolderColorHex;
                             _settings.FolderSelectedColorHex = themeData.FolderSelectedColorHex;
@@ -299,6 +305,8 @@ namespace ArcadeStick.Views
                     BorderWidthValue = _settings.BorderWidthValue,
                     BorderCurveValue = _settings.BorderCurveValue,
                     SeparatorColorHex = _settings.SeparatorColorHex,
+                    MarqueeBorderColorHex = _settings.MarqueeBorderColorHex,
+                    MarqueeBorderWidthValue = _settings.MarqueeBorderWidthValue,
                     FolderFontSize = _settings.FolderFontSize,
                     FolderColorHex = _settings.FolderColorHex,
                     FolderSelectedColorHex = _settings.FolderSelectedColorHex,
@@ -427,6 +435,8 @@ namespace ArcadeStick.Views
             if (double.TryParse(TxtBorderWidthValue.Text, out double bWidth)) _settings.BorderWidthValue = bWidth;
             if (double.TryParse(TxtBorderCurveValue.Text, out double bCurve)) _settings.BorderCurveValue = bCurve;
             _settings.SeparatorColorHex = TxtSeparatorColorHex.Text;
+            _settings.MarqueeBorderColorHex = TxtMarqueeBorderColorHex.Text;
+            if (double.TryParse(TxtMarqueeBorderWidthValue.Text, out double mbWidth)) _settings.MarqueeBorderWidthValue = mbWidth;
 
             if (int.TryParse(TxtFolderFontSize.Text, out int fSize)) _settings.FolderFontSize = fSize;
             _settings.FolderColorHex = TxtFolderColorHex.Text;
@@ -467,9 +477,16 @@ namespace ArcadeStick.Views
         // then routes the result to the correct TextBox based on which button raised the event.
         private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
         {
+            // Boot splash is the only asset that accepts an mp4 alongside an image, since it can resolve
+            // to either a static image or a looping video (see IsBootSplashVideo/ThemeBootSplashVideoPath) -
+            // every other browse button stays image-only.
+            string dialogFilter = sender == BtnBrowseThemeBootSplash
+                ? "Image & Video Files (*.png;*.jpg;*.jpeg;*.bmp;*.mp4)|*.png;*.jpg;*.jpeg;*.bmp;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*"
+                : "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All files (*.*)|*.*";
+
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
-                Filter = "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All files (*.*)|*.*",
+                Filter = dialogFilter,
                 Title = "Select Theme Background Asset",
                 RestoreDirectory = true
             };

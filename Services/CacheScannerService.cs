@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -85,5 +86,39 @@ namespace ArcadeStick.Services
             return databaseMap;
         }
         // [END SECTION: Asynchronous MAME Cache Stream Parser Engine]
+
+        // [SECTION: MAME Cache File Generator]
+        // Invokes mame.exe -listfull and writes the raw stdout output directly to mame_cache.txt.
+        // No title cleanup occurs here; ParseCacheFileAsync already owns all stripping/formatting logic.
+        public async Task GenerateCacheFileAsync()
+        {
+            string mamePath = _settings.GetMamePath();
+            string exePath = Path.Combine(mamePath, "mame.exe");
+            string cachePath = Path.Combine(mamePath, "mame_cache.txt");
+
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = exePath,
+                Arguments = "-listfull",
+                WorkingDirectory = mamePath,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = Process.Start(startInfo))
+            {
+                if (process == null)
+                {
+                    return;
+                }
+
+                string output = await process.StandardOutput.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                await File.WriteAllTextAsync(cachePath, output);
+            }
+        }
+        // [END SECTION: MAME Cache File Generator]
     }
 }

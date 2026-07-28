@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace ArcadeStick.Views
@@ -6,6 +8,8 @@ namespace ArcadeStick.Views
     public partial class SystemPathsTabControl : UserControl
     {
         private ArcadeStick.Models.ConfigurationSettings _settings;
+        private Func<Task>? _rescanRomPaths;
+        private Action? _persistSettingsToDisk;
 
         public SystemPathsTabControl()
         {
@@ -15,9 +19,11 @@ namespace ArcadeStick.Views
         // [SECTION: Load / Save Sync]
         // Load side: populates ROMs/BIOS/CHD path TextBoxes from ConfigurationSettings. Called by
         // OptionsWindow when this tab is shown.
-        public void Initialize(ArcadeStick.Models.ConfigurationSettings settings)
+        public void Initialize(ArcadeStick.Models.ConfigurationSettings settings, Func<Task> rescanRomPaths, Action persistSettingsToDisk)
         {
             _settings = settings;
+            _rescanRomPaths = rescanRomPaths;
+            _persistSettingsToDisk = persistSettingsToDisk;
 
             TxtRomsPath.Text = _settings.RomsSubFolder;
             TxtBiosPath.Text = _settings.BiosPath;
@@ -100,5 +106,30 @@ namespace ArcadeStick.Views
             }
         }
         // [END SECTION: Folder Browse Handler]
+
+        // [SECTION: Live Rescan Button Handler]
+        // Syncs the current textbox values into ConfigurationSettings, then triggers the shared
+        // rompath-rewrite + game-list rebuild sequence - lets ROM/CHD path changes take effect
+        // immediately without an app restart.
+        private async void BtnRescanRomPaths_Click(object sender, RoutedEventArgs e)
+        {
+            if (_rescanRomPaths == null) return;
+
+            SyncToSettings();
+            _persistSettingsToDisk?.Invoke();
+
+            var clickedButton = sender as Button;
+            if (clickedButton != null) clickedButton.IsEnabled = false;
+
+            try
+            {
+                await _rescanRomPaths();
+            }
+            finally
+            {
+                if (clickedButton != null) clickedButton.IsEnabled = true;
+            }
+        }
+        // [END SECTION: Live Rescan Button Handler]
     }
 }

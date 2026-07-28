@@ -37,6 +37,7 @@
                               Width="60" 
                               HorizontalAlignment="Left"
                               Height="25">
+                        <ComboBoxItem Content="auto"/>
                         <ComboBoxItem Content="d3d"/>
                         <ComboBoxItem Content="opengl"/>
                         <ComboBoxItem Content="bgfx"/>
@@ -80,6 +81,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <!-- Row 0: windowed mode / cheat engine -->
@@ -94,13 +96,16 @@
                     <CheckBox x:Name="ChkSkipGameInfo" Grid.Row="2" Grid.Column="0" Content="Skip Mandatory System Information Screen" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkDisableThrottle" Grid.Row="2" Grid.Column="1" Content="Disable Throttling" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
-                    <!-- Row 3: multithreading / vsync -->
-                    <CheckBox x:Name="ChkMultithreading" Grid.Row="3" Grid.Column="0" Content="Enable Multithreading" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <!-- Row 3: bilinear filter / vsync -->
+                    <CheckBox x:Name="ChkFilter" Grid.Row="3" Grid.Column="0" Content="Enable Bilinear Filtering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkVsync" Grid.Row="3" Grid.Column="1" Content="Enable Vertical Sync" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 4: triple buffering / sync refresh rate -->
                     <CheckBox x:Name="ChkTripleBuffer" Grid.Row="4" Grid.Column="0" Content="Enable Triple Buffering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkSyncRefresh" Grid.Row="4" Grid.Column="1" Content="Synchronize Refresh Rate" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+
+                    <!-- Row 5: auto frameskip -->
+                    <CheckBox x:Name="ChkAutoFrameSkip" Grid.Row="5" Grid.Column="0" Content="Enable Auto Frame Skip" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                 </Grid>
                 <!-- [END SECTION: MAME.ini Feature Checkboxes] -->
             </StackPanel>

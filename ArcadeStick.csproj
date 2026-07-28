@@ -12,7 +12,7 @@
 		<IncludeNativeLibrariesForSelfContained>true</IncludeNativeLibrariesForSelfContained>
 
 		<ApplicationIcon>Assets\arcade.ico</ApplicationIcon>
-		<AssemblyName>4RCADE_5TICK</AssemblyName>
+		<AssemblyName>4RCADE5TICK</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -44,10 +44,10 @@
 		<RemoveDir Directories="@(UnneededArchFolders)" Condition="Exists('%(UnneededArchFolders.Identity)')" />
 		<Delete Files="@(UnneededLibFiles)" Condition="Exists('%(UnneededLibFiles.Identity)')" />
 
-		<MakeDir Directories="$(PublishDir)4rcade_5tick_files" Condition="!Exists('$(PublishDir)4rcade_5tick_files')" />
-		<RemoveDir Directories="$(PublishDir)4rcade_5tick_files\libvlc" Condition="Exists('$(PublishDir)4rcade_5tick_files\libvlc')" />
+		<MakeDir Directories="$(PublishDir)4RCADE5TICK_files" Condition="!Exists('$(PublishDir)4RCADE5TICK_files')" />
+		<RemoveDir Directories="$(PublishDir)4RCADE5TICK_files\libvlc" Condition="Exists('$(PublishDir)4RCADE5TICK_files\libvlc')" />
 
-		<Exec Command="move &quot;$(PublishDir)libvlc\win-x64&quot; &quot;$(PublishDir)4rcade_5tick_files\libvlc&quot;" Condition="Exists('$(PublishDir)libvlc\win-x64')" />
+		<Exec Command="move &quot;$(PublishDir)libvlc\win-x64&quot; &quot;$(PublishDir)4RCADE5TICK_files\libvlc&quot;" Condition="Exists('$(PublishDir)libvlc\win-x64')" />
 
 		<RemoveDir Directories="$(PublishDir)libvlc" Condition="Exists('$(PublishDir)libvlc')" />
 	</Target>

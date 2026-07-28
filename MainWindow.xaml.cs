@@ -36,10 +36,12 @@ namespace ArcadeStick
         private readonly MainViewModel _viewModel;
         private WGIService? _gamepadService;
         private bool _isTogglingMouseSupport;
+        private bool _isOptionsWindowOpen;
         private LibVLC? _libVLC;
 
         public WGIService? GamepadService => _gamepadService;
         public MediaPlayer? VlcMediaPlayer { get; private set; }
+        public MediaPlayer? BootSplashMediaPlayer { get; private set; }
 
         // [SECTION: Constructor & LibVLC Setup]
         // Initializes LibVLC (portable path if bundled, else system install), wires media player events,
@@ -61,20 +63,25 @@ namespace ArcadeStick
             VlcMediaPlayer = new MediaPlayer(_libVLC);
             VlcMediaPlayer.Mute = true;
 
-            // Loop the preview video when it reaches the end
-            VlcMediaPlayer.EndReached += (s, e) =>
-            {
-                Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    VlcMediaPlayer.Stop();
-                    VlcMediaPlayer.Play();
-                }));
-            };
+            // Looping is handled natively via the input-repeat media option (see media creation),
+            // so EndReached no longer needs to manually restart playback.
 
             // Swallow playback errors (e.g. missing/corrupt preview file) by stopping cleanly
             VlcMediaPlayer.EncounteredError += (s, e) =>
             {
                 Dispatcher.BeginInvoke(new Action(() => VlcMediaPlayer.Stop()));
+            };
+
+            // Separate player for the boot splash mp4, so it never conflicts with the foreground flyer/video preview
+            BootSplashMediaPlayer = new MediaPlayer(_libVLC);
+            BootSplashMediaPlayer.Mute = true;
+
+            // Looping is handled natively via the input-repeat media option (see media creation),
+            // so EndReached no longer needs to manually restart playback.
+
+            BootSplashMediaPlayer.EncounteredError += (s, e) =>
+            {
+                Dispatcher.BeginInvoke(new Action(() => BootSplashMediaPlayer.Stop()));
             };
 
             InitializeComponent();
@@ -92,6 +99,12 @@ namespace ArcadeStick
                 await _viewModel.InitializeDatabaseAsync();
                 ApplyDefaultMedia();
                 InitializeGamepadInput();
+
+                // Force a synchronous, fully-settled layout pass before reading any ActualHeight/Margin
+                // values - Loaded/LayoutUpdated/Dispatcher priorities can all still fire on a premature
+                // intermediate pass during the very first layout cycle.
+                UpdateLayout();
+                UpdateMediaColumnWidth();
             };
 
             // Dispose native/unmanaged resources on window close
@@ -99,12 +112,84 @@ namespace ArcadeStick
             {
                 _gamepadService?.Dispose();
                 VlcMediaPlayer?.Dispose();
+                BootSplashMediaPlayer?.Dispose();
                 _libVLC?.Dispose();
             };
 
             KeyDown += MainWindow_KeyDown;
+            SizeChanged += MainWindow_SizeChanged;
         }
         // [END SECTION: Constructor & LibVLC Setup]
+
+        // [SECTION: Dynamic Media Column Sizing]
+        // Recalculates the right column's exact pixel width on every resize so the media panel's
+        // Viewbox (fixed 1600x900 / 16:9 canvas) fits without letterboxing at any resolution.
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateMediaColumnWidth();
+        }
+
+        private void UpdateMediaColumnWidth()
+        {
+            // RootLayoutGrid is the true client content area - unlike Window.ActualHeight, it excludes
+            // the title bar/chrome, which was the actual source of the boot-size pillarboxing bug
+            // (ActualHeight included ~39px of title bar that was never accounted for).
+            double rootHeight = RootLayoutGrid.ActualHeight;
+            if (rootHeight <= 0) return;
+
+            // Root Row0 height = client area height minus the footer row's actual height (self-derived,
+            // no hardcoded constant), minus the right column grid's own top+bottom margin.
+            double footerHeight = FooterRowDef.ActualHeight;
+            double rightColumnVerticalMargin = RightColumnGrid.Margin.Top + RightColumnGrid.Margin.Bottom;
+            double availableHeight = rootHeight - footerHeight - rightColumnVerticalMargin;
+            if (availableHeight <= 0) return;
+
+            // Media row's share of availableHeight, derived from the live marquee/media star ratio
+            // instead of an assumed 0.4/1 split - stays correct if those RowDefinitions ever change.
+            double marqueeStars = ((GridLength)MarqueeRowDef.Height).Value;
+            double mediaStars = ((GridLength)MediaRowDef.Height).Value;
+            double totalStars = marqueeStars + mediaStars;
+            if (totalStars <= 0) return;
+
+            double mediaRowHeight = availableHeight * (mediaStars / totalStars);
+
+            // The media panel Border's own BorderThickness is drawn inside its bounds, shrinking the
+            // actual content area available to the Viewbox - account for it on both axes so the 16:9
+            // fit is calculated against the true interior size, not the outer row/column bounds.
+            double mediaBorderVertical = MediaPanelBorder.BorderThickness.Top + MediaPanelBorder.BorderThickness.Bottom;
+            double mediaBorderHorizontal = MediaPanelBorder.BorderThickness.Left + MediaPanelBorder.BorderThickness.Right;
+
+            double mediaContentHeight = mediaRowHeight - mediaBorderVertical;
+            double neededContentWidth = mediaContentHeight * 16.0 / 9.0;
+
+            // Width needed for a true 16:9 fit, plus the right column grid's own left+right margin
+            // and the border's own horizontal thickness (added back since it's drawn inside the column).
+            double rightColumnHorizontalMargin = RightColumnGrid.Margin.Left + RightColumnGrid.Margin.Right;
+            double neededWidth = neededContentWidth + rightColumnHorizontalMargin + mediaBorderHorizontal;
+
+            RightColumnDef.Width = new GridLength(neededWidth, GridUnitType.Pixel);
+            LeftColumnDef.Width = new GridLength(1, GridUnitType.Star);
+
+            // The full-bleed image layers live inside the Viewbox's fixed 1600x900 canvas, so their
+            // CornerRadius gets scaled down along with the image when the Viewbox shrinks that canvas
+            // to fit the panel - unlike MediaPanelBorder's own radius, which is real screen pixels and
+            // never scales. Compensate by the inverse of the Viewbox's scale factor so the inner corner
+            // curve lands at the same effective on-screen radius as the outer border, instead of coming
+            // out tighter/sharper and poking past it.
+            double viewboxScale = neededContentWidth / 1600.0;
+            double compensatedCornerRadius = viewboxScale > 0 ? _viewModel.ThemeBorderCurve / viewboxScale : _viewModel.ThemeBorderCurve;
+            MediaLayer0_Back.CornerRadius = new CornerRadius(compensatedCornerRadius);
+            MediaLayer1_Back.CornerRadius = new CornerRadius(compensatedCornerRadius);
+
+            // TEMP DEBUG - remove once the pillarboxing issue is confirmed fixed
+            System.Diagnostics.Debug.WriteLine(
+                $"[MediaColSizing] WindowActualHeight={ActualHeight:F1} FooterActualHeight={footerHeight:F1} " +
+                $"RightColMargin=({RightColumnGrid.Margin.Left},{RightColumnGrid.Margin.Top},{RightColumnGrid.Margin.Right},{RightColumnGrid.Margin.Bottom}) " +
+                $"availableHeight={availableHeight:F1} mediaRowHeight={mediaRowHeight:F1} " +
+                $"neededWidth={neededWidth:F1} RightColumnDef.ActualWidth={RightColumnDef.ActualWidth:F1} " +
+                $"RightColumnGrid.ActualHeight={RightColumnGrid.ActualHeight:F1} RightColumnGrid.ActualWidth={RightColumnGrid.ActualWidth:F1}");
+        }
+        // [END SECTION: Dynamic Media Column Sizing]
 
         // [SECTION: Gamepad Input Handling]
         // Subscribes to WGIService events and routes directional/button input into tree navigation and launch actions.
@@ -114,6 +199,8 @@ namespace ArcadeStick
 
             _gamepadService.GamepadDirectionTriggered += direction =>
             {
+                if (_isOptionsWindowOpen) return;
+
                 if (direction == "Up") HandleGamepadMovement(GamepadAction.Up);
                 else if (direction == "Down") HandleGamepadMovement(GamepadAction.Down);
                 else if (direction == "Left") HandleGamepadButton(GamepadAction.Left);
@@ -122,6 +209,8 @@ namespace ArcadeStick
 
             _gamepadService.GamepadButtonDownTriggered += button =>
             {
+                if (_isOptionsWindowOpen) return;
+
                 if (button == Windows.Gaming.Input.GamepadButtons.A)
                 {
                     HandleGamepadButton(GamepadAction.Select);
@@ -270,6 +359,33 @@ namespace ArcadeStick
                     VlcMediaPlayer?.Stop();
                 }
             }
+
+            if (e.PropertyName == nameof(_viewModel.IsGameSelected) || e.PropertyName == nameof(_viewModel.IsBootSplashVideo))
+            {
+                RefreshBootSplashVideo();
+            }
+        }
+
+        // Starts/stops the boot splash mp4 based on current selection state and whether the resolved splash asset is a video
+        private void RefreshBootSplashVideo()
+        {
+            if (_libVLC == null || BootSplashMediaPlayer == null) return;
+
+            if (!_viewModel.IsGameSelected && _viewModel.IsBootSplashVideo && !string.IsNullOrEmpty(_viewModel.ThemeBootSplashVideoPath))
+            {
+                // Skip a fresh load while Options still has window focus - RefreshThemeBindings() re-raises
+                // IsBootSplashVideo on close, safely retrying this once the modal dialog is gone
+                if (_isOptionsWindowOpen) return;
+
+                BootSplashMediaPlayer.Stop();
+                using var media = new Media(_libVLC, _viewModel.ThemeBootSplashVideoPath, FromType.FromPath);
+                media.AddOption(":input-repeat=65535");
+                BootSplashMediaPlayer.Play(media);
+            }
+            else
+            {
+                BootSplashMediaPlayer.Stop();
+            }
         }
 
         // Fired when the TreeView selection changes; just updates SelectedGame - video preview playback
@@ -289,7 +405,21 @@ namespace ArcadeStick
 
             VlcMediaPlayer.Stop();
             using var media = new Media(_libVLC, path, FromType.FromPath);
+            media.AddOption(":input-repeat=65535");
             VlcMediaPlayer.Play(media);
+
+            // Nudge a theme-binding refresh shortly after playback starts - both Save and Close on the
+            // Options window do this incidentally and it fixes over-wide letterboxing, likely by forcing
+            // MediaPanelBorder's clip geometry (bound to ThemeBorderCurve/ThemeBorderWidth) to recompute
+            // and fully recomposite the video surface against its actual aspect ratio
+            _ = NudgeVideoAspectRatioAsync();
+        }
+
+        // Waits briefly for LibVLC to finish parsing the video, then re-raises theme bindings to force a recomposite
+        private async System.Threading.Tasks.Task NudgeVideoAspectRatioAsync()
+        {
+            await System.Threading.Tasks.Task.Delay(300);
+            _viewModel.RefreshThemeBindings();
         }
 
         // Re-evaluates and restarts the video preview for the currently selected game (called after returning from a game launch)
@@ -312,6 +442,7 @@ namespace ArcadeStick
         {
             VideoPreview.Visibility = Visibility.Collapsed;
             VlcMediaPlayer?.Stop();
+            RefreshBootSplashVideo();
         }
         // [END SECTION: Video Preview & Media Cleanup]
 
@@ -393,6 +524,7 @@ namespace ArcadeStick
                     Width = 1296;
                     Height = 759;
                     UpdateLayout();
+                    UpdateMediaColumnWidth();
                 }
                 return;
             }
@@ -479,7 +611,11 @@ namespace ArcadeStick
         // diagnostics, and refreshes theme bindings + the video preview once it closes.
         private void OpenOptionsWindow()
         {
-            VlcMediaPlayer?.Stop();
+            VlcMediaPlayer?.Pause();
+            BootSplashMediaPlayer.Pause();
+
+            _isOptionsWindowOpen = true;
+            _viewModel.IsOptionsWindowOpen = true;
 
             var adjustmentsPanel = new Views.OptionsWindow(_viewModel) { Owner = this };
 
@@ -490,8 +626,17 @@ namespace ArcadeStick
             }
 
             adjustmentsPanel.ShowDialog();
+
+            _isOptionsWindowOpen = false;
+            _viewModel.IsOptionsWindowOpen = false;
+
             _viewModel.RefreshThemeBindings();
-            RefreshVideoPreview();
+            RefreshOptionsGearIconRestingColors();
+
+            // Resume rather than reload - both players were paused (not stopped) on open, so Play() with
+            // no arguments just continues from where they left off instead of restarting from the beginning
+            VlcMediaPlayer?.Play();
+            BootSplashMediaPlayer?.Play();
         }
 
         // Footer gear icon click handler - opens the Options window
@@ -502,16 +647,30 @@ namespace ArcadeStick
         // [END SECTION: Options Window]
 
         // [SECTION: Options Gear Icon Hover]
-        // Brightens/dims the footer gear icon on mouse enter/leave for a simple hover affordance.
+        // Swaps the gear badge's background between the games list background and games list hover
+        // theme colors on mouse enter/leave for a simple hover affordance.
         private void OptionsGearIcon_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            OptionsGearIcon.Foreground = System.Windows.Media.Brushes.White;
+            OptionsGearIcon.Foreground = new System.Windows.Media.SolidColorBrush(
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_viewModel.ThemeGameSelectedColor));
+            BtnOpenOptionsGear.Background = new System.Windows.Media.SolidColorBrush(
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_viewModel.ThemeGameSelectedBgColor));
         }
 
         private void OptionsGearIcon_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
+            RefreshOptionsGearIconRestingColors();
+        }
+
+        // Applies the gear icon's resting-state colors (folder font color / games list background) - shared
+        // by MouseLeave and by the Options-close path, so the button reflects a new theme immediately rather
+        // than only refreshing on the next real hover
+        private void RefreshOptionsGearIconRestingColors()
+        {
             OptionsGearIcon.Foreground = new System.Windows.Media.SolidColorBrush(
-                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#888888"));
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_viewModel.ThemeFolderColor));
+            BtnOpenOptionsGear.Background = new System.Windows.Media.SolidColorBrush(
+                (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(_viewModel.ThemeGamesColor));
         }
         // [END SECTION: Options Gear Icon Hover]
 

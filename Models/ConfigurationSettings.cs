@@ -56,6 +56,8 @@ namespace ArcadeStick.Models
 
         public string OptionsBg { get; set; } = "";
         public string BorderColorFramework { get; set; } = "#FF3A3A3C";
+        public string MarqueeBorderColorHex { get; set; } = "#FF3A3A3C";
+        public double MarqueeBorderWidthValue { get; set; } = 1;
 
         public string ScrollTrackColor { get; set; } = "#FF000000";
         public string ScrollTrackHoverColor { get; set; } = "#FF1C1C1E";
@@ -229,6 +231,8 @@ namespace ArcadeStick.Models
             this.VideoBoxBg = source.VideoBoxBg;
             this.OptionsBg = source.OptionsBg;
             this.BorderColorFramework = source.BorderColorFramework;
+            this.MarqueeBorderColorHex = source.MarqueeBorderColorHex;
+            this.MarqueeBorderWidthValue = source.MarqueeBorderWidthValue;
             this.ScrollTrackColor = source.ScrollTrackColor;
             this.ScrollTrackHoverColor = source.ScrollTrackHoverColor;
             this.ScrollThumbColor = source.ScrollThumbColor;

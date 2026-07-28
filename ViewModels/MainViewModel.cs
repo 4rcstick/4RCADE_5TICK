@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -235,10 +236,12 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Search & Dev Mode]
 
-        // [SECTION: Selection & Media State Properties]
-        // SelectedGame drives the whole media preview pipeline. UpdateActiveMediaPreviews is debounced
-        // (~150ms) rather than called directly, since rapid gamepad scrolling through titles was
-        // triggering a full preview load (marquee bitmap read + video/image resolution) on every single
+        // SelectedGame drives the whole media preview pipeline. HasActiveMedia is resolved immediately
+        // (cheap File.Exists check) so the placeholder-vs-content decision is never stale - this fixes a
+        // bug where selecting a folder (SelectedGame = null) then quickly selecting a game briefly showed
+        // the "no preview" placeholder before the debounced video load caught up. UpdateActiveMediaPreviews
+        // itself is still debounced (~150ms) since it does the expensive work (marquee bitmap read + video/
+        // image load), and rapid gamepad scrolling through titles was triggering that on every single
         // intermediate step, causing navigation to stutter. Only the final selection once scrolling
         // pauses actually loads media.
         public GameItem? SelectedGame
@@ -251,6 +254,10 @@ namespace ArcadeStick.ViewModels
                     _selectedGame = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(IsGameSelected));
+
+                    HasActiveMedia = ResolveHasActiveMediaImmediate();
+                    PreviewImage = null;
+                    VideoSourcePath = string.Empty;
 
                     _previewDebounceTimer?.Stop();
                     _previewDebounceTimer = new DispatcherTimer
@@ -265,6 +272,65 @@ namespace ArcadeStick.ViewModels
                     _previewDebounceTimer.Start();
                 }
             }
+        }
+
+        // Fast, synchronous existence check only - mirrors the folder-walking logic in UpdateActiveMediaPreviews
+        // but skips the expensive bitmap/video loading. Keeps HasActiveMedia accurate immediately on selection
+        // change instead of waiting on the debounce timer, so the placeholder never flashes based on stale state.
+        private bool ResolveHasActiveMediaImmediate()
+        {
+            if (SelectedGame == null) return false;
+
+            string rootDir = Configuration.BaseDirectory;
+
+            string ResolvePath(string inputPath)
+            {
+                if (string.IsNullOrWhiteSpace(inputPath)) return string.Empty;
+                string cleanPath = inputPath.Replace(@".\", "").TrimStart('\\', '/');
+                if (Path.IsPathRooted(cleanPath)) return cleanPath;
+                return Path.Combine(rootDir, cleanPath);
+            }
+
+            foreach (var category in PreviewPriorityOrder)
+            {
+                string targetFolder = string.Empty;
+                string[] extensions = { ".png", ".jpg" };
+
+                switch (category)
+                {
+                    case "videos":
+                        targetFolder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.VideosPath) ? "videos" : Configuration.VideosPath);
+                        extensions = new[] { ".mp4", ".avi" };
+                        break;
+                    case "flyers":
+                        targetFolder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath);
+                        break;
+                    case "screenshots":
+                    case "snapshots":
+                    case "gameplay":
+                        targetFolder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.ScreenshotsPath) ? "snap" : Configuration.ScreenshotsPath);
+                        break;
+                    case "titlescreens":
+                        targetFolder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.TitlescreensPath) ? "titles" : Configuration.TitlescreensPath);
+                        break;
+                    case "cabinets":
+                        targetFolder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.CabinetsPath) ? "cabinets" : Configuration.CabinetsPath);
+                        break;
+                    case "marquees":
+                        targetFolder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "marquees" : Configuration.MarqueesPath);
+                        break;
+                    default:
+                        continue;
+                }
+
+                foreach (var ext in extensions)
+                {
+                    string testPath = Path.Combine(targetFolder, $"{SelectedGame.RomName}{ext}");
+                    if (File.Exists(testPath)) return true;
+                }
+            }
+
+            return false;
         }
 
         public BitmapImage? MarqueeImage
@@ -298,6 +364,20 @@ namespace ArcadeStick.ViewModels
 
         public bool IsGameSelected => SelectedGame != null;
 
+        private bool _isOptionsWindowOpen;
+        public bool IsOptionsWindowOpen
+        {
+            get => _isOptionsWindowOpen;
+            set
+            {
+                if (_isOptionsWindowOpen != value)
+                {
+                    _isOptionsWindowOpen = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private bool _hasActiveMedia = true;
         public bool HasActiveMedia
         {
@@ -325,6 +405,8 @@ namespace ArcadeStick.ViewModels
         public string ThemeBorderColor => Configuration.BorderColorFramework;
         public double ThemeBorderWidth => Configuration.BorderWidthValue;
         public double ThemeBorderCurve => Configuration.BorderCurveValue;
+        public string ThemeMarqueeBorderColor => Configuration.MarqueeBorderColorHex;
+        public double ThemeMarqueeBorderWidth => Configuration.MarqueeBorderWidthValue;
         public string ThemeSeparatorColor => Configuration.SeparatorColorHex;
         public string ThemeScrollTrackColor => Configuration.ScrollTrackColor;
         public string ThemeScrollTrackHoverColor => Configuration.ScrollTrackHoverColor;
@@ -340,6 +422,7 @@ namespace ArcadeStick.ViewModels
         public string ThemeGameSelectedColor => Configuration.GameSelectedColorHex;
         public string ThemeGameSelectedBgColor => Configuration.GameSelectedBgColorHex;
         public string ThemeArrowColor => Configuration.ArrowColorHex;
+        public string ThemeFolderColor => Configuration.FolderColorHex;
         public string ThemeTabColor => Configuration.TabColorHex;
         public string ThemeTabBgColor => Configuration.TabBgColorHex;
         public string ThemeTabActiveColor => Configuration.TabActiveColorHex;
@@ -366,18 +449,34 @@ namespace ArcadeStick.ViewModels
                 ? Configuration.ThemeLogo
                 : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_marquee.png"));
 
-        public ImageSource? ThemeBootSplashAsset => LoadThemeImage(
-            !string.IsNullOrWhiteSpace(Configuration.ThemeBootSplash)
-                ? Configuration.ThemeBootSplash
-                : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_mediabg.png"));
+        // Resolves the boot splash to the custom theme path if set, else the bundled default - preferring
+        // an mp4 companion file over the png when falling back to the default asset
+        private string ResolveBootSplashPath()
+        {
+            if (!string.IsNullOrWhiteSpace(Configuration.ThemeBootSplash))
+                return Configuration.ThemeBootSplash;
+
+            string assetsDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets");
+            string defaultVideoPath = Path.Combine(assetsDir, "default_mediabg.mp4");
+
+            return File.Exists(defaultVideoPath)
+                ? defaultVideoPath
+                : Path.Combine(assetsDir, "default_mediabg.png");
+        }
+
+        // True when the resolved boot splash asset is an mp4 file
+        public bool IsBootSplashVideo => Path.GetExtension(ResolveBootSplashPath()).Equals(".mp4", StringComparison.OrdinalIgnoreCase);
+
+        // File path for the LibVLC VideoView when the boot splash resolves to an mp4; null when it's a png
+        public string? ThemeBootSplashVideoPath => IsBootSplashVideo ? ResolveBootSplashPath() : null;
+
+        // Bitmap for the boot splash Image/ImageBrush when it resolves to a png; null when it's an mp4
+        public ImageSource? ThemeBootSplashAsset => IsBootSplashVideo ? null : LoadThemeImage(ResolveBootSplashPath());
 
         public ImageSource? ThemeMissingPreviewAsset => LoadThemeImage(
             !string.IsNullOrWhiteSpace(Configuration.ThemeMissingPreview)
                 ? Configuration.ThemeMissingPreview
                 : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "no_preview.png"));
-
-        public ImageSource? MouseSupportIcon => LoadThemeImage(
-            Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "mouseicon.png"));
 
         // Resolves a possibly-relative theme asset path to an absolute path and loads it as a frozen BitmapImage
         private ImageSource? LoadThemeImage(string path)
@@ -419,6 +518,10 @@ namespace ArcadeStick.ViewModels
         // means a new theme property silently keeps showing stale/default values until app restart.
         public void RefreshThemeBindings()
         {
+            // Re-resolve the marquee now, since ConfigurationSettings.ThemeLogo may have changed and the
+            // currently displayed fallback logo would otherwise stay stale until the next game selection
+            ResolveMarqueeImage();
+
             OnPropertyChanged(nameof(ThemeMainColor));
             OnPropertyChanged(nameof(ThemeGamesColor));
             OnPropertyChanged(nameof(ThemeMarqueeColor));
@@ -426,6 +529,8 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeBorderColor));
             OnPropertyChanged(nameof(ThemeBorderWidth));
             OnPropertyChanged(nameof(ThemeBorderCurve));
+            OnPropertyChanged(nameof(ThemeMarqueeBorderColor));
+            OnPropertyChanged(nameof(ThemeMarqueeBorderWidth));
             OnPropertyChanged(nameof(ThemeSeparatorColor));
             OnPropertyChanged(nameof(ThemeScrollTrackColor));
             OnPropertyChanged(nameof(ThemeScrollTrackHoverColor));
@@ -441,6 +546,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeGameSelectedColor));
             OnPropertyChanged(nameof(ThemeGameSelectedBgColor));
             OnPropertyChanged(nameof(ThemeArrowColor));
+            OnPropertyChanged(nameof(ThemeFolderColor));
             OnPropertyChanged(nameof(ThemeTabColor));
             OnPropertyChanged(nameof(ThemeTabBgColor));
             OnPropertyChanged(nameof(ThemeTabActiveColor));
@@ -451,8 +557,9 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMediaWallpaper));
             OnPropertyChanged(nameof(ThemeLogoAsset));
             OnPropertyChanged(nameof(ThemeBootSplashAsset));
+            OnPropertyChanged(nameof(IsBootSplashVideo));
+            OnPropertyChanged(nameof(ThemeBootSplashVideoPath));
             OnPropertyChanged(nameof(ThemeMissingPreviewAsset));
-            OnPropertyChanged(nameof(MouseSupportIcon));
 
             RefreshFolderColorsLive();
         }
@@ -499,7 +606,43 @@ namespace ArcadeStick.ViewModels
                     string mameDir = Configuration.GetMamePath();
                     string iniPath = Path.Combine(mameDir, "mame.ini");
 
-                    if (!File.Exists(iniPath)) return;
+                    if (!File.Exists(iniPath))
+                    {
+                        try
+                        {
+                            string mameExePath = Path.Combine(mameDir, "mame.exe");
+                            if (!File.Exists(mameExePath))
+                            {
+                                System.Diagnostics.Debug.WriteLine("mame.exe not found, cannot generate default mame.ini.");
+                                return;
+                            }
+
+                            var ccStartInfo = new ProcessStartInfo
+                            {
+                                FileName = mameExePath,
+                                Arguments = "-cc",
+                                WorkingDirectory = mameDir,
+                                UseShellExecute = false,
+                                CreateNoWindow = true
+                            };
+
+                            using (var ccProcess = Process.Start(ccStartInfo))
+                            {
+                                ccProcess?.WaitForExit();
+                            }
+
+                            if (!File.Exists(iniPath))
+                            {
+                                System.Diagnostics.Debug.WriteLine("mame.exe -cc did not produce mame.ini as expected.");
+                                return;
+                            }
+                        }
+                        catch (Exception exCreate)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Failed to generate default mame.ini via -cc: {exCreate.Message}");
+                            return;
+                        }
+                    }
 
                     string activeRomsPath = Path.Combine(mameDir, Configuration.RomsSubFolder);
                     if (!Directory.Exists(activeRomsPath)) return;
@@ -512,6 +655,40 @@ namespace ArcadeStick.ViewModels
                         : mameDir + Path.DirectorySeparatorChar;
 
                     var targetPaths = new List<string>();
+
+                    // ROMs root, BIOS, and CHD lead the rompath list (in that order) rather than trailing
+                    // behind every category subfolder - keeps the three System Paths tab folders as the
+                    // first entries MAME checks. Neither BIOS nor CHD subfolders are discovered by the
+                    // category-folder scan below, so both would otherwise be silently dropped on rewrite.
+                    string romsRootEntry = activeRomsPath;
+                    if (romsRootEntry.StartsWith(safeMameDir, StringComparison.OrdinalIgnoreCase))
+                    {
+                        romsRootEntry = romsRootEntry.Substring(safeMameDir.Length);
+                    }
+                    romsRootEntry = romsRootEntry.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    if (!string.IsNullOrEmpty(romsRootEntry))
+                    {
+                        targetPaths.Add(romsRootEntry);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(Configuration.BiosPath))
+                    {
+                        string biosEntry = Configuration.BiosPath.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        if (!string.IsNullOrEmpty(biosEntry))
+                        {
+                            targetPaths.Add(biosEntry);
+                        }
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(Configuration.ChdPath))
+                    {
+                        string chdEntry = Configuration.ChdPath.Trim().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                        if (!string.IsNullOrEmpty(chdEntry))
+                        {
+                            targetPaths.Add(chdEntry);
+                        }
+                    }
+
                     foreach (var absolutePath in currentFolders)
                     {
                         string relative = absolutePath;
@@ -526,6 +703,10 @@ namespace ArcadeStick.ViewModels
                             targetPaths.Add(relative);
                         }
                     }
+
+                    // Distinct() preserves first-occurrence order, so the leading ROMs/BIOS/CHD entries
+                    // added above stay at the front even though the ROMs root also appears again as the
+                    // first entry in currentFolders.
                     targetPaths = targetPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
                     var iniLines = File.ReadAllLines(iniPath).ToList();
@@ -569,6 +750,24 @@ namespace ArcadeStick.ViewModels
                     if (!hasDisparities) return;
 
                     string updatedPathsJoined = string.Join(";", targetPaths);
+
+                    // MAME's ini parser has a hard line-length ceiling around 4096 characters - past that,
+                    // entries silently get dropped (confirmed empirically: CHD/game folders past the cutoff
+                    // stopped resolving even though they were correctly present in the file). Bail out with
+                    // a warning instead of writing a rompath line that MAME won't fully read.
+                    if (updatedPathsJoined.Length > 4000)
+                    {
+                        App.Current.Dispatcher.Invoke(() =>
+                        {
+                            System.Windows.MessageBox.Show(
+                                "Your ROMs folder has too many or too deeply nested category subfolders for MAME to " +
+                                "read reliably (the combined path list exceeds MAME's ini line limit). The update was " +
+                                "not applied - mame.ini remains unchanged. Try shortening category folder names or " +
+                                "reducing the number of subfolders, then try again.",
+                                "ROM Path List Too Long", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        });
+                        return;
+                    }
                     iniLines[targetLineIndex] = $"rompath                   {updatedPathsJoined}";
                     File.WriteAllLines(iniPath, iniLines);
                 }
@@ -578,6 +777,17 @@ namespace ArcadeStick.ViewModels
             });
         }
         // [END SECTION: MAME ROM Path Sync]
+
+        // [SECTION: Live ROM Path Rescan]
+        // Combines the rompath rewrite and a full game-list rebuild into one callable sequence, so ROM
+        // path changes (including the CHD path) can take effect without an app restart. Shares the exact
+        // same two methods the boot-time Loaded handler already runs, just triggered on demand.
+        public async Task RescanRomPathsAsync()
+        {
+            await SyncMameRomPathsAsync();
+            await InitializeDatabaseAsync();
+        }
+        // [END SECTION: Live ROM Path Rescan]
 
         // [SECTION: Database Initialization & Game Discovery]
         // Discovers ROM zip files on disk (respecting an optional storage-options override for the roms path,
@@ -630,6 +840,47 @@ namespace ArcadeStick.ViewModels
                 }
 
                 var resultsMap = await _cacheService.ParseCacheFileAsync(discoveredZipNames, folderMap);
+
+                // Detect rom set drift: if any discovered zip has no matching cache entry, or the cache
+                // contains entries no longer present on disk, the mame_cache.txt is stale relative to the
+                // current rom folder contents. Regenerate it via mame.exe -listfull and re-parse.
+                bool cacheOutOfSync = false;
+
+                string cacheFilePath = Path.Combine(Configuration.GetMamePath(), "mame_cache.txt");
+                if (!File.Exists(cacheFilePath))
+                {
+                    cacheOutOfSync = true;
+                }
+
+                if (!cacheOutOfSync)
+                {
+                    foreach (var zipName in discoveredZipNames)
+                    {
+                        if (!resultsMap.ContainsKey(zipName))
+                        {
+                            cacheOutOfSync = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!cacheOutOfSync)
+                {
+                    foreach (var cachedName in resultsMap.Keys)
+                    {
+                        if (!discoveredZipNames.Contains(cachedName))
+                        {
+                            cacheOutOfSync = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (cacheOutOfSync)
+                {
+                    await _cacheService.GenerateCacheFileAsync();
+                    resultsMap = await _cacheService.ParseCacheFileAsync(discoveredZipNames, folderMap);
+                }
 
                 App.Current.Dispatcher.Invoke(() =>
                 {
@@ -718,6 +969,27 @@ namespace ArcadeStick.ViewModels
                 {
                     currentPointer.ChildGames.Add(game);
                 }
+            }
+
+            // Subfolders are discovered in whatever order games happen to be enumerated in, which is
+            // effectively arbitrary - sort every node's SubFolders alphabetically (recursively, since
+            // nesting can go more than one level deep) so browsing order is predictable rather than random.
+            // Root-level folder order is intentionally left alone here - that's user-controlled via
+            // folder_order.cfg in Pass 3 below.
+            void SortSubFoldersRecursively(TreeCategoryNode node)
+            {
+                var sorted = node.SubFolders.OrderBy(sf => sf.HeaderText, StringComparer.OrdinalIgnoreCase).ToList();
+                node.SubFolders.Clear();
+                foreach (var sub in sorted)
+                {
+                    node.SubFolders.Add(sub);
+                    SortSubFoldersRecursively(sub);
+                }
+            }
+
+            foreach (var rootNode in rootCategories.Values)
+            {
+                SortSubFoldersRecursively(rootNode);
             }
 
             // Pass 2: merge in custom playlist folders (playlists/*.cfg), each optionally starting with a #hexcolor line
@@ -879,35 +1151,29 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+
+
         // [SECTION: Media Preview Resolution]
         // Resolves marquee image (with fallback to the default theme logo) and the active preview media
         // (video/flyer/screenshot/etc, in PreviewPriorityOrder) for the currently selected game.
         // NOTE: known beta trade-off - video preview can stay black after returning from MAME until reselection.
-        private void UpdateActiveMediaPreviews()
+        // Resolves and applies MarqueeImage for the currently selected game - extracted so it can be re-run
+        // independently (e.g. after a theme change closes) without touching video/flyer preview state
+        private void ResolveMarqueeImage()
         {
             if (SelectedGame == null)
             {
                 MarqueeImage = null;
-                PreviewImage = null;
-                VideoSourcePath = string.Empty;
-                HasActiveMedia = false;
                 return;
             }
 
-            // Ensure we anchor to the absolute root of the Arcade Stick folder
             string rootDir = Configuration.BaseDirectory;
 
-            // Helper to resolve paths relative to the root cleanly, without hardcoding a 'data' subfolder
             string ResolvePath(string inputPath)
             {
                 if (string.IsNullOrWhiteSpace(inputPath)) return string.Empty;
-
-                // Strip relative dot-slashes and leading slashes
                 string cleanPath = inputPath.Replace(@".\", "").TrimStart('\\', '/');
-
-                // If it's somehow an absolute path already, trust it
                 if (Path.IsPathRooted(cleanPath)) return cleanPath;
-
                 return Path.Combine(rootDir, cleanPath);
             }
 
@@ -944,6 +1210,37 @@ namespace ArcadeStick.ViewModels
             {
                 MarqueeImage = null;
             }
+        }
+
+        private void UpdateActiveMediaPreviews()
+        {
+            if (SelectedGame == null)
+            {
+                MarqueeImage = null;
+                PreviewImage = null;
+                VideoSourcePath = string.Empty;
+                HasActiveMedia = false;
+                return;
+            }
+
+            // Ensure we anchor to the absolute root of the Arcade Stick folder
+            string rootDir = Configuration.BaseDirectory;
+
+            // Helper to resolve paths relative to the root cleanly, without hardcoding a 'data' subfolder
+            string ResolvePath(string inputPath)
+            {
+                if (string.IsNullOrWhiteSpace(inputPath)) return string.Empty;
+
+                // Strip relative dot-slashes and leading slashes
+                string cleanPath = inputPath.Replace(@".\", "").TrimStart('\\', '/');
+
+                // If it's somehow an absolute path already, trust it
+                if (Path.IsPathRooted(cleanPath)) return cleanPath;
+
+                return Path.Combine(rootDir, cleanPath);
+            }
+
+            ResolveMarqueeImage();
 
             string foundMediaFile = string.Empty;
             bool gameHasMedia = false;
@@ -1029,6 +1326,63 @@ namespace ArcadeStick.ViewModels
                 PreviewImage = null;
                 VideoSourcePath = string.Empty;
             }
+        }
+
+        // Resolves a static fallback image for the options-open state, walking the same PreviewPriorityOrder
+        // as UpdateActiveMediaPreviews but skipping "videos" - falls back to the missing-preview asset if nothing matches
+        private ImageSource? ResolveOptionsFallbackImage()
+        {
+            if (SelectedGame == null) return null;
+
+            string rootDir = Configuration.BaseDirectory;
+
+            string ResolvePath(string inputPath)
+            {
+                if (string.IsNullOrWhiteSpace(inputPath)) return string.Empty;
+                string cleanPath = inputPath.Replace(@".\", "").TrimStart('\\', '/');
+                if (Path.IsPathRooted(cleanPath)) return cleanPath;
+                return Path.Combine(rootDir, cleanPath);
+            }
+
+            foreach (var category in PreviewPriorityOrder)
+            {
+                if (category == "videos") continue;
+
+                string folder = string.Empty;
+                string[] extensions = { ".png", ".jpg" };
+
+                switch (category)
+                {
+                    case "flyers":
+                        folder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath);
+                        break;
+                    case "screenshots":
+                    case "snapshots":
+                    case "gameplay":
+                        folder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.ScreenshotsPath) ? "snap" : Configuration.ScreenshotsPath);
+                        break;
+                    case "titlescreens":
+                        folder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.TitlescreensPath) ? "titles" : Configuration.TitlescreensPath);
+                        break;
+                    case "cabinets":
+                        folder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.CabinetsPath) ? "cabinets" : Configuration.CabinetsPath);
+                        break;
+                    case "marquees":
+                        folder = ResolvePath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "marquees" : Configuration.MarqueesPath);
+                        break;
+                    default:
+                        continue;
+                }
+
+                foreach (var ext in extensions)
+                {
+                    string testPath = Path.Combine(folder, $"{SelectedGame.RomName}{ext}");
+                    if (File.Exists(testPath))
+                        return LoadThemeImage(testPath);
+                }
+            }
+
+            return ThemeMissingPreviewAsset;
         }
         // [END SECTION: Media Preview Resolution]
 

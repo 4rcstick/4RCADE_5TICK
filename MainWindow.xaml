@@ -8,13 +8,15 @@
         mc:Ignorable="d"
         xmlns:ViewModels="clr-namespace:ArcadeStick.ViewModels"
         xmlns:Models="clr-namespace:ArcadeStick.Models"
-        Title="4RCADE 5TICK ver. 1.0 (beta)" 
+        Title="4RCADE 5TICK" 
         Width="1296" 
         Height="759"
         ResizeMode="CanResize"
-        SizeToContent="Manual">
+        SizeToContent="Manual"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
 
-    <Grid>
+    <Grid x:Name="RootLayoutGrid">
         <!-- [SECTION: Root Grid Background Style] -->
         <!-- Wallpaper image if set, else falls back to ThemeMainColor solid fill -->
         <Grid.Style>
@@ -39,12 +41,12 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition x:Name="FooterRowDef" Height="20"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="400*"/>
-            <ColumnDefinition Width="880*"/>
+            <ColumnDefinition x:Name="LeftColumnDef" Width="380*"/>
+            <ColumnDefinition x:Name="RightColumnDef" Width="900*"/>
         </Grid.ColumnDefinitions>
 
         <!-- [SECTION: Left Column - Search + Game TreeView] -->
@@ -57,11 +59,18 @@
             <!-- Search label + textbox row -->
             <Grid Grid.Row="0" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="65"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Search:" Foreground="#00D4FF" Background="#000000" Padding="4,6,4,6" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <TextBox Grid.Column="1" x:Name="SearchBox" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="{Binding ThemeGamesColor, FallbackValue=#000000}" Foreground="#F2F2F7" FontSize="16" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" Padding="4"/>
+                <TextBlock Grid.Column="0" Text="SEARCH:" Height="30" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" Background="#00000000" Padding="4,6,4,6" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                <TextBox Grid.Column="1" x:Name="SearchBox"  Height="30" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="{Binding ThemeGamesColor, FallbackValue=#000000}" Foreground="#F2F2F7" FontSize="14" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Padding="4"/>
+                <!-- Gear icon that opens the Options window, isolated in its own circular badge -->
+                <Border Grid.Column="2" x:Name="BtnOpenOptionsGear" Width="30" Height="30" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Margin="6,0,0,0" VerticalAlignment="Center"
+                        Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenOptionsGear_MouseLeftButtonUp">
+                    <TextBlock x:Name="OptionsGearIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{Binding ThemeFolderColor, FallbackValue=#888888}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               MouseEnter="OptionsGearIcon_MouseEnter" MouseLeave="OptionsGearIcon_MouseLeave"/>
+                </Border>
             </Grid>
 
             <!-- Game list panel container (wallpaper/color themed border wrapping the TreeView) -->
@@ -203,7 +212,7 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <!-- Mouse-support glyph, only shown when IsMouseSupported is true -->
-                                    <Image x:Name="MouseGlyph" Grid.Column="0" Source="{Binding DataContext.MouseSupportIcon, RelativeSource={RelativeSource AncestorType=TreeView}}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,0,0" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="MouseGlyph" Grid.Column="0" Text="&#8226;" Foreground="{Binding DataContext.ThemeGameColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding DataContext.ThemeGameFontSize, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=14}" Width="6" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"/>
                                     <TextBlock x:Name="GameTitleText" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="{Binding DataContext.ThemeGameColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding DataContext.ThemeGameFontSize, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=14}" Padding="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </Border>
@@ -214,11 +223,13 @@
                                 <!-- Hover state -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsMouseOver}" Value="True">
                                     <Setter TargetName="GameTitleText" Property="Foreground" Value="{Binding DataContext.ThemeGameHoverColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#FFFFFF}"/>
+                                    <Setter TargetName="MouseGlyph" Property="Foreground" Value="{Binding DataContext.ThemeGameHoverColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#FFFFFF}"/>
                                 </DataTrigger>
                                 <!-- Selected state: swap row background + text color -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
                                     <Setter TargetName="GameRowBorder" Property="Background" Value="{Binding DataContext.ThemeGameSelectedBgColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#2C2C2E}"/>
                                     <Setter TargetName="GameTitleText" Property="Foreground" Value="{Binding DataContext.ThemeGameSelectedColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#00D4FF}"/>
+                                    <Setter TargetName="MouseGlyph" Property="Foreground" Value="{Binding DataContext.ThemeGameSelectedColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#00D4FF}"/>
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
@@ -306,15 +317,15 @@
         <!-- [END SECTION: Left Column - Search + Game TreeView] -->
 
         <!-- [SECTION: Right Column - Marquee + Media Panels] -->
-        <Grid Grid.Column="1" Margin="10,20,20,0">
+        <Grid x:Name="RightColumnGrid" Grid.Column="1" Margin="10,20,20,0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="0.4*"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition x:Name="MarqueeRowDef" Height="0.4*"/>
+                <RowDefinition x:Name="MediaRowDef" Height="*"/>
             </Grid.RowDefinitions>
 
             <!-- ROW 0: MARQUEE / LOGO PANEL -->
             <!-- Shows the theme logo asset by default, swaps to the game's marquee image once a game is selected -->
-            <Border Grid.Row="0" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" Margin="0,0,0,20" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}">
+            <Border Grid.Row="0" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" Margin="0,0,0,20" BorderBrush="{Binding ThemeMarqueeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeMarqueeBorderWidth, FallbackValue=1}">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background">
@@ -356,7 +367,11 @@
 
             <!-- ROW 1: THE RIGHT SIDE MAIN MEDIA PANEL CONTAINER -->
             <!-- Layered preview area: boot splash (idle) -> media wallpaper (game selected) -> flyer/video preview on top -->
-            <Border Grid.Row="1" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" ClipToBounds="True" Padding="20">
+            <!-- Viewbox locks the panel to an exact 16:9 canvas (1600x900), uniformly scaled to fit ROW 1's available space -->
+            <!-- ROW 1: THE RIGHT SIDE MAIN MEDIA PANEL CONTAINER -->
+            <!-- Layered preview area: boot splash (idle) -> media wallpaper (game selected) -> flyer/video preview on top -->
+            <!-- Border renders the true theme border/background at full thickness; Viewbox inside scales a fixed 1600x900 canvas to exact 16:9 -->
+            <Border x:Name="MediaPanelBorder" Grid.Row="1" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" ClipToBounds="True">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background">
@@ -367,80 +382,101 @@
                     </Style>
                 </Border.Style>
 
-                <Grid>
+                <Viewbox Stretch="Uniform" VerticalAlignment="Top">
+                    <Grid Width="1600" Height="900">
 
-                    <!-- Layer 0 (back): boot splash image shown only when no game is selected -->
-                    <Border x:Name="MediaLayer0_Back" Margin="-20" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <ImageBrush ImageSource="{Binding ThemeBootSplashAsset}" Stretch="UniformToFill"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                    </Border>
-
-                    <!-- Layer 1 (back): themed media wallpaper, shown behind the preview once a game is selected -->
-                    <Border x:Name="MediaLayer1_Back" Margin="-20" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <ImageBrush ImageSource="{Binding ThemeMediaWallpaper}" Stretch="UniformToFill"/>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding ThemeMediaWallpaper}" Value="{x:Null}">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                    </Border>
-
-                    <!-- Layer 1 (front): flyer image + video preview, with a "missing preview" fallback wallpaper -->
-                    <Grid x:Name="MediaLayer1_Front">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding HasActiveMedia}" Value="False">
-                                        <DataTrigger.Setters>
+                        <!-- Layer 0 (back): boot splash image shown only when no game is selected - full-bleed on the 1600x900 canvas -->
+                        <Border x:Name="MediaLayer0_Back" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
                                             <Setter Property="Background">
                                                 <Setter.Value>
-                                                    <ImageBrush ImageSource="{Binding ThemeMissingPreviewAsset}" Stretch="Uniform"/>
+                                                    <ImageBrush ImageSource="{Binding ThemeBootSplashAsset}" Stretch="UniformToFill"/>
                                                 </Setter.Value>
                                             </Setter>
-                                        </DataTrigger.Setters>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
 
-                        <!-- Fixed 1600x900 canvas scaled to fit; flyer image and LibVLC video view are stacked in the same spot -->
-                        <Viewbox Stretch="Uniform">
-                            <Grid Width="1600" Height="900" Background="Transparent">
-                                <Image x:Name="FlyerPreview" Source="{Binding PreviewImage}" Stretch="Uniform"/>
-                                <vlc:VideoView x:Name="VideoPreview" MediaPlayer="{Binding VlcMediaPlayer, RelativeSource={RelativeSource AncestorType=Window}}"/>
-                            </Grid>
-                        </Viewbox>
+                        <!-- Layer 0 (back, video): boot splash mp4, shown instead of the ImageBrush above when the resolved splash asset is a video -->
+                        <vlc:VideoView x:Name="BootSplashVideoPreview" MediaPlayer="{Binding BootSplashMediaPlayer, RelativeSource={RelativeSource AncestorType=Window}}">
+                            <vlc:VideoView.Style>
+                                <Style TargetType="vlc:VideoView">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsGameSelected}" Value="False"/>
+                                                <Condition Binding="{Binding IsBootSplashVideo}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </vlc:VideoView.Style>
+                        </vlc:VideoView>
+
+                        <!-- Layer 1 (back): themed media wallpaper, shown behind the preview once a game is selected - full-bleed on the 1600x900 canvas -->
+                        <Border x:Name="MediaLayer1_Back" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <ImageBrush ImageSource="{Binding ThemeMediaWallpaper}" Stretch="UniformToFill"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ThemeMediaWallpaper}" Value="{x:Null}">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+
+                        <!-- Layer 1 (front): flyer image + video preview, with a "missing preview" fallback wallpaper - inset 20px to match the old padding look -->
+                        <Grid x:Name="MediaLayer1_Front" Margin="20">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasActiveMedia}" Value="False">
+                                            <DataTrigger.Setters>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <ImageBrush ImageSource="{Binding ThemeMissingPreviewAsset}" Stretch="Uniform"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger.Setters>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+
+                            <!-- Flyer image and LibVLC video view stacked directly in the fixed, inset canvas -->
+                            <Image x:Name="FlyerPreview" Source="{Binding PreviewImage}" Stretch="Uniform"/>
+
+                            <vlc:VideoView x:Name="VideoPreview" MediaPlayer="{Binding VlcMediaPlayer, RelativeSource={RelativeSource AncestorType=Window}}"/>
+
+                        </Grid>
+
                     </Grid>
-
-                </Grid>
+                </Viewbox>
             </Border>
+                   
+
+           
 
 
         </Grid>
@@ -452,13 +488,13 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="Version 1.0 Beta" FontSize="10" FontWeight="Bold" Foreground="DimGray" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="5,0,0,0"/>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,5,0">
-                <TextBlock Text="© 2026 4RCHIMEDE5" FontSize="10" FontWeight="Bold" Foreground="DimGray" VerticalAlignment="Center"/>
-                <!-- Gear icon that opens the Options window -->
-                <Border x:Name="BtnOpenOptionsGear" Background="Transparent" Padding="6,2,2,2" Cursor="Hand" MouseLeftButtonUp="BtnOpenOptionsGear_MouseLeftButtonUp">
-                    <TextBlock x:Name="OptionsGearIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#888888" VerticalAlignment="Center"
-                               MouseEnter="OptionsGearIcon_MouseEnter" MouseLeave="OptionsGearIcon_MouseLeave"/>
+            <Border Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,0,0"
+                    Background="#CC000000" BorderBrush="Black" BorderThickness="0" Height="16" CornerRadius="8" Padding="8,1,8,1">
+                <TextBlock Text="Version 1.0.0-beta.2" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
+            </Border>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0">
+                <Border Background="#CC000000" Height="16" BorderBrush="Black" BorderThickness="0" CornerRadius="8" Padding="8,1,8,1">
+                    <TextBlock Text="© 2026 4RCHIMEDE5" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
                 </Border>
             </StackPanel>
         </Grid>

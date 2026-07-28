@@ -30,7 +30,7 @@ namespace ArcadeStick.Views
             this.DataContext = _settings;
 
             // System Paths Folder Reference Mappings with Consistent Portable Formatting
-            SystemPathsTab.Initialize(_settings);
+            SystemPathsTab.Initialize(_settings, _viewModel.RescanRomPathsAsync, PersistSettingsToDisk);
 
             // Custom Media Asset Storage Path Fields
             AssetPathsTab.Initialize(_settings);

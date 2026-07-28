@@ -56,10 +56,11 @@ namespace ArcadeStick.Views
                         case "keepaspect": ChkKeepAspect.IsChecked = (value == "1"); break;
                         case "skip_gameinfo": ChkSkipGameInfo.IsChecked = (value == "1"); break;
                         case "throttle": ChkDisableThrottle.IsChecked = (value == "0"); break;
-                        case "multithreading": ChkMultithreading.IsChecked = (value == "1"); break;
-                        case "vsync": ChkVsync.IsChecked = (value == "1"); break;
+                        case "filter": ChkFilter.IsChecked = (value == "1"); break;
+                        case "waitvsync": ChkVsync.IsChecked = (value == "1"); break;
                         case "triplebuffer": ChkTripleBuffer.IsChecked = (value == "1"); break;
                         case "syncrefresh": ChkSyncRefresh.IsChecked = (value == "1"); break;
+                        case "autoframeskip": ChkAutoFrameSkip.IsChecked = (value == "1"); break;
                     }
                 }
             }
@@ -94,10 +95,11 @@ namespace ArcadeStick.Views
                 string valAspect = (ChkKeepAspect.IsChecked == true) ? "1" : "0";
                 string valSkipInfo = (ChkSkipGameInfo.IsChecked == true) ? "1" : "0";
                 string valThrottle = (ChkDisableThrottle.IsChecked == true) ? "0" : "1";
-                string valMulti = (ChkMultithreading.IsChecked == true) ? "1" : "0";
+                string valFilter = (ChkFilter.IsChecked == true) ? "1" : "0";
                 string valVsync = (ChkVsync.IsChecked == true) ? "1" : "0";
                 string valTriple = (ChkTripleBuffer.IsChecked == true) ? "1" : "0";
                 string valSyncRefresh = (ChkSyncRefresh.IsChecked == true) ? "1" : "0";
+                string valAutoFrameSkip = (ChkAutoFrameSkip.IsChecked == true) ? "1" : "0";
 
                 List<string> fileLines = File.ReadAllLines(MameIniPath).ToList();
 
@@ -117,10 +119,11 @@ namespace ArcadeStick.Views
                     else if (key == "keepaspect") fileLines[i] = FormatIniLine(key, valAspect);
                     else if (key == "skip_gameinfo") fileLines[i] = FormatIniLine(key, valSkipInfo);
                     else if (key == "throttle") fileLines[i] = FormatIniLine(key, valThrottle);
-                    else if (key == "multithreading") fileLines[i] = FormatIniLine(key, valMulti);
-                    else if (key == "vsync") fileLines[i] = FormatIniLine(key, valVsync);
+                    else if (key == "filter") fileLines[i] = FormatIniLine(key, valFilter);
+                    else if (key == "waitvsync") fileLines[i] = FormatIniLine(key, valVsync);
                     else if (key == "triplebuffer") fileLines[i] = FormatIniLine(key, valTriple);
                     else if (key == "syncrefresh") fileLines[i] = FormatIniLine(key, valSyncRefresh);
+                    else if (key == "autoframeskip") fileLines[i] = FormatIniLine(key, valAutoFrameSkip);
                 }
                 File.WriteAllLines(MameIniPath, fileLines);
             }

@@ -3,21 +3,25 @@
 
 A highly customizable, portable MAME® frontend launcher built in C#/WPF — designed for arcade cabinets, USB deployments, or any MAME enthusiast who wants more control over their MAME collection, without having to worry about digging into confusing, cfg, json, or ini files.
 
-**Status:** v1.0 Beta
+**Status:** v1.0.0-beta.2
 
-<img width="1280" height="720" alt="github01" src="https://github.com/user-attachments/assets/54dbdf2c-e463-4c41-b1bf-a007ab6fd8ec" />
+[![4RCADE 5TICK v1.0.0-beta.2 Demo](https://www.youtube.com/watch?v=lwM2RMsJVRc/hqdefault.jpg)](https://www.youtube.com/watch?v=lwM2RMsJVRc)
+
+
+
+<img width="1280" height="720" alt="github01" src="https://github.com/user-attachments/assets/a4c135c9-c964-4c1f-82a9-8ad3e9d407c5" />
 
 ## About
 
-4RCADE 5TICK took months of diligent planning. All visual elements and architecture were designed by the author, with heavy use of AI-assisted support (Claude, Anthropic) for coding and troubleshooting. AI was also used to create most of the images included in this beta release.  If you would like to contribute to logos, backgrounds, or splash art, please shoot me an email.
+4RCADE 5TICK is my first real programming project — I came from a web design and HTML/CSS background, and this started life as a ~1600-line PowerShell prototype before being converted to C#/WPF. It took months of diligent planning; all visual elements and architecture were designed by me, with heavy use of AI-assisted support (Claude, Anthropic) for coding and troubleshooting. AI was also used to create many of the images included in this beta release. If you would like to contribute to logos, backgrounds, or splash art, please shoot me an email.
 
-<img width="1280" height="720" alt="github02" src="https://github.com/user-attachments/assets/a33316d8-d7f1-4d42-98bc-165dd8f43ffa" />
+<img width="1280" height="720" alt="github05" src="https://github.com/user-attachments/assets/278c35fe-ab08-4b7f-b48c-ba91162697a4" />
 
 ## Features
 
 - **Auto ROM Scan** — Automatically scans your ROM folder(s) on every boot and builds your game list, updating `mame.ini` automatically so you never get a missing ROM files error.
 - **Controller Support** — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games.
-- **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options Menu, such as Video Renderer, Pixel Aspect Ratios, and more.
+- **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options Menu, such as Video Renderer, Pixel Aspect Ratio, and more.
 - **Custom Folders** — Create custom folders by selecting a game and hitting `Ctrl+G`. Or just use the built-in Favorites folder with `Ctrl+F`.
 - **Custom Folder Ordering** — Rearrange folder order at any time — never feel stuck in an alphabetical list again.
 - **Marquees Window** — Displays marquee images above the preview window, falling back to the default logo (or a custom one set in Theme Builder) if no marquee is found for the selected game.
@@ -32,19 +36,23 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 <img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
 <br>
 
-## Planned for v2.0
+## Planned for beta.3
 
-- Auto-Sort via catver.ini — sort games into virtual folders automatically based on category data.
-- On-screen virtual keyboard — joystick/button-driven search, no keyboard needed.
-- Full controller UI navigation — extend controller support to the entire Options Menu, replacing mouse and keyboard.
-- Portable theme packages — bundle a theme's data and images into a single shareable file (like a zip), so sharing themes doesn't mean sending a folder.
+- Auto-Sort via a custom category database — sort games into virtual folders automatically, built from `catver.ini` and `bestgames.ini` data plus my own additions.
+- Regional & player-count filtering — rebuild the game list by region (World/US/Japan/etc.) and player count (2P, 4P, etc.), or combination of them.
+- Portable theme packages — bundle a theme's data and images into a single shareable `.zip`-based file, so sharing themes doesn't mean sending a folder.
+- Theme Builder color picker — a proper color-swatch picker with hex input, replacing manual hex entry for every color field.
+
+## Known Issues
+
+- **Third-party overlays can conflict with the video preview panel.** RivaTuner Statistics Server (RTSS) is confirmed to collide with the app's Direct3D11 video pipeline; the NVIDIA overlay has tested fine. Other overlays (Discord, Steam, Xbox Game Bar, etc.) haven't been tested yet — if you run into a crash with one, please [open an issue](../../issues) with your overlay setup. If you hit this with RTSS specifically, setting its Application Detection Level to *None* is a known workaround.
 
 ## Installation
 
 1. Download the latest release zip from the [Releases](../../releases) page.
 2. Extract the contents into your MAME folder.
 3. If your ROMs live in MAME's default `roms` folder, 4RCADE 5TICK will find them automatically. Otherwise, point it at your ROMs folder via Options → System Paths.
-4. Run `4rcade5tick.exe` — no installer needed.
+4. Run `4RCADE5TICK.exe` — no installer needed.
 
 ## Requirements
 

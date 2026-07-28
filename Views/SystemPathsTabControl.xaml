@@ -14,9 +14,17 @@
 
             <TextBlock TextWrapping="Wrap" Margin="0,0,0,15"
                        FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
-                       Text="Set the folder locations for your ROMs, BIOS files, and CHDs. These can be absolute paths or relative to the MAME root directory. (Restart required for changes to take effect)"/>
+                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
 
+            <Run Text="Set the directory paths for your ROMs, BIOS, and CHD folders. These folders do not need to be in the MAME root directory and can even be located on separate drives."/>
+            <LineBreak/>
+            <LineBreak/>
+            <Run Text="After changing any of these paths, click the Rescan Folders button below and your new paths will be saved to mame.ini and the Games List will be refreshed to reflect the changes made."/>
+            <LineBreak/>
+            <LineBreak/>
+            <Run Text="*It is highly recommended, if the ROMs directory is on a separate drive, to avoid deeply nesting it in multiple subfolders — this is due to a limitation in how MAME reads long rompath entries from mame.ini. If your rompath is too long, you'll be notified with an alert so you can address it. In most cases, this will not be an issue." />
+            </TextBlock>               
+            
             <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
             <!-- [SECTION: System Path Rows] -->
@@ -72,6 +80,18 @@
                         Margin="5,0,0,0"/>
             </Grid>
             <!-- [END SECTION: System Path Rows] -->
+
+            <!-- [SECTION: Live Rescan Button] -->
+            <!-- Rewrites mame.ini's rompath (ROMs subfolders + CHD path) and rebuilds the game list
+                 live, without requiring an app restart. -->
+            <Button x:Name="BtnRescanRomPaths" Click="BtnRescanRomPaths_Click" Content="Rescan Folders"
+                    HorizontalAlignment="Left" Padding="10,5"
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
+                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
+                    Margin="0,5,0,0"/>
+            <!-- [END SECTION: Live Rescan Button] -->
         </StackPanel>
     </ScrollViewer>
 </UserControl>

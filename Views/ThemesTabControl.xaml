@@ -36,7 +36,7 @@
 
                     <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
                         <TextBlock Text="Active Theme:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <ComboBox x:Name="CboThemePresets" Width="150" Height="25" 
+                        <ComboBox x:Name="CboThemePresets" Width="149" Height="25" 
           Foreground="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=White}">
                             <ComboBox.Template>
                                 <ControlTemplate TargetType="ComboBox">
@@ -77,7 +77,7 @@
                                     <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
                                     <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
                                     <Setter Property="Padding" Value="8,4"/>
-                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
                                     <Style.Triggers>
                                         <Trigger Property="IsHighlighted" Value="True">
                                             <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
@@ -92,7 +92,7 @@
                     <!-- Only visible when "[New Theme...]" is selected in the dropdown above -->
                     <StackPanel Grid.Column="0" Grid.Row="2" x:Name="PnlNewThemeName" Orientation="Horizontal" Visibility="Collapsed">
                         <TextBlock Text="New Theme Name:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBox x:Name="TxtNewThemeName" Width="123" Height="25" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                        <TextBox x:Name="TxtNewThemeName" Width="120" Height="25" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
                     </StackPanel>
 
                     <!-- Load / Save-Apply / Delete theme actions -->
@@ -485,6 +485,8 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="8"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="8"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Column="0" Grid.Row="0">
@@ -505,6 +507,16 @@
                     <StackPanel Grid.Column="2" Grid.Row="2">
                         <TextBlock Text="Separator Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
                         <TextBox x:Name="TxtSeparatorColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="0" Grid.Row="4">
+                        <TextBlock Text="Marquee Border Color (accepts &quot;Transparent&quot;):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtMarqueeBorderColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Grid.Row="4">
+                        <TextBlock Text="Marquee Border Width:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBox x:Name="TxtMarqueeBorderWidthValue" Text="1" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
                     </StackPanel>
                 </Grid>
                 <!-- [END SECTION: Border and Line Options] -->
