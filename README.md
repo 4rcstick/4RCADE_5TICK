@@ -11,7 +11,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 4RCADE 5TICK is my first real programming project — I came from a web design and HTML/CSS background, and this started life as a ~1600-line PowerShell prototype before being converted to C#/WPF. It took months of diligent planning; all visual elements and architecture were designed by me, with heavy use of AI-assisted support (Claude, Anthropic) for coding and troubleshooting. AI was also used to create many of the images included in this beta release. If you would like to contribute to logos, backgrounds, or splash art, please shoot me an email.
 
-<img width="1280" height="720" alt="github02" src="https://github.com/user-attachments/assets/a33316d8-d7f1-4d42-98bc-165dd8f43ffa" />
+<img width="1280" height="720" alt="github05" src="https://github.com/user-attachments/assets/278c35fe-ab08-4b7f-b48c-ba91162697a4" />
 
 ## Features
 
