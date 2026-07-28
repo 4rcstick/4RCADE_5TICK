@@ -5,7 +5,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 **Status:** v1.0.0-beta.2
 
-<img width="1280" height="720" alt="github01" src="https://github.com/user-attachments/assets/54dbdf2c-e463-4c41-b1bf-a007ab6fd8ec" />
+<img width="1280" height="720" alt="github01" src="https://github.com/user-attachments/assets/a4c135c9-c964-4c1f-82a9-8ad3e9d407c5" />
 
 ## About
 
@@ -29,7 +29,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 - **Mouse Toggle** — Lock in mouse support for games that benefit from it with a hotkey (`Ctrl+M`). Shows a visual cue next to the game and automatically updates `mame.ini` to enable mouse support on launch and disable it on exit. Works great for trackball, light gun, and some paddle games.
 - **Theme Builder** — Customize the look of the launcher to your specific needs at any time. Save, load, and share themes as simple files.
 
-<img width="1328" height="641" alt="github03" src="https://github.com/user-attachments/assets/a3ab8a79-6e06-4ef7-831d-49569787ff9c" />
+<img width="1280" height="720" alt="github02" src="https://github.com/user-attachments/assets/03a4191e-ca49-44c8-b666-50182cbfc247" />
 <br>
 
 ## Planned for beta.3
