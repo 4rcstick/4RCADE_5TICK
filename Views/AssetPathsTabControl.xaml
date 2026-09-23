@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="ArcadeStick.Views.AssetPathsTabControl"
+<UserControl x:Class="ArcadeStick.Views.AssetPathsTabControl"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -15,9 +15,9 @@
             <TextBlock TextWrapping="Wrap" Margin="0,0,0,15"
                        FontSize="{Binding StandardFontSize, FallbackValue=13}"
                        Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
-                       Text="These asset paths have been structured to be in MAME's default folders for each asset.  If yours are somewhere else, you can change it here."/>
+                       Text="The default folders for media assets are stored in the MAME root media subfolder, but you can change their directory paths here if yours are stored elsewhere."/>
 
-            <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+            <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
             <!-- [SECTION: Asset Path Rows] -->
             <!-- Repeating pattern: a path TextBox + a "..." browse Button, all wired to the same
@@ -35,7 +35,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -51,7 +51,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -67,7 +67,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -83,7 +83,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -99,7 +99,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -115,7 +115,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="1"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
             <!-- [END SECTION: Asset Path Rows] -->

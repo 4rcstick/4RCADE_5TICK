@@ -23,14 +23,14 @@
                         <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,0"
                                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
                                    Foreground="#000000">
-                            <Run Text="4RCADE 5TICK — v1.0 (Beta)"/>
+                            <Run Text="4RCADE 5TICK — v1.0.0-beta.3"/>
                             <LineBreak/>
                             <Run Text="A highly customizable MAME® frontend launcher."/>
                             <LineBreak/>
                             <Run Text="Created by 4RCHIMEDE5"/>
                             <LineBreak/>
                             <LineBreak/>
-                            <Run Text="4RCADE 5TICK was not 'Vibe Coded' and took months of diligent planning. All visual elements and architecture were desinged by me, however, I did rely heavily on AI-assisted support using Claude (Anthropic) for most of the coding and troubleshooting. AI was also utilized to create all of the images used in this beta release." />
+                            <Run Text="4RCADE 5TICK has been a passion project that started life as ~1600 line powershell script with the help of the free tier Gemini Agent. Then it was ported to C#/WPF using Gemini Pro, and finally reached beta status with the help of Claude (Anthropic) who handled most of the coding under my strict guidance.  Every part of the program was designed and engineered by me, and a lot of thought and care went into every feature. AI was also used for some of the images and logos used throughout." />
                             <LineBreak/>
                             <LineBreak/>
                             <Run Text="If you are an artist and would like to contribute to creating backgrounds, logos or splash art, feel free to contact me at the email address below." />
@@ -76,50 +76,36 @@
                 <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
                            FontSize="{Binding StandardFontSize, FallbackValue=13}"
                            Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
-                    <Run Text="4RCADE 5TICK is packed with features designed to make your arcade experience smooth and personal — here are a few highlights:"/>
+                    <Run Text="4RCADE 5TICK is packed with features carefully designed to fit all your arcade gaming needs — here are a few highlights:"/>
                     <LineBreak/>
                     <LineBreak/>
-                    <Run Text="• "/><Run Text="Theme Builder" FontWeight="Bold"/><Run Text=" — Customize the look of the launcher to your specific needs at any time. Save them, load them, share them — as simple, shareable files."/>
+                    <Run Text="• "/><Run Text="Theme Builder" FontWeight="Bold"/><Run Text=" — Customize the look of the launcher to your specific needs at any time. Almost all visual elements can be modified. Themes are saved to a zip file that can be shared with other users."/>
                     <LineBreak/>
                     <LineBreak/>
-                    <Run Text="• "/><Run Text="Auto ROM Scan" FontWeight="Bold"/><Run Text=" — Automatically scans your ROM folder(s) on every boot and builds your game list; updates your mame.ini file automatically so you never get that missing ROM files error."/>
+                    <Run Text="• "/><Run Text="Asset Scraper" FontWeight="Bold"/><Run Text=" — Turn on the Scraper in the Options Menu to automatically download the chosen assets for any game you launch; or use the context menus by right-clicking on the game name to download them immediately."/>
                     <LineBreak/>
                     <LineBreak/>
-                    <Run Text="• "/><Run Text="Controller Support" FontWeight="Bold"/><Run Text=" — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games. Troubleshoot controller issues in the Options → Inputs tab."/>
+                    <Run Text="• "/><Run Text="Auto Folder Sorter" FontWeight="Bold"/><Run Text=" — Click the 'Sort' button above the Games List to open the Folder Sorter and ROM Filter Options. On by default, the folder sorter will organize your entire rom collection into catver.ini style virtual folders. If you like your folders untouched, just turn it off."/>
                     <LineBreak/>
                     <LineBreak/>
-                    <Run Text="• "/><Run Text="Easy MAME Settings Access" FontWeight="Bold"/><Run Text=" — Adjust several MAME settings directly from the Options → MAME.ini tab, such as Video Renderer, Pixel Aspect Ratios, and more."/>
+                    <Run Text="• "/><Run Text="ROM Filter" FontWeight="Bold"/><Run Text=" — An insanely powerful ROM filter section with more options than you'll know what to do with. Honestly, one of the best filters for choosing your ROM pool that you will ever see."/>
                     <LineBreak/>
                     <LineBreak/>
-                    <Run Text="• "/><Run Text="Custom Folders" FontWeight="Bold"/><Run Text=" — Create custom folders easily by selecting a game and hitting Ctrl+G. Add or remove games from it at any time. If that's too much work, just use the built-in Favorites folder by hitting Ctrl+F."/>
+                    <Run Text="• "/><Run Text="Custom Folders" FontWeight="Bold"/><Run Text=" — Create and manage custom folders that you can name, color and reorder, all by using the mouse right-click context menus."/>
                     <LineBreak/>
                     <LineBreak/>
-                    <Run Text="• "/><Run Text="Custom Folder Ordering" FontWeight="Bold"/><Run Text=" — Completely rearrange the folder order at any time in Options → Folder Order. Never feel stuck in an alphabetical list again."/>
+                    <Run Text="• "/><Run Text="Custom Folder Ordering" FontWeight="Bold"/><Run Text=" — Have complete control how your folders are arranged, either using mouse context menus or using the Options Menu -> Folder Order tab."/>
+                    <LineBreak/>                                     
                     <LineBreak/>
-                    <LineBreak/>
-                    <Run Text="• "/><Run Text="Media Previews" FontWeight="Bold"/><Run Text=" — Large preview window to display game videos and art assets. Rearrange the display order at any time in Options → Previews Order."/>
-                    <LineBreak/>
-                    <LineBreak/>
-                    <Run Text="• "/><Run Text="Media Asset Paths" FontWeight="Bold"/><Run Text=" — Uses MAME's standard folders for artwork, flyers, and screenshots out of the box, plus a default folder for preview videos. Every path can be changed anytime in Options → Asset Paths."/>
-                    <LineBreak/>
-                    <LineBreak/>
-                    <Run Text="• "/><Run Text="Search" FontWeight="Bold"/><Run Text=" — Find games easily in your giant game collection with the search box directly above the games list."/>
-                    <LineBreak/>
-                    <LineBreak/>
-                    <Run Text="• "/><Run Text="No Installation Required" FontWeight="Bold"/><Run Text=" — no installer, no setup wizard — just unzip the file(s) to your MAME folder and run it."/>
-                    <LineBreak/>
-                    <LineBreak/>
-                    <Run Text="• "/><Run Text="Fullscreen Toggle" FontWeight="Bold"/><Run Text=" — Quickly jump in and out of fullscreen mode with one hotkey (F11)."/>
-                    <LineBreak/>
-                    <LineBreak/>
-                    <Run Text="• "/><Run Text="Mouse Toggle" FontWeight="Bold"/><Run Text=" — Lock in games that require mouse support with a hotkey (Ctrl+M). Automatically updates MAME settings to turn on mouse support, then off when closing the game."/>
-                    <LineBreak/>
-                    <LineBreak/>
-                    <Run Text="* It is recommended that users with large ROM collections manually sort them into subfolders. 4RCADE 5TICK can currently only auto-sort roms located in the root roms folder into a generic 'Games' folder, which is still searchable with the search box. Auto-sorting into folders (via catver.ini) is planned for a later release." FontStyle="Italic"/>
-                </TextBlock>
+                    <Run Text="There are many more features not listed here. To see the full feature set, either have fun clicking around or "/>
+                    <Hyperlink Click="ReadmeLink_Click">
+                    <Run Text="click here"/>
+                    </Hyperlink>
+                    <Run Text=" to view the readme.txt."/>
+                    </TextBlock>
                 <!-- [END SECTION: Features List] -->
 
-                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Keyboard Shortcuts] -->
                 <TextBlock Text="KEYBOARD SHORTCUTS" 
@@ -258,9 +244,68 @@
                 <!-- [END SECTION: Joystick Controls] -->
 
 
+                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+
+                    <TextBlock Text="ATTRIBUTIONS" 
+                    FontWeight="Bold" Margin="0,0,0,15"
+                    FontSize="{Binding HeaderFontSize, FallbackValue=14}"
+                    Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+
+                <!-- Wikipedia attribution - CC BY-SA requires naming the source AND linking the license. -->
+                <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
+                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                        <Run Text="Game info text adapted from:"/>
+                        <LineBreak/>
+                        <LineBreak/>
+                        <Run Text="•"/>
+                        <Hyperlink Click="WikipediaLink_Click" Foreground="White"><Run Text="WIKIPEDIA.ORG"/></Hyperlink>
+                        <Run Text="- licensed under"/>
+                        <Hyperlink Click="CcBySaLink_Click" Foreground="White"><Run Text="CC BY-SA 4.0"/></Hyperlink>
+                </TextBlock>
+
+                <!-- Arcade-History attribution - source of history_arcade.xml (shipped with the launcher). -->
+                <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
+                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                        <Run Text="Game history, specs and credits from:"/>
+                        <LineBreak/>
+                        <LineBreak/>
+                        <Run Text="•"/>
+                        <Hyperlink Click="ArcadeHistoryLink_Click" Foreground="White"><Run Text="ARCADE-HISTORY.COM"/></Hyperlink>
+                </TextBlock>
+
+                <!-- Arcade Database attribution - source of artwork downloaded by the scraper. -->
+                <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
+                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                        <Run Text="Artwork scraped from:"/>
+                        <LineBreak/>
+                        <LineBreak/>
+                        <Run Text="•"/>
+                        <Hyperlink Click="ArcadeDatabaseLink_Click" Foreground="White"><Run Text="ARCADE DATABASE"/></Hyperlink>
+                </TextBlock>
+
+                <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
+                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                                
+                     <Run Text="Some images provided by:"/>
+                        <LineBreak/>
+                        <LineBreak/>
+                        <Run Text="•"/> 
+                        <Hyperlink Click="PNGtreeLink_Click" Foreground="White"><Run Text="PNGTREE.COM"/></Hyperlink>
+
+             </TextBlock>
+
 
 
             </StackPanel>
+            
+            
+            
+            
+            
         </ScrollViewer>
     </Grid>
 </UserControl>

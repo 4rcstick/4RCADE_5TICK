@@ -18,7 +18,7 @@
                            Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
                            Text="These settings control the core MAME.ini options that govern video rendering and emulation behavior."/>
 
-                <Separator Background="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Video / Rendering Combos] -->
                 <!-- Video OSD renderer and frameskip - written directly into mame.ini on save -->
@@ -82,11 +82,12 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <!-- Row 0: windowed mode / cheat engine -->
+                    <!-- Row 0: windowed mode / auto frame skip (sits under the Frame Skipping combo above) -->
                     <CheckBox x:Name="ChkWindow" Grid.Row="0" Grid.Column="0" Content="Run in Windowed Mode" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox x:Name="ChkCheat" Grid.Row="0" Grid.Column="1" Content="Enable Core Diagnostic Cheat Engines" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox x:Name="ChkAutoFrameSkip" Grid.Row="0" Grid.Column="1" Content="Enable Auto Frame Skip" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 1: CRT/shader matrix / strict pixel aspect ratio -->
                     <CheckBox x:Name="ChkHlslEnable" Grid.Row="1" Grid.Column="0" Content="Enable CRT Scanline / Shaders Matrix" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
@@ -104,8 +105,12 @@
                     <CheckBox x:Name="ChkTripleBuffer" Grid.Row="4" Grid.Column="0" Content="Enable Triple Buffering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                     <CheckBox x:Name="ChkSyncRefresh" Grid.Row="4" Grid.Column="1" Content="Synchronize Refresh Rate" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
-                    <!-- Row 5: auto frameskip -->
-                    <CheckBox x:Name="ChkAutoFrameSkip" Grid.Row="5" Grid.Column="0" Content="Enable Auto Frame Skip" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <!-- Row 5: cheat engine / skip warning screens -->
+                    <CheckBox x:Name="ChkCheat" Grid.Row="5" Grid.Column="0" Content="Enable Core Diagnostic Cheat Engines" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox x:Name="ChkSkipWarnings" Grid.Row="5" Grid.Column="1" Content="Skip Warning Screens" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+
+                    <!-- Row 6: bezel artwork toggle - writes a dummy artpath in mame.ini when unchecked -->
+                    <CheckBox x:Name="ChkEnableBezels" Grid.Row="6" Grid.Column="0" Content="Enable Bezels" IsChecked="True" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                 </Grid>
                 <!-- [END SECTION: MAME.ini Feature Checkboxes] -->
             </StackPanel>

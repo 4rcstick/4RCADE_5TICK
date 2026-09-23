@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
         mc:Ignorable="d"
         Title="Manage Custom Folders" 
         Height="400" 
@@ -54,16 +55,18 @@
             <Setter Property="Background" Value="{Binding BtnBgColorHex, FallbackValue=#2D2D35}"/>
             <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=White}"/>
             <Setter Property="BorderBrush" Value="{Binding BtnBorderColorHex, FallbackValue=Transparent}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderThickness" Value="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+            <Setter Property="FontSize" Value="{Binding OptionsBtnFontSize, FallbackValue=13}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="BtnBorder" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                        <Border x:Name="BtnBorder" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="{Binding OptionsBtnBorderRadius, FallbackValue=0}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="BtnBorder" Property="Background" Value="{Binding BtnBgColorHoverHex, FallbackValue=#3A3A42}"/>
+                                <Setter Property="Foreground" Value="{Binding OptionsBtnColorHoverHex, FallbackValue=White}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.4"/>
@@ -74,6 +77,22 @@
             </Setter>
         </Style>
         <!-- [END SECTION: Standard Button Style] -->
+
+        <!-- [SECTION: Confirm Button Style] -->
+        <!-- Cyan "confirm" scheme layered on top of StandardButtonStyle's shared template/triggers -->
+        <Style x:Key="ConfirmButtonStyle" TargetType="Button" BasedOn="{StaticResource StandardButtonStyle}">
+            <Setter Property="Background" Value="{Binding BtnBgColorHex, FallbackValue=#1E1E24}"/>
+            <Setter Property="BorderBrush" Value="{Binding BtnBorderColorHex, FallbackValue=#00CBCB}"/>
+            <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=#00CBCB}"/>
+        </Style>
+        <!-- [END SECTION: Confirm Button Style] -->
+
+        <!-- [SECTION: Danger Button Style] -->
+        <!-- Shared red "destructive action" scheme for Remove/Delete, layered on StandardButtonStyle -->
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource StandardButtonStyle}">
+            <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=#CC1111}"/>
+        </Style>
+        <!-- [END SECTION: Danger Button Style] -->
     </Window.Resources>
 
     <Border Margin="20" 
@@ -183,19 +202,27 @@
             <!-- Optional #hexcolor override for the folder tag, plus a button to remove the currently
                  selected game from the active custom folder (edit mode only) -->
             <UniformGrid Grid.Row="2" Columns="2" Margin="0,0,0,15">
-                <TextBox x:Name="HexColorTextBox" 
-                     Height="35" 
-                     Margin="0,0,10,0" 
-                     Background="#2D2D35" 
-                     Foreground="White" 
-                     VerticalContentAlignment="Center"
-                     Padding="5,0"/>
+                <Grid Margin="0,0,10,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="35"/>
+                        <ColumnDefinition Width="2"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="35" Height="35" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1" Margin="0">
+                        <colorpicker:PortableColorPicker x:Name="PlaylistColorPicker" Width="35" Height="35" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlaylistColorPicker_ColorChanged"/>
+                    </Border>
+                    <TextBox Grid.Column="2" x:Name="HexColorTextBox" 
+                         Height="35" 
+                         Background="#2D2D35" 
+                         Foreground="White" 
+                         VerticalContentAlignment="Center"
+                         Margin="5,0,0,0"/>
+                </Grid>
                 <Button x:Name="RemoveButton" 
-                    Style="{StaticResource StandardButtonStyle}"
+                    Style="{StaticResource DangerButtonStyle}"
                     Content="Remove From Custom Folder" 
                     Height="35" 
                     Margin="10,0,0,0" 
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#CC1111}" 
                     FontWeight="Bold"/>
             </UniformGrid>
             <!-- [END SECTION: Hex Color + Remove Row] -->
@@ -203,11 +230,10 @@
             <!-- Deletes the entire selected custom folder (edit mode only) -->
             <Button x:Name="DeleteFolderButton" 
                 Grid.Row="3" 
-                Style="{StaticResource StandardButtonStyle}"
+                Style="{StaticResource DangerButtonStyle}"
                 Content="Delete Entire Folder" 
                 Height="35" 
-                Margin="0,0,0,20" 
-                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#CC1111}"/>
+                Margin="0,0,0,20"/>
 
             <!-- [SECTION: Confirm / Cancel Row] -->
             <Grid Grid.Row="5">
@@ -219,13 +245,9 @@
 
                 <Button x:Name="ConfirmButton" 
                     Grid.Column="0" 
-                    Style="{StaticResource StandardButtonStyle}"
+                    Style="{StaticResource ConfirmButtonStyle}"
                     Content="Confirm Add" 
-                    Height="35" 
-                    Background="{Binding BtnBgColorHex, FallbackValue=#1E1E24}" 
-                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00CBCB}" 
-                    BorderThickness="1" 
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00CBCB}"/>
+                    Height="35"/>
 
                 <Button x:Name="CancelButton" 
                     Grid.Column="2" 

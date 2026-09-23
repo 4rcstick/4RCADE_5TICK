@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="ArcadeStick.Views.FolderOrderTabControl"
+<UserControl x:Class="ArcadeStick.Views.FolderOrderTabControl"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,6 +7,7 @@
         mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
     <Grid Margin="15">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -20,56 +21,147 @@
         <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,15"
                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
-                   Text="To adjust what order the folders are displayed in the Game List Panel, select one below and use the up/down buttons to move it to it's desired position."/>
+                   Text="To adjust what order the folders are displayed in the Game List Panel, select one below and use the up/down buttons to move it to it's desired position. Selecting a root folder that has subfolders lets you reorder those too on the right."/>
 
-        <!-- [SECTION: Folder Order List + Controls] -->
-        <Grid Grid.Row="2">
+        <!-- [SECTION: Column Subheaders] -->
+        <!-- Same 3-column widths as the list/button row below, so these labels sit directly above their
+             respective list. -->
+        <Grid Grid.Row="2" Margin="0,0,0,6">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="240"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="210"/>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="210"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Displays the current folder order; selection drives BtnFolderUp/Down -->
+            <TextBlock Grid.Column="0" Text="Root Folders" FontWeight="Bold"
+                       FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
+                       Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"/>
+
+            <TextBlock Grid.Column="2" Text="Sub Folders" FontWeight="Bold"
+                       FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
+                       Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"/>
+        </Grid>
+        <!-- [END SECTION: Column Subheaders] -->
+
+        <!-- [SECTION: Folder Order List + Controls] -->
+        <!-- 3 outer columns: root list | center (buttons/reminder/save) | subfolder list -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="210"/>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="210"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Displays the current root folder order; selection drives BtnFolderUp/Down and also
+                 determines which root's subfolders populate the list on the right. -->
             <ListBox x:Name="LstFolderOrder" Grid.Column="0" 
                      Background="#000000" Foreground="#F2F2F7" 
                      BorderBrush="#3A3A3C" BorderThickness="1" 
-                     FontSize="14" FontWeight="Bold" Padding="5"/>
+                     FontSize="14" FontWeight="Bold" Padding="5"
+                     SelectionChanged="LstFolderOrder_SelectionChanged">
+                <!-- Default ListBox template's internal scrollbar isn't themed on its own - this override
+                     wraps ItemsPresenter in a ScrollViewer using the same ArcadeDarkScrollViewer style
+                     applied elsewhere, rather than the unthemed default. -->
+                <ListBox.Template>
+                    <ControlTemplate TargetType="ListBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ScrollViewer Style="{StaticResource ArcadeDarkScrollViewer}" Padding="{TemplateBinding Padding}">
+                                <ItemsPresenter/>
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </ListBox.Template>
+            </ListBox>
 
-            <Grid Grid.Column="1" Margin="20,0,0,0">
+            <!-- Center column: 3 rows - top (root/subfolder button pairs, side by side), middle (save
+                 reminder text), bottom (Save Folders, centered). -->
+            <Grid Grid.Column="1" Margin="0,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Reorder buttons: move the selected list item up/down -->
-                <StackPanel Grid.Row="0" HorizontalAlignment="Left">
-                    <Button x:Name="BtnFolderUp" Content="Up ▲" 
-                            Width="100" Height="35" Margin="0,0,0,15"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="1"
-                            FontWeight="SemiBold" Click="BtnFolderUp_Click"/>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="90"/>
+                    </Grid.ColumnDefinitions>
 
-                    <Button x:Name="BtnFolderDown" Content="Down ▼" 
-                            Width="100" Height="35" Margin="0,0,0,0"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="1"
-                            FontWeight="SemiBold" Click="BtnFolderDown_Click"/>
-                </StackPanel>
+                    <!-- Root-level reorder buttons -->
+                    <StackPanel Grid.Column="0" HorizontalAlignment="Left">
+                        <Button x:Name="BtnFolderUp" Content="▲" 
+                                Width="25" Height="50" Margin="0,0,0,0"
+                                Style="{StaticResource ThemedActionButtonStyle}"
+                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
+                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
+                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
+                                FontWeight="SemiBold" Click="BtnFolderUp_Click"/>
 
-                <!-- Persists the current list order to the folder_order config file -->
-                <Button x:Name="BtnSaveFolderOrder" Content="Save Folders" 
-                        Grid.Row="1" Width="120" Height="35" 
-                        HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                        <Button x:Name="BtnFolderDown" Content="▼" 
+                                Width="25" Height="50" Margin="0,0,0,0"
+                                Style="{StaticResource ThemedActionButtonStyle}"
+                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
+                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
+                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
+                                FontWeight="SemiBold" Click="BtnFolderDown_Click"/>
+                    </StackPanel>
+
+                    <!-- Subfolder-level reorder buttons -->
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                        <Button x:Name="BtnSubfolderUp" Content="▲" 
+                                Width="25" Height="50" Margin="0,0,0,0"
+                                Style="{StaticResource ThemedActionButtonStyle}"
+                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
+                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
+                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
+                                FontWeight="SemiBold" Click="BtnSubfolderUp_Click"/>
+
+                        <Button x:Name="BtnSubfolderDown" Content="▼" 
+                                Width="25" Height="50" Margin="0,0,0,0"
+                                Style="{StaticResource ThemedActionButtonStyle}"
+                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
+                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
+                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
+                                FontWeight="SemiBold" Click="BtnSubfolderDown_Click"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Placeholder reminder text - wording TBD, using the standard body text property -->
+                <TextBlock Grid.Row="1" TextWrapping="Wrap" TextAlignment="left" Width="180" VerticalAlignment="Bottom"
+                           Margin="10,15,0,15"
+                           FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                           Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
+                           Text="When changing Sub-Folder Order you must apply the change before selecting another Root Folder"/>
+
+                <!-- Persists both lists' current order in one commit -->
+                <Button x:Name="BtnSaveFolderOrder" Content="Apply Changes" 
+                        Grid.Row="2" Width="120" Height="35"
+                        HorizontalAlignment="Center" VerticalAlignment="Bottom"
                         Style="{StaticResource ThemedActionButtonStyle}"
                         Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
                         Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="1"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         FontWeight="SemiBold" Click="BtnSaveFolderOrder_Click"/>
             </Grid>
+
+            <!-- Displays the selected root folder's subfolders (capped at one level). Greyed-out/disabled
+                 treatment when empty is a follow-up tweak, not yet applied here. -->
+            <ListBox x:Name="LstSubfolderOrder" Grid.Column="2" 
+                     Background="#000000" Foreground="#F2F2F7" 
+                     BorderBrush="#3A3A3C" BorderThickness="1" 
+                     FontSize="14" FontWeight="Bold" Padding="5">
+                <!-- Same themed-scrollbar template override as LstFolderOrder above. -->
+                <ListBox.Template>
+                    <ControlTemplate TargetType="ListBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ScrollViewer Style="{StaticResource ArcadeDarkScrollViewer}" Padding="{TemplateBinding Padding}">
+                                <ItemsPresenter/>
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </ListBox.Template>
+            </ListBox>
         </Grid>
         <!-- [END SECTION: Folder Order List + Controls] -->
     </Grid>

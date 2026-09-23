@@ -14,6 +14,7 @@ namespace ArcadeStick.Views
         private readonly MainViewModel _viewModel;
         private readonly string _playlistsDir;
         private string _selectedColorHex = "#FFFFFF";
+        private bool _suppressPlaylistColorSync;
 
         // [SECTION: Constructor & Playlist Context Setup]
         // Ensures the playlists config folder exists, applies theme colors/fonts, populates the folder
@@ -128,9 +129,38 @@ namespace ArcadeStick.Views
             DeleteFolderButton.Click += DeleteFolderButton_Click;
             RemoveButton.Click += RemoveButton_Click;
 
-            HexColorTextBox.TextChanged += (s, e) => _selectedColorHex = HexColorTextBox.Text.Trim();
+            HexColorTextBox.TextChanged += (s, e) =>
+            {
+                _selectedColorHex = HexColorTextBox.Text.Trim();
+
+                if (_suppressPlaylistColorSync) return;
+                string hexToParse = _selectedColorHex.StartsWith("#") ? _selectedColorHex : "#" + _selectedColorHex;
+                try
+                {
+                    var parsedColor = (Color)ColorConverter.ConvertFromString(hexToParse);
+                    _suppressPlaylistColorSync = true;
+                    PlaylistColorPicker.SelectedColor = parsedColor;
+                    _suppressPlaylistColorSync = false;
+                }
+                catch { }
+            };
+
+            PlaylistColorPicker.ColorChanged += PlaylistColorPicker_ColorChanged;
         }
         // [END SECTION: Event Wiring]
+
+        // [SECTION: Playlist Color Picker Sync]
+        // Mirrors the ThemesTabControl swatch/hex sync pattern - suppress flag prevents the picker's
+        // ColorChanged and the hex TextBox's TextChanged from feeding back into each other in a loop.
+        private void PlaylistColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressPlaylistColorSync) return;
+            var newColor = PlaylistColorPicker.SelectedColor;
+            _suppressPlaylistColorSync = true;
+            HexColorTextBox.Text = $"#{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
+            _suppressPlaylistColorSync = false;
+        }
+        // [END SECTION: Playlist Color Picker Sync]
 
         // [SECTION: Selection Changed - Create vs Edit Mode]
         // Toggles the dialog between "create new folder" mode (index 0: name field visible/editable, no
@@ -200,7 +230,9 @@ namespace ArcadeStick.Views
             }
             _selectedColorHex = hexInput;
 
-            if (FolderComboBox.SelectedIndex <= 0)
+            bool isCreatingNewFolder = FolderComboBox.SelectedIndex <= 0;
+
+            if (isCreatingNewFolder)
             {
                 string checkPath = Path.Combine(_playlistsDir, $"{playlistName}.cfg");
                 if (File.Exists(checkPath))
@@ -236,6 +268,13 @@ namespace ArcadeStick.Views
             }
 
             File.WriteAllLines(filePath, fileLines);
+
+            // Only pin to top on actual creation, not when adding a game to an already-existing folder -
+            // after creation, position is user-controlled via the Folder Order tab or context menu.
+            if (isCreatingNewFolder)
+            {
+                _viewModel.PinFolderToTopOfOrder(playlistName);
+            }
 
             _viewModel.UpdateLiveTreeDisplay();
             Close();

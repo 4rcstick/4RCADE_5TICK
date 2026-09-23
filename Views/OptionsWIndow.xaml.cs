@@ -26,6 +26,12 @@ namespace ArcadeStick.Views
             _viewModel = viewModel;
             _settings = viewModel.Configuration;
 
+            // Ensures InputsTab's WGIService event subscriptions get torn down no matter how this
+            // dialog closes (Close button, X, Alt+F4) - without this, every open/close cycle leaks
+            // the entire window's visual tree, since WGIService lives for the whole app session and
+            // was holding the only remaining reference keeping it alive.
+            this.Closed += OptionsWindow_Closed;
+
             // Anchor the DataContext so container UI bindings hook directly into the active settings framework
             this.DataContext = _settings;
 
@@ -35,9 +41,15 @@ namespace ArcadeStick.Views
             // Custom Media Asset Storage Path Fields
             AssetPathsTab.Initialize(_settings);
 
+            AboutTab.Initialize(_settings);
+
+            // ADB Artwork Scraper Settings
+            ScraperTab.Initialize(_settings);
+
             ThemesTab.Initialize(_viewModel, _settings, PersistSettingsToDisk, RefreshOptionsWindowBindings);
 
             InputsTab.Initialize(_settings);
+            MameKeybindsTab.Initialize(_settings);
 
             MameIniTab.Initialize(_settings);
             FolderOrderTab.Initialize(_viewModel, _settings);
@@ -80,6 +92,7 @@ namespace ArcadeStick.Views
             {
                 SystemPathsTab.SyncToSettings();
                 AssetPathsTab.SyncToSettings();
+                ScraperTab.SyncToSettings();
                 ThemesTab.SyncUiToSettings();
                 InputsTab.SyncToSettings();
 
@@ -89,6 +102,7 @@ namespace ArcadeStick.Views
 
                 _viewModel.RefreshThemeBindings();
                 _viewModel.RefreshFolderColorsLive();
+                _viewModel.RefreshGameColorsLive();
 
                 this.DataContext = null;
                 this.DataContext = _settings;
@@ -105,10 +119,16 @@ namespace ArcadeStick.Views
         public void WireLiveDiagnostics(ArcadeStick.Services.WGIService inputService)
         {
             InputsTab.WireLiveDiagnostics(inputService);
+            MameKeybindsTab.WireLiveDiagnostics(inputService);
         }
         // [END SECTION: Live Diagnostics Passthrough]
 
         private void BtnCloseOptions_Click(object sender, RoutedEventArgs e) => this.Close();
+
+        private void OptionsWindow_Closed(object? sender, EventArgs e)
+        {
+            InputsTab.UnwireLiveDiagnostics();
+        }
     }
 }
 // [END SECTION: File Overrides]

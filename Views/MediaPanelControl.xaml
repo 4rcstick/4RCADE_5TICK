@@ -1,0 +1,437 @@
+﻿<UserControl x:Class="ArcadeStick.Views.MediaPanelControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                          xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+             xmlns:models="clr-namespace:ArcadeStick.Models"
+             mc:Ignorable="d"
+             d:DesignHeight="900" d:DesignWidth="1600">
+
+    <UserControl.Resources>
+        <!-- Computes Row1's height from ThemeVideoBorderSize so the post-border content cell stays
+             exact 4:3 for any border size, instead of a value hardcoded for one specific border. -->
+        <models:VideoRowHeightConverter x:Key="VideoRowHeightConverter"/>
+    </UserControl.Resources>
+
+    <!-- [SECTION: Media Panel]
+         Media panel rework in progress. Boot splash image/video (Layer 0) and the themed wallpaper
+         (Layer 1 back) are unchanged - they already use relative/Stretch-based brushes, not fixed-canvas
+         math, so they adapt automatically now that the outer whole-panel Viewbox+1600x900 canvas has
+         been removed. Layer 1 front (MediaLayer1_Front) is the new two-column redesign: Column One is
+         Width="Auto" and wraps its own scoped Viewbox locking a 640x1060 design canvas (Row 1's 640x480
+         keeps the video preview at 4:3; Rows 2/3 inherit that same computed width for free since they're
+         part of the same scaled block). Column Two is Width="*" with no aspect lock, so it simply fills
+         whatever space remains - this is what avoids the old whole-panel letterboxing/pillarboxing that
+         broke on non-16:9 windows (e.g. 4:3 CRT setups). Placeholder content only, no data logic wired. -->
+    <Border x:Name="MediaPanelBorder" CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}" BorderBrush="{Binding ThemePreviewBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemePreviewBorderSize, FallbackValue=1}" ClipToBounds="True">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <SolidColorBrush Color="{Binding ThemeMediaColor, FallbackValue=#000000}"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Border.Style>
+
+        <Grid>
+
+            <!-- Layer 0 (back): boot splash image shown only when no game is selected -->
+            <Border x:Name="MediaLayer0_Back" x:FieldModifier="public" CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <ImageBrush ImageSource="{Binding ThemeBootSplashAsset}" Stretch="Fill" AlignmentX="Left" AlignmentY="Top" TileMode="None" Viewport="0,0,1,1" ViewportUnits="RelativeToBoundingBox"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+            </Border>
+
+            <!-- Layer 0 (back, video): boot splash mp4, shown instead of the ImageBrush above when the resolved splash asset is a video -->
+            <vlc:VideoView x:Name="BootSplashVideoPreview" MediaPlayer="{Binding BootSplashMediaPlayer, RelativeSource={RelativeSource AncestorType=Window}}">
+                <vlc:VideoView.Style>
+                    <Style TargetType="vlc:VideoView">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsGameSelected}" Value="False"/>
+                                    <Condition Binding="{Binding IsBootSplashVideo}" Value="True"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </vlc:VideoView.Style>
+            </vlc:VideoView>
+
+            <!-- Layer 1 (back): themed media wallpaper, shown behind the preview once a game is selected -->
+            <Border x:Name="MediaLayer1_Back" CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <ImageBrush ImageSource="{Binding ThemeMediaWallpaper}" Stretch="UniformToFill"/>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ThemeMediaWallpaper}" Value="{x:Null}">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+            </Border>
+
+            <!-- Layer 1 (front): NEW two-column media/info panel redesign - placeholder pass only, no logic wired yet. -->
+            <Grid x:Name="MediaLayer1_Front" Margin="20,20,10,15">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ===== COLUMN ONE ===== -->
+                <!-- Scoped Viewbox locks a 640x1060 design canvas at 4:3 for Row 1 (the video preview) -
+                     Column One's Auto width is computed FROM this Viewbox's scaled size, so Rows 2/3
+                     inherit that same width for free without any code-behind sizing logic. -->
+                <Viewbox x:Name="ColumnOneViewbox" Grid.Column="0" Stretch="Uniform" SizeChanged="ColumnOneViewbox_SizeChanged">
+                    <!-- Height removed - this Grid now auto-sizes to the sum of its RowDefinitions instead of a
+                         hardcoded value. Row0's height is no longer a fixed "480" either - it's bound through
+                         VideoRowHeightConverter against ThemeVideoBorderSize, growing as border size grows to
+                         keep the post-border content cell exact 4:3. A hardcoded outer Height here would drift
+                         out of sync with that dynamic Row0 value the same way "1060" drifted out of sync with
+                         the earlier hardcoded "490" experiment - auto-sizing means it can never happen again. -->
+                    <Grid Width="800">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="{Binding ThemeVideoBorderSize, FallbackValue=0, Converter={StaticResource VideoRowHeightConverter}}"/>
+                            <RowDefinition Height="20"/>
+                            <RowDefinition Height="60"/>
+                            <RowDefinition Height="20"/>
+                            <RowDefinition Height="360"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Row 1: media slot, locked 4:3 (640x480), no arrow control - auto-cycles by priority
+                             (video > screenshot > title > no-preview). VideoPreview restored here (public field)
+                             so MainWindow.xaml.cs's existing LibVLC play/stop call sites keep functioning. -->
+
+                        <!-- STRUCTURAL REWORK: replaced the single Border-with-BorderThickness approach entirely.
+                             That approach kept producing a persistent 1px gray seam around the video whenever
+                             BorderThickness > 0 - most likely a DWM/airspace composition artifact from a WPF
+                             Border's BorderBrush chrome being drawn directly abutting the HwndHost-backed
+                             VideoView's own composited edge. This 3x3 Grid sidesteps the problem structurally:
+                             the "border" is now just Grid.Background showing through in the 8 outer cells - not
+                             a WPF Border element drawn flush against the video's edge - so there's no shared
+                             chrome/composition boundary left for that artifact to occur on. CornerRadius is no
+                             longer possible with this structure (accepted trade-off). Row0/Row2 and Col0/Col2
+                             are sized directly from ThemeVideoBorderSize, so border thickness stays theme-
+                             configurable exactly as before. -->
+                        <Grid x:Name="ColumnOneMediaSlot" Grid.Row="0" Background="{Binding ThemeVideoBorderColor, FallbackValue=#FF3A3A3C}" ClipToBounds="True" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="{Binding ThemeVideoBorderSize, FallbackValue=0}"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="{Binding ThemeVideoBorderSize, FallbackValue=0}"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding ThemeVideoBorderSize, FallbackValue=0}"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="{Binding ThemeVideoBorderSize, FallbackValue=0}"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Center cell only - this is the entire media content area. Any leftover 1-2px from
+                                 the 4:3 aspect math (computed in code-behind against THIS cell's real size) simply
+                                 shows the Grid's own Background - the same border color already surrounding it,
+                                 so it merges invisibly instead of reading as a mismatched seam. -->
+                            <!-- Background bound to ThemeVideoBgColor here (not ThemeVideoBorderColor like the
+                                 outer Grid) - separate, independently themeable fill for the center/video cell
+                                 vs. the 8 border cells around it. -->
+                            <Grid x:Name="ColumnOneMediaSlotContent" Grid.Row="1" Grid.Column="1" Background="{Binding ThemeVideoBgColor, FallbackValue=#FF000000}" SizeChanged="ColumnOneMediaSlotContent_SizeChanged">
+                                <!-- Fallback layer: shown whenever the selected game has no video/screenshot/titlescreen
+                                     asset in any category (HasActiveMedia false) - theme-configurable via the Themes tab. -->
+                                <Image Source="{Binding ThemeMissingPreviewAsset}" Stretch="Uniform">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasActiveMedia}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+
+                                <!-- Screenshot/titlescreen layer: shown whenever PreviewPriorityOrder resolved a static
+                                     image (UpdateActiveMediaPreviews clears this back to null whenever video is the
+                                     resolved asset instead, so this and VideoPreview below are always mutually exclusive). -->
+                                <Image x:Name="MediaSlotPreviewImage" Source="{Binding PreviewImage}" Stretch="Uniform">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PreviewImage}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+
+                                <!-- Video layer: Visibility is owned entirely by MainWindow.xaml.cs's existing code-behind
+                                     (ViewModel_PropertyChanged/RefreshVideoPreview/ApplyDefaultMedia/TriggerActiveSelectionLaunch)
+                                     - deliberately no XAML-side trigger here so the two mechanisms don't fight each other.
+                                     Width/Height are set directly in code-behind, not bound/stretched - HorizontalAlignment
+                                     and VerticalAlignment Center is what lets the explicit smaller size float centered
+                                     inside the cell instead of the Grid stretching it back out to fill the whole area. -->
+
+
+                                <!-- Background bound to ThemeVideoBgColor, not ThemeVideoBorderColor - LibVLC draws
+                                     no background of its own (confirmed via VideoLAN forums: it only draws video
+                                     pixels, whatever's behind shows through wherever the frame doesn't cover), so
+                                     this native control's own Background IS the real "pillarbox" color whenever a
+                                     source video isn't a perfect pixel match for its box. Themed to video background
+                                     color, not border color, since it's logically part of the video area, not the
+                                     border. -->
+                                <vlc:VideoView x:Name="VideoPreview" x:FieldModifier="public" MediaPlayer="{Binding VlcMediaPlayer, RelativeSource={RelativeSource AncestorType=Window}}" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True" UseLayoutRounding="True" Background="{Binding ThemeVideoBgColor, FallbackValue=#FF000000}"/>
+
+                            </Grid>
+                        </Grid>
+
+                        <!-- Row 2: single arrow-cycle control, 4-state (Flyer / Cabinet / Staff / Technical).
+                             Vector shapes instead of font glyphs - guarantees the arrows and dots match each
+                             other exactly in size/weight, which font glyphs from different Unicode blocks
+                             couldn't reliably do. Size/color hardcoded for now - theme binding comes later. -->
+                        <Border x:Name="ColumnOneArrowRow" Grid.Row="2" Background="Transparent">
+                            <StackPanel x:Name="Row3ArrowStack" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <!-- Arrow/dot spacing intentionally left hardcoded, not bound to ThemeArrowSpacing/
+                                 ThemeDotSpacing - Margin is a Thickness, which can't bind a single number to just
+                                 one side inline. Those two properties are still fully wired in the Theme Builder
+                                 (unused for now) - candidates for removal later if not worth a converter/code-behind. -->
+                                <!-- Dots 0/1/2 = Flyer/Title/Snap. Code-behind collapses the dot for any missing image
+                                     (and the whole row if all three are missing). Every dot carries the same 10px right
+                                     margin and the right arrow carries a 4px left margin, so the dot-to-arrow gap stays
+                                     14px regardless of which dot ends up last. -->
+                                <Polygon x:Name="Row3ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowLeft_MouseLeftButtonUp"/>
+                                <Ellipse x:Name="Row3Dot0" Tag="0" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                                <Ellipse x:Name="Row3Dot1" Tag="1" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                                <Ellipse x:Name="Row3Dot2" Tag="2" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                                <Polygon x:Name="Row3ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="4,0,0,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowRight_MouseLeftButtonUp"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Row 3: content slot, cycles Flyer > Title Screen > Snap per Row 2's dots. Visibility is
+                             owned entirely by code-behind (UpdateRow3Visibility), which only includes images that
+                             actually resolved - no placeholder, a missing image is simply skipped, and with none
+                             found the slot stays blank. Images scale naturally with the scoped Viewbox. -->
+                        <Border x:Name="ColumnOneContentSlot" Grid.Row="4" Background="Transparent" BorderBrush="Gray" BorderThickness="0">
+                            <Grid>
+                                <Image x:Name="Row3FlyerImage" Source="{Binding FlyerImage}" Stretch="Uniform" Visibility="Collapsed"/>
+                                <Image x:Name="Row3TitleImage" Source="{Binding TitleImage}" Stretch="Uniform" Visibility="Collapsed"/>
+                                <Image x:Name="Row3SnapImage" Source="{Binding SnapImage}" Stretch="Uniform" Visibility="Collapsed"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Viewbox>
+
+
+                <!-- ===== COLUMN TWO ===== -->
+                <!-- No aspect lock - fills 100% of whatever horizontal space Column One's computed width leaves behind. -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="40"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- R1: Title (persistent) - real data now, bound to GameItem.DisplayTitle. -->
+                    <TextBlock x:Name="ColumnTwoTitle" Grid.Row="0" Text="{Binding SelectedGame.DisplayTitle}" FontSize="{Binding ThemeGameNameHeaderFontSize, FallbackValue=32}" FontWeight="Bold" Foreground="{Binding ThemeGameNameHeaderColor, FallbackValue=White}" Margin="0,0,0,5">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="2" Direction="315" Opacity="0.6"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+
+                    <!-- R2: Publisher / Year / Rating (persistent) - real data now. Publisher/Year come from
+                         mame_cache.json via GameItem; Rating comes from MainViewModel.DisplayRating
+                         (sort_database.ini band, resolved via VirtualCategorySortService). TargetNullValue
+                         covers ROMs with no sort_database.ini entry - shows "Not Rated" instead of blank. -->
+                    <StackPanel x:Name="ColumnTwoMeta" Grid.Row="1" HorizontalAlignment="Right" Margin="0,0,10,10">
+                        <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.Manufacturer, StringFormat='Published by: {0}'}"/>
+                        <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.Year, StringFormat='Year: {0}'}"/>
+                        <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.CloneOf, StringFormat='Clone of: {0}'}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedGame.CloneOf}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding DisplayRating, StringFormat='Rating: {0}/10', TargetNullValue='Rating: N/A'}"/>
+                        <!-- Play stats (moved from the footer pill) - single line, collapsed when the game has no play history. -->
+                        <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGamePlayStatsText}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedGamePlayStatsText}" Value="">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- R3: arrow-cycle control, 3-state (0=Game Info, 1=Trivia, 2=Tips & Tricks).
+                         Same vector shapes/size as Column One's arrow row (Row 2). -->
+                    <Border x:Name="ColumnTwoArrowRow" Grid.Row="2" Background="Transparent">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Polygon x:Name="Column2ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2ArrowLeft_MouseLeftButtonUp"/>
+                            <Ellipse x:Name="Column2Dot0" Tag="0" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                            <Ellipse x:Name="Column2Dot1" Tag="1" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                            <Ellipse x:Name="Column2Dot2" Tag="2" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                            <Ellipse x:Name="Column2Dot3" Tag="3" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                            <Polygon x:Name="Column2ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="Column2ArrowRight_MouseLeftButtonUp"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- R4: subheader - three stacked labels, one visible at a time per R3's state (code-behind). -->
+                    <Grid Grid.Row="3" Margin="0,10,0,10">
+                        <TextBlock x:Name="Column2HeaderGameInfo" Text="GAME INFO" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Visible"/>
+                        <TextBlock x:Name="Column2HeaderTrivia" Text="TRIVIA" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
+                        <TextBlock x:Name="Column2HeaderTips" Text="TIPS &amp; TRICKS" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
+                        <TextBlock x:Name="Column2HeaderSpecsCredits" Text="SPECS &amp; CREDITS" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
+                    </Grid>
+
+                    <!-- R5: scrollable body - three stacked ScrollViewer/TextBlock pairs, one visible at a time,
+                         each bound to its own MainViewModel history property. Scrollbar stays confined to
+                         whichever pair is active, matching R4's header staying fixed above it. -->
+                    <Grid Grid.Row="4">
+                        <!-- Game Info body is now block-based (GameInfoBlocks) instead of one flat string, so
+                             wiki-sourced section headers (Gameplay/Characters/etc.) can render themed inline
+                             with the paragraphs they belong to. Each block's header TextBlock reuses the exact
+                             same ThemeInfoHeaderFontSize/Color bindings as Column2HeaderGameInfo above, so a
+                             "Gameplay" header here looks identical to the "GAME INFO" tab header - just repeated
+                             per-section. RelativeSource AncestorType=UserControl is required inside the
+                             DataTemplate since ItemsControl.ItemTemplate's DataContext is the GameInfoBlock
+                             item itself, not MainViewModel - without it, these theme bindings would silently
+                             resolve to nothing and fall back to FallbackValue every time. -->
+                        <ScrollViewer x:Name="Column2BodyGameInfoScroll" VerticalScrollBarVisibility="Auto" Visibility="Visible" Style="{StaticResource ArcadeDarkScrollViewerThemed}" >
+                            <ItemsControl ItemsSource="{Binding GameInfoBlocks}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Header}" FontSize="{Binding DataContext.ThemeInfoHeaderFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding DataContext.ThemeInfoHeaderColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}" Margin="0,10,0,5">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Header}" Value="">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Body}" FontFamily="Georgia" FontSize="{Binding DataContext.ThemeInfoBodyFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=16}" Foreground="{Binding DataContext.ThemeInfoBodyColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,5"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                        <ScrollViewer x:Name="Column2BodyTriviaScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" Style="{StaticResource ArcadeDarkScrollViewerThemed}" >
+                            <TextBlock FontFamily="Georgia" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20"  Text="{Binding HistoryTrivia}"/>
+                        </ScrollViewer>
+                        <ScrollViewer x:Name="Column2BodyTipsScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" Style="{StaticResource ArcadeDarkScrollViewerThemed}" >
+                            <TextBlock FontFamily="Georgia" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTipsAndTricks}"/>
+                        </ScrollViewer>
+
+                        <!-- Specs & Credits page (moved from Column One's lower slot). Cabinet image sits in an
+                             Auto-width column at a fixed 100px - when CabinetImage is null the Image collapses
+                             (margin included), the Auto column shrinks to 0, and the text goes full width.
+                             Cabinet stays outside the ScrollViewer so it doesn't scroll away with the text. -->
+                        <Grid x:Name="Column2BodySpecsCredits" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Image Grid.Column="0" Source="{Binding CabinetImage}" Width="150" Stretch="Uniform" VerticalAlignment="Top" Margin="0,0,20,0">
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CabinetImage}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+
+                            <ScrollViewer x:Name="Column2BodySpecsCreditsScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                                <StackPanel Margin="0,0,20,20">
+                                    <TextBlock Text="SPECS" FontWeight="Bold" FontSize="{Binding ThemeCreditsHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeCreditsHeaderColor, FallbackValue=White}" Margin="0,0,0,10"/>
+                                    <TextBlock Text="{Binding HistoryTechnical}" FontSize="{Binding ThemeCreditsBodyFontSize, FallbackValue=13}" Foreground="{Binding ThemeCreditsBodyColor, FallbackValue=White}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="CREDITS" FontWeight="Bold" FontSize="{Binding ThemeCreditsHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeCreditsHeaderColor, FallbackValue=White}" Margin="0,20,0,10"/>
+                                    <TextBlock Text="{Binding HistoryStaff}" FontSize="{Binding ThemeCreditsBodyFontSize, FallbackValue=13}" Foreground="{Binding ThemeCreditsBodyColor, FallbackValue=White}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+            </Grid>
+
+            <!-- Play Random Game spin placeholder - topmost layer, covering everything during an active spin. -->
+            <Border x:Name="RandomizerSpinMediaOverlay" CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}" Background="{Binding ThemeMediaColor, FallbackValue=#000000}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsRandomizerSpinning}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="Rolling the Dice!" FontSize="100" FontWeight="Bold" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+        </Grid>
+    </Border>
+    <!-- [END SECTION: Media Panel] -->
+
+</UserControl>

@@ -58,6 +58,70 @@ namespace ArcadeStick.Models
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;
 
+        public int SearchBoxFontSize { get; set; } = 13;
+        public string SearchBoxColorHex { get; set; } = "#FFF2F2F7";
+        public string SearchBoxBgColorHex { get; set; } = "#FF1C1C1E";
+
+        public int GameNameHeaderFontSize { get; set; } = 32;
+        public string GameNameHeaderColorHex { get; set; } = "#FFFFFFFF";
+        public int PubYearRatingFontSize { get; set; } = 13;
+        public string PubYearRatingColorHex { get; set; } = "#FFFFFFFF";
+        public int InfoHeaderFontSize { get; set; } = 20;
+        public string InfoHeaderColorHex { get; set; } = "#FFFFFFFF";
+        public int InfoBodyFontSize { get; set; } = 16;
+        public string InfoBodyColorHex { get; set; } = "#FFFFFFFF";
+        public int CreditsHeaderFontSize { get; set; } = 20;
+        public string CreditsHeaderColorHex { get; set; } = "#FFFFFFFF";
+        public int CreditsBodyFontSize { get; set; } = 16;
+        public string CreditsBodyColorHex { get; set; } = "#FFFFFFFF";
+        public string VideoBgColorHex { get; set; } = "#FF000000";
+        public double VideoBorderSize { get; set; } = 0;
+        public string VideoBorderColorHex { get; set; } = "#FF3A3A3C";
+        public double VideoBorderRadius { get; set; } = 0;
+        public string NavIconsColorHex { get; set; } = "#FFFFFFFF";
+        public double NavIconsSize { get; set; } = 9;
+        public double PreviewBorderSize { get; set; } = 1;
+        public string PreviewBorderColorHex { get; set; } = "#FF3A3A3C";
+        public double PreviewBorderRadius { get; set; } = 0;
+
+        public int SearchLabelFontSize { get; set; } = 13;
+        public string SearchLabelColorHex { get; set; } = "#FF00D4FF";
+        public string SearchLabelBgColorHex { get; set; } = "#001C1C1E";
+
+        public int MainWinBtnFontSize { get; set; } = 13;
+        public string MainWinBtnColorHex { get; set; } = "#FF00D4FF";
+        public string MainWinBtnBgColorHex { get; set; } = "#FF1C1C1E";
+        public string MainWinBtnColorHoverHex { get; set; } = "#FF00D4FF";
+        public string MainWinBtnBgColorHoverHex { get; set; } = "#FF2C2C2E";
+        public double MainWinBtnBorderSize { get; set; } = 1;
+        public string MainWinBtnBorderColorHex { get; set; } = "#FF00D4FF";
+        public double MainWinBtnCornerRadius { get; set; } = 0;
+
+        public double GamesBorderSize { get; set; } = 1;
+        public string GamesBorderColorHex { get; set; } = "#FF3A3A3C";
+        public double GamesBorderCornerRadius { get; set; } = 0;
+
+        public string ContextMenuFontColorHex { get; set; } = "#FFF2F2F7";
+        public string ContextMenuIconColorHex { get; set; } = "#FF00D4FF";
+        public string ContextMenuBgColorHex { get; set; } = "#FF1C1C1E";
+        public string ContextMenuHoverColorHex { get; set; } = "#FFFFFFFF";
+        public string ContextMenuHoverBgColorHex { get; set; } = "#FF2C2C2E";
+
+        public double MarqueeBorderRadius { get; set; } = 0;
+
+        public int SubTextFontSize { get; set; } = 12;
+        public string SubTextColorHex { get; set; } = "#FFA0A0A2";
+        public string OptionsMenuBgColorHex { get; set; } = "#FF1C1C1E";
+        public double OptionsMenuBorderSize { get; set; } = 1;
+        public string OptionsMenuBorderColorHex { get; set; } = "#FF3A3A3C";
+        public double OptionsMenuBorderRadius { get; set; } = 0;
+        public string TabColorHoverHex { get; set; } = "#FF00D4FF";
+        public string TabBgColorHoverHex { get; set; } = "#FF2C2C2E";
+        public int OptionsBtnFontSize { get; set; } = 13;
+        public string OptionsBtnColorHoverHex { get; set; } = "#FF00D4FF";
+        public double OptionsBtnBorderSize { get; set; } = 1;
+        public double OptionsBtnBorderRadius { get; set; } = 0;
+
         public string BtnBgColorHex { get; set; } = "#FF1C1C1E";
         public string BtnBorderColorHex { get; set; } = "#FF00D4FF";
         public string BtnTextColorNormalHex { get; set; } = "#FF00D4FF";

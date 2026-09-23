@@ -1,0 +1,437 @@
+<UserControl x:Class="ArcadeStick.Views.MameKeybindsTabControl"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ArcadeStick.Views"
+        mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,5,5,5" Style="{StaticResource ArcadeDarkScrollViewer}">
+        <StackPanel Margin="15">
+
+            <TextBlock Text="DEFAULT MAME KEYBINDS" 
+           FontWeight="Bold" Margin="0,0,0,8"
+           FontSize="{Binding HeaderFontSize, FallbackValue=14}"
+           Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+
+            <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+           FontSize="{Binding StandardFontSize, FallbackValue=13}"
+           Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
+           Text="Binding any inputs here will save them to MAME's default.cfg file and will 
+apply to any game that does not have custom bindings in their respective gamename.cfg file. Click on 'Bind' and then any input (keyboard, mouse or controller) to bind it. Each row can have multiple inputs bound to it. Click 'Clear' to remove all binds in the row and start over."/>
+
+            <Border Padding="5">
+                <StackPanel>
+                    <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,10"/>
+                    <TextBlock Text="DIGITAL STICK 1" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+
+                    <!-- Stick 1 Up -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stick 1 Up:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0,10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyUp" Content="Bind" Click="BtnCaptureP1JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1JoyUp" Content="Clear" Margin="10,0" Click="BtnClearP1JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1JoyUpSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Stick 1 Down -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stick 1 Down:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyDown" Content="Bind" Click="BtnCaptureP1JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1JoyDown" Content="Clear" Margin="10,0" Click="BtnClearP1JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1JoyDownSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Stick 1 Left -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stick 1 Left:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyLeft" Content="Bind" Click="BtnCaptureP1JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1JoyLeft" Content="Clear" Margin="10,0" Click="BtnClearP1JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1JoyLeftSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Stick 1 Right -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stick 1 Right:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyRight" Content="Bind" Click="BtnCaptureP1JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1JoyRight" Content="Clear" Margin="10,0" Click="BtnClearP1JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1JoyRightSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+                    <TextBlock Text="DIGITAL STICK 2" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+
+                    <!-- Stick 2 Up -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stick 2 Up:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyUp" Content="Bind" Click="BtnCaptureP2JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP2JoyUp" Content="Clear" Margin="10,0" Click="BtnClearP2JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP2JoyUpSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Stick 2 Down -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stick 2 Down:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyDown" Content="Bind" Click="BtnCaptureP2JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP2JoyDown" Content="Clear" Margin="10,0" Click="BtnClearP2JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP2JoyDownSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Stick 2 Left -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stick 2 Left:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyLeft" Content="Bind" Click="BtnCaptureP2JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP2JoyLeft" Content="Clear" Margin="10,0" Click="BtnClearP2JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP2JoyLeftSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Stick 2 Right -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stick 2 Right:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyRight" Content="Bind" Click="BtnCaptureP2JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP2JoyRight" Content="Clear" Margin="10,0" Click="BtnClearP2JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP2JoyRightSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,6,0,10"/>
+                    <TextBlock Text="BUTTONS" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+
+                    <!-- Button 1 -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Button 1:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button1" Content="Bind" Click="BtnCaptureP1Button1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button1" Content="Clear" Margin="10,0" Click="BtnClearP1Button1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1Button1Summary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Button 2 -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Button 2:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button2" Content="Bind" Click="BtnCaptureP1Button2_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button2" Content="Clear" Margin="10,0" Click="BtnClearP1Button2_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1Button2Summary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Button 3 -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Button 3:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button3" Content="Bind" Click="BtnCaptureP1Button3_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button3" Content="Clear" Margin="10,0" Click="BtnClearP1Button3_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1Button3Summary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Button 4 -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Button 4:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button4" Content="Bind" Click="BtnCaptureP1Button4_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button4" Content="Clear" Margin="10,0" Click="BtnClearP1Button4_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1Button4Summary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Button 5 -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Button 5:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button5" Content="Bind" Click="BtnCaptureP1Button5_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button5" Content="Clear" Margin="10,0" Click="BtnClearP1Button5_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1Button5Summary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Button 6 -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Button 6:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button6" Content="Bind" Click="BtnCaptureP1Button6_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button6" Content="Clear" Margin="10,0" Click="BtnClearP1Button6_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtP1Button6Summary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Coin 1 -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Insert Coin:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureCoin1" Content="Bind" Click="BtnCaptureCoin1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearCoin1" Content="Clear" Margin="10,0" Click="BtnClearCoin1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtCoin1Summary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- 1 Player Start -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="1P Start:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureStart1" Content="Bind" Click="BtnCaptureStart1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearStart1" Content="Clear" Margin="10,0" Click="BtnClearStart1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtStart1Summary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,6,0,10"/>
+                    <TextBlock Text="ANALOG BINDS" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+
+                    <!-- Rotary Axis (Dial/Paddle) - dual-writes to P1_DIAL and P1_PADDLE -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Rotary Axis:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureRotaryAxis" Content="Bind" Click="BtnCaptureRotaryAxis_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearRotaryAxis" Content="Clear" Margin="10,0" Click="BtnClearRotaryAxis_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtRotaryAxisSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                        <!-- <TextBlock Text="Move a stick or the wheel. Feeds both Dial and Paddle games (spinners, wheels, ball-and-paddle)." Foreground="{Binding StandardColorHex, FallbackValue=#A0A0A2}" FontSize="11" Margin="0,2,0,0"/>  -->
+                    </StackPanel>
+
+                    <!-- Gas Pedal -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Gas Pedal:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureGasPedal" Content="Bind" Click="BtnCaptureGasPedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearGasPedal" Content="Clear" Margin="10,0" Click="BtnClearGasPedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtGasPedalSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Brake Pedal -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Brake Pedal:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureBrakePedal" Content="Bind" Click="BtnCaptureBrakePedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearBrakePedal" Content="Clear" Margin="10,0" Click="BtnClearBrakePedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtBrakePedalSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+
+                    <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,6,0,10"/>
+                    <TextBlock Text="USEFUL BINDS" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,0"/>
+                    <TextBlock Text="It is highly recommended to use 2 button combos if binding controller inputs to avoid game conflicts. 
+                               The Options Menu 'Tab' Keybind can not be 'cleared'." TextWrapping="Wrap" Foreground="{Binding StandardColorHex, FallbackValue=#A0A0A2}" FontSize="11" Margin="0,0,0,10"/>
+                    <!-- UI_MENU (Show/Hide Menu) - Tab NOT-clauses are permanently protected in
+                         code-behind (ClearRow) since losing menu access entirely is a hard failure. -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Options Menu:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureUiMenu" Content="Bind" Click="BtnCaptureUiMenu_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearUiMenu" Content="Clear" Margin="10,0" Click="BtnClearUiMenu_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtUiMenuSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                        
+                    </StackPanel>
+
+                    <!-- UI_CANCEL (Exit MAME) - combo capture -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Exit MAME:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureUiCancel" Content="Bind" Click="BtnCaptureUiCancel_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearUiCancel" Content="Clear" Margin="10,0" Click="BtnClearUiCancel_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtUiCancelSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>                    
+
+                    <!-- Pause -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Pause:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureUiPause" Content="Bind" Click="BtnCaptureUiPause_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearUiPause" Content="Clear" Margin="10,0" Click="BtnClearUiPause_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtUiPauseSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Toggle Fullscreen -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Toggle FS:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureFullscreen" Content="Bind" Click="BtnCaptureFullscreen_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearFullscreen" Content="Clear" Margin="10,0" Click="BtnClearFullscreen_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtFullscreenSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Take Rendered Snapshot -->
+                    <StackPanel Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="107"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Snapshot:" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureSnapshot" Content="Bind" Click="BtnCaptureSnapshot_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearSnapshot" Content="Clear" Margin="10,0" Click="BtnClearSnapshot_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <TextBlock Grid.Column="3" x:Name="TxtSnapshotSummary" Text="—" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>                    
+
+                    <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,6,0,10"/>
+
+                    <Button x:Name="BtnApplyKeybinds" Content="Apply Bindings" Click="BtnApplyKeybinds_Click" Padding="10,5" HorizontalAlignment="Left" FontWeight="Bold" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                    <TextBlock x:Name="TxtApplyStatus" Text="" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="12" Margin="0,6,0,0"/>
+
+                </StackPanel>
+            </Border>
+            <!-- [END SECTION: TEMP Keybind Test - Phase 1 proof of concept] -->
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

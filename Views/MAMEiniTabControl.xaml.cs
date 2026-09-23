@@ -11,6 +11,11 @@ namespace ArcadeStick.Views
     {
         private ArcadeStick.Models.ConfigurationSettings _settings;
 
+        // Captures whatever artpath value mame.ini actually has on load (the real bezel folder),
+        // so it can be restored on Save if the user re-checks ChkEnableBezels after disabling.
+        // Falls back to "artwork" if artpath was never set to a real path to begin with.
+        private string _realArtPath = "artwork";
+
         public MAMEiniTabControl()
         {
             InitializeComponent();
@@ -19,12 +24,44 @@ namespace ArcadeStick.Views
         private string MameDirectory => _settings.GetMamePath();
         private string MameIniPath => Path.Combine(MameDirectory, "mame.ini");
 
+        // skip_warnings lives in ui.ini, not mame.ini - separate file, same directory, same
+        // "key value" line format, so it's read/written alongside mame.ini's own settings below.
+        private string UiIniPath => Path.Combine(MameDirectory, "ui.ini");
+
         // [SECTION: Load mame.ini Values]
         // Reads mame.ini directly and maps recognized keys onto this tab's controls.
         public void Initialize(ArcadeStick.Models.ConfigurationSettings settings)
         {
             _settings = settings;
             LoadMameIniSettings();
+            LoadUiIniSettings();
+        }
+
+        // Parses ui.ini the same way LoadMameIniSettings parses mame.ini - separate file, same
+        // "key value" line format. Only skip_warnings is recognized here for now.
+        private void LoadUiIniSettings()
+        {
+            if (string.IsNullOrEmpty(UiIniPath) || !File.Exists(UiIniPath)) return;
+            try
+            {
+                string[] lines = File.ReadAllLines(UiIniPath);
+                foreach (string line in lines)
+                {
+                    string trimmed = line.Trim();
+                    if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#")) continue;
+                    string[] parts = trimmed.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length < 2) continue;
+
+                    if (parts[0] == "skip_warnings")
+                    {
+                        ChkSkipWarnings.IsChecked = (parts[1] == "1");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reading ui.ini: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         // Parses mame.ini line-by-line ("key value" pairs, # comments skipped) and populates the
@@ -61,6 +98,17 @@ namespace ArcadeStick.Views
                         case "triplebuffer": ChkTripleBuffer.IsChecked = (value == "1"); break;
                         case "syncrefresh": ChkSyncRefresh.IsChecked = (value == "1"); break;
                         case "autoframeskip": ChkAutoFrameSkip.IsChecked = (value == "1"); break;
+                        case "artpath":
+                            if (value == "nobezels")
+                            {
+                                ChkEnableBezels.IsChecked = false;
+                            }
+                            else
+                            {
+                                _realArtPath = value;
+                                ChkEnableBezels.IsChecked = true;
+                            }
+                            break;
                     }
                 }
             }
@@ -100,6 +148,7 @@ namespace ArcadeStick.Views
                 string valTriple = (ChkTripleBuffer.IsChecked == true) ? "1" : "0";
                 string valSyncRefresh = (ChkSyncRefresh.IsChecked == true) ? "1" : "0";
                 string valAutoFrameSkip = (ChkAutoFrameSkip.IsChecked == true) ? "1" : "0";
+                string valArtPath = (ChkEnableBezels.IsChecked == true) ? _realArtPath : "nobezels";
 
                 List<string> fileLines = File.ReadAllLines(MameIniPath).ToList();
 
@@ -124,8 +173,32 @@ namespace ArcadeStick.Views
                     else if (key == "triplebuffer") fileLines[i] = FormatIniLine(key, valTriple);
                     else if (key == "syncrefresh") fileLines[i] = FormatIniLine(key, valSyncRefresh);
                     else if (key == "autoframeskip") fileLines[i] = FormatIniLine(key, valAutoFrameSkip);
+                    else if (key == "artpath") fileLines[i] = FormatIniLine(key, valArtPath);
                 }
                 File.WriteAllLines(MameIniPath, fileLines);
+
+                // skip_warnings lives in ui.ini, not mame.ini - written here as a second pass so this
+                // remains the single Save entry point OptionsWindow calls, rather than adding a second
+                // public method OptionsWindow would need to know to call separately.
+                if (!string.IsNullOrEmpty(UiIniPath) && File.Exists(UiIniPath))
+                {
+                    string valSkipWarnings = (ChkSkipWarnings.IsChecked == true) ? "1" : "0";
+                    List<string> uiFileLines = File.ReadAllLines(UiIniPath).ToList();
+
+                    for (int i = 0; i < uiFileLines.Count; i++)
+                    {
+                        string currentLine = uiFileLines[i].Trim();
+                        if (string.IsNullOrEmpty(currentLine) || currentLine.StartsWith("#")) continue;
+                        string[] parts = currentLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length == 0) continue;
+
+                        if (parts[0] == "skip_warnings")
+                        {
+                            uiFileLines[i] = FormatIniLine("skip_warnings", valSkipWarnings);
+                        }
+                    }
+                    File.WriteAllLines(UiIniPath, uiFileLines);
+                }
             }
             catch (Exception ex)
             {

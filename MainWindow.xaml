@@ -5,16 +5,110 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
         xmlns:local="clr-namespace:ArcadeStick"
+        xmlns:views="clr-namespace:ArcadeStick.Views"
         mc:Ignorable="d"
         xmlns:ViewModels="clr-namespace:ArcadeStick.ViewModels"
         xmlns:Models="clr-namespace:ArcadeStick.Models"
+        xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
         Title="4RCADE 5TICK" 
         Width="1296" 
         Height="759"
         ResizeMode="CanResize"
         SizeToContent="Manual"
+        WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">
+
+    <Window.Resources>
+        <!-- Background menu for right-clicking empty space in the game tree (below the last row, or any
+             area not covered by a folder/game row's own ContextMenu). Defined here at the Window level
+             rather than inside TreeView.Resources, since an element's ContextMenu attribute is evaluated
+             before that same element's own child .Resources content is parsed - a self-reference would
+             fail to resolve. Row-level ContextMenus still take priority when clicking directly on a row,
+             since they're closer ancestors in the visual tree. -->
+        <!-- Reused button-role colors (same pattern as Sort/Options), but via a full custom
+             ControlTemplate rather than plain property setters - MenuItem's default OS-themed chrome
+             paints its background/foreground through internal template parts that ignore simple
+             Background/Foreground setters, same reason ThemedActionButtonStyle needed a full template
+             instead of just setting Button.Background. Keyless (implicit) so it cascades to nested
+             submenu items too (Move's Up/Down/Top/Bottom, the dynamic Favorites/folder entries). -->
+        <Style TargetType="MenuItem">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <!-- Bound to MainViewModel's ThemeX forwarder properties (not raw Configuration.X) -
+                             ConfigurationSettings doesn't implement INotifyPropertyChanged, so a binding
+                             straight to Configuration.X only ever evaluates once and never updates after a
+                             theme loads/saves. The ThemeX forwarders do get explicitly refreshed via
+                             RefreshThemeBindings(), which is the mechanism every other themed element in
+                             this app already relies on. -->
+                        <Border x:Name="ItemBorder" Background="{Binding DataContext.ThemeContextMenuBgColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="24"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="16"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter x:Name="IconPresenter" Grid.Column="0" ContentSource="Icon" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  TextElement.Foreground="{Binding DataContext.ThemeContextMenuIconColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                <ContentPresenter x:Name="HeaderPresenter" Grid.Column="1" ContentSource="Header" VerticalAlignment="Center" Margin="6,0,0,0"
+                                                  TextElement.Foreground="{Binding DataContext.ThemeContextMenuFontColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
+                                <Path x:Name="SubmenuArrow" Grid.Column="2" Data="M0,0 L4,4 L0,8" Stroke="{Binding DataContext.ThemeContextMenuIconColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"
+                                      StrokeThickness="1.3" VerticalAlignment="Center" Margin="8,0,4,0" Visibility="Collapsed"/>
+                                <Popup x:Name="SubmenuPopup" Grid.Column="0" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False">
+                                    <Border Background="{Binding DataContext.ThemeContextMenuBgColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
+                                            BorderBrush="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <StackPanel IsItemsHost="True"/>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Role" Value="SubmenuHeader">
+                                <Setter TargetName="SubmenuArrow" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{Binding DataContext.ThemeContextMenuHoverBgColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#EF44C3}"/>
+                                <Setter TargetName="HeaderPresenter" Property="TextElement.Foreground" Value="{Binding DataContext.ThemeContextMenuHoverColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
+                                <Setter TargetName="IconPresenter" Property="TextElement.Foreground" Value="{Binding DataContext.ThemeContextMenuHoverColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <!-- Dim only the content (icon + text), not the Border's own background -
+                                     dimming the Border itself (which carries the seamless fill matching
+                                     ContextMenu's own background) created a visible rectangle seam instead. -->
+                                <Setter TargetName="HeaderPresenter" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="{Binding ThemeContextMenuBgColor, FallbackValue=#1C1C1E}"/>
+            <Setter Property="BorderBrush" Value="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style TargetType="Separator">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border BorderBrush="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" BorderThickness="0,1,0,0" Margin="34,4,4,4"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ContextMenu x:Key="TreeViewBackgroundContextMenu">
+            <MenuItem Header="Create folder" Click="CreateFolderMenuItem_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE8F4;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+    </Window.Resources>
 
     <Grid x:Name="RootLayoutGrid">
         <!-- [SECTION: Root Grid Background Style] -->
@@ -45,12 +139,12 @@
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="LeftColumnDef" Width="380*"/>
-            <ColumnDefinition x:Name="RightColumnDef" Width="900*"/>
+            <ColumnDefinition x:Name="LeftColumnDef" Width="540"/>
+            <ColumnDefinition x:Name="RightColumnDef" Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- [SECTION: Left Column - Search + Game TreeView] -->
-        <Grid Grid.Column="0" Margin="20,20,10,0">
+        <Grid x:Name="LeftColumnGrid" Grid.Column="0" Margin="20,20,10,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
@@ -59,27 +153,58 @@
             <!-- Search label + textbox row -->
             <Grid Grid.Row="0" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="65"/>
+                    <ColumnDefinition Width="67"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="SEARCH:" Height="30" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" Background="#00000000" Padding="4,6,4,6" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <TextBox Grid.Column="1" x:Name="SearchBox"  Height="30" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="{Binding ThemeGamesColor, FallbackValue=#000000}" Foreground="#F2F2F7" FontSize="14" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Padding="4"/>
+                <TextBlock Grid.Column="0" Text="SEARCH:" Foreground="{Binding ThemeSearchLabelColor, FallbackValue=#00D4FF}" Background="{Binding ThemeSearchLabelBgColor, FallbackValue=#00000000}" Padding="20,6,4,6" FontWeight="DemiBold" FontSize="{Binding ThemeSearchLabelFontSize, FallbackValue=14}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                <TextBox Grid.Column="1" x:Name="SearchBox" MinHeight="30" VerticalContentAlignment="Center" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="{Binding ThemeSearchBoxBgColor, FallbackValue=#000000}" Foreground="{Binding ThemeSearchBoxColor, FallbackValue=#F2F2F7}" FontSize="{Binding ThemeSearchBoxFontSize, FallbackValue=14}" FontWeight="DemiBold" BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Padding="2,0,0,1">
+                    <TextBox.Template>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </TextBox.Template>
+                </TextBox>
+                <!-- Play Random Game trigger - opens a small confirm flyout anchored here before spinning -->
+                <Border Grid.Column="2" x:Name="BtnPlayRandom" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}" Margin="6,0,0,0" VerticalAlignment="Center"
+                        BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnPlayRandom_MouseLeftButtonUp"
+                        ToolTipService.IsEnabled="False" MouseEnter="PlayRandomIcon_MouseEnter" MouseLeave="PlayRandomIcon_MouseLeave">
+                    <Border.ToolTip>
+                        <ToolTip Content="Random Game"/>
+                    </Border.ToolTip>
+                    <TextBlock x:Name="PlayRandomIcon" Text="&#x1F3B2;" FontFamily="Segoe UI Emoji" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=16}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                </Border>
+                <!-- Opens the Sorting window (structure mode + region/revision/player-count/rating filters) -->
+                <Border Grid.Column="3" x:Name="BtnOpenSortingGear" Width="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}" Margin="6,0,0,0" Height="30" VerticalAlignment="Center"
+                        BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenSortingGear_MouseLeftButtonUp"
+                        ToolTipService.IsEnabled="False" MouseEnter="SortGearIcon_MouseEnter" MouseLeave="SortGearIcon_MouseLeave">
+                    <Border.ToolTip>
+                        <ToolTip Content="Sorting Options"/>
+                    </Border.ToolTip>
+                    <TextBlock x:Name="SortGearIcon" Text="&#xEADF;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=18}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                </Border>
                 <!-- Gear icon that opens the Options window, isolated in its own circular badge -->
-                <Border Grid.Column="2" x:Name="BtnOpenOptionsGear" Width="30" Height="30" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Margin="6,0,0,0" VerticalAlignment="Center"
-                        Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenOptionsGear_MouseLeftButtonUp">
-                    <TextBlock x:Name="OptionsGearIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{Binding ThemeFolderColor, FallbackValue=#888888}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                               MouseEnter="OptionsGearIcon_MouseEnter" MouseLeave="OptionsGearIcon_MouseLeave"/>
+                <Border Grid.Column="4" x:Name="BtnOpenOptionsGear" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}" Margin="6,0,0,0" VerticalAlignment="Center"
+                        BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenOptionsGear_MouseLeftButtonUp"
+                        ToolTipService.IsEnabled="False" MouseEnter="OptionsGearIcon_MouseEnter" MouseLeave="OptionsGearIcon_MouseLeave">
+                    <Border.ToolTip>
+                        <ToolTip Content="Options Menu"/>
+                    </Border.ToolTip>
+                    <TextBlock x:Name="OptionsGearIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=18}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
             </Grid>
 
             <!-- Game list panel container (wallpaper/color themed border wrapping the TreeView) -->
-            <Border Grid.Row="1" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}">
+            <Border Grid.Row="1" CornerRadius="{Binding ThemeGamesBorderCornerRadius, FallbackValue=4}" BorderBrush="{Binding ThemeGamesBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeGamesBorderSize, FallbackValue=1}">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background">
                             <Setter.Value>
-                                <ImageBrush ImageSource="{Binding ThemeGamesWallpaper}" Stretch="UniformToFill"/>
+                                <ImageBrush ImageSource="{Binding ThemeGamesWallpaper}" Stretch="Fill" AlignmentX="Left" AlignmentY="Top" TileMode="None" Viewport="0,0,1,1" ViewportUnits="RelativeToBoundingBox"/>
                             </Setter.Value>
                         </Setter>
                         <Style.Triggers>
@@ -97,123 +222,218 @@
                 <TreeView x:Name="GameTree" 
                    ItemsSource="{Binding TreeNodesCollection}"
                    SelectedItemChanged="GameTree_SelectedItemChanged"
-                   Background="Transparent" BorderThickness="0" Padding="5" Margin="5"
+                   Background="Transparent" BorderThickness="0" Padding="5" Margin="5,10,5,5"
                    TreeViewItem.Expanded="GameTree_Expanded"
+                   TreeViewItem.Collapsed="GameTree_Collapsed"
                    PreviewMouseDoubleClick="GameTree_MouseDoubleClick"
-                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                   ContextMenu="{StaticResource TreeViewBackgroundContextMenu}"
+                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                   VirtualizingPanel.IsVirtualizing="True"
+                   VirtualizingPanel.VirtualizationMode="Recycling"
+                   VirtualizingPanel.ScrollUnit="Pixel">
 
                     <TreeView.Resources>
                         <!-- [SECTION: TreeView Scrollbar Template] -->
-                        <!-- Custom dark scrollbar (track/thumb/repeat buttons) themed via ThemeScrollTrack*/ThemeScrollThumb* bindings -->
-                        <Style x:Key="ArcadeDarkScrollBar" TargetType="{x:Type ScrollBar}">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type ScrollBar}">
-                                        <Grid x:Name="Bg" Background="{Binding ThemeScrollTrackColor, FallbackValue=#000000}" SnapsToDevicePixels="true">
-                                            <Track x:Name="PART_Track" IsDirectionReversed="true" IsEnabled="{TemplateBinding IsEnabled}">
-                                                <Track.DecreaseRepeatButton>
-                                                    <RepeatButton Command="ScrollBar.PageUpCommand" Background="Transparent" BorderBrush="Transparent">
-                                                        <RepeatButton.Template>
-                                                            <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                                                <Rectangle x:Name="TrackRect" Fill="Transparent"/>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{Binding ThemeScrollTrackHoverColor, FallbackValue=#1C1C1E}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </RepeatButton.Template>
-                                                    </RepeatButton>
-                                                </Track.DecreaseRepeatButton>
-                                                <Track.IncreaseRepeatButton>
-                                                    <RepeatButton Command="ScrollBar.PageDownCommand" Background="Transparent" BorderBrush="Transparent">
-                                                        <RepeatButton.Template>
-                                                            <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                                                <Rectangle x:Name="TrackRect" Fill="Transparent"/>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{Binding ThemeScrollTrackHoverColor, FallbackValue=#1C1C1E}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </RepeatButton.Template>
-                                                    </RepeatButton>
-                                                </Track.IncreaseRepeatButton>
-                                                <Track.Thumb>
-                                                    <Thumb>
-                                                        <Thumb.Template>
-                                                            <ControlTemplate TargetType="{x:Type Thumb}">
-                                                                <Rectangle x:Name="ThumbRect" Fill="{Binding ThemeScrollThumbColor, FallbackValue=#2C2C2E}" RadiusX="4" RadiusY="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                                                                <ControlTemplate.Triggers>
-                                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{Binding ThemeScrollThumbHoverColor, FallbackValue=#3A3A3C}"/>
-                                                                    </Trigger>
-                                                                    <Trigger Property="IsDragging" Value="True">
-                                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{Binding ThemeScrollThumbDragColor, FallbackValue=#00D4FF}"/>
-                                                                    </Trigger>
-                                                                </ControlTemplate.Triggers>
-                                                            </ControlTemplate>
-                                                        </Thumb.Template>
-                                                    </Thumb>
-                                                </Track.Thumb>
-                                            </Track>
-                                        </Grid>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-
-                        <!-- ScrollViewer template wired to the custom scrollbar above -->
-                        <Style TargetType="{x:Type ScrollViewer}">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="{x:Type ScrollViewer}">
-                                        <Grid Background="Transparent">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-                                            <ScrollContentPresenter Grid.Column="0" Grid.Row="0"/>
-                                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Grid.Row="0" Width="10" Style="{StaticResource ArcadeDarkScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
-                                        </Grid>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                        <!-- [END SECTION: TreeView Scrollbar Template] -->
+                        <!-- TreeView's internal ScrollViewer (part of WPF's built-in TreeView template) can't be targeted
+         by name, so this implicit BasedOn style is what actually applies the shared template here - do
+         not remove, GameTree's scrollbar will silently revert to default without it. ArcadeDarkScrollBarThemed/
+         ArcadeDarkScrollViewerThemed now live in App.xaml (Application.Resources) so both GameTree and
+         MediaPanelControl can reach them via StaticResource - see App.xaml. -->
+                        <Style TargetType="{x:Type ScrollViewer}" BasedOn="{StaticResource ArcadeDarkScrollViewerThemed}"/>
 
                         <!-- [SECTION: TreeView Folder/Game DataTemplates] -->
+
+                        <!-- [SECTION: Row Context Menus] -->
+                        <!-- Folder-row menu: Stage 1 ships all items as disabled placeholders. Stage 2
+                             (Create/Rename/Color/Delete) and Stage 3 (Move submenu) will flip IsEnabled
+                             and wire Click handlers onto this same menu without needing to re-wire the
+                             right-click plumbing itself. -->
+                        <ContextMenu x:Key="FolderRowContextMenu" Opened="FolderRowContextMenu_Opened">
+                            <MenuItem Header="Create folder" Click="CreateFolderMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE8F4;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Rename folder" Click="RenameFolderMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE8AC;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Choose folder color" Click="ChooseFolderColorMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE790;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Header="Delete folder" Click="DeleteFolderMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE74D;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ClearFolderMenuItem" Header="Clear Folder" Click="ClearFolderMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE738;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem x:Name="ClearAllPlayHistoryMenuItem" Header="Clear All Play History" Click="ClearAllPlayHistoryMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE711;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <!-- Text Size: nudges FolderFontSize + GameFontSize together by the same
+                                 percentage, preserving whatever ratio the active theme set between them.
+                                 Same submenu duplicated in GameRowContextMenu - both fire the same
+                                 shared handlers in code-behind. -->
+                            <MenuItem Header="Text Size">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE8E9;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                                <MenuItem Header="Smaller (-15%)" Tag="-0.15" Click="TextSizeNudge_Click"/>
+                                <MenuItem Header="Slightly Smaller (-5%)" Tag="-0.05" Click="TextSizeNudge_Click"/>
+                                <MenuItem Header="Reset to Saved Theme" Click="TextSizeReset_Click"/>
+                                <MenuItem Header="Slightly Larger (+5%)" Tag="0.05" Click="TextSizeNudge_Click"/>
+                                <MenuItem Header="Larger (+15%)" Tag="0.15" Click="TextSizeNudge_Click"/>
+                            </MenuItem>
+
+                            <MenuItem x:Name="MoveFolderMenuItem" Header="Move">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE8CB;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                                <MenuItem Header="Move to Top" Click="MoveFolderToTop_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="&#xE74A;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Move Up 1" Click="MoveFolderUp_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="&#xE70E;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Move Down 1" Click="MoveFolderDown_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="&#xE70D;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="Move to Bottom" Click="MoveFolderToBottom_Click">
+                                    <MenuItem.Icon>
+                                        <TextBlock Text="&#xE74B;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </MenuItem>
+                        </ContextMenu>
+
+                        <!-- Game-row menu: "Add to Folder" submenu is populated dynamically in code-behind
+                             on SubmenuOpened. "Remove from Folder" enabled state is set in code-behind on
+                             ContextMenuOpening, based on which node the row is actually being viewed under. -->
+                        <ContextMenu x:Key="GameRowContextMenu" Opened="GameRowContextMenu_Opened">
+                            <MenuItem x:Name="AddToFolderMenuItem" Header="Add to Folder" SubmenuOpened="AddToFolderMenuItem_SubmenuOpened">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE8B7;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                                <MenuItem Header="(loading...)"/>
+                            </MenuItem>
+                            <MenuItem x:Name="RemoveFromFolderMenuItem" Header="Remove from Folder" Click="RemoveFromFolderMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE738;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            
+                            <MenuItem Header="Toggle Mouse Support" Click="ToggleRawMouseMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE962;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <MenuItem Header="Add to ROM exclusion list" Click="AddToExclusionListMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE711;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <MenuItem Header="Get Artwork" Click="GetArtworkMenuItem_Click">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE8B9;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                            </MenuItem>
+
+                            <!-- Text Size: same shared handlers as FolderRowContextMenu's copy above. -->
+                            <MenuItem Header="Text Size">
+                                <MenuItem.Icon>
+                                    <TextBlock Text="&#xE8E9;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
+                                </MenuItem.Icon>
+                                <MenuItem Header="Smaller (-15%)" Tag="-0.15" Click="TextSizeNudge_Click"/>
+                                <MenuItem Header="Slightly Smaller (-5%)" Tag="-0.05" Click="TextSizeNudge_Click"/>
+                                <MenuItem Header="Reset to Saved Theme" Click="TextSizeReset_Click"/>
+                                <MenuItem Header="Slightly Larger (+5%)" Tag="0.05" Click="TextSizeNudge_Click"/>
+                                <MenuItem Header="Larger (+15%)" Tag="0.15" Click="TextSizeNudge_Click"/>
+                            </MenuItem>
+                        </ContextMenu>
+                        <!-- [END SECTION: Row Context Menus] -->
+
                         <!-- Category/folder row template (e.g. SHOOTERS, FIGHTERS) -->
-                        <HierarchicalDataTemplate DataType="{x:Type ViewModels:TreeCategoryNode}" ItemsSource="{Binding DisplayItems}">
-                            <Border x:Name="FolderRowBorder" Background="Transparent" HorizontalAlignment="Stretch" Padding="0,0,6,0">
-                                <Grid VerticalAlignment="Center" Margin="0,-1,0,-1">
-                                    <TextBlock x:Name="FolderHeaderText" Text="{Binding HeaderText}" Foreground="{Binding FolderColor}" FontWeight="Bold" FontSize="{Binding DataContext.ThemeFolderFontSize, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=16}" Padding="2,0,2,0" Margin="0,1,0,1" TextTrimming="CharacterEllipsis"/>
+                        <HierarchicalDataTemplate DataType="{x:Type Models:TreeCategoryNode}" ItemsSource="{Binding DisplayItems}">
+                            <Border x:Name="FolderRowBorder" Background="Transparent" HorizontalAlignment="Stretch" Margin="-3,0,0,0" Padding="0,0,0,2" ContextMenu="{StaticResource FolderRowContextMenu}" PreviewMouseRightButtonDown="FolderRowBorder_PreviewMouseRightButtonDown">
+                                <Grid VerticalAlignment="Center" Margin="0,0,0,0">
+                                    <!-- Stroke layer: 4 black offset copies, shown only in Stroke mode -->
+                                    <TextBlock x:Name="FolderStrokeTL" Text="{Binding HeaderText}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" Margin="2,-1,0,1" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="FolderStrokeTR" Text="{Binding HeaderText}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" Margin="4,-1,0,1" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="FolderStrokeBL" Text="{Binding HeaderText}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" Margin="2,1,0,-1" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="FolderStrokeBR" Text="{Binding HeaderText}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" Margin="4,1,0,-1" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+
+                                    <!-- Real text, rendered on top -->
+                                    <TextBlock x:Name="FolderHeaderText" Text="{Binding HeaderText}" Foreground="{Binding FolderColor}" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" VerticalAlignment="Center" Padding="3,0,0,0" Margin="0,0,0,0" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </Border>
                             <HierarchicalDataTemplate.Triggers>
                                 <!-- Selected folder row: swap background + text color -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
-                                    <Setter TargetName="FolderRowBorder" Property="Background" Value="{Binding DataContext.ThemeFolderSelectedBgColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#2C2C2E}"/>
-                                    <Setter TargetName="FolderHeaderText" Property="Foreground" Value="{Binding DataContext.ThemeFolderSelectedColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#00D4FF}"/>
+                                    <Setter TargetName="FolderRowBorder" Property="Background" Value="{Binding FolderSelectedBgColor, FallbackValue=#2C2C2E}"/>
+                                    <Setter TargetName="FolderHeaderText" Property="Foreground" Value="{Binding FolderSelectedColor, FallbackValue=#00D4FF}"/>
+                                </DataTrigger>
+
+                                <!-- Text emphasis mode: Stroke - reveal the 4 offset black copies -->
+                                <DataTrigger Binding="{Binding DataContext.TextEmphasisMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="Stroke">
+                                    <Setter TargetName="FolderStrokeTL" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="FolderStrokeTR" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="FolderStrokeBL" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="FolderStrokeBR" Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+
+                                <!-- Text emphasis mode: DropShadow - apply a soft shadow to the real text only -->
+                                <DataTrigger Binding="{Binding DataContext.TextEmphasisMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="DropShadow">
+                                    <Setter TargetName="FolderHeaderText" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="Black" Direction="315" ShadowDepth="1" BlurRadius="3" Opacity="1"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+
+                                <!-- Selected + DropShadow mode: clear the shadow, the highlight already provides contrast.
+                                     Declared after the DropShadow trigger above so it wins when both conditions are true. -->
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
+                                    <Setter TargetName="FolderHeaderText" Property="Effect" Value="{x:Null}"/>
                                 </DataTrigger>
                             </HierarchicalDataTemplate.Triggers>
                         </HierarchicalDataTemplate>
 
                         <!-- Individual game row template (leaf nodes) -->
                         <DataTemplate DataType="{x:Type Models:GameItem}">
-                            <Border x:Name="GameRowBorder" Background="Transparent" HorizontalAlignment="Stretch" Padding="0,0,0,0">
-                                <Grid VerticalAlignment="Center" Margin="0,-2,0,-2">
+                            <Border x:Name="GameRowBorder" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Stretch" Margin="-12,0,0,0" Padding="4,0,0,2" ContextMenu="{StaticResource GameRowContextMenu}" PreviewMouseRightButtonDown="GameRowBorder_PreviewMouseRightButtonDown">
+                                <Grid VerticalAlignment="Top" Height="AUto" Margin="0,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <!-- Mouse-support glyph, only shown when IsMouseSupported is true -->
-                                    <TextBlock x:Name="MouseGlyph" Grid.Column="0" Text="&#8226;" Foreground="{Binding DataContext.ThemeGameColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding DataContext.ThemeGameFontSize, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=14}" Width="6" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0" Visibility="Collapsed"/>
-                                    <TextBlock x:Name="GameTitleText" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="{Binding DataContext.ThemeGameColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding DataContext.ThemeGameFontSize, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=14}" Padding="2" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="MouseGlyph" Grid.Column="0" Text="&#8226;" Foreground="{Binding GameColor, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0" Visibility="Collapsed"/>
+
+                                    <!-- Stroke layer: 4 black offset copies, shown only in Stroke mode -->
+                                    <TextBlock x:Name="GameStrokeTL" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2" Margin="1,-1,0,1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="GameStrokeTR" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2" Margin="3,-1,0,1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="GameStrokeBL" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2" Margin="1,1,0,-1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="GameStrokeBR" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2" Margin="3,1,0,-1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
+
+                                    <TextBlock x:Name="GameTitleText" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="{Binding GameColor, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </Border>
                             <DataTemplate.Triggers>
@@ -222,14 +442,37 @@
                                 </DataTrigger>
                                 <!-- Hover state -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsMouseOver}" Value="True">
-                                    <Setter TargetName="GameTitleText" Property="Foreground" Value="{Binding DataContext.ThemeGameHoverColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#FFFFFF}"/>
-                                    <Setter TargetName="MouseGlyph" Property="Foreground" Value="{Binding DataContext.ThemeGameHoverColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#FFFFFF}"/>
+                                    <Setter TargetName="GameTitleText" Property="Foreground" Value="{Binding GameHoverColor, FallbackValue=#FFFFFF}"/>
+                                    <Setter TargetName="MouseGlyph" Property="Foreground" Value="{Binding GameHoverColor, FallbackValue=#FFFFFF}"/>
                                 </DataTrigger>
                                 <!-- Selected state: swap row background + text color -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
-                                    <Setter TargetName="GameRowBorder" Property="Background" Value="{Binding DataContext.ThemeGameSelectedBgColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#2C2C2E}"/>
-                                    <Setter TargetName="GameTitleText" Property="Foreground" Value="{Binding DataContext.ThemeGameSelectedColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#00D4FF}"/>
-                                    <Setter TargetName="MouseGlyph" Property="Foreground" Value="{Binding DataContext.ThemeGameSelectedColor, RelativeSource={RelativeSource AncestorType=TreeView}, FallbackValue=#00D4FF}"/>
+                                    <Setter TargetName="GameRowBorder" Property="Background" Value="{Binding GameSelectedBgColor, FallbackValue=#2C2C2E}"/>
+                                    <Setter TargetName="GameTitleText" Property="Foreground" Value="{Binding GameSelectedColor, FallbackValue=#00D4FF}"/>
+                                    <Setter TargetName="MouseGlyph" Property="Foreground" Value="{Binding GameSelectedColor, FallbackValue=#00D4FF}"/>
+                                </DataTrigger>
+
+                                <!-- Text emphasis mode: Stroke - reveal the 4 offset black copies -->
+                                <DataTrigger Binding="{Binding DataContext.TextEmphasisMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="Stroke">
+                                    <Setter TargetName="GameStrokeTL" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="GameStrokeTR" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="GameStrokeBL" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="GameStrokeBR" Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+
+                                <!-- Text emphasis mode: DropShadow - apply a soft shadow to the real text only -->
+                                <DataTrigger Binding="{Binding DataContext.TextEmphasisMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="DropShadow">
+                                    <Setter TargetName="GameTitleText" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="Black" Direction="315" ShadowDepth="1" BlurRadius="3" Opacity="1"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+
+                                <!-- Selected + DropShadow mode: clear the shadow, the highlight already provides contrast.
+                                     Declared after the DropShadow trigger above so it wins when both conditions are true. -->
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
+                                    <Setter TargetName="GameTitleText" Property="Effect" Value="{x:Null}"/>
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
@@ -240,7 +483,7 @@
                     <!-- Custom TreeViewItem template: expand/collapse arrow + header + child items host -->
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="TreeViewItem">
-                            <Setter Property="IsExpanded" Value="{Binding IsNodeExpanded, Mode=TwoWay}" />
+                            <Setter Property="IsExpanded" Value="{Binding IsNodeExpanded, Mode=OneWay}" />
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                             <Setter Property="Template">
@@ -266,11 +509,12 @@
                                                                 <Setter.Value>
                                                                     <ControlTemplate TargetType="ToggleButton">
                                                                         <!-- Arrows -->
-                                                                        <Border Background="Transparent" Width="16" Height="16" Margin="4,1,0,0">
+                                                                        <Border Background="Transparent" Width="16" Height="16" Padding="0,1,0,1">
                                                                             <Path x:Name="ExpandArrow"
                                                                                   Data="M 0 0 L 6 4 L 0 8 Z"
-                                                                                  Fill="{Binding DataContext.ThemeArrowColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#A0A0A2}"
-                                                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                  Fill="{Binding ArrowColor, FallbackValue=#A0A0A2}"
+                                                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                                  Margin="2,2,0,0"/>
                                                                         </Border>
                                                                         <ControlTemplate.Triggers>
                                                                             <!-- Rotate arrow shape (right-pointing to down-pointing) when expanded -->
@@ -293,7 +537,7 @@
                                             </Grid>
 
                                             <!-- Child items (nested categories/games), hidden until expanded -->
-                                            <ItemsPresenter x:Name="ItemsHost" Margin="19,0,0,0" Visibility="Collapsed"/>
+                                            <ItemsPresenter x:Name="ItemsHost" Margin="12,0,0,0" Visibility="Collapsed"/>
                                         </StackPanel>
 
                                         <ControlTemplate.Triggers>
@@ -319,13 +563,13 @@
         <!-- [SECTION: Right Column - Marquee + Media Panels] -->
         <Grid x:Name="RightColumnGrid" Grid.Column="1" Margin="10,20,20,0">
             <Grid.RowDefinitions>
-                <RowDefinition x:Name="MarqueeRowDef" Height="0.4*"/>
+                <RowDefinition x:Name="MarqueeRowDef" Height="0.3*"/>
                 <RowDefinition x:Name="MediaRowDef" Height="*"/>
             </Grid.RowDefinitions>
 
             <!-- ROW 0: MARQUEE / LOGO PANEL -->
             <!-- Shows the theme logo asset by default, swaps to the game's marquee image once a game is selected -->
-            <Border Grid.Row="0" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" Margin="0,0,0,20" BorderBrush="{Binding ThemeMarqueeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeMarqueeBorderWidth, FallbackValue=1}">
+            <Border x:Name="MarqueePanelBorder" Grid.Row="0" CornerRadius="{Binding ThemeMarqueeBorderRadius, FallbackValue=4}" Margin="0,0,0,20" BorderBrush="{Binding ThemeMarqueeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeMarqueeBorderWidth, FallbackValue=1}">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background">
@@ -354,126 +598,86 @@
                                     <DataTrigger Binding="{Binding IsGameSelected}" Value="True">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsRandomizerOverlayActive}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Image.Style>
                     </Image>
                     <!-- Selected game's marquee image -->
-                    <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" Margin="10,10"/>
+                    <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" Margin="10,10">
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRandomizerOverlayActive}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                    
+
+                    <!-- Play Random Game spin overlay - layered on top of the logo/MarqueeDisplay above,
+                         never modifies either. Only visible during an active spin, swapping source on
+                         every timer tick from MainViewModel's swap-loop. Same Margin/Stretch as
+                         MarqueeDisplay so it resizes identically on window resize. -->
+                    <!-- Opaque backing behind the spin frame - the marquee PNG's own transparent
+                         letterbox margins would otherwise let the logo/MarqueeDisplay layers underneath
+                         show through during the spin. -->
+                    <Border x:Name="RandomizerSpinMarqueeOverlay" CornerRadius="{Binding ThemeMarqueeBorderRadius, FallbackValue=4}" Background="{Binding ThemeMarqueeColor, FallbackValue=#000000}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRandomizerOverlayActive}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Grid>
+                            <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" Margin="10,10"/>
+
+                            <!-- No-marquee fallback - shown whenever the current frame's game has no
+                                 real marquee file. Renders a fixed-aspect card (~3.4:1, standard horizontal
+                                 marquee ratio) inside a Viewbox so it letterboxes against the panel's own
+                                 background exactly like a real marquee image would, instead of plain text
+                                 spanning the whole panel. Card colors are deliberately NOT theme-marquee-bound
+                                 (avoids the transparency/zero-thickness trap) - reuses the same ThemeMainColor/
+                                 ThemeHeaderColor pairing as the context menus, which always contrast by design. -->
+                            <Border x:Name="RandomizerNoMarqueeFallback">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RandomizerFrameHasMarquee}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Viewbox Stretch="Uniform" Margin="10,10">
+                                    <Border Width="400" Height="100" Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" BorderThickness="2">
+                                        <TextBlock Text="{Binding RandomizerCurrentFrameGame.DisplayTitle}" FontSize="30" FontWeight="Bold" Foreground="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" TextAlignment="Center" TextWrapping="Wrap" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Viewbox>
+                            </Border>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
 
 
 
             <!-- ROW 1: THE RIGHT SIDE MAIN MEDIA PANEL CONTAINER -->
-            <!-- Layered preview area: boot splash (idle) -> media wallpaper (game selected) -> flyer/video preview on top -->
-            <!-- Viewbox locks the panel to an exact 16:9 canvas (1600x900), uniformly scaled to fit ROW 1's available space -->
-            <!-- ROW 1: THE RIGHT SIDE MAIN MEDIA PANEL CONTAINER -->
-            <!-- Layered preview area: boot splash (idle) -> media wallpaper (game selected) -> flyer/video preview on top -->
-            <!-- Border renders the true theme border/background at full thickness; Viewbox inside scales a fixed 1600x900 canvas to exact 16:9 -->
-            <Border x:Name="MediaPanelBorder" Grid.Row="1" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" ClipToBounds="True">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <SolidColorBrush Color="{Binding ThemeMediaColor, FallbackValue=#000000}"/>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </Border.Style>
-
-                <Viewbox Stretch="Uniform" VerticalAlignment="Top">
-                    <Grid Width="1600" Height="900">
-
-                        <!-- Layer 0 (back): boot splash image shown only when no game is selected - full-bleed on the 1600x900 canvas -->
-                        <Border x:Name="MediaLayer0_Back" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
-                                            <Setter Property="Background">
-                                                <Setter.Value>
-                                                    <ImageBrush ImageSource="{Binding ThemeBootSplashAsset}" Stretch="UniformToFill"/>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        </Border>
-
-                        <!-- Layer 0 (back, video): boot splash mp4, shown instead of the ImageBrush above when the resolved splash asset is a video -->
-                        <vlc:VideoView x:Name="BootSplashVideoPreview" MediaPlayer="{Binding BootSplashMediaPlayer, RelativeSource={RelativeSource AncestorType=Window}}">
-                            <vlc:VideoView.Style>
-                                <Style TargetType="vlc:VideoView">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <MultiDataTrigger>
-                                            <MultiDataTrigger.Conditions>
-                                                <Condition Binding="{Binding IsGameSelected}" Value="False"/>
-                                                <Condition Binding="{Binding IsBootSplashVideo}" Value="True"/>
-                                            </MultiDataTrigger.Conditions>
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </MultiDataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </vlc:VideoView.Style>
-                        </vlc:VideoView>
-
-                        <!-- Layer 1 (back): themed media wallpaper, shown behind the preview once a game is selected - full-bleed on the 1600x900 canvas -->
-                        <Border x:Name="MediaLayer1_Back" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background">
-                                        <Setter.Value>
-                                            <ImageBrush ImageSource="{Binding ThemeMediaWallpaper}" Stretch="UniformToFill"/>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding ThemeMediaWallpaper}" Value="{x:Null}">
-                                            <Setter Property="Background" Value="Transparent"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        </Border>
-
-                        <!-- Layer 1 (front): flyer image + video preview, with a "missing preview" fallback wallpaper - inset 20px to match the old padding look -->
-                        <Grid x:Name="MediaLayer1_Front" Margin="20">
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding HasActiveMedia}" Value="False">
-                                            <DataTrigger.Setters>
-                                                <Setter Property="Background">
-                                                    <Setter.Value>
-                                                        <ImageBrush ImageSource="{Binding ThemeMissingPreviewAsset}" Stretch="Uniform"/>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </DataTrigger.Setters>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Grid.Style>
-
-                            <!-- Flyer image and LibVLC video view stacked directly in the fixed, inset canvas -->
-                            <Image x:Name="FlyerPreview" Source="{Binding PreviewImage}" Stretch="Uniform"/>
-
-                            <vlc:VideoView x:Name="VideoPreview" MediaPlayer="{Binding VlcMediaPlayer, RelativeSource={RelativeSource AncestorType=Window}}"/>
-
-                        </Grid>
-
-                    </Grid>
-                </Viewbox>
-            </Border>
+            <!-- Extracted into its own UserControl (MediaPanelControl) - content/bindings unchanged from
+                 before, just relocated so the upcoming redesign happens in isolation. VideoPreview and
+                 MediaLayer0_Back are exposed as public fields on the control for MainWindow.xaml.cs's
+                 existing call sites (see MediaPanel.VideoPreview / MediaPanel.MediaLayer0_Back below). -->
+            <views:MediaPanelControl x:Name="MediaPanel" Grid.Row="1"/>
                    
 
            
@@ -482,22 +686,147 @@
         </Grid>
         <!-- [END SECTION: Right Column - Marquee + Media Panels] -->
 
-        <!-- [SECTION: Footer Bar - Version + Options Gear] -->
+        <!-- [SECTION: Footer Bar - Games Count + Play Stats + Version/Copyright] -->
         <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="20,0,20,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="380*"/>
+                <ColumnDefinition Width="900*"/>
             </Grid.ColumnDefinitions>
-            <Border Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,0,0"
-                    Background="#CC000000" BorderBrush="Black" BorderThickness="0" Height="16" CornerRadius="8" Padding="8,1,8,1">
-                <TextBlock Text="Version 1.0.0-beta.2" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
+
+            <!-- Games-count pill, bottom-left of the games-list column (Column 0). Hardcoded colors
+                 deliberately, not theme-bound - lives in the footer, as far from the video/preview
+                 pipeline as any visible UI gets, specifically to avoid any risk of interacting with that
+                 fragile territory. -->
+            <Border Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#CC000000" BorderBrush="Black" BorderThickness="0" Height="16" CornerRadius="8" Padding="8,1,8,1">
+                <TextBlock Text="{Binding FilteredGameCountText}" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
             </Border>
+
+            <!-- Version + Copyright merged into a single pill, right-aligned in Column 1. -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0">
                 <Border Background="#CC000000" Height="16" BorderBrush="Black" BorderThickness="0" CornerRadius="8" Padding="8,1,8,1">
-                    <TextBlock Text="© 2026 4RCHIMEDE5" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Version 1.0.0-beta.3" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
+                        <TextBlock Text=" | " FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
+                        <TextBlock Text="© 2026 4RCHIMEDE5" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
+                    </StackPanel>
                 </Border>
             </StackPanel>
         </Grid>
-        <!-- [END SECTION: Footer Bar - Version + Options Gear] -->
+        <!-- [END SECTION: Footer Bar - Games Count + Play Stats + Version/Copyright] -->
+
+        <!-- [SECTION: Folder Name Input Flyout] -->
+        <!-- Shared by "Create folder" (opens empty, at mouse point) and "Rename folder" (opens pre-
+             filled, anchored under the folder row) - code-behind tracks whether a target folder name is
+             set to route Enter to the right action. StaysOpen="False" gives click-away-cancels for free. -->
+        <Popup x:Name="FolderNameInputPopup" StaysOpen="False" AllowsTransparency="True" Closed="FolderNameInputPopup_Closed">
+            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1" Padding="8,6">
+                <Grid>
+                    <TextBox x:Name="FolderNameInputTextBox" Width="220" Height="20" VerticalContentAlignment="Center" FontSize="{Binding Configuration.InputFontSize, FallbackValue=14}" Foreground="{Binding Configuration.InputColorHex, FallbackValue=#F2F2F7}" Background="Transparent" BorderThickness="0" PreviewKeyDown="FolderNameInputTextBox_PreviewKeyDown" TextChanged="FolderNameInputTextBox_TextChanged"/>
+                    <!-- Placeholder text - visibility is driven explicitly from code-behind (Create/Rename
+                         Click handlers) rather than a DataTrigger, since the trigger could lag a frame
+                         behind this Popup's content refresh and render on top of real pre-filled text. -->
+                    <TextBlock x:Name="FolderNameInputPlaceholder" Text="Enter folder name" IsHitTestVisible="False" Margin="2,0,0,0"
+                               VerticalAlignment="Center" FontSize="{Binding Configuration.InputFontSize, FallbackValue=14}"
+                               Foreground="#808080" Visibility="Collapsed"/>
+                </Grid>
+            </Border>
+        </Popup>
+        <!-- [END SECTION: Folder Name Input Flyout] -->
+
+        <!-- [SECTION: Folder Color Picker Flyout] -->
+        <!-- ShowAlpha="False"/HexRepresentation="RGB" deliberately - the tree-build parser only accepts a
+             plain 7-char #RRGGBB on a folder's .cfg line 0, an alpha value would silently be discarded on
+             the next rebuild. Anchored under the folder row. Live-updates the node's FolderColor as you
+             pick; click-away commits to disk, Escape reverts and discards (handled in code-behind). -->
+        <Popup x:Name="FolderColorPickerPopup" StaysOpen="False" AllowsTransparency="True" Closed="FolderColorPickerPopup_Closed">
+            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1" Padding="6">
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                        <colorpicker:PortableColorPicker x:Name="FolderColorPickerControl" Width="26" Height="26" ShowAlpha="False" ColorChanged="FolderColorPickerControl_ColorChanged">
+                            <colorpicker:PortableColorPicker.Resources>
+                                <!-- Themes the picker's OWN internal popup (the part that opens on click) to
+                                     match the rest of the app, mirroring ThemesTabControl's MainColorPicker
+                                     pattern - AncestorType=Window here resolves to MainWindow (this flyout's
+                                     host), so it binds ThemeMainColor/ThemeBorderColor (MainViewModel's actual
+                                     property names) rather than ThemesTabControl's BackgroundColor, which
+                                     would resolve against OptionsWindow instead. -->
+                                <Style TargetType="Grid">
+                                    <Style.Triggers>
+                                        <Trigger Property="Name" Value="MainGrid">
+                                            <Setter Property="Background" Value="{Binding DataContext.ThemeMainColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                                <Style TargetType="colorpicker:HexColorTextBox">
+                                    <Style.Resources>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
+                                        </Style>
+                                    </Style.Resources>
+                                </Style>
+                            </colorpicker:PortableColorPicker.Resources>
+                        </colorpicker:PortableColorPicker>
+                    </Border>
+                    <TextBox x:Name="FolderColorHexTextBox" Width="90" Margin="6,0,0,0" VerticalContentAlignment="Center" FontSize="{Binding Configuration.InputFontSize, FallbackValue=14}" Foreground="{Binding Configuration.InputColorHex, FallbackValue=#F2F2F7}" Background="Transparent" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" PreviewKeyDown="FolderColorHexTextBox_PreviewKeyDown" LostFocus="FolderColorHexTextBox_LostFocus"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+        <!-- [END SECTION: Folder Color Picker Flyout] -->
+
+        <!-- [SECTION: Randomizer Confirm Flyout] -->
+        <!-- Anchored under the die button (BtnPlayRandom) - guards against accidental clicks before any
+             spin logic runs. Spin/Cancel mirror the Border+MouseLeftButtonUp button pattern used
+             elsewhere in this file rather than a real Button control, for visual consistency. -->
+        <Popup x:Name="RandomizerConfirmPopup" StaysOpen="False" AllowsTransparency="True" Closed="RandomizerConfirmPopup_Closed">
+            <Border x:Name="RandomizerConfirmContentBorder" Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" Padding="10,8">
+                <StackPanel>
+                    <TextBlock Text="Roll the Dice?" FontSize="14" FontWeight="Bold" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" Margin="0,0,0,8" HorizontalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Border x:Name="RandomizerConfirmYesButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4" Margin="0,0,6,0"
+                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerConfirmYesButton_MouseLeftButtonUp">
+                            <TextBlock Text="Roll 'Em" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
+                        </Border>
+                        <Border x:Name="RandomizerConfirmNoButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4"
+                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerConfirmNoButton_MouseLeftButtonUp">
+                            <TextBlock Text="Cancel" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+        <!-- [END SECTION: Randomizer Confirm Flyout] -->
+
+        <!-- [SECTION: Randomizer Reveal Flyout] -->
+        <!-- Anchored under the die button, same spot as the Confirm popup. StaysOpen="False" so a
+             stray click outside the popup dismisses it (same behavior as Confirm) instead of it
+             lingering on top of every other window until explicitly clicked - RandomizerRevealPopup_Closed
+             below does the same cleanup the Cancel button does, so an outside-click dismiss behaves
+             identically to hitting Cancel rather than leaving randomizer state stuck open. -->
+        <Popup x:Name="RandomizerRevealPopup" StaysOpen="False" AllowsTransparency="True" Closed="RandomizerRevealPopup_Closed">
+            <Border x:Name="RandomizerRevealContentBorder" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
+                <Grid>
+                    <!-- Background layer only - Opacity here dims just the card fill, not the text/buttons on top -->
+                    <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" Opacity="1"/>
+                    <StackPanel Margin="14,10">
+                    <TextBlock Text="{Binding RandomizerCurrentFrameGame.DisplayTitle}" FontSize="16" FontWeight="Bold" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" Margin="0,0,0,10" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="260" TextAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Border x:Name="RandomizerRevealLaunchButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4" Margin="0,0,6,0"
+                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerRevealLaunchButton_MouseLeftButtonUp">
+                            <TextBlock Text="Launch" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
+                        </Border>
+                        <Border x:Name="RandomizerRevealRespinButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4" Margin="0,0,6,0"
+                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerRevealRespinButton_MouseLeftButtonUp">
+                            <TextBlock Text="Reroll" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
+                        </Border>
+                        <Border x:Name="RandomizerRevealCancelButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4"
+                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerRevealCancelButton_MouseLeftButtonUp">
+                                <TextBlock Text="Cancel" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
+                        </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Popup>
+        <!-- [END SECTION: Randomizer Reveal Flyout] -->
     </Grid>
 </Window>

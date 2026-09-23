@@ -32,7 +32,11 @@ namespace ArcadeStick.Views
             string mediaOrderFile = Path.Combine(configDirectory, "preview_order.cfg");
             List<string> orderedList = new();
 
-            var defaultOrder = new List<string> { "videos", "flyers", "screenshots", "titlescreens", "cabinets" };
+            // Row 1 only resolves video/screenshot/titlescreen now - flyers and cabinets moved to the
+            // media panel rework's Row 3 (its own dedicated Flyer/Cabinet/Staff/Technical slot), so they're
+            // excluded here too. Filtering on load (not just the default) trims down anyone's stale
+            // beta.3 preview_order.cfg that still has all 5 categories saved.
+            var defaultOrder = new List<string> { "videos", "screenshots", "titlescreens" };
             var activeOrder = (_viewModel != null && _viewModel.PreviewPriorityOrder.Count > 0)
                 ? _viewModel.PreviewPriorityOrder
                 : defaultOrder;
@@ -43,7 +47,7 @@ namespace ArcadeStick.Views
                 foreach (var line in lines)
                 {
                     string trimmed = line.Trim().ToLower();
-                    if (!string.IsNullOrEmpty(trimmed) && !orderedList.Contains(trimmed))
+                    if (!string.IsNullOrEmpty(trimmed) && trimmed != "flyers" && trimmed != "cabinets" && !orderedList.Contains(trimmed))
                     {
                         orderedList.Add(trimmed);
                     }

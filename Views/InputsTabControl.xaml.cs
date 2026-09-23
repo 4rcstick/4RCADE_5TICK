@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -53,12 +55,25 @@ namespace ArcadeStick.Views
         // Subscribes to WGIService's PortStatusUpdated and ActiveInputUpdated events to drive the
         // diagnostics panel in real time. Called by MainWindow.OpenOptionsWindow when this tab's parent
         // Options window is opened. All UI updates are marshaled back to the UI thread via Dispatcher.
+        //
+        // Handlers are stored in named fields (not inline lambdas) so UnwireLiveDiagnostics can actually
+        // remove them later - a brand new InputsTabControl is created every time the Options window opens,
+        // but WGIService itself lives for the entire app session, so an un-removed subscription here keeps
+        // this whole control (and everything above it in the Options window's visual tree) alive forever,
+        // once per open/close cycle. OptionsWindow's Closed handler calls UnwireLiveDiagnostics to prevent
+        // exactly that.
+        private ArcadeStick.Services.WGIService? _wiredInputService;
+        private Action<int, string, bool>? _portStatusHandler;
+        private Action<string>? _activeInputHandler;
+
         public void WireLiveDiagnostics(ArcadeStick.Services.WGIService inputService)
         {
             if (inputService == null) return;
 
+            _wiredInputService = inputService;
+
             // Updates one port's status dot + label (green/connected vs gray/disconnected)
-            inputService.PortStatusUpdated += (port, friendlyName, active) =>
+            _portStatusHandler = (port, friendlyName, active) =>
             {
                 this.Dispatcher.BeginInvoke(new System.Action(() =>
                 {
@@ -83,15 +98,38 @@ namespace ArcadeStick.Views
                     }
                 }));
             };
+            inputService.PortStatusUpdated += _portStatusHandler;
 
             // Updates the live "currently pressed" input readout line
-            inputService.ActiveInputUpdated += (inputReadout) =>
+            _activeInputHandler = (inputReadout) =>
             {
                 this.Dispatcher.BeginInvoke(new System.Action(() =>
                 {
                     if (TxtActiveInputReadout != null) TxtActiveInputReadout.Text = inputReadout;
                 }));
             };
+            inputService.ActiveInputUpdated += _activeInputHandler;
+        }
+
+        // Reverses WireLiveDiagnostics - called by OptionsWindow.Closed so every open/close cycle
+        // properly releases its subscriptions instead of accumulating on the long-lived WGIService.
+        public void UnwireLiveDiagnostics()
+        {
+            if (_wiredInputService == null) return;
+
+            if (_portStatusHandler != null)
+            {
+                _wiredInputService.PortStatusUpdated -= _portStatusHandler;
+                _portStatusHandler = null;
+            }
+
+            if (_activeInputHandler != null)
+            {
+                _wiredInputService.ActiveInputUpdated -= _activeInputHandler;
+                _activeInputHandler = null;
+            }
+
+            _wiredInputService = null;
         }
         // [END SECTION: Live Diagnostics Wiring]
     }

@@ -28,6 +28,11 @@ namespace ArcadeStick.Services
         // Keeps track of buttons held on the prior tick to identify clean single-press "down" transitions
         private GamepadButtons _previousButtonsState = GamepadButtons.None;
 
+        // Keeps track of which discrete stick directions were "active" (past deadzone) on the prior
+        // tick, so StickDirectionTriggered fires once on crossing rather than repeating while held -
+        // same edge-detection shape as CheckButtonTransition, just for continuous axes instead of flags.
+        private readonly HashSet<string> _previousStickDirections = new();
+
         // Event hooks to update your UI diagnostics window safely
         public event Action<int, string, bool>? PortStatusUpdated;
         public event Action<string>? ActiveInputUpdated;
@@ -35,6 +40,11 @@ namespace ArcadeStick.Services
 
         // High-reliability discrete structural event for action execution engines
         public event Action<GamepadButtons>? GamepadButtonDownTriggered;
+
+        // Single-shot edge-triggered stick direction event for capture UIs (e.g. MameKeybindsTab).
+        // Fires once when a stick crosses the deadzone into a direction, not while held. Payload is
+        // ("Left"/"Right", "Up"/"Down"/"Left"/"Right") so a single handler can distinguish both sticks.
+        public event Action<string, string>? StickDirectionTriggered;
 
         // [SECTION: Constructor & Gamepad Enumeration]
         // Hooks native gamepad attach/detach listeners, enumerates any controllers already connected at
@@ -286,11 +296,73 @@ namespace ArcadeStick.Services
                 parts.Add($"R-Stick ({string.Join("+", stickParts)})");
             }
 
+            // Edge-triggered stick direction events for capture UIs - reuses the same deadzone
+            // threshold checks above, but fires StickDirectionTriggered once per crossing instead
+            // of every tick while held, using _previousStickDirections to track what's already active.
+            CheckStickDirectionTransition("Left", "Up", reading.LeftThumbstickY > deadzone);
+            CheckStickDirectionTransition("Left", "Down", reading.LeftThumbstickY < -deadzone);
+            CheckStickDirectionTransition("Left", "Left", reading.LeftThumbstickX < -deadzone);
+            CheckStickDirectionTransition("Left", "Right", reading.LeftThumbstickX > deadzone);
+            CheckStickDirectionTransition("Right", "Up", reading.RightThumbstickY > deadzone);
+            CheckStickDirectionTransition("Right", "Down", reading.RightThumbstickY < -deadzone);
+            CheckStickDirectionTransition("Right", "Left", reading.RightThumbstickX < -deadzone);
+            CheckStickDirectionTransition("Right", "Right", reading.RightThumbstickX > deadzone);
+
             // Safely anchor the history state register for the next loop iteration pass
             _previousButtonsState = actionButtonsMask;
 
             string diagnosticText = parts.Count > 0 ? string.Join(" + ", parts) : "None";
             ActiveInputUpdated?.Invoke($"Active Inputs: {diagnosticText}");
+        }
+
+        // [SECTION: Analog Axis Snapshot]
+        // Safely reads the tracked gamepad's current raw analog values (both thumbsticks, both
+        // triggers) in one snapshot. Used by MameKeybindsTabControl's analog capture routine to poll
+        // for which physical axis moved during a capture window - deliberately just a data readout,
+        // not an event, since capture-specific threshold/debounce logic belongs in the tab, not here.
+        public (double LeftX, double LeftY, double RightX, double RightY, double LeftTrigger, double RightTrigger)? GetCurrentAnalogReading()
+        {
+            Gamepad? currentGamepad;
+            lock (_lock)
+            {
+                currentGamepad = _trackedGamepad;
+            }
+
+            if (currentGamepad == null) return null;
+
+            try
+            {
+                GamepadReading reading = currentGamepad.GetCurrentReading();
+                return (reading.LeftThumbstickX, reading.LeftThumbstickY,
+                        reading.RightThumbstickX, reading.RightThumbstickY,
+                        reading.LeftTrigger, reading.RightTrigger);
+            }
+            catch
+            {
+                return null; // device timeout/disconnect mid-read - treat as no reading available
+            }
+        }
+        // [END SECTION: Analog Axis Snapshot]
+
+        // Fires StickDirectionTriggered only on the rising edge of a stick crossing into this
+        // direction (not every tick while held) - same shape as CheckButtonTransition, just for a
+        // continuous axis threshold instead of a discrete button flag.
+        private void CheckStickDirectionTransition(string stick, string direction, bool isActive)
+        {
+            string key = $"{stick}:{direction}";
+
+            if (isActive)
+            {
+                if (!_previousStickDirections.Contains(key))
+                {
+                    _previousStickDirections.Add(key);
+                    StickDirectionTriggered?.Invoke(stick, direction);
+                }
+            }
+            else
+            {
+                _previousStickDirections.Remove(key);
+            }
         }
 
         // Fires GamepadButtonDownTriggered only on the rising edge of a button press (not while held).
