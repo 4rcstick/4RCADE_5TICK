@@ -9,7 +9,7 @@ A highly customizable, portable MAME® frontend launcher built in C#/WPF — des
 
 ### ROM Sorting
 <img width="1280" height="720" alt="01_first_launch" src="https://github.com/user-attachments/assets/20b89f08-2a2f-4c53-b316-d2901c4ef877" />
-All 39k MAME ROMs shown here are unorganized inside a single folder and automatically organized into virtual folders using catver.ini.  If you have already organized your ROMs into subfolders, you can turn off auto sort and it will display your folder names.
+All 39k MAME ROMs shown here are unorganized inside a single folder and automatically sorted into virtual folders using catver.ini.  If you have already organized your ROMs into subfolders, you can turn off auto sort and it will display your folder names.
 
 ---
 
