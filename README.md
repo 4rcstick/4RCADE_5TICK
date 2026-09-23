@@ -55,7 +55,7 @@ Turn on and configure the Scraper to automatically download game assets if avail
 ## Planned for beta.4
 
 - Complete Theme Builder overhaul to make almost any layout possible.
-- Attract mode with sound toggles for videos, random game preview cycling and full screen video screensaver mode.
+- Attract mode with sound toggles for videos, random game preview cycling and fullscreen video screensaver mode.
 
 ## Known Issues
 
