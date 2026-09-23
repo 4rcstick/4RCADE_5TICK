@@ -43,7 +43,7 @@ Turn on and configure the Scraper to automatically download game assets if avail
 - **Controller Support** — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games. (more controller functionality coming soon)
 - **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options Menu, such as Video Renderer, Pixel Aspect Ratio, and turning bezels on or off globally.
 - **Custom Folders** — Create, name, and color custom folders with a right-click context menu in the games list or by hitting `Ctrl+G`. Or just use the built-in Favorites folder with `Ctrl+F`.
-- **Custom Folder Ordering** — Rearrange folder order at any time — never feel stuck in an alphabetical list again.
+- **Custom Folder and Sub-Folder Ordering** — Rearrange folder order at any time — never feel stuck in an alphabetical list again.
 - **Marquee Window** — Displays marquee images above the preview window, falling back to the default logo (or a custom one set in Theme Builder) if no marquee is found for the selected game.
 - **Media Asset Paths** — Easily point to all your media assets (marquees/videos/flyers/screen caps/title screens/cabinets) in the Options Menu - Asset Paths tab.
 - **Systems Paths** — Set your ROM, CHD, and BIOS paths to any directory on any hard drive. 
