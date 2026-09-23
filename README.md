@@ -33,7 +33,7 @@ Customize the look using themes that are saved to zip files containing all the t
 
 ### Asset Scraper
 <img width="1280" height="720" alt="05_scraper" src="https://github.com/user-attachments/assets/ee3d0069-5000-4adc-b6e9-358f8c69af81" />
-Turn on and configure the Scraper to automatically download game assets if available.  You can also right click a game title and choose 'Get Artwork'.
+Turn on and configure the Scraper to automatically download game assets if available.  You can also right-click a game title and choose 'Get Artwork'.
 
 
 ## Some other features
