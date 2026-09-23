@@ -15,7 +15,7 @@ All 39k MAME ROMs shown here are unorganized inside a single folder and automati
 
 ### ROM Filters
 <img width="1280" height="720" alt="02_filters" src="https://github.com/user-attachments/assets/7d0782e7-b494-4cd8-9127-e0749308f54c" />
-ROMs can also be filtered.  Here is the base filter and genre filters turned on, removing most of the junk and reducing the game pool from 39K to 3.6K ROMs.
+ROMs can also be filtered.  Here is the base filter and genre filters turned on, removing most of the junk and reducing the game pool from 39k to 3.6k ROMs.
 
 ---
 
