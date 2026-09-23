@@ -58,7 +58,7 @@ Turn on and configure the Scraper to automatically download game assets if avail
 
 ## Known Issues
 
-- **Third-party overlays can conflict with the video preview panel.** RivaTuner Statistics Server (RTSS) and Nvidia's overlay are confirmed to collide with the app's Direct3D11 video pipeline; Other overlays (Discord, Steam, Xbox Game Bar, etc.) haven't been tested yet — if you run into a crash with one, try adding 4RCADE 5TICK to the overlay app's exclusion list if possible.
+- **Third-party overlays can conflict with the video preview panel.** RivaTuner Statistics Server (RTSS) and NVIDIA's overlay are confirmed to collide with the app's Direct3D11 video pipeline; other overlays (Discord, Steam, Xbox Game Bar, etc.) haven't been tested yet — if you run into a crash with one, try adding 4RCADE 5TICK to the overlay app's exclusion list if possible.
 
 ## Installation
 
