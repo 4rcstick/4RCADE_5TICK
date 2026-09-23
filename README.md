@@ -95,7 +95,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## AI Disclosure
 
-AI was used both for coding and some artwork.  If you have an issue with the use of AI, at least consider the fact that hundreds if not thousands of hours of my time were needed to plan, place code, and thouroughly test every part of 4RCADE 5TICK.  As a passion project, I hope you can at least give it a chance before denouncing it due to AI help in it's creation.
+AI was used for coding assistance and some artwork. The design, planning, integration and testing represent hundreds of hours of my own work. 4RCADE 5TICK is a passion project, and I hope you'll give it a try and judge it on how it plays.
 
 ---
 
