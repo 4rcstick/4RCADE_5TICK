@@ -40,12 +40,12 @@ Turn on and configure the Scraper to automatically download game assets if avail
 
 - **Random Game** — Click the 'die' icon to trigger the random game function, which includes an animated marquee cycling before landing on the winning game.
 - **Auto ROM Scan** — Automatically scans your ROMs folder(s) on every boot and builds your game list, updating `mame.ini` automatically so you never get a missing ROM files error.
-- **Controller Support** — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games. (more controller fuctionality coming soon)
+- **Controller Support** — Drop the mouse and grab your controller to navigate the game list, open and close folders, and launch games. (more controller functionality coming soon)
 - **Easy MAME Settings Access** — Adjust several MAME settings directly from the Options Menu, such as Video Renderer, Pixel Aspect Ratio, and turning bezels on or off globally.
 - **Custom Folders** — Create, name, and color custom folders with a right-click context menu in the games list or by hitting `Ctrl+G`. Or just use the built-in Favorites folder with `Ctrl+F`.
 - **Custom Folder Ordering** — Rearrange folder order at any time — never feel stuck in an alphabetical list again.
-- **Marquees Window** — Displays marquee images above the preview window, falling back to the default logo (or a custom one set in Theme Builder) if no marquee is found for the selected game.
-- **Media Asset Paths** — Easily point to all your media assets (marquees/videos/flyers/screen caps/title screens/cabinets) in the Options Menu - Assets Paths tab.
+- **Marquee Window** — Displays marquee images above the preview window, falling back to the default logo (or a custom one set in Theme Builder) if no marquee is found for the selected game.
+- **Media Asset Paths** — Easily point to all your media assets (marquees/videos/flyers/screen caps/title screens/cabinets) in the Options Menu - Asset Paths tab.
 - **Systems Paths** — Set your ROM, CHD, and BIOS paths to any directory on any hard drive. 
 - **Search** — Quickly find games in a large collection with the search box above the game list.
 - **No Installation Required** — No installer, no setup wizard. Unzip to your MAME folder and run.
