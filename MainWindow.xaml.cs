@@ -284,6 +284,18 @@ namespace ArcadeStick
             // The decoder follows the Video Preview layer's size, so a theme or layout-size change re-targets it.
             UpdatePreviewTargetSize();
 
+            // Flyers are decoded near the size of the Image Previews part (device pixels), so a theme or
+            // layout-size change tells the view model the new slot size. It only reloads when the size changed.
+            var previewsDpi = VisualTreeHelper.GetDpi(this);
+            double previewsWidth = GameInfoLayer.PartPreviewsBody.Width;
+            double previewsHeight = GameInfoLayer.PartPreviewsBody.Height;
+            if (!double.IsNaN(previewsWidth) && !double.IsNaN(previewsHeight) && previewsWidth >= 1 && previewsHeight >= 1)
+            {
+                _viewModel.SetFlyerSlotSize(
+                    (int)Math.Round(previewsWidth * previewsDpi.DpiScaleX),
+                    (int)Math.Round(previewsHeight * previewsDpi.DpiScaleY));
+            }
+
             // If the theme just hid the Video Preview layer, stop decoding into it. When it is shown again,
             // the next selection (or returning from a game) starts the preview as usual.
             if (VideoPreviewLayer.Visibility != Visibility.Visible)

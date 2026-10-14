@@ -628,7 +628,7 @@
                 </Border.Style>
                 <Grid>
                     <!-- Default logo, hidden once a game is selected -->
-                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" Margin="10,10">
+                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" Margin="10,10" RenderOptions.BitmapScalingMode="HighQuality">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -644,7 +644,7 @@
                         </Image.Style>
                     </Image>
                     <!-- Selected game's marquee image -->
-                    <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" Margin="10,10">
+                    <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" Margin="10,10" RenderOptions.BitmapScalingMode="HighQuality">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -690,7 +690,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Grid.Style>
-                            <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" Margin="10,10"/>
+                            <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" Margin="10,10" RenderOptions.BitmapScalingMode="HighQuality"/>
 
                             <!-- No-marquee fallback - shown whenever the current frame's game has no
                                  real marquee file. Renders a fixed-aspect card (~3.4:1, standard horizontal

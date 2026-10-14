@@ -3006,6 +3006,83 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+        // Flyer slot size in device pixels, set from MainWindow.ApplyLayout. 0 = unknown, which loads the
+        // flyer at full size as before.
+        private int _flyerSlotWidth = 0;
+        private int _flyerSlotHeight = 0;
+
+        // Decode at this multiple of the fitted display size, so HighQuality scaling still has some extra
+        // source detail for its final step. Tune by eye: 1.0 = exact size, 2.0 = more headroom.
+        private const double FlyerDecodeOversample = 1;
+
+        // Loads a flyer, decoding it near the size it will be shown at (Uniform fit inside the slot).
+        // Portrait flyers are limited by the slot's height and wide ones by its width. Never decodes
+        // larger than the source, and falls back to a normal full-size load if anything goes wrong.
+        private BitmapImage? LoadFlyerBitmap(string path)
+        {
+            try
+            {
+                byte[] fileBytes = File.ReadAllBytes(path);
+                int decodeWidth = 0;
+                int decodeHeight = 0;
+
+                if (_flyerSlotWidth > 0 && _flyerSlotHeight > 0)
+                {
+                    using var probeStream = new MemoryStream(fileBytes);
+                    var decoder = BitmapDecoder.Create(probeStream, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None);
+                    int sourceWidth = decoder.Frames[0].PixelWidth;
+                    int sourceHeight = decoder.Frames[0].PixelHeight;
+
+                    if (sourceWidth > 0 && sourceHeight > 0)
+                    {
+                        double widthFit = (double)_flyerSlotWidth / sourceWidth;
+                        double heightFit = (double)_flyerSlotHeight / sourceHeight;
+                        double scale = Math.Min(widthFit, heightFit) * FlyerDecodeOversample;
+
+                        if (scale < 1.0)
+                        {
+                            if (widthFit <= heightFit) decodeWidth = Math.Max(1, (int)Math.Round(sourceWidth * scale));
+                            else decodeHeight = Math.Max(1, (int)Math.Round(sourceHeight * scale));
+                        }
+                    }
+                }
+
+                var bitmap = new BitmapImage();
+                using var stream = new MemoryStream(fileBytes);
+                bitmap.BeginInit();
+                bitmap.StreamSource = stream;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                if (decodeWidth > 0) bitmap.DecodePixelWidth = decodeWidth;
+                else if (decodeHeight > 0) bitmap.DecodePixelHeight = decodeHeight;
+                bitmap.EndInit();
+                bitmap.Freeze();
+                return bitmap;
+            }
+            catch
+            {
+                return LoadBitmapFromFile(path);
+            }
+        }
+
+        // Called by MainWindow.ApplyLayout with the Image Previews part's size in device pixels. When the
+        // size actually changes, the selected game's flyer is reloaded so it is decoded for the new size
+        // (a theme or layout switch would otherwise leave it soft or oversized). Unchanged sizes do nothing,
+        // so the frequent ApplyLayout calls cost nothing.
+        public void SetFlyerSlotSize(int width, int height)
+        {
+            if (width < 1 || height < 1) return;
+            if (width == _flyerSlotWidth && height == _flyerSlotHeight) return;
+
+            _flyerSlotWidth = width;
+            _flyerSlotHeight = height;
+
+            if (SelectedGame == null) return;
+
+            string flyerFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath);
+            string? flyerPath = TryResolveMediaFile(flyerFolder, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png", ".jpg" });
+            FlyerImage = flyerPath != null ? LoadFlyerBitmap(flyerPath) : null;
+        }
+
         private void UpdateRow3FlyerAndCabinet()
         {
             if (SelectedGame == null)
@@ -3019,7 +3096,7 @@ namespace ArcadeStick.ViewModels
 
             string flyerFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath);
             string? flyerPath = TryResolveMediaFile(flyerFolder, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png", ".jpg" });
-            FlyerImage = flyerPath != null ? LoadBitmapFromFile(flyerPath) : null;
+            FlyerImage = flyerPath != null ? LoadFlyerBitmap(flyerPath) : null;
 
             string titleFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.TitlescreensPath) ? "titles" : Configuration.TitlescreensPath);
             string? titlePath = TryResolveMediaFile(titleFolder, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png", ".jpg" });
