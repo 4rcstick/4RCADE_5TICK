@@ -50,8 +50,8 @@
                     </Image.Style>
                 </Image>
 
-                <!-- Preview video player. Source/Play/Stop and Visibility are owned by MainWindow.xaml.cs. -->
-                <MediaElement x:Name="MediaElementPreview" x:FieldModifier="public" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsMuted="True" LoadedBehavior="Manual" UnloadedBehavior="Manual" Visibility="Collapsed" IsHitTestVisible="False"/>
+                <!-- Preview video surface. The FFmpeg player draws frames into this Image; Visibility is owned by MainWindow.xaml.cs. -->
+                <Image x:Name="PreviewVideoSurface" x:FieldModifier="public" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderOptions.BitmapScalingMode="NearestNeighbor" Visibility="Collapsed" IsHitTestVisible="False"/>
             </Grid>
         </Border>
 

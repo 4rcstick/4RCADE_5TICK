@@ -169,7 +169,7 @@
         <!-- [END SECTION: Root Grid Background Style] -->
 
         <!-- [SECTION: Main Background Video] -->
-        <!-- MediaElement (NOT LibVLC) - renders as a normal WPF element, so it respects z-order and sits behind
+        <!-- MediaElement - renders as a normal WPF element, so it respects z-order and sits behind
              every panel declared after it. First child + full row/column span = bottom layer above the root
              Grid's Background. Source/playback/looping are driven entirely from code-behind (RefreshMainBgVideo),
              so LoadedBehavior/UnloadedBehavior are Manual. Always muted - background videos don't carry sound. -->
@@ -807,82 +807,19 @@
             <!-- [END SECTION: Right Column - Marquee + Media Panels] -->
 
 
-            <!-- Video Convert Prompt layer: its own positioned element, mapped in ApplyLayout(). The host Grid is what
-                 ApplyLayout shows/hides, so the two bubbles inside keep their own DataTrigger visibility
-                 (the prompt bubble and the converting bubble never show at the same time). Both stretch to
-                 fill the layer's rect, and the text wraps if the layer is made narrower. Hardcoded colors
-                 on purpose, same pill look as before. -->
-            <Grid x:Name="VideoConvertPromptLayer" Canvas.Left="393" Canvas.Top="701" Width="450" Height="18">
-                <!-- Prompt bubble: shown when the selected game's video was probed as unplayable and the user
-                     hasn't dismissed it this session. -->
-                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                        Background="#CC000000" BorderBrush="Black" BorderThickness="0" CornerRadius="8" Padding="8,1,8,1">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ShowVideoConversionPrompt}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <TextBlock FontSize="10" FontWeight="Bold" Foreground="#F2F2F2" VerticalAlignment="Center" TextWrapping="Wrap">
-                        <TextBlock.Resources>
-                            <!-- Convert links: no underline, yellow, green on hover. -->
-                            <Style x:Key="ConvertLinkStyle" TargetType="Hyperlink">
-                                <Setter Property="Foreground" Value="Yellow"/>
-                                <Setter Property="TextDecorations" Value="None"/>
-                                <Setter Property="Cursor" Value="Hand"/>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Foreground" Value="LimeGreen"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Resources>
-                        <Run Text="THIS GAME'S VIDEO NEEDS CONVERTING TO PLAY"/>
-                        <Run Text="  "/>
-                        <Hyperlink Command="{Binding ConvertThisVideoCommand}" Style="{StaticResource ConvertLinkStyle}">CONVERT THIS</Hyperlink>
-                        <Run Text=" | "/>
-                        <Hyperlink Command="{Binding ConvertAllVideosCommand}" Style="{StaticResource ConvertLinkStyle}">CONVERT ALL</Hyperlink>
-                        <Run Text="  "/>
-                        <Hyperlink Command="{Binding DismissVideoPromptCommand}" Foreground="Red">X</Hyperlink>
-                    </TextBlock>
-                </Border>
-
-                <!-- Converting bubble: takes the prompt bubble's place while a conversion runs. -->
-                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                        Background="#CC000000" BorderBrush="Black" BorderThickness="0" CornerRadius="8" Padding="8,1,8,1">
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsConvertingVideo}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                    <TextBlock FontSize="10" FontWeight="Bold" Foreground="#F2F2F2" VerticalAlignment="Center" TextWrapping="Wrap"
-                               Text="CONVERTING VIDEO, PLEASE WAIT..."/>
-                </Border>
-            </Grid>
+            
 
             <Grid x:Name="FooterPanel" Canvas.Left="20" Canvas.Top="700" Width="1240" Height="20">
                 <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="380*"/>
                 <ColumnDefinition Width="900*"/>
             </Grid.ColumnDefinitions>
-
-                <!-- The video conversion prompt and converting bubbles now live in the Video Convert Prompt layer
-                 (VideoConvertPromptLayer, above). -->
-
-                <!-- Version + Copyright merged into a single pill, right-aligned in Column 1. -->
+                
+            <!-- Version + Copyright merged into a single pill, right-aligned in Column 1. -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0">
                 <Border Background="#CC000000" Height="16" BorderBrush="Black" BorderThickness="0" CornerRadius="8" Padding="8,1,8,1">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Version 1.0.0-beta.3" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
+                        <TextBlock Text="Version 1.0.0-beta.4" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
                         <TextBlock Text=" | " FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
                         <TextBlock Text="© 2026 4RCHIMEDE5" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
                     </StackPanel>

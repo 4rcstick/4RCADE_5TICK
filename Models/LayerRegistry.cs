@@ -91,7 +91,6 @@ namespace ArcadeStick.Models
         public const string SplashImage = "SplashImage";
         public const string VideoPreview = "VideoPreview";
         public const string Footer = "Footer";
-        public const string VideoConvertPrompt = "VideoConvertPrompt";
         public const string RandomGameDisplay = "RandomGameDisplay";
         public const string RandomGameDisplaySplash = "RandomGameDisplaySplash";
         public const string RandomGameGroup = "RandomGameGroup";
@@ -161,7 +160,6 @@ namespace ArcadeStick.Models
 
             new() { Id = RandomGameDisplay,       DisplayName = "When a game is selected", X = 414, Y = 198, Width = 328, Height = 248, Z = 35, GroupId = RandomGameGroup },
             new() { Id = RandomGameDisplaySplash, DisplayName = "When on the splash page", X = 393, Y = 177, Width = 867, Height = 523, Z = 35, GroupId = RandomGameGroup },
-            new() { Id = VideoConvertPrompt, DisplayName = "Video Convert Prompt", X = 393, Y = 701, Width = 450, Height = 18, Z = 11 },
             new() { Id = Footer,         DisplayName = "Footer",            X = 20,  Y = 700, Width = 1240,Height = 20, Z = 10 },
         };
 

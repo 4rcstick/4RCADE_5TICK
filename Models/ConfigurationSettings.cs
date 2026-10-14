@@ -379,13 +379,9 @@ namespace ArcadeStick.Models
         public string GetArcadeStickFilesPath() => Path.Combine(BaseDirectory, ArcadeStickFilesFolder);
         public string GetConfigPath() => Path.Combine(GetArcadeStickFilesPath(), ConfigSubFolder);
 
-        // Full path to the bundled custom ffmpeg build (4rcade5tick_files/ffmpeg/ffmpeg.exe). Used by
-        // VideoConversionService to probe and re-encode scraped videos.
-        public string GetFfmpegPath() => Path.Combine(GetArcadeStickFilesPath(), "ffmpeg", "ffmpeg.exe");
-
-        // JSON cache of which preview videos have been probed as playable/unplayable (config/video_cache.json).
-        // Lives in the config folder, not the ffmpeg folder, since it describes the user's video library.
-        public string GetVideoCachePath() => Path.Combine(GetConfigPath(), "video_cache.json");
+        // Folder holding the five FFmpeg DLLs the preview player loads (4rcade5tick_files/ffmpeg).
+        // It must contain exactly one of each avutil/swresample/swscale/avcodec/avformat DLL.
+        public string GetFfmpegRuntimeDirectory() => Path.Combine(GetArcadeStickFilesPath(), "ffmpeg");
 
         // Resolves a single asset-category subfolder (e.g. "marquees") against the consolidated
         // media/ folder at MAME root. Mirrors the cleaning logic previously duplicated across five

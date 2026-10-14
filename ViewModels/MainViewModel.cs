@@ -54,8 +54,6 @@ namespace ArcadeStick.ViewModels
         private readonly CacheScannerService _cacheService;
         private readonly ProcessLaunchService _launchService;
         private readonly ArtworkScraperService _scraperService;
-        private readonly VideoCacheService _videoCache;
-        private readonly VideoConversionService _videoProbe;
 
         // In-flight guard for the context-menu "Get Artwork" trigger - prevents rapid-fire clicking// from stacking parallel requests for the same romname. Not used by the launch trigger, since
         // a game can only be launched once at a time anyway.
@@ -181,11 +179,7 @@ namespace ArcadeStick.ViewModels
 
             _cacheService = new CacheScannerService(Configuration);
             _launchService = new ProcessLaunchService(Configuration);
-            _videoCache = new VideoCacheService(Configuration);
-            _videoCache.Load();
-            _videoProbe = new VideoConversionService(Configuration);
-            StartVideoScan();
-            _scraperService = new ArtworkScraperService(Configuration, _videoCache);
+            _scraperService = new ArtworkScraperService(Configuration);
             _sortService = new VirtualCategorySortService(Configuration);
             _historyService = new HistoryXmlService(Configuration);
             _wikiService = new GameInfoService(Configuration);
@@ -200,9 +194,6 @@ namespace ArcadeStick.ViewModels
 
             RefreshCacheCommand = new RelayCommand(async _ => await InitializeDatabaseAsync());
             LaunchGameCommand = new RelayCommand(async param => await ExecuteLaunchAsync(param));
-            DismissVideoPromptCommand = new RelayCommand(_ => DismissVideoPrompt());
-            ConvertThisVideoCommand = new RelayCommand(async _ => await ConvertSelectedVideoAsync());
-            ConvertAllVideosCommand = new RelayCommand(_ => ConvertAllVideosRequested?.Invoke());
 
             LoadFavoritesFromDisk();
             LoadMouseSupportFromDisk();
@@ -316,7 +307,7 @@ namespace ArcadeStick.ViewModels
         // GameTree_SelectedItemChanged - not a genuine user deselection. MainWindow_xaml.cs checks this
         // flag to skip that transient null, since letting it through nulls SelectedGame/VideoSourcePath,
         // which stops the preview player and (via IsGameSelected) starts the boot splash player almost
-        // simultaneously - a native LibVLC/D3D11 collision that hangs the UI thread.
+        // simultaneously - a collision with the old video player that hung the UI thread.
         public bool IsRebuildingTree { get; private set; }
         public RangeObservableCollection<object> FlatVisibleRows { get; } = new RangeObservableCollection<object>();
         public HashSet<string> FavoriteRoms { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -498,9 +489,6 @@ namespace ArcadeStick.ViewModels
                     HasActiveMedia = ResolveHasActiveMediaImmediate();
                     PreviewImage = null;
                     VideoSourcePath = string.Empty;
-                    SetSelectedVideoNeedsConversion(false, string.Empty);
-                    PreviewImage = null;
-                    VideoSourcePath = string.Empty;
 
                     _previewDebounceTimer?.Stop();
                     _previewDebounceTimer = new DispatcherTimer
@@ -607,7 +595,7 @@ namespace ArcadeStick.ViewModels
                         continue;
                 }
 
-                if (TryResolveMediaFileChecked(targetFolder, SelectedGame.RomName, SelectedGame.CloneOf, extensions, false) != null)
+                if (TryResolveMediaFileChecked(targetFolder, SelectedGame.RomName, SelectedGame.CloneOf, extensions) != null)
                 {
                     return true;
                 }
@@ -677,160 +665,7 @@ namespace ArcadeStick.ViewModels
                 }
             }
         }
-        // [SECTION: Video Conversion Prompt]
-        // Drives the footer bubble: shown when the selected game has a video the probe cache marked
-        // unplayable (so the game is showing artwork instead). Dismissing hides it for every game until
-        // the next launch - session-only, deliberately not persisted.
-        private bool _selectedVideoNeedsConversion;
-        private bool _videoPromptDismissed;
-        private string _badVideoPath = string.Empty;
-
-        // Hidden while a conversion is running - a separate "converting" bubble (bound to IsConvertingVideo)
-        // takes its place, and it stays up even if the selection changes mid-conversion.
-        public bool ShowVideoConversionPrompt => !_isConvertingVideo && _selectedVideoNeedsConversion && !_videoPromptDismissed;
-
-        private bool _isConvertingVideo;
-        public bool IsConvertingVideo
-        {
-            get => _isConvertingVideo;
-            private set
-            {
-                if (_isConvertingVideo != value)
-                {
-                    _isConvertingVideo = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(ShowVideoConversionPrompt));
-                }
-            }
-        }
-
-        // Converts the selected game's unplayable video in place: the original is archived to an "originals"
-        // subfolder of the videos folder only after the new file is ready. A video the cache marks unplayable
-        // is never loaded by the player (the game shows artwork), so the file isn't locked during the swap.
-        private async Task ConvertSelectedVideoAsync()
-        {
-            if (_isConvertingVideo || string.IsNullOrEmpty(_badVideoPath)) return;
-
-            string sourcePath = _badVideoPath;
-            IsConvertingVideo = true;
-
-            try
-            {
-                await ConvertVideoInPlaceAsync(sourcePath);
-            }
-            finally
-            {
-                IsConvertingVideo = false;
-                UpdateActiveMediaPreviews();
-            }
-        }
-
-        public ICommand DismissVideoPromptCommand { get; }
-        public ICommand ConvertThisVideoCommand { get; }
-        public ICommand ConvertAllVideosCommand { get; }
-
-        private void SetSelectedVideoNeedsConversion(bool value, string badPath)
-        {
-            _badVideoPath = badPath;
-            if (_selectedVideoNeedsConversion == value) return;
-
-            _selectedVideoNeedsConversion = value;
-            OnPropertyChanged(nameof(ShowVideoConversionPrompt));
-        }
-
-        // Called after the previews resolve. If the game ended up showing a playable video (or nothing is
-        // selected) there's nothing to convert; otherwise look for a cached-unplayable video under the
-        // game's own ROM name, then its clone parent's.
-        private void RefreshVideoNeedsConversion()
-        {
-            if (SelectedGame == null || !string.IsNullOrEmpty(VideoSourcePath))
-            {
-                SetSelectedVideoNeedsConversion(false, string.Empty);
-                return;
-            }
-
-            string folder = GetVideosFolder();
-            var romNames = new List<string> { SelectedGame.RomName };
-            if (!string.IsNullOrEmpty(SelectedGame.CloneOf)) romNames.Add(SelectedGame.CloneOf!);
-
-            foreach (string romName in romNames)
-            {
-                foreach (string ext in new[] { ".mp4", ".avi" })
-                {
-                    string path = Path.Combine(folder, romName + ext);
-                    if (File.Exists(path) && _videoCache.TryGetStatus(folder, path) == false)
-                    {
-                        SetSelectedVideoNeedsConversion(true, path);
-                        return;
-                    }
-                }
-            }
-
-            SetSelectedVideoNeedsConversion(false, string.Empty);
-        }
-
-        private void DismissVideoPrompt()
-        {
-            _videoPromptDismissed = true;
-            OnPropertyChanged(nameof(ShowVideoConversionPrompt));
-        }
-        // Raised by the footer bubble's CONVERT ALL link - MainWindow opens the batch converter window.
-        public event Action? ConvertAllVideosRequested;
-
-        // Every video in the videos folder (top level only, so the "originals" archive is ignored) that the
-        // probe cache currently marks unplayable.
-        public List<string> GetUnplayableVideoPaths()
-        {
-            var result = new List<string>();
-            string folder = GetVideosFolder();
-            if (!Directory.Exists(folder)) return result;
-
-            foreach (string file in Directory.EnumerateFiles(folder))
-            {
-                if (IsVideoFile(file) && _videoCache.TryGetStatus(folder, file) == false)
-                {
-                    result.Add(file);
-                }
-            }
-
-            result.Sort(StringComparer.OrdinalIgnoreCase);
-            return result;
-        }
-
-        // Converts one library video in place (original archived to "originals" on success) and updates the
-        // cache. Returns true on success, false on failure. Cancellation is rethrown to the caller.
-        public async Task<bool> ConvertVideoInPlaceAsync(string sourcePath, System.Threading.CancellationToken ct = default)
-        {
-            string folder = GetVideosFolder();
-
-            try
-            {
-                string? newPath = await _videoProbe.ConvertInPlaceAsync(sourcePath, Path.Combine(folder, "originals"), ct);
-                if (newPath == null) return false;
-
-                _videoCache.Remove(folder, sourcePath);
-                _videoCache.Set(folder, newPath, true);
-                _videoCache.Save();
-                return true;
-            }
-            catch (OperationCanceledException) when (ct.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"VideoConvert: failed for {sourcePath}: {ex.Message}");
-                return false;
-            }
-        }
-
-        // Re-resolves the selected game's preview after a batch run (a converted video may now play).
-        public void RefreshAfterBatchConversion()
-        {
-            UpdateActiveMediaPreviews();
-        }
-        // [END SECTION: Video Conversion Prompt]
-
+        
         // [END SECTION: Selection & Media State Properties]
 
         // [SECTION: Theme Property Forwarders]
@@ -943,7 +778,7 @@ namespace ArcadeStick.ViewModels
             ? Configuration.MainWindowWallpaper
             : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_background.png"));
 
-        // True when the main window wallpaper is an mp4 - played by WPF's MediaElement (NOT LibVLC), since
+        // True when the main window wallpaper is an mp4 - played by WPF's MediaElement, since
         // MediaElement renders as a normal WPF element that respects z-order and can sit behind every panel.
         // Respects the "Disable Main Window Background Image" checkbox the same way the image wallpaper does.
         public bool IsMainWallpaperVideo => !Configuration.DisableMainBgImage
@@ -988,7 +823,7 @@ namespace ArcadeStick.ViewModels
         // True when the resolved boot splash asset is an mp4 file
         public bool IsBootSplashVideo => Path.GetExtension(ResolveBootSplashPath()).Equals(".mp4", StringComparison.OrdinalIgnoreCase);
 
-        // File path for the LibVLC VideoView when the boot splash resolves to an mp4; null when it's a png
+        // File path for the boot splash MediaElement when the splash resolves to an mp4; null when it's a png
         public string? ThemeBootSplashVideoPath => IsBootSplashVideo ? ResolveBootSplashPath() : null;
 
         // True when the resolved boot splash asset is animated - any .gif, or a .png that is actually an APNG.
@@ -3199,23 +3034,11 @@ namespace ArcadeStick.ViewModels
             CabinetImage = cabinetPath != null ? LoadBitmapFromFile(cabinetPath) : null;
         }
 
-        // [SECTION: Video Probe Cache]
-        private readonly HashSet<string> _videoProbesInFlight = new(StringComparer.OrdinalIgnoreCase);
-
-        private string GetVideosFolder()
-        {
-            return Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.VideosPath) ? "videos" : Configuration.VideosPath);
-        }
-
-        private static bool IsVideoFile(string path)
-        {
-            return path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".avi", StringComparison.OrdinalIgnoreCase);
-        }
-
-        // Same lookup order as TryResolveMediaFile, but a video the cache has marked unplayable is skipped,
-        // so the game falls through to its artwork. Videos the cache doesn't know yet still play, and (when
-        // queueProbe is set) get probed in the background so the result is known for next time.
-        private string? TryResolveMediaFileChecked(string folder, string primaryRomName, string? fallbackRomName, string[] extensions, bool queueProbe)
+        // [SECTION: Media File Resolution]
+        // Same lookup order as TryResolveMediaFile (own ROM name first, then the fallback/parent name).
+        // Every video file that exists plays directly through the FFmpeg player, so there is no
+        // playability check or background probing.
+        private string? TryResolveMediaFileChecked(string folder, string primaryRomName, string? fallbackRomName, string[] extensions)
         {
             var romNames = new List<string> { primaryRomName };
             if (!string.IsNullOrEmpty(fallbackRomName)) romNames.Add(fallbackRomName);
@@ -3225,106 +3048,11 @@ namespace ArcadeStick.ViewModels
                 foreach (var ext in extensions)
                 {
                     string testPath = Path.Combine(folder, $"{romName}{ext}");
-                    if (!File.Exists(testPath)) continue;
-
-                    if (IsVideoFile(testPath))
-                    {
-                        bool? status = _videoCache.TryGetStatus(folder, testPath);
-                        if (status == false) continue;
-                        if (status == null && queueProbe) QueueVideoProbe(folder, testPath);
-                    }
-
-                    return testPath;
+                    if (File.Exists(testPath)) return testPath;
                 }
             }
 
             return null;
-        }
-
-        // Probes one unknown video off the UI thread. If it turns out to be bad, the previews are refreshed
-        // so the game switches to its artwork.
-        private void QueueVideoProbe(string folder, string path)
-        {
-            lock (_videoProbesInFlight)
-            {
-                if (!_videoProbesInFlight.Add(path)) return;
-            }
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    bool? playable = await _videoProbe.IsPlayableAsync(path);
-                    if (!playable.HasValue) return;
-
-                    _videoCache.Set(folder, path, playable.Value);
-                    _videoCache.Save();
-
-                    if (!playable.Value)
-                    {
-                        Application.Current?.Dispatcher.BeginInvoke(new Action(UpdateActiveMediaPreviews));
-                    }
-                }
-                finally
-                {
-                    lock (_videoProbesInFlight)
-                    {
-                        _videoProbesInFlight.Remove(path);
-                    }
-                }
-            });
-        }
-
-        // Background pass over the videos folder: probes every file the cache doesn't have a current
-        // answer for (new, changed, or never seen), two at a time, saving as it goes. Top-level files
-        // only, so an archive subfolder is ignored.
-        private void StartVideoScan()
-        {
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    string folder = GetVideosFolder();
-                    if (!Directory.Exists(folder) || !_videoProbe.IsFfmpegAvailable) return;
-
-                    _videoCache.PruneMissing(folder);
-
-                    var pending = new List<string>();
-                    foreach (string file in Directory.EnumerateFiles(folder))
-                    {
-                        if (IsVideoFile(file) && _videoCache.TryGetStatus(folder, file) == null)
-                        {
-                            pending.Add(file);
-                        }
-                    }
-
-                    int foundBad = 0;
-                    int processed = 0;
-
-                    await Parallel.ForEachAsync(pending, new ParallelOptions { MaxDegreeOfParallelism = 2 }, async (file, ct) =>
-                    {
-                        bool? playable = await _videoProbe.IsPlayableAsync(file, ct);
-                        if (playable.HasValue)
-                        {
-                            _videoCache.Set(folder, file, playable.Value);
-                            if (!playable.Value) System.Threading.Interlocked.Increment(ref foundBad);
-                        }
-
-                        if (System.Threading.Interlocked.Increment(ref processed) % 50 == 0) _videoCache.Save();
-                    });
-
-                    _videoCache.Save();
-
-                    if (foundBad > 0)
-                    {
-                        Application.Current?.Dispatcher.BeginInvoke(new Action(UpdateActiveMediaPreviews));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"VideoScan: failed: {ex.Message}");
-                }
-            });
         }
 
         private static string? TryResolveMediaFile(string folder, string primaryRomName, string? fallbackRomName, string[] extensions)
@@ -3401,7 +3129,7 @@ namespace ArcadeStick.ViewModels
                 var target = ResolveCategoryTarget(category);
                 if (target == null) continue;
 
-                string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, SelectedGame.RomName, null, target.Value.extensions, true);
+                string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, SelectedGame.RomName, null, target.Value.extensions);
                 if (matchedPath != null)
                 {
                     foundMediaFile = matchedPath;
@@ -3419,7 +3147,7 @@ namespace ArcadeStick.ViewModels
                     var target = ResolveCategoryTarget(category);
                     if (target == null) continue;
 
-                    string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, SelectedGame.CloneOf, null, target.Value.extensions, true);
+                    string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, SelectedGame.CloneOf, null, target.Value.extensions);
                     if (matchedPath != null)
                     {
                         foundMediaFile = matchedPath;
@@ -3463,8 +3191,6 @@ namespace ArcadeStick.ViewModels
                 PreviewImage = null;
                 VideoSourcePath = string.Empty;
             }
-
-            RefreshVideoNeedsConversion();
         }
 
         // Resolves a static fallback image for the options-open state, walking the same PreviewPriorityOrder

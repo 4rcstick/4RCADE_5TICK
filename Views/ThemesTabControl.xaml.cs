@@ -2768,7 +2768,7 @@ namespace ArcadeStick.Views
             // Boot splash is the only asset that accepts gif/mp4 alongside a static image, since it can resolve
             // to a static image, an animated gif, or a looping video (see IsBootSplashGif/IsBootSplashVideo) -
             // every other browse button stays image-only. First filter entry is the default: all splash types.
-            // Main window background also accepts mp4 - played by MediaElement (not LibVLC) so it stays a normal
+            // Main window background also accepts mp4 - played by MediaElement so it stays a normal
             // WPF layer behind the panels. Needs H.264, 8-bit yuv420p to play on a stock Windows install.
             string dialogFilter = sender == BtnBrowseThemeBootSplash
                 ? "Splash Files (*.png;*.jpg;*.jpeg;*.gif;*.mp4)|*.png;*.jpg;*.jpeg;*.gif;*.mp4|Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|Animated GIF (*.gif)|*.gif|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*"

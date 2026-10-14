@@ -40,6 +40,10 @@ namespace ArcadeStick
         private bool _isTogglingMouseSupport;
         private bool _isOptionsWindowOpen;
 
+        // FFmpeg game-preview player: owns the runtime and the presenter that draws into
+        // VideoPreviewLayer.PreviewVideoSurface. Created right after the view model in the constructor.
+        private ArcadeStick.Playback.PreviewPlayerHost? _previewPlayer;
+
         // [SECTION: Folder Flyout State]
         // State for the shared Create/Rename folder-name Popup and the Choose Color Popup. Grouped here
         // rather than scattered near each handler since these fields are shared across several methods.
@@ -54,17 +58,17 @@ namespace ArcadeStick
         // [END SECTION: Folder Flyout State]
 
         public WGIService? GamepadService => _gamepadService;
-        // LibVLC players removed - preview and boot splash video now play through MediaElement.
+        // Game-preview video plays through the FFmpeg player (see _previewPlayer); the boot splash plays through MediaElement.
 
-        // Tracks which video path is currently loaded into BootSplashMediaPlayer, so
+        // Tracks which video path is currently loaded into the boot splash MediaElement, so
         // RefreshBootSplashVideo() can skip a redundant Stop()/reload when nothing has actually
         // changed (e.g. the RefreshThemeBindings() cascade firing on every Options close) instead of
         // unconditionally restarting playback.
         private string? _currentBootSplashPath;
 
-        // [SECTION: Constructor & LibVLC Setup]
-        // Initializes LibVLC (portable path if bundled, else system install), wires media player events,
-        // sets up the view model, and hooks window lifecycle + gamepad input.
+        // [SECTION: Constructor]
+        // Sets up the view model and the FFmpeg preview player, wires view-model events, and hooks
+        // window lifecycle + gamepad input.
         // Manual tooltip delay - WPF's built-in ToolTipService.BetweenShowDelay does not reliably
         // re-apply the full delay when the mouse moves quickly between adjacent elements (it favors
         // fast reshow instead), so ToolTipService is disabled entirely on any element using this and
@@ -85,23 +89,22 @@ namespace ArcadeStick
             _delayedTooltipTimer.Tick += DelayedTooltipTimer_Tick;
             _romCopyStatusTimer.Tick += RomCopyStatusTimer_Tick;
 
-            // LibVLC initialization and both LibVLC players removed - preview and boot splash video
-            // now play through MediaElement (see MediaPanelControl).
+            // Game-preview video plays through the FFmpeg player (created below, after the view model);
+            // the boot splash video plays through MediaElement.
 
             InitializeComponent();
-
-            // TEMPORARY test player: MediaElementPreview lives inside MediaPanelControl, so its loop/failure
-            // events are subscribed here in code instead of in that control's XAML.
-            VideoPreviewLayer.MediaElementPreview.MediaEnded += MediaElementPreview_MediaEnded;
-            VideoPreviewLayer.MediaElementPreview.MediaFailed += MediaElementPreview_MediaFailed;
 
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
 
+            // FFmpeg preview player. The surface Image lives in VideoPreviewLayer. If the DLLs fail to load,
+            // the host quietly does nothing and the preview slot just stays empty.
+            _previewPlayer = new ArcadeStick.Playback.PreviewPlayerHost(
+            _viewModel.Configuration.GetFfmpegRuntimeDirectory(), VideoPreviewLayer.PreviewVideoSurface);
+
             _romCopyService = new RomCopyService(_viewModel.Configuration);
 
             _viewModel.GameLaunchCompleted += RefreshVideoPreview;
-            _viewModel.ConvertAllVideosRequested += OpenBatchConvertWindow;
             _viewModel.GameLaunchCompleted += RestoreGameListScrollPosition;
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
             _viewModel.ThemeBindingsRefreshed += RefreshOptionsGearIconRestingColors;
@@ -159,8 +162,9 @@ namespace ArcadeStick
             };
 
             KeyDown += MainWindow_KeyDown;
+            Closing += MainWindow_Closing;
         }
-        // [END SECTION: Constructor & LibVLC Setup]
+        // [END SECTION: Constructor]
 
 
         // Called by Theme Builder after each committed Advanced edit so layers move live (nothing saved).
@@ -247,7 +251,6 @@ namespace ArcadeStick
                 { Models.LayerRegistry.GameInfoBody, GameInfoLayer.PartInfoBody },
                 { Models.LayerRegistry.ImagePreviewsNav, GameInfoLayer.PartPreviewsNav },
                 { Models.LayerRegistry.ImagePreviewsBody, GameInfoLayer.PartPreviewsBody },
-                { Models.LayerRegistry.VideoConvertPrompt, VideoConvertPromptLayer },
                 { Models.LayerRegistry.Footer, FooterPanel }
             };
 
@@ -277,6 +280,16 @@ namespace ArcadeStick
             ApplyCustomLayers(layout);
             ApplyRandomGameDisplayRect(layout);
             ApplyRandomGameDisplayFile(layout);
+
+            // The decoder follows the Video Preview layer's size, so a theme or layout-size change re-targets it.
+            UpdatePreviewTargetSize();
+
+            // If the theme just hid the Video Preview layer, stop decoding into it. When it is shown again,
+            // the next selection (or returning from a game) starts the preview as usual.
+            if (VideoPreviewLayer.Visibility != Visibility.Visible)
+            {
+                StopMediaElementPreview();
+            }
         }
         // [SECTION: Custom Image Layers]
         // One Image element per custom layer, created on demand and kept on LayoutCanvas. Rebuilt only when
@@ -702,12 +715,12 @@ namespace ArcadeStick
         // [END SECTION: TreeView Navigation / Flattening]
 
         // [SECTION: Video Preview & Media Cleanup]
-        // Manages the LibVLC VideoPreview control's visibility and playback state as game selection changes.
+        // Manages the FFmpeg preview player's visibility and playback state as game selection changes.
         // NOTE: known beta trade-off - preview stays black after returning from MAME until reselection.
 
         // Fired whenever the ViewModel's SelectedGame/VideoSourcePath actually resolves (post-debounce) -
         // starts/stops video preview here rather than in GameTree_SelectedItemChanged, so rapid gamepad
-        // scrolling doesn't trigger a LibVLC Media load on every intermediate step, only the final selection.
+        // scrolling doesn't start a video load on every intermediate step, only the final selection.
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(_viewModel.VideoSourcePath))
@@ -793,7 +806,7 @@ namespace ArcadeStick
             }
         }
 
-        // PlayVideoPreview (LibVLC) removed - StartActivePreview now drives MediaElementPreview directly.
+        // StartActivePreview / StopActivePreview drive the FFmpeg preview player (see the FFmpeg Preview Player section below).
 
         // Re-evaluates and restarts the video preview for the currently selected game (called after returning from a game launch)
         private void RefreshVideoPreview()
@@ -808,21 +821,23 @@ namespace ArcadeStick
             }
         }
 
-        // [SECTION: Video Player Test Toggle - TEMPORARY]
-        // Routes preview playback to whichever player the footer toggle has active (LibVLC VideoPreview or
-        // the MediaElementPreview test player), always stopping and hiding the other one first so only a
-        // single player is ever decoding. No fallback between them on failure - a MediaElement failure just
-        // leaves a blank preview and bumps the failure count, so the test shows the real failure rate.
+        // [SECTION: FFmpeg Preview Player]
+        // Game-preview video plays through the FFmpeg player (PreviewPlayerHost), drawing into the Image in
+        // VideoPreviewLayer. It loops on its own and is muted. If the runtime failed to load the host does
+        // nothing, so the slot just stays empty.
         private void StartActivePreview(string path)
         {
-            var mediaElement = VideoPreviewLayer.MediaElementPreview;
-            mediaElement.Stop();
-            mediaElement.Source = new Uri(path, UriKind.Absolute);
-            mediaElement.Visibility = Visibility.Visible;
-            mediaElement.Play();
+            if (_previewPlayer == null || !_previewPlayer.IsAvailable) return;
+
+            // A theme can hide the Video Preview layer; don't decode video nobody can see.
+            if (VideoPreviewLayer.Visibility != Visibility.Visible) return;
+
+            UpdatePreviewTargetSize();
+            VideoPreviewLayer.PreviewVideoSurface.Visibility = Visibility.Visible;
+            _previewPlayer.Play(path);
         }
 
-        // Stops and hides the preview player.
+        // Stops the preview player and hides its surface.
         private void StopActivePreview()
         {
             StopMediaElementPreview();
@@ -830,35 +845,34 @@ namespace ArcadeStick
 
         private void StopMediaElementPreview()
         {
-            var mediaElement = VideoPreviewLayer.MediaElementPreview;
-            mediaElement.Stop();
-            mediaElement.Source = null;
-            mediaElement.Visibility = Visibility.Collapsed;
+            _previewPlayer?.Stop();
+            VideoPreviewLayer.PreviewVideoSurface.Visibility = Visibility.Collapsed;
         }
 
-        // Loop: MediaElement has no built-in repeat, so rewind and keep playing (same as MainBgVideo)
-        private void MediaElementPreview_MediaEnded(object sender, RoutedEventArgs e)
+        // Tells the decoder how many pixels the Video Preview layer occupies (the theme's layer size,
+        // scaled by the screen DPI), so the picture is decoded at the size it is shown at.
+        private void UpdatePreviewTargetSize()
         {
-            var mediaElement = VideoPreviewLayer.MediaElementPreview;
-            mediaElement.Position = TimeSpan.Zero;
-            mediaElement.Play();
-        }
+            if (_previewPlayer == null) return;
 
-        // Unsupported codec / missing Media Foundation - stop and hide the preview so it shows blank
-        // instead of a frozen or black frame.
-        private void MediaElementPreview_MediaFailed(object? sender, ExceptionRoutedEventArgs e)
-        {
-            StopMediaElementPreview();
+            // The video slot sits inside the border ring, pulled in by (border thickness - 1) on each side
+            // (same rule as VideoPreviewLayerControl.ApplyClip), so decode to that inner size.
+            double inset = Math.Max(0, _viewModel.ThemeVideoBorderSize - 1);
+            double width = VideoPreviewLayer.Width - (inset * 2);
+            double height = VideoPreviewLayer.Height - (inset * 2);
+            if (double.IsNaN(width) || double.IsNaN(height) || width < 1 || height < 1) return;
+
+            var dpi = VisualTreeHelper.GetDpi(this);
+            _previewPlayer.SetTargetSize((int)Math.Round(width * dpi.DpiScaleX), (int)Math.Round(height * dpi.DpiScaleY));
         }
-        // [END SECTION: Video Player Test Toggle - TEMPORARY]
+        // [END SECTION: FFmpeg Preview Player]
 
         // Sets the idle/boot-splash media state at startup (no game selected, no video playing)
-        // Collapses and stops the video preview right as a spin begins - the RandomizerSpinMediaOverlay
-        // Border can't visually hide it on its own, since LibVLC's VideoView is backed by a real HWND
-        // that paints itself regardless of WPF Z-order (the same airspace issue noted elsewhere in this
-        // file). VideoPreview's visibility is otherwise owned entirely by ViewModel_PropertyChanged/
-        // RefreshVideoPreview/etc., so this only ever collapses it - the normal selection-change pipeline
-        // is what reveals it again once a winner is set (or leaves it collapsed if the winner has none).
+        // Stops and hides the video preview right as a spin begins, so the previous game's video doesn't
+        // keep playing under the spin animation. VideoPreview's visibility is otherwise owned entirely by
+        // ViewModel_PropertyChanged/RefreshVideoPreview/etc., so this only ever hides it - the normal
+        // selection-change pipeline is what reveals it again once a winner is set (or leaves it hidden if
+        // the winner has none).
         private void StopVideoPreviewForSpin()
         {
             StopActivePreview();
@@ -1082,7 +1096,7 @@ namespace ArcadeStick
             var selectedGameForFavorites = _viewModel.SelectedGame;
             // Deferred via Dispatcher.BeginInvoke: MenuItem.Click still fires from inside the ContextMenu
             // popup's own dismissal frame. Calling straight into AddGameToFavorites -> UpdateLiveTreeDisplay
-            // -> VlcMediaPlayer.Stop() from there hangs the UI thread (same class of issue as the
+            // -> the video preview stop from there could hang the UI thread (same class of issue as the
             // documented Options-close/splash-video collision, just a different popup boundary). Deferring
             // lets the popup fully tear down and control return to the normal message loop first.
             favoritesItem.Click += (s, args) =>
@@ -1169,7 +1183,7 @@ namespace ArcadeStick
 
             // Deferred for the same reason as the "Add to Folder" submenu items above - Click still fires
             // from inside the ContextMenu popup's own dismissal frame, and the tree rebuild this triggers
-            // touches VlcMediaPlayer.Stop().
+            // stops the video preview.
             var selectedGame = _viewModel.SelectedGame;
 
             if (string.Equals(folderName, "FAVORITES", StringComparison.OrdinalIgnoreCase))
@@ -1526,7 +1540,7 @@ namespace ArcadeStick
         // Confirms with the user (folder deletion only removes the folder mapping, never the games
         // themselves) before deleting. Deferred via Dispatcher.BeginInvoke for the same reason as the
         // other folder-action menu items - Click still fires from inside the ContextMenu popup's own
-        // dismissal frame, and the tree rebuild this triggers touches VlcMediaPlayer.Stop().
+        // dismissal frame, and the tree rebuild this triggers stops the video preview.
         // All four Move actions resolve the full nested path from _folderContextPlacementElement
         // (stashed by FolderRowContextMenu_Opened when the menu was opened) and hand off to
         // MainViewModel.MoveFolderInOrder, which owns all the actual order-file logic. Deferred via
@@ -1903,12 +1917,12 @@ namespace ArcadeStick
         // diagnostics, and refreshes theme bindings + the video preview once it closes.
         private void OpenOptionsWindow()
         {
-            // BootSplashMediaPlayer is intentionally left untouched here - no Pause() on open, no
+            // The boot splash video is intentionally left untouched here - no Pause() on open, no
             // restart on close. It was previously paused/resumed around the Options dialog, but the
             // resulting reload cascade (via RefreshThemeBindings() below re-raising IsBootSplashVideo)
-            // was traced to a native LibVLC hang. Letting it keep playing uninterrupted avoids the
+            // caused a hang with the old video player. Letting it keep playing uninterrupted avoids the
             // stop/restart calls entirely for the common case where nothing about it actually changed.
-            VideoPreviewLayer.MediaElementPreview.Pause();
+            _previewPlayer?.Pause();
 
             _isOptionsWindowOpen = true;
             _viewModel.IsOptionsWindowOpen = true;
@@ -1934,7 +1948,7 @@ namespace ArcadeStick
 
             // Resume rather than reload - the active player was paused (not stopped) on open, so Play() with
             // no arguments just continues from where it left off instead of restarting from the beginning
-            VideoPreviewLayer.MediaElementPreview.Play();
+            _previewPlayer?.Resume();
         }
 
         // Footer gear icon click handler - opens the Options window
@@ -1954,6 +1968,35 @@ namespace ArcadeStick
             sortingWindow.ShowDialog();
         }
         // [END SECTION: Sorting Window]
+
+        // [SECTION: Preview Player Shutdown]
+        // The first Closing is cancelled while the FFmpeg player stops and joins its workers (the native DLLs
+        // must not unload while they run). Close() is then queued again; awaiting may complete synchronously,
+        // so re-entering Close inside the Closing event itself would be invalid.
+        private bool _isClosingPreviewPlayer;
+        private bool _previewPlayerClosed;
+
+        private async void MainWindow_Closing(object? sender, CancelEventArgs e)
+        {
+            if (_previewPlayerClosed) return;
+
+            e.Cancel = true;
+            if (_isClosingPreviewPlayer) return;
+            _isClosingPreviewPlayer = true;
+            IsEnabled = false;
+
+            try
+            {
+                if (_previewPlayer != null) await _previewPlayer.CloseAsync();
+            }
+            catch
+            {
+            }
+
+            _previewPlayerClosed = true;
+            _ = Dispatcher.BeginInvoke(new Action(Close));
+        }
+        // [END SECTION: Preview Player Shutdown]
 
         // [SECTION: Fullscreen Toggle]
         // Shared by the F11 hotkey and the hamburger menu's "Toggle Fullscreen" item so the two can't drift apart.
@@ -2189,15 +2232,6 @@ namespace ArcadeStick
             Dispatcher.BeginInvoke(new Action(() => ToggleFullscreen()));
         }
         // [END SECTION: Hamburger Menu]
-
-        // [SECTION: Batch Video Converter Window]
-        // Opened by the footer bubble's CONVERT ALL link (MainViewModel.ConvertAllVideosRequested).
-        private void OpenBatchConvertWindow()
-        {
-            var batchWindow = new Views.BatchConvertWindow(_viewModel) { Owner = this };
-            batchWindow.ShowDialog();
-        }
-        // [END SECTION: Batch Video Converter Window]
 
         // [SECTION: Options Gear Icon Hover]
         // Swaps the gear badge's background between the games list background and games list hover
