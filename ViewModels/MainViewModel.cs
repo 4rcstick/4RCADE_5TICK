@@ -54,9 +54,10 @@ namespace ArcadeStick.ViewModels
         private readonly CacheScannerService _cacheService;
         private readonly ProcessLaunchService _launchService;
         private readonly ArtworkScraperService _scraperService;
+        private readonly VideoCacheService _videoCache;
+        private readonly VideoConversionService _videoProbe;
 
-        // In-flight guard for the context-menu "Get Artwork" trigger - prevents rapid-fire clicking
-        // from stacking parallel requests for the same romname. Not used by the launch trigger, since
+        // In-flight guard for the context-menu "Get Artwork" trigger - prevents rapid-fire clicking// from stacking parallel requests for the same romname. Not used by the launch trigger, since
         // a game can only be launched once at a time anyway.
         private readonly HashSet<string> _scraperInFlightRoms = new(StringComparer.OrdinalIgnoreCase);
         private readonly VirtualCategorySortService _sortService;
@@ -168,6 +169,9 @@ namespace ArcadeStick.ViewModels
                         Configuration.ScraperOverwriteExisting = loadedSettings.ScraperOverwriteExisting;
 
                         Configuration.RomCopyDestinationPath = loadedSettings.RomCopyDestinationPath;
+
+                        Configuration.ShowGuideLines = loadedSettings.ShowGuideLines;
+                        Configuration.GuideLineColorHex = loadedSettings.GuideLineColorHex;
                     }
                 }
                 catch
@@ -177,7 +181,11 @@ namespace ArcadeStick.ViewModels
 
             _cacheService = new CacheScannerService(Configuration);
             _launchService = new ProcessLaunchService(Configuration);
-            _scraperService = new ArtworkScraperService(Configuration);
+            _videoCache = new VideoCacheService(Configuration);
+            _videoCache.Load();
+            _videoProbe = new VideoConversionService(Configuration);
+            StartVideoScan();
+            _scraperService = new ArtworkScraperService(Configuration, _videoCache);
             _sortService = new VirtualCategorySortService(Configuration);
             _historyService = new HistoryXmlService(Configuration);
             _wikiService = new GameInfoService(Configuration);
@@ -192,10 +200,14 @@ namespace ArcadeStick.ViewModels
 
             RefreshCacheCommand = new RelayCommand(async _ => await InitializeDatabaseAsync());
             LaunchGameCommand = new RelayCommand(async param => await ExecuteLaunchAsync(param));
+            DismissVideoPromptCommand = new RelayCommand(_ => DismissVideoPrompt());
+            ConvertThisVideoCommand = new RelayCommand(async _ => await ConvertSelectedVideoAsync());
+            ConvertAllVideosCommand = new RelayCommand(_ => ConvertAllVideosRequested?.Invoke());
 
             LoadFavoritesFromDisk();
             LoadMouseSupportFromDisk();
             LoadPreviewOrderConfig();
+            LoadSavedThemeSnapshot();
 
             // Fresh install (settings.json didn't exist above) or any other case where no theme is
             // active - extract and apply the bundled default.zip through the same pipeline a user-saved
@@ -210,6 +222,54 @@ namespace ArcadeStick.ViewModels
             RefreshThemeBindings();
         }
         // [END SECTION: Constructor & Settings Load]
+
+        // [SECTION: Saved Theme Snapshot]
+        // On a normal launch the theme isn't loaded through LoadTheme (settings come from settings.json),
+        // so the restore point and the Theme sizes row would be empty until a theme was loaded by hand.
+        // This reads the active theme's zip directly (no extraction) and fills the snapshot from it.
+        private void LoadSavedThemeSnapshot()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(Configuration.ActiveThemeName)) return;
+
+                string themeFile = Configuration.GetThemePath(Configuration.ActiveThemeName);
+                if (!File.Exists(themeFile)) return;
+
+                using var zip = ZipFile.OpenRead(themeFile);
+                var entry = zip.GetEntry("theme.json") ?? zip.GetEntry("theme.cfg");
+                if (entry == null) return;
+
+                using var reader = new StreamReader(entry.Open());
+                var themeData = System.Text.Json.JsonSerializer.Deserialize<ThemeSettings>(reader.ReadToEnd());
+                if (themeData == null) return;
+
+                var snapshotLayouts = ConfigurationSettings.CloneLayouts(themeData.Layouts ?? new List<ThemeLayout>());
+
+                // Custom layer images are archive-relative in the zip. Point them at the extracted copy that
+                // LoadTheme made (same rewrite as LoadTheme), so Reset Layer / Reset Layout restore working paths.
+                string snapshotExtractDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes", "Extracted", Configuration.ActiveThemeName);
+                foreach (var customEntry in snapshotLayouts.SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
+                {
+                    if (string.IsNullOrWhiteSpace(customEntry.ImagePath) || Path.IsPathRooted(customEntry.ImagePath)) continue;
+
+                    string absolutePath = Path.Combine(snapshotExtractDir, customEntry.ImagePath.Replace('/', Path.DirectorySeparatorChar));
+                    customEntry.ImagePath = Path.GetRelativePath(Configuration.BaseDirectory, absolutePath);
+                }
+
+                Configuration.SavedThemeLayouts = snapshotLayouts;
+
+                if (themeData.ActiveWidth > 0 && themeData.ActiveHeight > 0)
+                {
+                    Configuration.SavedThemeWidth = themeData.ActiveWidth;
+                    Configuration.SavedThemeHeight = themeData.ActiveHeight;
+                }
+            }
+            catch
+            {
+            }
+        }
+        // [END SECTION: Saved Theme Snapshot]
 
         // [SECTION: Preview Order Config]
         // Loads (or creates with defaults) preview_order.cfg, which controls the priority order media
@@ -368,6 +428,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(IsCategorySortEnabled));
             PersistConfigurationToDisk();
             UpdateLiveTreeDisplay();
+            RebuildRandomizerPoolCache();
         }
 
         // Debounces search input 400ms before rebuilding the tree, so the tree isn't rebuilt on every keystroke
@@ -435,6 +496,9 @@ namespace ArcadeStick.ViewModels
                     // without duplicating this logic.
                     RefreshHistoryPanelsForSelectedGame(value);
                     HasActiveMedia = ResolveHasActiveMediaImmediate();
+                    PreviewImage = null;
+                    VideoSourcePath = string.Empty;
+                    SetSelectedVideoNeedsConversion(false, string.Empty);
                     PreviewImage = null;
                     VideoSourcePath = string.Empty;
 
@@ -543,7 +607,7 @@ namespace ArcadeStick.ViewModels
                         continue;
                 }
 
-                if (TryResolveMediaFile(targetFolder, SelectedGame.RomName, SelectedGame.CloneOf, extensions) != null)
+                if (TryResolveMediaFileChecked(targetFolder, SelectedGame.RomName, SelectedGame.CloneOf, extensions, false) != null)
                 {
                     return true;
                 }
@@ -581,6 +645,9 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+        // Video player toggle removed - MediaElement is now the only video player.
+        // [END SECTION: Video Player Test Toggle - TEMPORARY]
+
         public bool IsGameSelected => SelectedGame != null;
 
         private bool _isOptionsWindowOpen;
@@ -610,6 +677,160 @@ namespace ArcadeStick.ViewModels
                 }
             }
         }
+        // [SECTION: Video Conversion Prompt]
+        // Drives the footer bubble: shown when the selected game has a video the probe cache marked
+        // unplayable (so the game is showing artwork instead). Dismissing hides it for every game until
+        // the next launch - session-only, deliberately not persisted.
+        private bool _selectedVideoNeedsConversion;
+        private bool _videoPromptDismissed;
+        private string _badVideoPath = string.Empty;
+
+        // Hidden while a conversion is running - a separate "converting" bubble (bound to IsConvertingVideo)
+        // takes its place, and it stays up even if the selection changes mid-conversion.
+        public bool ShowVideoConversionPrompt => !_isConvertingVideo && _selectedVideoNeedsConversion && !_videoPromptDismissed;
+
+        private bool _isConvertingVideo;
+        public bool IsConvertingVideo
+        {
+            get => _isConvertingVideo;
+            private set
+            {
+                if (_isConvertingVideo != value)
+                {
+                    _isConvertingVideo = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ShowVideoConversionPrompt));
+                }
+            }
+        }
+
+        // Converts the selected game's unplayable video in place: the original is archived to an "originals"
+        // subfolder of the videos folder only after the new file is ready. A video the cache marks unplayable
+        // is never loaded by the player (the game shows artwork), so the file isn't locked during the swap.
+        private async Task ConvertSelectedVideoAsync()
+        {
+            if (_isConvertingVideo || string.IsNullOrEmpty(_badVideoPath)) return;
+
+            string sourcePath = _badVideoPath;
+            IsConvertingVideo = true;
+
+            try
+            {
+                await ConvertVideoInPlaceAsync(sourcePath);
+            }
+            finally
+            {
+                IsConvertingVideo = false;
+                UpdateActiveMediaPreviews();
+            }
+        }
+
+        public ICommand DismissVideoPromptCommand { get; }
+        public ICommand ConvertThisVideoCommand { get; }
+        public ICommand ConvertAllVideosCommand { get; }
+
+        private void SetSelectedVideoNeedsConversion(bool value, string badPath)
+        {
+            _badVideoPath = badPath;
+            if (_selectedVideoNeedsConversion == value) return;
+
+            _selectedVideoNeedsConversion = value;
+            OnPropertyChanged(nameof(ShowVideoConversionPrompt));
+        }
+
+        // Called after the previews resolve. If the game ended up showing a playable video (or nothing is
+        // selected) there's nothing to convert; otherwise look for a cached-unplayable video under the
+        // game's own ROM name, then its clone parent's.
+        private void RefreshVideoNeedsConversion()
+        {
+            if (SelectedGame == null || !string.IsNullOrEmpty(VideoSourcePath))
+            {
+                SetSelectedVideoNeedsConversion(false, string.Empty);
+                return;
+            }
+
+            string folder = GetVideosFolder();
+            var romNames = new List<string> { SelectedGame.RomName };
+            if (!string.IsNullOrEmpty(SelectedGame.CloneOf)) romNames.Add(SelectedGame.CloneOf!);
+
+            foreach (string romName in romNames)
+            {
+                foreach (string ext in new[] { ".mp4", ".avi" })
+                {
+                    string path = Path.Combine(folder, romName + ext);
+                    if (File.Exists(path) && _videoCache.TryGetStatus(folder, path) == false)
+                    {
+                        SetSelectedVideoNeedsConversion(true, path);
+                        return;
+                    }
+                }
+            }
+
+            SetSelectedVideoNeedsConversion(false, string.Empty);
+        }
+
+        private void DismissVideoPrompt()
+        {
+            _videoPromptDismissed = true;
+            OnPropertyChanged(nameof(ShowVideoConversionPrompt));
+        }
+        // Raised by the footer bubble's CONVERT ALL link - MainWindow opens the batch converter window.
+        public event Action? ConvertAllVideosRequested;
+
+        // Every video in the videos folder (top level only, so the "originals" archive is ignored) that the
+        // probe cache currently marks unplayable.
+        public List<string> GetUnplayableVideoPaths()
+        {
+            var result = new List<string>();
+            string folder = GetVideosFolder();
+            if (!Directory.Exists(folder)) return result;
+
+            foreach (string file in Directory.EnumerateFiles(folder))
+            {
+                if (IsVideoFile(file) && _videoCache.TryGetStatus(folder, file) == false)
+                {
+                    result.Add(file);
+                }
+            }
+
+            result.Sort(StringComparer.OrdinalIgnoreCase);
+            return result;
+        }
+
+        // Converts one library video in place (original archived to "originals" on success) and updates the
+        // cache. Returns true on success, false on failure. Cancellation is rethrown to the caller.
+        public async Task<bool> ConvertVideoInPlaceAsync(string sourcePath, System.Threading.CancellationToken ct = default)
+        {
+            string folder = GetVideosFolder();
+
+            try
+            {
+                string? newPath = await _videoProbe.ConvertInPlaceAsync(sourcePath, Path.Combine(folder, "originals"), ct);
+                if (newPath == null) return false;
+
+                _videoCache.Remove(folder, sourcePath);
+                _videoCache.Set(folder, newPath, true);
+                _videoCache.Save();
+                return true;
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"VideoConvert: failed for {sourcePath}: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Re-resolves the selected game's preview after a batch run (a converted video may now play).
+        public void RefreshAfterBatchConversion()
+        {
+            UpdateActiveMediaPreviews();
+        }
+        // [END SECTION: Video Conversion Prompt]
+
         // [END SECTION: Selection & Media State Properties]
 
         // [SECTION: Theme Property Forwarders]
@@ -715,12 +936,22 @@ namespace ArcadeStick.ViewModels
         // [SECTION: Theme Wallpaper & Asset Loading]
         // Resolves theme-configured image paths to ImageSource, falling back to bundled defaults in
         // 4rcade5tick_files/assets when a theme doesn't specify its own asset.
-        public ImageSource? ThemeMainWallpaper => Configuration.DisableMainBgImage
-            ? null
-            : LoadThemeImage(
-                !string.IsNullOrWhiteSpace(Configuration.MainWindowWallpaper)
-                    ? Configuration.MainWindowWallpaper
-                    : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_background.png"));
+        public ImageSource? ThemeMainWallpaper => (Configuration.DisableMainBgImage || IsMainWallpaperVideo)
+    ? null
+    : LoadThemeImage(
+        !string.IsNullOrWhiteSpace(Configuration.MainWindowWallpaper)
+            ? Configuration.MainWindowWallpaper
+            : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_background.png"));
+
+        // True when the main window wallpaper is an mp4 - played by WPF's MediaElement (NOT LibVLC), since
+        // MediaElement renders as a normal WPF element that respects z-order and can sit behind every panel.
+        // Respects the "Disable Main Window Background Image" checkbox the same way the image wallpaper does.
+        public bool IsMainWallpaperVideo => !Configuration.DisableMainBgImage
+            && !string.IsNullOrWhiteSpace(Configuration.MainWindowWallpaper)
+            && Path.GetExtension(Configuration.MainWindowWallpaper).Equals(".mp4", StringComparison.OrdinalIgnoreCase);
+
+        // Full resolved path for the MediaElement wallpaper; null unless the wallpaper is an mp4 that exists on disk
+        public string? ThemeMainWallpaperVideoPath => IsMainWallpaperVideo ? ResolveThemeFilePath(Configuration.MainWindowWallpaper) : null;
         public ImageSource? ThemeGamesWallpaper => LoadThemeImage(Configuration.GamesListWallpaper);
 
         public ImageSource? ThemeMarqueeWallpaper => LoadThemeImage(Configuration.MarqueeWindowWallpaper);
@@ -760,9 +991,95 @@ namespace ArcadeStick.ViewModels
         // File path for the LibVLC VideoView when the boot splash resolves to an mp4; null when it's a png
         public string? ThemeBootSplashVideoPath => IsBootSplashVideo ? ResolveBootSplashPath() : null;
 
-        // Bitmap for the boot splash Image/ImageBrush when it resolves to a png; null when it's an mp4
-        public ImageSource? ThemeBootSplashAsset => IsBootSplashVideo ? null : LoadThemeImage(ResolveBootSplashPath());
+        // True when the resolved boot splash asset is animated - any .gif, or a .png that is actually an APNG.
+        // Routed to its own AnimatedImage.Wpf-driven Image layer instead of the ImageBrush background, since
+        // WPF's built-in decoding only shows the first frame. Static pngs stay on the ImageBrush (keeps corner clipping).
+        public bool IsBootSplashAnimated
+        {
+            get
+            {
+                string? fullPath = ResolveThemeFilePath(ResolveBootSplashPath());
+                if (fullPath == null) return false;
 
+                string ext = Path.GetExtension(fullPath);
+                if (ext.Equals(".gif", StringComparison.OrdinalIgnoreCase)) return true;
+                if (ext.Equals(".png", StringComparison.OrdinalIgnoreCase)) return IsAnimatedPng(fullPath);
+                return false;
+            }
+        }
+
+        // Bitmap for the boot splash ImageBrush when it resolves to a static image (png/jpg); null for mp4 and animated
+        public ImageSource? ThemeBootSplashAsset => (IsBootSplashVideo || IsBootSplashAnimated) ? null : LoadThemeImage(ResolveBootSplashPath());
+
+        // Source for the animated splash layer; null unless the splash is animated. Loaded by file Uri (not a
+        // memory stream like LoadThemeImage) since that's the form AnimatedImage.Wpf documents for its decoder.
+        public ImageSource? ThemeBootSplashAnimatedAsset
+        {
+            get
+            {
+                if (!IsBootSplashAnimated) return null;
+                string? fullPath = ResolveThemeFilePath(ResolveBootSplashPath());
+                if (fullPath == null) return null;
+
+                try
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(fullPath, UriKind.Absolute);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    return bitmap;
+                }
+                catch { return null; }
+            }
+        }
+
+        // Same relative-to-BaseDirectory resolution LoadThemeImage uses; returns null if the file doesn't exist.
+        private string? ResolveThemeFilePath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return null;
+            try
+            {
+                string cleanPath = path;
+                if (!Path.IsPathRooted(cleanPath))
+                {
+                    if (cleanPath.StartsWith(@".\")) cleanPath = cleanPath.Substring(2);
+                    cleanPath = Path.GetFullPath(Path.Combine(Configuration.BaseDirectory, cleanPath));
+                }
+                return File.Exists(cleanPath) ? cleanPath : null;
+            }
+            catch { return null; }
+        }
+
+        // APNG detection: an animated png carries an "acTL" chunk BEFORE its first "IDAT" chunk. Walks the chunk
+        // headers only (skipping chunk data), so it reads a few hundred bytes at most, not the whole file.
+        private static bool IsAnimatedPng(string fullPath)
+        {
+            try
+            {
+                using var stream = File.OpenRead(fullPath);
+                using var reader = new BinaryReader(stream);
+
+                // 8-byte PNG signature
+                byte[] signature = reader.ReadBytes(8);
+                if (signature.Length < 8 || signature[0] != 0x89 || signature[1] != 0x50) return false;
+
+                while (stream.Position + 8 <= stream.Length)
+                {
+                    byte[] lengthBytes = reader.ReadBytes(4);
+                    int chunkLength = (lengthBytes[0] << 24) | (lengthBytes[1] << 16) | (lengthBytes[2] << 8) | lengthBytes[3];
+                    string chunkType = System.Text.Encoding.ASCII.GetString(reader.ReadBytes(4));
+
+                    if (chunkType == "acTL") return true;
+                    if (chunkType == "IDAT" || chunkType == "IEND") return false;
+                    if (chunkLength < 0) return false;
+
+                    stream.Seek(chunkLength + 4, SeekOrigin.Current); // skip chunk data + CRC
+                }
+            }
+            catch { }
+            return false;
+        }
         public ImageSource? ThemeMissingPreviewAsset => LoadThemeImage(
             !string.IsNullOrWhiteSpace(Configuration.ThemeMissingPreview)
                 ? Configuration.ThemeMissingPreview
@@ -910,6 +1227,8 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeHeaderColor));
             OnPropertyChanged(nameof(ThemeSubHeaderColor));
             OnPropertyChanged(nameof(ThemeMainWallpaper));
+            OnPropertyChanged(nameof(IsMainWallpaperVideo));
+            OnPropertyChanged(nameof(ThemeMainWallpaperVideoPath));
             OnPropertyChanged(nameof(ThemeGamesWallpaper));
             OnPropertyChanged(nameof(ThemeMarqueeWallpaper));
             OnPropertyChanged(nameof(ThemeMediaWallpaper));
@@ -917,6 +1236,8 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeBootSplashAsset));
             OnPropertyChanged(nameof(IsBootSplashVideo));
             OnPropertyChanged(nameof(ThemeBootSplashVideoPath));
+            OnPropertyChanged(nameof(IsBootSplashAnimated));
+            OnPropertyChanged(nameof(ThemeBootSplashAnimatedAsset));
             OnPropertyChanged(nameof(ThemeMissingPreviewAsset));
 
             RefreshFolderColorsLive();
@@ -994,6 +1315,10 @@ namespace ArcadeStick.ViewModels
         // Asset paths are rewritten relative to Configuration.BaseDirectory rather than left absolute -
         // matches ResolveAssetAbsolutePath's existing expectation on the Save side, and keeps settings.json
         // portable across USB drive-letter changes.
+        // Raised just before LoadTheme deletes and re-extracts a theme's Extracted folder, so MainWindow can
+        // release any custom layer files (video, animated images) that are still open from it.
+        public event Action? ThemeExtractionStarting;
+
         public bool LoadTheme(string themeName)
         {
             string themeFile = Configuration.GetThemePath(themeName);
@@ -1002,11 +1327,17 @@ namespace ArcadeStick.ViewModels
             string extractDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes", "Extracted", themeName);
             if (Directory.Exists(extractDir))
             {
+                ThemeExtractionStarting?.Invoke();
                 Directory.Delete(extractDir, recursive: true);
             }
             ZipFile.ExtractToDirectory(themeFile, extractDir);
 
-            string jsonString = File.ReadAllText(Path.Combine(extractDir, "theme.cfg"));
+            // New themes store theme.json; older ones store theme.cfg (same JSON content). Prefer the new
+            // name and fall back so existing themes, including the bundled default.zip, keep loading.
+            string themeJsonPath = Path.Combine(extractDir, "theme.json");
+            if (!File.Exists(themeJsonPath)) themeJsonPath = Path.Combine(extractDir, "theme.cfg");
+
+            string jsonString = File.ReadAllText(themeJsonPath);
             var themeData = System.Text.Json.JsonSerializer.Deserialize<ThemeSettings>(jsonString);
             if (themeData == null) return false;
 
@@ -1139,6 +1470,30 @@ namespace ArcadeStick.ViewModels
             Configuration.BtnBorderColorHex = themeData.BtnBorderColorHex;
             Configuration.BtnTextColorNormalHex = themeData.BtnTextColorNormalHex;
             Configuration.BtnBgColorHoverHex = themeData.BtnBgColorHoverHex;
+
+            // Layouts come from the theme file; any resolution or layer not saved there falls back to
+            // LayerRegistry defaults at resolve time. The active resolution (a user choice stored in
+            // settings.json) is deliberately left alone.
+            // Custom layer images are stored archive-relative in the theme file; point them at the extracted
+            // copy (same rewrite as the 7 asset properties above). A rooted path means the file was missing
+            // at save time and is left untouched.
+            foreach (var customEntry in (themeData.Layouts ?? new List<ThemeLayout>()).SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
+            {
+                customEntry.ImagePath = RewriteAssetPath(customEntry.ImagePath);
+            }
+            Configuration.Layouts = themeData.Layouts ?? new List<ThemeLayout>();
+
+            // The window follows the theme: switch to the size the theme was saved at (older themes keep the current size)
+            if (themeData.ActiveWidth > 0 && themeData.ActiveHeight > 0)
+            {
+                Configuration.ActiveResolutionWidth = themeData.ActiveWidth;
+                Configuration.ActiveResolutionHeight = themeData.ActiveHeight;
+            }
+
+            // Restore point for Reset Layer / Reset Layout: an independent copy of what the theme file holds.
+            Configuration.SavedThemeLayouts = ConfigurationSettings.CloneLayouts(Configuration.Layouts);
+            Configuration.SavedThemeWidth = Configuration.ActiveResolutionWidth;
+            Configuration.SavedThemeHeight = Configuration.ActiveResolutionHeight;
 
             RefreshThemeBindings();
             RefreshGameColorsLive();
@@ -1470,6 +1825,7 @@ namespace ArcadeStick.ViewModels
                     }
 
                     UpdateLiveTreeDisplay();
+                    RebuildRandomizerPoolCache();
                 });
 
                 // Stage 2 stub resolution: builds the CloneOf-based lineage index used to auto-resolve
@@ -1512,6 +1868,49 @@ namespace ArcadeStick.ViewModels
         private const int RandomizerMinFillerFrames = 15;
         private const int RandomizerMaxFillerFrames = 25;
 
+        // Cached randomizer pool (full eligible list, before the one-spin cooldown is applied). Rebuilt on a
+        // background thread whenever its inputs change, so the die click only needs a size check and random
+        // picks instead of re-running the full family/filter resolution over the whole collection.
+        // _randomizerPoolVersion lets a stale background result be discarded if another rebuild started
+        // while it was still running.
+        private List<GameItem>? _randomizerPoolCache;
+        private int _randomizerPoolVersion;
+
+        public void RebuildRandomizerPoolCache()
+        {
+            _randomizerPoolCache = null;
+            int version = ++_randomizerPoolVersion;
+
+            // Snapshot everything the background work reads while still on the UI thread.
+            var gamesSnapshot = GamesCollection.ToList();
+            var filterOptions = BuildSortFilterOptions();
+
+            _ = Task.Run(() =>
+            {
+                var visibleRomNames = _sortService.GetRandomizerPool(gamesSnapshot, filterOptions);
+                var pool = gamesSnapshot.Where(g => visibleRomNames.Contains(g.RomName)).ToList();
+
+                Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (version == _randomizerPoolVersion)
+                    {
+                        _randomizerPoolCache = pool;
+                    }
+                }), DispatcherPriority.ApplicationIdle);
+            });
+        }
+
+        // Returns the cached pool if it's ready; otherwise builds it on the spot (the old behavior) and
+        // stores it, so a click that beats the background rebuild is slower but never wrong or empty.
+        private List<GameItem> GetRandomizerPoolList()
+        {
+            if (_randomizerPoolCache != null) return _randomizerPoolCache;
+
+            var visibleRomNames = _sortService.GetRandomizerPool(GamesCollection, BuildSortFilterOptions());
+            _randomizerPoolCache = GamesCollection.Where(g => visibleRomNames.Contains(g.RomName)).ToList();
+            return _randomizerPoolCache;
+        }
+
         // Builds one full spin: sources the pool via GetRandomizerPool (always evaluates as if Base
         // Filter were on, regardless of its actual current checkbox state), locks in a winner first, then
         // generates filler frames as independent random draws from that same pool (duplicates allowed -
@@ -1520,10 +1919,7 @@ namespace ArcadeStick.ViewModels
         // cooldown), provided doing so wouldn't drop the pool below the minimum.
         public RandomizerSpinResult? GenerateRandomizerSpin()
         {
-            var filterOptions = BuildSortFilterOptions();
-            var visibleRomNames = _sortService.GetRandomizerPool(GamesCollection, filterOptions);
-
-            var pool = GamesCollection.Where(g => visibleRomNames.Contains(g.RomName)).ToList();
+            var pool = GetRandomizerPoolList();
 
             if (_lastRandomizerWinnerRomName != null && pool.Count > RandomizerMinimumPoolSize)
             {
@@ -1579,10 +1975,7 @@ namespace ArcadeStick.ViewModels
         // never burns a cooldown slot.
         public bool IsRandomizerPoolEligible()
         {
-            var filterOptions = BuildSortFilterOptions();
-            var visibleRomNames = _sortService.GetRandomizerPool(GamesCollection, filterOptions);
-            int poolCount = GamesCollection.Count(g => visibleRomNames.Contains(g.RomName));
-            return poolCount >= RandomizerMinimumPoolSize;
+            return GetRandomizerPoolList().Count >= RandomizerMinimumPoolSize;
         }
         // [END SECTION: Play Random Game - Pool & Spin Generation]
 
@@ -1667,6 +2060,72 @@ namespace ArcadeStick.ViewModels
         // subscribe to this.
         public event Action<GameItem>? RandomizerSpinCompleted;
 
+        // Winner blink: after the last frame lands, the winner's marquee blinks off/on before the overlay
+        // lifts. Runs while IsRandomizerSpinning is still true, so the overlay and the die-click guard
+        // stay active with no extra flag. Each blink is one hide step plus one show step.
+        private const int RandomizerWinnerBlinkCount = 3;
+        private const int RandomizerWinnerBlinkStepMs = 250;
+        private DispatcherTimer? _randomizerBlinkTimer;
+        private int _randomizerBlinkStepsRemaining;
+
+        private bool _isRandomizerBlinkHidden;
+        public bool IsRandomizerBlinkHidden
+        {
+            get => _isRandomizerBlinkHidden;
+            private set
+            {
+                if (_isRandomizerBlinkHidden != value)
+                {
+                    _isRandomizerBlinkHidden = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private void StartRandomizerWinnerBlink()
+        {
+            _randomizerBlinkStepsRemaining = (RandomizerWinnerBlinkCount * 2) - 1;
+            IsRandomizerBlinkHidden = true;
+
+            _randomizerBlinkTimer?.Stop();
+            _randomizerBlinkTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(RandomizerWinnerBlinkStepMs) };
+            _randomizerBlinkTimer.Tick += RandomizerBlinkTimer_Tick;
+            _randomizerBlinkTimer.Start();
+        }
+
+        private void RandomizerBlinkTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_randomizerBlinkStepsRemaining <= 0)
+            {
+                _randomizerBlinkTimer?.Stop();
+                FinishRandomizerSpin();
+                return;
+            }
+
+            IsRandomizerBlinkHidden = !IsRandomizerBlinkHidden;
+            _randomizerBlinkStepsRemaining--;
+        }
+
+        // The original end-of-spin logic, moved here unchanged so it can run after the blink instead of
+        // immediately on the last frame.
+        private void FinishRandomizerSpin()
+        {
+            IsRandomizerBlinkHidden = false;
+            IsRandomizerSpinning = false;
+            var winner = _randomizerCurrentFrameGame;
+            if (winner != null)
+            {
+                // Set the real selection and resolve its media immediately, bypassing the normal
+                // 600ms preview debounce (which exists to avoid reloading media on every rapid
+                // arrow-key press while browsing - not applicable to a single deterministic landing
+                // event).
+                SelectedGame = winner;
+                UpdateActiveMediaPreviews();
+
+                RandomizerSpinCompleted?.Invoke(winner);
+            }
+        }
+
         // Entry point called after the user confirms "Spin" in the confirm popup. Generates the spin
         // (winner + filler sequence), then drives a DispatcherTimer through the sequence with a
         // decelerating interval, swapping RandomizerFrameMarqueeImage on each tick. Deliberately does NOT
@@ -1706,21 +2165,9 @@ namespace ArcadeStick.ViewModels
 
             if (_randomizerFrameSequence == null || _randomizerFrameIndex >= _randomizerFrameSequence.Count)
             {
-                IsRandomizerSpinning = false;
-                var winner = _randomizerCurrentFrameGame;
-                if (winner != null)
-                {
-                    // Set the real selection and resolve its media immediately, bypassing the normal
-                    // 600ms preview debounce (which exists to avoid reloading media on every rapid
-                    // arrow-key press while browsing - not applicable to a single deterministic landing
-                    // event). This is what lets the real marquee/media panels show the winner correctly
-                    // the instant our spin overlays hide, with no separate "locked" overlay state needed.
-                    SelectedGame = winner;
-                    UpdateActiveMediaPreviews();
-
-                    IsRandomizerResultShowing = true;
-                    RandomizerSpinCompleted?.Invoke(winner);
-                }
+                // The last frame (the winner) is already showing - blink it, then FinishRandomizerSpin
+                // lifts the overlay and applies the real selection.
+                StartRandomizerWinnerBlink();
                 return;
             }
 
@@ -2022,7 +2469,7 @@ namespace ArcadeStick.ViewModels
                 // folder) is currently rendering it - both branches already funnel through this same
                 // eligibility/dedup source, so it's the single correct number regardless of toggle state.
                 int filteredGameCount = _sortService.ResolveVisibleFamilyMembers(GamesCollection, sortFilterOptions).Count;
-                FilteredGameCountText = $"Game Pool: {filteredGameCount:N0} Games";
+                FilteredGameCountText = $"{filteredGameCount:N0}";
 
                 string configDir = Configuration.GetConfigPath();
                 string playlistsDir = Path.Combine(configDir, "playlists");
@@ -2752,6 +3199,134 @@ namespace ArcadeStick.ViewModels
             CabinetImage = cabinetPath != null ? LoadBitmapFromFile(cabinetPath) : null;
         }
 
+        // [SECTION: Video Probe Cache]
+        private readonly HashSet<string> _videoProbesInFlight = new(StringComparer.OrdinalIgnoreCase);
+
+        private string GetVideosFolder()
+        {
+            return Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.VideosPath) ? "videos" : Configuration.VideosPath);
+        }
+
+        private static bool IsVideoFile(string path)
+        {
+            return path.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".avi", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Same lookup order as TryResolveMediaFile, but a video the cache has marked unplayable is skipped,
+        // so the game falls through to its artwork. Videos the cache doesn't know yet still play, and (when
+        // queueProbe is set) get probed in the background so the result is known for next time.
+        private string? TryResolveMediaFileChecked(string folder, string primaryRomName, string? fallbackRomName, string[] extensions, bool queueProbe)
+        {
+            var romNames = new List<string> { primaryRomName };
+            if (!string.IsNullOrEmpty(fallbackRomName)) romNames.Add(fallbackRomName);
+
+            foreach (string romName in romNames)
+            {
+                foreach (var ext in extensions)
+                {
+                    string testPath = Path.Combine(folder, $"{romName}{ext}");
+                    if (!File.Exists(testPath)) continue;
+
+                    if (IsVideoFile(testPath))
+                    {
+                        bool? status = _videoCache.TryGetStatus(folder, testPath);
+                        if (status == false) continue;
+                        if (status == null && queueProbe) QueueVideoProbe(folder, testPath);
+                    }
+
+                    return testPath;
+                }
+            }
+
+            return null;
+        }
+
+        // Probes one unknown video off the UI thread. If it turns out to be bad, the previews are refreshed
+        // so the game switches to its artwork.
+        private void QueueVideoProbe(string folder, string path)
+        {
+            lock (_videoProbesInFlight)
+            {
+                if (!_videoProbesInFlight.Add(path)) return;
+            }
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    bool? playable = await _videoProbe.IsPlayableAsync(path);
+                    if (!playable.HasValue) return;
+
+                    _videoCache.Set(folder, path, playable.Value);
+                    _videoCache.Save();
+
+                    if (!playable.Value)
+                    {
+                        Application.Current?.Dispatcher.BeginInvoke(new Action(UpdateActiveMediaPreviews));
+                    }
+                }
+                finally
+                {
+                    lock (_videoProbesInFlight)
+                    {
+                        _videoProbesInFlight.Remove(path);
+                    }
+                }
+            });
+        }
+
+        // Background pass over the videos folder: probes every file the cache doesn't have a current
+        // answer for (new, changed, or never seen), two at a time, saving as it goes. Top-level files
+        // only, so an archive subfolder is ignored.
+        private void StartVideoScan()
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    string folder = GetVideosFolder();
+                    if (!Directory.Exists(folder) || !_videoProbe.IsFfmpegAvailable) return;
+
+                    _videoCache.PruneMissing(folder);
+
+                    var pending = new List<string>();
+                    foreach (string file in Directory.EnumerateFiles(folder))
+                    {
+                        if (IsVideoFile(file) && _videoCache.TryGetStatus(folder, file) == null)
+                        {
+                            pending.Add(file);
+                        }
+                    }
+
+                    int foundBad = 0;
+                    int processed = 0;
+
+                    await Parallel.ForEachAsync(pending, new ParallelOptions { MaxDegreeOfParallelism = 2 }, async (file, ct) =>
+                    {
+                        bool? playable = await _videoProbe.IsPlayableAsync(file, ct);
+                        if (playable.HasValue)
+                        {
+                            _videoCache.Set(folder, file, playable.Value);
+                            if (!playable.Value) System.Threading.Interlocked.Increment(ref foundBad);
+                        }
+
+                        if (System.Threading.Interlocked.Increment(ref processed) % 50 == 0) _videoCache.Save();
+                    });
+
+                    _videoCache.Save();
+
+                    if (foundBad > 0)
+                    {
+                        Application.Current?.Dispatcher.BeginInvoke(new Action(UpdateActiveMediaPreviews));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"VideoScan: failed: {ex.Message}");
+                }
+            });
+        }
+
         private static string? TryResolveMediaFile(string folder, string primaryRomName, string? fallbackRomName, string[] extensions)
         {
             foreach (var ext in extensions)
@@ -2826,7 +3401,7 @@ namespace ArcadeStick.ViewModels
                 var target = ResolveCategoryTarget(category);
                 if (target == null) continue;
 
-                string? matchedPath = TryResolveMediaFile(target.Value.folder, SelectedGame.RomName, null, target.Value.extensions);
+                string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, SelectedGame.RomName, null, target.Value.extensions, true);
                 if (matchedPath != null)
                 {
                     foundMediaFile = matchedPath;
@@ -2844,7 +3419,7 @@ namespace ArcadeStick.ViewModels
                     var target = ResolveCategoryTarget(category);
                     if (target == null) continue;
 
-                    string? matchedPath = TryResolveMediaFile(target.Value.folder, SelectedGame.CloneOf, null, target.Value.extensions);
+                    string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, SelectedGame.CloneOf, null, target.Value.extensions, true);
                     if (matchedPath != null)
                     {
                         foundMediaFile = matchedPath;
@@ -2888,6 +3463,8 @@ namespace ArcadeStick.ViewModels
                 PreviewImage = null;
                 VideoSourcePath = string.Empty;
             }
+
+            RefreshVideoNeedsConversion();
         }
 
         // Resolves a static fallback image for the options-open state, walking the same PreviewPriorityOrder
@@ -3658,6 +4235,7 @@ namespace ArcadeStick.ViewModels
             {
                 _sortService.AddRomExclusion(game.RomName);
                 UpdateLiveTreeDisplay();
+                RebuildRandomizerPoolCache();
             }
             catch (Exception ex)
             {

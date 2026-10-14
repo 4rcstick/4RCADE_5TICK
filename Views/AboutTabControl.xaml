@@ -283,7 +283,22 @@
                         <LineBreak/>
                         <LineBreak/>
                         <Run Text="•"/>
-                        <Hyperlink Click="ArcadeDatabaseLink_Click" Foreground="White"><Run Text="ARCADE DATABASE"/></Hyperlink>
+                                                <Hyperlink Click="ArcadeDatabaseLink_Click" Foreground="White"><Run Text="ARCADE DATABASE"/></Hyperlink>
+                </TextBlock>
+
+                <!-- FFmpeg/x264 notice - the bundled ffmpeg.exe is a GPL build (x264 included) run as a separate
+                     program. The GPL requires the license notice plus a source offer; the offer is this text and the
+                     ffmpeg-x264-source.zip attached to each GitHub release. Plain text on purpose, no links needed. -->
+                <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
+                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                        <Run Text="Video conversion powered by:"/>
+                        <LineBreak/>
+                        <LineBreak/>
+                        <Run Text="• FFMPEG (ffmpeg.org) and X264 (videolan.org) - licensed under the GNU GPL v2 or later."/>
+                        <LineBreak/>
+                        <LineBreak/>
+                        <Run Text="FFmpeg runs as a separate program and is not part of the launcher's own code. The complete source code for this FFmpeg build, with build instructions, is available in the ffmpeg-x264-source.zip file attached to each release at github.com/4rcstick/4RCADE_5TICK/releases, or on request at Archimedes2012@hotmail.com."/>
                 </TextBlock>
 
                 <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"

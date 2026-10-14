@@ -20,7 +20,8 @@ namespace ArcadeStick.Views
         public void Initialize(ArcadeStick.Models.ConfigurationSettings settings)
         {
             _settings = settings;
-            _scraperService = new ArcadeStick.Services.ArtworkScraperService(_settings);
+            // This instance is only used for the connection test (no downloads), so an unloaded, throwaway cache is enough.
+            _scraperService = new ArcadeStick.Services.ArtworkScraperService(_settings, new ArcadeStick.Services.VideoCacheService(_settings));
 
             ChkScraperEnabled.IsChecked = _settings.ScraperEnabled;
 

@@ -1,0 +1,182 @@
+﻿<UserControl x:Class="ArcadeStick.Views.GameInfoLayerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="720" d:DesignWidth="1280">
+
+    <!-- Game Info layer group: a transparent host that fills the layout canvas and holds six independently
+         positioned parts (Game Title, Publisher Block, Game Info Nav, Game Info, Image Previews Nav, Image
+         Previews). MainWindow.ApplyLayout sets each part's Canvas position, size and visibility from the
+         layout, and the host's own size and Z. The host has no background, so empty areas don't block clicks.
+         Whole group is hidden while no game is selected (the boot splash shows instead) - done on the inner
+         Canvas, not the control, because ApplyLayout sets the parts' own Visibility directly. -->
+    <Canvas x:Name="HostCanvas">
+        <Canvas.Style>
+            <Style TargetType="Canvas">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Canvas.Style>
+
+        <!-- PART: Game Title -->
+        <TextBlock x:Name="PartTitle" Canvas.Left="765" Canvas.Top="198" Width="490" Height="45"
+                   Text="{Binding SelectedGame.DisplayTitle}" FontSize="{Binding ThemeGameNameHeaderFontSize, FallbackValue=32}" FontWeight="Bold"
+                   Foreground="{Binding ThemeGameNameHeaderColor, FallbackValue=White}" TextTrimming="CharacterEllipsis">
+            <TextBlock.Effect>
+                <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="2" Direction="315" Opacity="0.6"/>
+            </TextBlock.Effect>
+        </TextBlock>
+
+        <!-- PART: Publisher Block (publisher / year / clone of / rating / play stats) -->
+        <StackPanel x:Name="PartPublisher" Canvas.Left="765" Canvas.Top="248" Width="490" Height="90">
+            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.Manufacturer, StringFormat='Published by: {0}'}"/>
+            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.Year, StringFormat='Year: {0}'}"/>
+            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.CloneOf, StringFormat='Clone of: {0}'}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedGame.CloneOf}" Value="">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding DisplayRating, StringFormat='Rating: {0}/10', TargetNullValue='Rating: N/A'}"/>
+            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGamePlayStatsText}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedGamePlayStatsText}" Value="">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </StackPanel>
+
+        <!-- PART: Game Info Nav (arrow + dot row for the 4 pages: Game Info / Trivia / Tips & Tricks / Specs & Credits) -->
+        <Border x:Name="PartInfoNav" Canvas.Left="765" Canvas.Top="348" Width="490" Height="40">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Polygon x:Name="Column2ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2ArrowLeft_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Column2Dot0" Tag="0" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Column2Dot1" Tag="1" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Column2Dot2" Tag="2" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Column2Dot3" Tag="3" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                <Polygon x:Name="Column2ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="Column2ArrowRight_MouseLeftButtonUp"/>
+            </StackPanel>
+        </Border>
+
+        <!-- PART: Game Info (page header + scrolling body, one page visible at a time) -->
+        <Grid x:Name="PartInfoBody" Canvas.Left="765" Canvas.Top="398" Width="490" Height="298">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Page header, one visible at a time -->
+            <Grid Grid.Row="0" Margin="0,0,0,10">
+                <TextBlock x:Name="Column2HeaderGameInfo" Text="GAME INFO" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Visible"/>
+                <TextBlock x:Name="Column2HeaderTrivia" Text="TRIVIA" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
+                <TextBlock x:Name="Column2HeaderTips" Text="TIPS &amp; TRICKS" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
+                <TextBlock x:Name="Column2HeaderSpecsCredits" Text="SPECS &amp; CREDITS" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
+            </Grid>
+
+            <!-- Scrollable bodies, one visible at a time. RelativeSource AncestorType=UserControl inside the
+                 DataTemplate resolves to this control, whose DataContext is MainViewModel (inherited). -->
+            <Grid Grid.Row="1">
+                <ScrollViewer x:Name="Column2BodyGameInfoScroll" VerticalScrollBarVisibility="Auto" Visibility="Visible" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                    <ItemsControl ItemsSource="{Binding GameInfoBlocks}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Header}" FontSize="{Binding DataContext.ThemeInfoHeaderFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding DataContext.ThemeInfoHeaderColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}" Margin="0,10,0,5">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Header}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding Body}" FontFamily="Georgia" FontSize="{Binding DataContext.ThemeInfoBodyFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=16}" Foreground="{Binding DataContext.ThemeInfoBodyColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,5"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                <ScrollViewer x:Name="Column2BodyTriviaScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                    <TextBlock FontFamily="Georgia" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTrivia}"/>
+                </ScrollViewer>
+                <ScrollViewer x:Name="Column2BodyTipsScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                    <TextBlock FontFamily="Georgia" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTipsAndTricks}"/>
+                </ScrollViewer>
+
+                <!-- Specs & Credits: cabinet image in an Auto column (collapses when null), text scrolls beside it -->
+                <Grid x:Name="Column2BodySpecsCredits" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="0" Source="{Binding CabinetImage}" Width="150" Stretch="Uniform" VerticalAlignment="Top" Margin="0,0,20,0">
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CabinetImage}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+
+                    <ScrollViewer x:Name="Column2BodySpecsCreditsScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <StackPanel Margin="0,0,20,20">
+                            <TextBlock Text="SPECS" FontWeight="Bold" FontSize="{Binding ThemeCreditsHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeCreditsHeaderColor, FallbackValue=White}" Margin="0,0,0,10"/>
+                            <TextBlock Text="{Binding HistoryTechnical}" FontSize="{Binding ThemeCreditsBodyFontSize, FallbackValue=13}" Foreground="{Binding ThemeCreditsBodyColor, FallbackValue=White}" TextWrapping="Wrap"/>
+                            <TextBlock Text="CREDITS" FontWeight="Bold" FontSize="{Binding ThemeCreditsHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeCreditsHeaderColor, FallbackValue=White}" Margin="0,20,0,10"/>
+                            <TextBlock Text="{Binding HistoryStaff}" FontSize="{Binding ThemeCreditsBodyFontSize, FallbackValue=13}" Foreground="{Binding ThemeCreditsBodyColor, FallbackValue=White}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- PART: Image Previews Nav (arrow + dot row for Flyer / Title Screen / Snap). The inner StackPanel
+             (Row3NavContent) is what code-behind collapses when fewer than two images exist - the part itself
+             is left alone, since ApplyLayout owns its visibility (the layer's Hide setting). -->
+        <Border x:Name="PartPreviewsNav" Canvas.Left="414" Canvas.Top="456" Width="328" Height="20">
+            <StackPanel x:Name="Row3NavContent" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Polygon x:Name="Row3ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowLeft_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Row3Dot0" Tag="0" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Row3Dot1" Tag="1" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Row3Dot2" Tag="2" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                <Polygon x:Name="Row3ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="4,0,0,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowRight_MouseLeftButtonUp"/>
+            </StackPanel>
+        </Border>
+
+        <!-- PART: Image Previews (only the active image is visible, set in code-behind; missing images are skipped) -->
+        <Grid x:Name="PartPreviewsBody" Canvas.Left="414" Canvas.Top="486" Width="328" Height="198">
+            <Image x:Name="Row3FlyerImage" Source="{Binding FlyerImage}" Stretch="Uniform" Visibility="Collapsed"/>
+            <Image x:Name="Row3TitleImage" Source="{Binding TitleImage}" Stretch="Uniform" Visibility="Collapsed"/>
+            <Image x:Name="Row3SnapImage" Source="{Binding SnapImage}" Stretch="Uniform" Visibility="Collapsed"/>
+        </Grid>
+    </Canvas>
+</UserControl>

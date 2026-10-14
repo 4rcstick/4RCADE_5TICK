@@ -13,6 +13,11 @@ namespace ArcadeStick.Views
         private ArcadeStick.ViewModels.MainViewModel _viewModel;
         private Action _persistToDisk;
         private Action _refreshOptionsBindings;
+        private Action? _themeSavedCallback;
+
+        // Lets the hosting window react when Save Changes writes a theme (Theme Builder uses it to move
+        // its close-without-saving restore point). Optional - nothing else needs to set it.
+        public void SetThemeSavedCallback(Action callback) => _themeSavedCallback = callback;
         private System.Windows.Threading.DispatcherTimer _themeSavedFlashTimer;
 
         // TEMPLATE for Claude Code: this field plus the sync block below are the pattern to replicate
@@ -118,6 +123,15 @@ namespace ArcadeStick.Views
         public void SyncUiToSettings()
         {
             SyncUiEntriesToSettingsLayer();
+            LoadCurrentThemeValuesIntoUi();
+        }
+
+        // Re-reads every field from _settings WITHOUT writing anything back first (unlike SyncUiToSettings,
+        // which would overwrite freshly loaded values with the tab's stale field contents). Used when the
+        // theme is switched from outside this tab (the main window's hamburger menu).
+        public void ReloadFromSettings()
+        {
+            RefreshThemeList();
             LoadCurrentThemeValuesIntoUi();
         }
         // [END SECTION: Constructor & Initialization]
@@ -2480,9 +2494,48 @@ namespace ArcadeStick.Views
                 themeDto.ThemeBootSplash = BundleThemeAsset(themeDto.ThemeBootSplash, stagingAssetsDir, missingAssets);
                 themeDto.ThemeMissingPreview = BundleThemeAsset(themeDto.ThemeMissingPreview, stagingAssetsDir, missingAssets);
 
+                // Layouts: keep every saved resolution, and make sure the active resolution has an entry
+                // (registry defaults fill in anything not customized yet) so a save always records it.
+                int activeW = _settings.ActiveResolutionWidth;
+                int activeH = _settings.ActiveResolutionHeight;
+                var layoutsToSave = new List<ArcadeStick.Models.ThemeLayout>();
+                ArcadeStick.Models.ThemeLayout? activeSaved = null;
+                foreach (var layout in _settings.Layouts)
+                {
+                    if (layout.Width == activeW && layout.Height == activeH) activeSaved = layout;
+                    else layoutsToSave.Add(layout);
+                }
+                layoutsToSave.Add(ArcadeStick.Models.LayerRegistry.ResolveLayout(activeSaved, activeW, activeH));
+                _settings.Layouts = layoutsToSave;
+
+                // The theme file gets its own copy of the layouts, with every custom layer's image bundled
+                // into the zip and its path rewritten to archive-relative. The live layouts keep their real paths.
+                var layoutsForTheme = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(layoutsToSave);
+                var bundledCustomImages = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var customEntry in layoutsForTheme.SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
+                {
+                    if (string.IsNullOrWhiteSpace(customEntry.ImagePath)) continue;
+
+                    string imageKey = ResolveAssetAbsolutePath(customEntry.ImagePath);
+                    if (!bundledCustomImages.TryGetValue(imageKey, out string? archivePath))
+                    {
+                        archivePath = BundleThemeAsset(customEntry.ImagePath, stagingAssetsDir, missingAssets);
+                        bundledCustomImages[imageKey] = archivePath;
+                    }
+                    customEntry.ImagePath = archivePath;
+                }
+                themeDto.Layouts = layoutsForTheme;
+                themeDto.ActiveWidth = activeW;
+                themeDto.ActiveHeight = activeH;
+
+                // Saving the theme moves the restore point to what was just written to the zip.
+                _settings.SavedThemeLayouts = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(layoutsToSave);
+                _settings.SavedThemeWidth = activeW;
+                _settings.SavedThemeHeight = activeH;
+
                 var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
                 string jsonString = System.Text.Json.JsonSerializer.Serialize(themeDto, jsonOptions);
-                File.WriteAllText(Path.Combine(stagingDir, "theme.cfg"), jsonString);
+                File.WriteAllText(Path.Combine(stagingDir, "theme.json"), jsonString);
 
                 if (File.Exists(themeFile))
                 {
@@ -2505,6 +2558,7 @@ namespace ArcadeStick.Views
                 CboThemePresets.SelectedItem = themeName;
                 _settings.ActiveThemeName = themeName;
                 _persistToDisk?.Invoke();
+                _themeSavedCallback?.Invoke();
                 ShowThemeSavedFlash();
             }
             catch (Exception ex)
@@ -2711,13 +2765,16 @@ namespace ArcadeStick.Views
         // then routes the result to the correct TextBox based on which button raised the event.
         private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
         {
-            // Boot splash is the only asset that accepts an mp4 alongside an image, since it can resolve
-            // to either a static image or a looping video (see IsBootSplashVideo/ThemeBootSplashVideoPath) -
-            // every other browse button stays image-only.
+            // Boot splash is the only asset that accepts gif/mp4 alongside a static image, since it can resolve
+            // to a static image, an animated gif, or a looping video (see IsBootSplashGif/IsBootSplashVideo) -
+            // every other browse button stays image-only. First filter entry is the default: all splash types.
+            // Main window background also accepts mp4 - played by MediaElement (not LibVLC) so it stays a normal
+            // WPF layer behind the panels. Needs H.264, 8-bit yuv420p to play on a stock Windows install.
             string dialogFilter = sender == BtnBrowseThemeBootSplash
-                ? "Image & Video Files (*.png;*.jpg;*.jpeg;*.bmp;*.mp4)|*.png;*.jpg;*.jpeg;*.bmp;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*"
+                ? "Splash Files (*.png;*.jpg;*.jpeg;*.gif;*.mp4)|*.png;*.jpg;*.jpeg;*.gif;*.mp4|Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|Animated GIF (*.gif)|*.gif|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*"
+                : sender == BtnBrowseMainBg
+                ? "Background Files (*.png;*.jpg;*.jpeg;*.bmp;*.mp4)|*.png;*.jpg;*.jpeg;*.bmp;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*"
                 : "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All files (*.*)|*.*";
-
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = dialogFilter,

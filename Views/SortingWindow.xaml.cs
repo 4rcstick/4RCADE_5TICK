@@ -25,7 +25,14 @@ namespace ArcadeStick.Views
 
             LoadFilterListsIntoUi();
 
-            // Keeps the Min/Max rating sliders from crossing each other - dragging Min above Max pushes
+            // Game Pool pill: seed from the view model's current count, then follow updates so the
+            // number refreshes live when Apply Filter rebuilds the tree. Unsubscribed on close so the
+            // long-lived view model doesn't keep this window alive.
+            TxtGamePoolCount.Text = _viewModel.FilteredGameCountText;
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            Closed += (s, e) => _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+
+            // Keeps the Min/Max rating sliders from crossing each other
             // Max up to match, and vice versa, rather than allowing an inverted (nonsensical) range.
             RatingSlider.ValueChanged += RatingSlider_ValueChanged;
             RatingMaxSlider.ValueChanged += RatingMaxSlider_ValueChanged;
@@ -33,6 +40,19 @@ namespace ArcadeStick.Views
             // Same crossing-prevention behavior for the Year range sliders.
             YearMinSlider.ValueChanged += YearMinSlider_ValueChanged;
             YearMaxSlider.ValueChanged += YearMaxSlider_ValueChanged;
+        }
+
+        // Refreshes the Game Pool pill whenever the view model's count text changes (i.e. after Apply
+        // Filter rebuilds the tree). Dispatched in case the change is raised off the UI thread.
+        private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MainViewModel.FilteredGameCountText))
+            {
+                Dispatcher.BeginInvoke(new System.Action(() =>
+                {
+                    TxtGamePoolCount.Text = _viewModel.FilteredGameCountText;
+                }));
+            }
         }
 
         private void YearMinSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)

@@ -1,10 +1,23 @@
 ﻿// 🏗️ START: LIGHTWEIGHT THEME SETTINGS MODEL FOR DTO SERIALIZATION
 using System;
+using System.Collections.Generic;
 
 namespace ArcadeStick.Models
 {
     public class ThemeSettings
     {
+        // File format version for theme.json. Bump when the structure changes in a way old code can't read.
+        public int Version { get; set; } = 1;
+
+        // Per-resolution layer layouts (position, size, z-order, visibility). Empty for older themes -
+        // LayerRegistry.ResolveLayout fills in defaults for any resolution or layer that isn't saved here.
+        public List<ThemeLayout> Layouts { get; set; } = new();
+
+        // Resolution the theme was saved at. Loading the theme switches the window to this size.
+        // 0 means "not saved" (older themes), in which case the current resolution is kept.
+        public int ActiveWidth { get; set; } = 0;
+        public int ActiveHeight { get; set; } = 0;
+
         public string BackgroundColor { get; set; } = "#FF1C1C1E";
         public string FileListBg { get; set; } = "#FF000000";
         public string MarqueeBoxBg { get; set; } = "#FF000000";

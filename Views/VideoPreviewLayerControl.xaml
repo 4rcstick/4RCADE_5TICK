@@ -1,0 +1,61 @@
+﻿<UserControl x:Class="ArcadeStick.Views.VideoPreviewLayerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="248" d:DesignWidth="413">
+
+    <!-- Video Preview layer: fallback image, static preview image and the MediaElement video player,
+         all fitting (Uniform) inside this control's rect, with the border ring drawn on top. Bars from
+         Uniform fitting show ThemeVideoBgColor. No aspect-ratio lock - the layer's rect is the only
+         size that matters. -->
+    <Grid>
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
+        <Border x:Name="MediaSlot" Background="{Binding ThemeVideoBgColor, FallbackValue=#FF000000}">
+            <Grid x:Name="MediaSlotContent" SizeChanged="MediaSlotContent_SizeChanged">
+
+                <!-- Fallback: shown when the selected game has no video/screenshot/titlescreen asset -->
+                <Image Source="{Binding ThemeMissingPreviewAsset}" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasActiveMedia}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- Static preview image (screenshot/titlescreen), mutually exclusive with the video -->
+                <Image x:Name="MediaSlotPreviewImage" Source="{Binding PreviewImage}" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Visible"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding PreviewImage}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- Preview video player. Source/Play/Stop and Visibility are owned by MainWindow.xaml.cs. -->
+                <MediaElement x:Name="MediaElementPreview" x:FieldModifier="public" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsMuted="True" LoadedBehavior="Manual" UnloadedBehavior="Manual" Visibility="Collapsed" IsHitTestVisible="False"/>
+            </Grid>
+        </Border>
+
+        <!-- Border ring on top, never hit-testable -->
+        <Border x:Name="MediaSlotRing" CornerRadius="{Binding ThemeVideoBorderRadius, FallbackValue=0}" BorderBrush="{Binding ThemeVideoBorderColor, FallbackValue=#FF3A3A3C}" BorderThickness="{Binding ThemeVideoBorderSize, FallbackValue=0}" Background="Transparent" IsHitTestVisible="False"/>
+    </Grid>
+</UserControl>

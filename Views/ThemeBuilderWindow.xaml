@@ -1,0 +1,136 @@
+﻿<Window x:Class="ArcadeStick.Views.ThemeBuilderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ArcadeStick"
+        xmlns:views="clr-namespace:ArcadeStick.Views"
+        Title="4RCADE 5TICK Theme Builder" Height="760" Width="720"
+        WindowStartupLocation="CenterOwner"
+        Background="{Binding OptionsMenuBgColorHex, FallbackValue=#1C1C1E}"
+        BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}"
+        BorderThickness="1">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl x:Name="ThemeBuilderTabControl" Grid.Row="0"
+                    Background="{Binding OptionsBg, FallbackValue=#000000}"
+                    BorderBrush="{Binding OptionsMenuBorderColorHex, FallbackValue=#2C2C2E}"
+                    BorderThickness="{Binding OptionsMenuBorderSize, FallbackValue=1}"
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}">
+
+            <!-- [SECTION: Custom TabControl Template] -->
+            <!-- Copied from OptionsWindow.xaml so both windows share the same tab chrome. -->
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TabPanel Grid.Row="0"
+                                  IsItemsHost="True"
+                                  Panel.ZIndex="1"
+                                  Margin="0"/>
+
+                        <Border x:Name="TabContentBorder" Grid.Row="1"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{Binding DataContext.OptionsMenuBorderRadius, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource RadiusConverter}, ConverterParameter=Bottom, FallbackValue=0}">
+                            <ContentPresenter ContentSource="SelectedContent"/>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
+            <!-- [END SECTION: Custom TabControl Template] -->
+
+            <!-- [SECTION: Custom TabItem Style] -->
+            <!-- Copied from OptionsWindow.xaml: themed tab header with normal / hover / selected states. -->
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Height" Value="25"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="FontSize" Value="{Binding TabFontSize, FallbackValue=12}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="TabBorder"
+                                        Background="{Binding DataContext.OptionsBg, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
+                                        BorderBrush="{Binding DataContext.OptionsMenuBorderColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"
+                                        BorderThickness="1,1,1,0"
+                                        CornerRadius="{Binding DataContext.OptionsMenuBorderRadius, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource RadiusConverter}, ConverterParameter=Top, FallbackValue=0}"
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter x:Name="ContentSite"
+                                                      ContentSource="Header"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      Margin="5,2"/>
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabActiveBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                        <Setter Property="Foreground" Value="{Binding DataContext.TabActiveColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#000000}"/>
+                                    </Trigger>
+
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                        <Setter Property="Foreground" Value="{Binding DataContext.TabColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#A0A0A2}"/>
+                                    </Trigger>
+
+                                    <!-- Declared last so it wins over the IsSelected="False" trigger above.
+                                         Hover intentionally has no effect on the currently-selected tab. -->
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsMouseOver" Value="True"/>
+                                            <Condition Property="IsSelected" Value="False"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
+                                        <Setter Property="Foreground" Value="{Binding DataContext.TabColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                    </MultiTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+            <!-- [END SECTION: Custom TabItem Style] -->
+
+            <!-- [SECTION: Tab Pages] -->
+            <!-- Basic Themes hosts the Themes tab moved over from OptionsWindow, content unchanged.
+                 Advanced Themes is intentionally empty for now - the layer selector gets built later.
+                 A Theme Browser tab will be added as a third tab down the road. -->
+            <TabItem Header="BASIC THEMES">
+                <views:ThemesTabControl x:Name="ThemesTab"/>
+            </TabItem>
+
+            <TabItem Header="ADVANCED THEMES">
+                <views:AdvancedThemesTabControl x:Name="AdvancedTab"/>
+            </TabItem>
+            <!-- [END SECTION: Tab Pages] -->
+        </TabControl>
+
+        <!-- [SECTION: Save / Close Button Row] -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Save Adjustments" x:Name="BtnSaveAdjustments" Click="BtnSaveAdjustments_Click"
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
+                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
+                    BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="Bold" Padding="15,6" Margin="0,0,10,0"/>
+            <Button Content="Close Panel" x:Name="BtnClosePanel" Click="BtnClosePanel_Click"
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}"
+                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}"
+                    BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" Padding="15,6"/>
+        </StackPanel>
+        <!-- [END SECTION: Save / Close Button Row] -->
+    </Grid>
+</Window>

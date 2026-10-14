@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
         xmlns:local="clr-namespace:ArcadeStick"
         xmlns:views="clr-namespace:ArcadeStick.Views"
         mc:Ignorable="d"
@@ -11,10 +10,8 @@
         xmlns:Models="clr-namespace:ArcadeStick.Models"
         xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
         Title="4RCADE 5TICK" 
-        Width="1296" 
-        Height="759"
-        ResizeMode="CanResize"
-        SizeToContent="Manual"
+        ResizeMode="NoResize"
+        SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">
@@ -108,6 +105,42 @@
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
+
+        <!-- Main hamburger menu: opened from code-behind (BtnOpenMenuHamburger click), anchored under the button. -->
+        <ContextMenu x:Key="HamburgerContextMenu" Placement="Bottom" Closed="HamburgerContextMenu_Closed">
+            <MenuItem Header="Sorting Options" Click="HamburgerSortingMenuItem_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xEADF;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="Options Menu" Click="HamburgerOptionsMenuItem_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="Theme Builder" InputGestureText="Ctrl+T" Click="HamburgerThemeBuilderMenuItem_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE790;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="Themes" Tag="ThemesMenu">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE8AB;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                </MenuItem.Icon>
+                <MenuItem Header="(loading...)"/>
+            </MenuItem>
+            <MenuItem Header="Layout size" Tag="LayoutSizeMenu">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                </MenuItem.Icon>
+                <MenuItem Header="(loading...)"/>
+            </MenuItem>
+            <MenuItem Header="Toggle Fullscreen" Click="HamburgerFullscreenMenuItem_Click">
+                <MenuItem.Icon>
+                    <TextBlock Text="&#xE740;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
     </Window.Resources>
 
     <Grid x:Name="RootLayoutGrid">
@@ -133,34 +166,30 @@
         </Grid.Style>
         <!-- [END SECTION: Root Grid Background Style] -->
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition x:Name="FooterRowDef" Height="20"/>
-        </Grid.RowDefinitions>
+        <!-- [END SECTION: Root Grid Background Style] -->
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="LeftColumnDef" Width="540"/>
-            <ColumnDefinition x:Name="RightColumnDef" Width="*"/>
-        </Grid.ColumnDefinitions>
+        <!-- [SECTION: Main Background Video] -->
+        <!-- MediaElement (NOT LibVLC) - renders as a normal WPF element, so it respects z-order and sits behind
+             every panel declared after it. First child + full row/column span = bottom layer above the root
+             Grid's Background. Source/playback/looping are driven entirely from code-behind (RefreshMainBgVideo),
+             so LoadedBehavior/UnloadedBehavior are Manual. Always muted - background videos don't carry sound. -->
+        <Canvas x:Name="MainBgVideoHost" ClipToBounds="True" IsHitTestVisible="False">
+            <MediaElement x:Name="MainBgVideo" Width="{Binding ActualWidth, ElementName=MainBgVideoHost}" Height="{Binding ActualHeight, ElementName=MainBgVideoHost}" Stretch="UniformToFill" IsMuted="True"
+                 LoadedBehavior="Manual" UnloadedBehavior="Manual" ScrubbingEnabled="True" Visibility="Collapsed" IsHitTestVisible="False"
+                 MediaEnded="MainBgVideo_MediaEnded" MediaFailed="MainBgVideo_MediaFailed"/>
+        </Canvas>
+        <!-- [END SECTION: Main Background Video] -->
 
         <!-- [SECTION: Left Column - Search + Game TreeView] -->
-        <Grid x:Name="LeftColumnGrid" Grid.Column="0" Margin="20,20,10,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+        <!-- Fixed-size layout surface, anchored top-left. Width/Height here are the 1280x720 defaults;
+             ApplyLayout() in code-behind sets them (and every child's position, size, Z and visibility)
+             from the active layout. The root Grid behind it fills the rest of the window with the
+             wallpaper/background color. -->
+        <Canvas x:Name="LayoutCanvas" Width="1280" Height="720" HorizontalAlignment="Left" VerticalAlignment="Top">
 
-            <!-- Search label + textbox row -->
-            <Grid Grid.Row="0" Margin="0,0,0,10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="67"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="SEARCH:" Foreground="{Binding ThemeSearchLabelColor, FallbackValue=#00D4FF}" Background="{Binding ThemeSearchLabelBgColor, FallbackValue=#00000000}" Padding="20,6,4,6" FontWeight="DemiBold" FontSize="{Binding ThemeSearchLabelFontSize, FallbackValue=14}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <TextBox Grid.Column="1" x:Name="SearchBox" MinHeight="30" VerticalContentAlignment="Center" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="{Binding ThemeSearchBoxBgColor, FallbackValue=#000000}" Foreground="{Binding ThemeSearchBoxColor, FallbackValue=#F2F2F7}" FontSize="{Binding ThemeSearchBoxFontSize, FallbackValue=14}" FontWeight="DemiBold" BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Padding="2,0,0,1">
+            <!-- Search label + textbox + buttons: each is its own positioned layer now -->
+            <TextBlock x:Name="SearchLabel" Canvas.Left="20" Canvas.Top="20" Width="67" Height="30" TextAlignment="Right" Text="SEARCH:" Foreground="{Binding ThemeSearchLabelColor, FallbackValue=#00D4FF}" Background="{Binding ThemeSearchLabelBgColor, FallbackValue=#00000000}" Padding="0,6,4,6" FontWeight="DemiBold" FontSize="{Binding ThemeSearchLabelFontSize, FallbackValue=14}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            <TextBox x:Name="SearchBox" Canvas.Left="87" Canvas.Top="20" Width="142" Height="30" VerticalContentAlignment="Center" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="{Binding ThemeSearchBoxBgColor, FallbackValue=#000000}" Foreground="{Binding ThemeSearchBoxColor, FallbackValue=#F2F2F7}" FontSize="{Binding ThemeSearchBoxFontSize, FallbackValue=14}" FontWeight="DemiBold" BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Padding="2,0,0,1">
                     <TextBox.Template>
                         <ControlTemplate TargetType="TextBox">
                             <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
@@ -170,7 +199,7 @@
                     </TextBox.Template>
                 </TextBox>
                 <!-- Play Random Game trigger - opens a small confirm flyout anchored here before spinning -->
-                <Border Grid.Column="2" x:Name="BtnPlayRandom" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}" Margin="6,0,0,0" VerticalAlignment="Center"
+            <Border x:Name="BtnPlayRandom" Canvas.Left="235" Canvas.Top="20" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}"
                         BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnPlayRandom_MouseLeftButtonUp"
                         ToolTipService.IsEnabled="False" MouseEnter="PlayRandomIcon_MouseEnter" MouseLeave="PlayRandomIcon_MouseLeave">
                     <Border.ToolTip>
@@ -179,7 +208,7 @@
                     <TextBlock x:Name="PlayRandomIcon" Text="&#x1F3B2;" FontFamily="Segoe UI Emoji" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=16}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
                 <!-- Opens the Sorting window (structure mode + region/revision/player-count/rating filters) -->
-                <Border Grid.Column="3" x:Name="BtnOpenSortingGear" Width="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}" Margin="6,0,0,0" Height="30" VerticalAlignment="Center"
+            <Border x:Name="BtnOpenSortingGear" Canvas.Left="271" Canvas.Top="20" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}"
                         BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenSortingGear_MouseLeftButtonUp"
                         ToolTipService.IsEnabled="False" MouseEnter="SortGearIcon_MouseEnter" MouseLeave="SortGearIcon_MouseLeave">
                     <Border.ToolTip>
@@ -188,7 +217,7 @@
                     <TextBlock x:Name="SortGearIcon" Text="&#xEADF;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=18}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
                 <!-- Gear icon that opens the Options window, isolated in its own circular badge -->
-                <Border Grid.Column="4" x:Name="BtnOpenOptionsGear" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}" Margin="6,0,0,0" VerticalAlignment="Center"
+            <Border x:Name="BtnOpenOptionsGear" Canvas.Left="307" Canvas.Top="20" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}"
                         BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenOptionsGear_MouseLeftButtonUp"
                         ToolTipService.IsEnabled="False" MouseEnter="OptionsGearIcon_MouseEnter" MouseLeave="OptionsGearIcon_MouseLeave">
                     <Border.ToolTip>
@@ -196,10 +225,19 @@
                     </Border.ToolTip>
                     <TextBlock x:Name="OptionsGearIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=18}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
-            </Grid>
+                <!-- Hamburger icon that opens the main menu popup (Sorting Options, Options Menu, Toggle Fullscreen) -->
+            <Border x:Name="BtnOpenMenuHamburger" Canvas.Left="343" Canvas.Top="20" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=11}"
+                        BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenMenuHamburger_MouseLeftButtonUp"
+                        ToolTipService.IsEnabled="False" MouseEnter="HamburgerIcon_MouseEnter" MouseLeave="HamburgerIcon_MouseLeave">
+                    <Border.ToolTip>
+                        <ToolTip Content="Menu"/>
+                    </Border.ToolTip>
+                    <TextBlock x:Name="HamburgerIcon" Text="&#xE700;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=18}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                </Border>
+            
 
             <!-- Game list panel container (wallpaper/color themed border wrapping the TreeView) -->
-            <Border Grid.Row="1" CornerRadius="{Binding ThemeGamesBorderCornerRadius, FallbackValue=4}" BorderBrush="{Binding ThemeGamesBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeGamesBorderSize, FallbackValue=1}">
+            <Border x:Name="GamesListPanel" IsHitTestVisible="False" Canvas.Left="20" Canvas.Top="60" Width="353" Height="640" CornerRadius="{Binding ThemeGamesBorderCornerRadius, FallbackValue=4}" BorderBrush="{Binding ThemeGamesBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeGamesBorderSize, FallbackValue=1}">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background">
@@ -219,10 +257,15 @@
                     </Style>
                 </Border.Style>
 
+            </Border>
+
+            <!-- Games List layer: its own positioned element above the BG. The TreeView and everything
+                 inside it (templates, context menus, handlers) are unchanged. -->
+            <Grid x:Name="GamesListHost" Canvas.Left="25" Canvas.Top="70" Width="343" Height="625">
                 <TreeView x:Name="GameTree" 
                    ItemsSource="{Binding TreeNodesCollection}"
                    SelectedItemChanged="GameTree_SelectedItemChanged"
-                   Background="Transparent" BorderThickness="0" Padding="5" Margin="5,10,5,5"
+                   Background="Transparent" BorderThickness="0" Padding="5" Margin="0"
                    TreeViewItem.Expanded="GameTree_Expanded"
                    TreeViewItem.Collapsed="GameTree_Collapsed"
                    PreviewMouseDoubleClick="GameTree_MouseDoubleClick"
@@ -556,20 +599,15 @@
                     </TreeView.ItemContainerStyle>
                     <!-- [END SECTION: TreeViewItem Expander Template] -->
                 </TreeView>
-            </Border>
-        </Grid>
-        <!-- [END SECTION: Left Column - Search + Game TreeView] -->
+            </Grid>
+            <!-- [END SECTION: Left Column - Search + Game TreeView] -->
 
-        <!-- [SECTION: Right Column - Marquee + Media Panels] -->
-        <Grid x:Name="RightColumnGrid" Grid.Column="1" Margin="10,20,20,0">
-            <Grid.RowDefinitions>
-                <RowDefinition x:Name="MarqueeRowDef" Height="0.3*"/>
-                <RowDefinition x:Name="MediaRowDef" Height="*"/>
-            </Grid.RowDefinitions>
+            <!-- [SECTION: Right Column - Marquee + Media Panels] -->
+            <!-- Marquee and media panel are positioned layers on the LayoutCanvas now -->
 
             <!-- ROW 0: MARQUEE / LOGO PANEL -->
             <!-- Shows the theme logo asset by default, swaps to the game's marquee image once a game is selected -->
-            <Border x:Name="MarqueePanelBorder" Grid.Row="0" CornerRadius="{Binding ThemeMarqueeBorderRadius, FallbackValue=4}" Margin="0,0,0,20" BorderBrush="{Binding ThemeMarqueeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeMarqueeBorderWidth, FallbackValue=1}">
+            <Border x:Name="MarqueePanelBorder" Canvas.Left="393" Canvas.Top="20" Width="867" Height="137" CornerRadius="{Binding ThemeMarqueeBorderRadius, FallbackValue=4}" BorderBrush="{Binding ThemeMarqueeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeMarqueeBorderWidth, FallbackValue=1}">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background">
@@ -639,6 +677,19 @@
                             </Style>
                         </Border.Style>
                         <Grid>
+                            <!-- Winner blink: hides the whole frame (marquee image or no-marquee title card) during the
+                                 blink's "off" steps. The overlay Border's opaque background stays visible, so the
+                                 previously selected game never shows through. -->
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRandomizerBlinkHidden}" Value="True">
+                                            <Setter Property="Visibility" Value="Hidden"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                             <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" Margin="10,10"/>
 
                             <!-- No-marquee fallback - shown whenever the current frame's game has no
@@ -677,31 +728,157 @@
                  before, just relocated so the upcoming redesign happens in isolation. VideoPreview and
                  MediaLayer0_Back are exposed as public fields on the control for MainWindow.xaml.cs's
                  existing call sites (see MediaPanel.VideoPreview / MediaPanel.MediaLayer0_Back below). -->
-            <views:MediaPanelControl x:Name="MediaPanel" Grid.Row="1"/>
-                   
+            <Border x:Name="MediaPanel" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" IsHitTestVisible="False" ClipToBounds="True"
+                    CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}" BorderBrush="{Binding ThemePreviewBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemePreviewBorderSize, FallbackValue=1}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="{Binding ThemeMediaColor, FallbackValue=#000000}"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <!-- Themed media wallpaper, shown only once a game is selected -->
+                    <Border CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <ImageBrush ImageSource="{Binding ThemeMediaWallpaper}" Stretch="UniformToFill"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ThemeMediaWallpaper}" Value="{x:Null}">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
 
-           
+                    <!-- (The spin overlay that was here moved to the Random Game Display layer.) -->
+                </Grid>
+            </Border>
+
+            <!-- Splash Image layer: its own positioned element, mapped in ApplyLayout() -->
+            <views:SplashLayerControl x:Name="SplashLayer" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523"/>
+
+            <!-- Video Preview layer: its own positioned element, mapped in ApplyLayout() -->
+            <views:VideoPreviewLayerControl x:Name="VideoPreviewLayer" Canvas.Left="414" Canvas.Top="198" Width="328" Height="248"/>
+
+            <!-- Game Info layer group: a transparent host filling the canvas, holding six independently
+                 positioned parts (title, publisher block, info nav, info, previews nav, previews). Each part is
+                 mapped in ApplyLayout(); the host takes the group's shared Z. -->
+            <views:GameInfoLayerControl x:Name="GameInfoLayer" Canvas.Left="0" Canvas.Top="0" Width="1280" Height="720"/>
+
+            <!-- Random Game Display layer: its own positioned element, mapped in ApplyLayout(). The outer host is
+                 what ApplyLayout shows/hides; the inner grid shows only while a spin runs (DataTrigger). With no
+                 file set on the layer, the fallback shows the media-color fill and "Rolling the Dice!" text
+                 (scaled to the layer by the Viewbox). With a file set, code-behind collapses the fallback and
+                 plays the file in RandomSpinFileHost instead - the file shows alone, no fill. -->
+            <Grid x:Name="RandomGameDisplayLayer" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" ClipToBounds="True">
+                <Grid x:Name="RandomSpinContent">
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsRandomizerSpinning}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+                    <Border x:Name="RandomSpinFallback" CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}" Background="{Binding ThemeMediaColor, FallbackValue=#000000}">
+                        <Viewbox Stretch="Uniform" Margin="10">
+                            <TextBlock Text="Rolling the Dice!" FontSize="100" FontWeight="Bold" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Viewbox>
+                    </Border>
+                    <Grid x:Name="RandomSpinFileHost" Visibility="Collapsed"/>
+                </Grid>
+            </Grid>
+
+            <!-- The randomizer spin overlay now lives in the Random Game Display layer (RandomGameDisplayLayer, above). -->
+
+            <!-- [END SECTION: Right Column - Marquee + Media Panels] -->
 
 
-        </Grid>
-        <!-- [END SECTION: Right Column - Marquee + Media Panels] -->
+            <!-- Video Convert Prompt layer: its own positioned element, mapped in ApplyLayout(). The host Grid is what
+                 ApplyLayout shows/hides, so the two bubbles inside keep their own DataTrigger visibility
+                 (the prompt bubble and the converting bubble never show at the same time). Both stretch to
+                 fill the layer's rect, and the text wraps if the layer is made narrower. Hardcoded colors
+                 on purpose, same pill look as before. -->
+            <Grid x:Name="VideoConvertPromptLayer" Canvas.Left="393" Canvas.Top="701" Width="450" Height="18">
+                <!-- Prompt bubble: shown when the selected game's video was probed as unplayable and the user
+                     hasn't dismissed it this session. -->
+                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                        Background="#CC000000" BorderBrush="Black" BorderThickness="0" CornerRadius="8" Padding="8,1,8,1">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ShowVideoConversionPrompt}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock FontSize="10" FontWeight="Bold" Foreground="#F2F2F2" VerticalAlignment="Center" TextWrapping="Wrap">
+                        <TextBlock.Resources>
+                            <!-- Convert links: no underline, yellow, green on hover. -->
+                            <Style x:Key="ConvertLinkStyle" TargetType="Hyperlink">
+                                <Setter Property="Foreground" Value="Yellow"/>
+                                <Setter Property="TextDecorations" Value="None"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="LimeGreen"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Resources>
+                        <Run Text="THIS GAME'S VIDEO NEEDS CONVERTING TO PLAY"/>
+                        <Run Text="  "/>
+                        <Hyperlink Command="{Binding ConvertThisVideoCommand}" Style="{StaticResource ConvertLinkStyle}">CONVERT THIS</Hyperlink>
+                        <Run Text=" | "/>
+                        <Hyperlink Command="{Binding ConvertAllVideosCommand}" Style="{StaticResource ConvertLinkStyle}">CONVERT ALL</Hyperlink>
+                        <Run Text="  "/>
+                        <Hyperlink Command="{Binding DismissVideoPromptCommand}" Foreground="Red">X</Hyperlink>
+                    </TextBlock>
+                </Border>
 
-        <!-- [SECTION: Footer Bar - Games Count + Play Stats + Version/Copyright] -->
-        <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="20,0,20,0">
-            <Grid.ColumnDefinitions>
+                <!-- Converting bubble: takes the prompt bubble's place while a conversion runs. -->
+                <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                        Background="#CC000000" BorderBrush="Black" BorderThickness="0" CornerRadius="8" Padding="8,1,8,1">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsConvertingVideo}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock FontSize="10" FontWeight="Bold" Foreground="#F2F2F2" VerticalAlignment="Center" TextWrapping="Wrap"
+                               Text="CONVERTING VIDEO, PLEASE WAIT..."/>
+                </Border>
+            </Grid>
+
+            <Grid x:Name="FooterPanel" Canvas.Left="20" Canvas.Top="700" Width="1240" Height="20">
+                <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="380*"/>
                 <ColumnDefinition Width="900*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Games-count pill, bottom-left of the games-list column (Column 0). Hardcoded colors
-                 deliberately, not theme-bound - lives in the footer, as far from the video/preview
-                 pipeline as any visible UI gets, specifically to avoid any risk of interacting with that
-                 fragile territory. -->
-            <Border Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#CC000000" BorderBrush="Black" BorderThickness="0" Height="16" CornerRadius="8" Padding="8,1,8,1">
-                <TextBlock Text="{Binding FilteredGameCountText}" FontSize="10" FontWeight="Bold" Foreground="DimGray"/>
-            </Border>
+                <!-- The video conversion prompt and converting bubbles now live in the Video Convert Prompt layer
+                 (VideoConvertPromptLayer, above). -->
 
-            <!-- Version + Copyright merged into a single pill, right-aligned in Column 1. -->
+                <!-- Version + Copyright merged into a single pill, right-aligned in Column 1. -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,0,0">
                 <Border Background="#CC000000" Height="16" BorderBrush="Black" BorderThickness="0" CornerRadius="8" Padding="8,1,8,1">
                     <StackPanel Orientation="Horizontal">
@@ -713,6 +890,15 @@
             </StackPanel>
         </Grid>
         <!-- [END SECTION: Footer Bar - Games Count + Play Stats + Version/Copyright] -->
+
+            <!-- Theme Builder alignment guides: 1px lines at the selected layer's edges, above every layer,
+                 never hit-testable. Positioned, sized and colored by ShowGuides() in code-behind. -->
+            <Line x:Name="GuideLeft" Panel.ZIndex="2000" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+            <Line x:Name="GuideRight" Panel.ZIndex="2000" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+            <Line x:Name="GuideTop" Panel.ZIndex="2000" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+            <Line x:Name="GuideBottom" Panel.ZIndex="2000" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+        </Canvas>
+        <!-- [END: LayoutCanvas] -->
 
         <!-- [SECTION: Folder Name Input Flyout] -->
         <!-- Shared by "Create folder" (opens empty, at mouse point) and "Rename folder" (opens pre-
@@ -777,23 +963,7 @@
         <!-- Anchored under the die button (BtnPlayRandom) - guards against accidental clicks before any
              spin logic runs. Spin/Cancel mirror the Border+MouseLeftButtonUp button pattern used
              elsewhere in this file rather than a real Button control, for visual consistency. -->
-        <Popup x:Name="RandomizerConfirmPopup" StaysOpen="False" AllowsTransparency="True" Closed="RandomizerConfirmPopup_Closed">
-            <Border x:Name="RandomizerConfirmContentBorder" Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" Padding="10,8">
-                <StackPanel>
-                    <TextBlock Text="Roll the Dice?" FontSize="14" FontWeight="Bold" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" Margin="0,0,0,8" HorizontalAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Border x:Name="RandomizerConfirmYesButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4" Margin="0,0,6,0"
-                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerConfirmYesButton_MouseLeftButtonUp">
-                            <TextBlock Text="Roll 'Em" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
-                        </Border>
-                        <Border x:Name="RandomizerConfirmNoButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4"
-                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerConfirmNoButton_MouseLeftButtonUp">
-                            <TextBlock Text="Cancel" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
-                        </Border>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </Popup>
+        <!-- Randomizer confirm popup removed - the die button now spins immediately. -->
         <!-- [END SECTION: Randomizer Confirm Flyout] -->
 
         <!-- [SECTION: Randomizer Reveal Flyout] -->
@@ -802,31 +972,7 @@
              lingering on top of every other window until explicitly clicked - RandomizerRevealPopup_Closed
              below does the same cleanup the Cancel button does, so an outside-click dismiss behaves
              identically to hitting Cancel rather than leaving randomizer state stuck open. -->
-        <Popup x:Name="RandomizerRevealPopup" StaysOpen="False" AllowsTransparency="True" Closed="RandomizerRevealPopup_Closed">
-            <Border x:Name="RandomizerRevealContentBorder" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}">
-                <Grid>
-                    <!-- Background layer only - Opacity here dims just the card fill, not the text/buttons on top -->
-                    <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=4}" Opacity="1"/>
-                    <StackPanel Margin="14,10">
-                    <TextBlock Text="{Binding RandomizerCurrentFrameGame.DisplayTitle}" FontSize="16" FontWeight="Bold" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" Margin="0,0,0,10" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="260" TextAlignment="Center"/>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Border x:Name="RandomizerRevealLaunchButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4" Margin="0,0,6,0"
-                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerRevealLaunchButton_MouseLeftButtonUp">
-                            <TextBlock Text="Launch" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
-                        </Border>
-                        <Border x:Name="RandomizerRevealRespinButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4" Margin="0,0,6,0"
-                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerRevealRespinButton_MouseLeftButtonUp">
-                            <TextBlock Text="Reroll" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
-                        </Border>
-                        <Border x:Name="RandomizerRevealCancelButton" CornerRadius="{Binding ThemeBorderCurve, FallbackValue=11}" Padding="14,4"
-                                Background="{Binding ThemeGamesColor, FallbackValue=#CC000000}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeBorderWidth, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="RandomizerRevealCancelButton_MouseLeftButtonUp">
-                                <TextBlock Text="Cancel" FontWeight="Bold" FontSize="12" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center"/>
-                        </Border>
-                        </StackPanel>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Popup>
+        <!-- Randomizer reveal popup removed - the spin now lands on the winner in the list. -->
         <!-- [END SECTION: Randomizer Reveal Flyout] -->
     </Grid>
 </Window>

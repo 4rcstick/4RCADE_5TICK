@@ -1,0 +1,69 @@
+﻿<UserControl x:Class="ArcadeStick.Views.SplashLayerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:anim="https://github.com/whistyun/AnimatedImage.Wpf"
+             IsHitTestVisible="False"
+             mc:Ignorable="d" d:DesignHeight="523" d:DesignWidth="867">
+
+    <!-- Splash Image layer: static, animated and video variants of the boot splash. Each is shown only
+         while no game is selected, and the matching variant is picked by IsBootSplashAnimated /
+         IsBootSplashVideo. All three simply fill this control's rect (set by ApplyLayout). -->
+    <Grid ClipToBounds="True">
+
+        <!-- Static splash (png/jpg) -->
+        <Border x:Name="MediaLayer0_Back" x:FieldModifier="public" CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <ImageBrush ImageSource="{Binding ThemeBootSplashAsset}" Stretch="Fill" AlignmentX="Left" AlignmentY="Top" TileMode="None" Viewport="0,0,1,1" ViewportUnits="RelativeToBoundingBox"/>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+        </Border>
+
+        <!-- Animated splash (gif or APNG) -->
+        <Image x:Name="BootSplashAnimatedPreview" Stretch="Fill" anim:ImageBehavior.AnimatedSource="{Binding ThemeBootSplashAnimatedAsset}" anim:ImageBehavior.RepeatBehavior="Forever">
+            <Image.Style>
+                <Style TargetType="Image">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsGameSelected}" Value="False"/>
+                                <Condition Binding="{Binding IsBootSplashAnimated}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Image.Style>
+        </Image>
+
+        <!-- Video splash (mp4) -->
+        <MediaElement x:Name="BootSplashVideoPreview" x:FieldModifier="public" Stretch="Fill" IsMuted="True" LoadedBehavior="Manual" UnloadedBehavior="Manual" IsHitTestVisible="False" MediaEnded="BootSplashVideoPreview_MediaEnded">
+            <MediaElement.Style>
+                <Style TargetType="MediaElement">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsGameSelected}" Value="False"/>
+                                <Condition Binding="{Binding IsBootSplashVideo}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </MediaElement.Style>
+        </MediaElement>
+    </Grid>
+</UserControl>

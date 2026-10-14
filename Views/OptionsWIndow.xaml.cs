@@ -46,8 +46,6 @@ namespace ArcadeStick.Views
             // ADB Artwork Scraper Settings
             ScraperTab.Initialize(_settings);
 
-            ThemesTab.Initialize(_viewModel, _settings, PersistSettingsToDisk, RefreshOptionsWindowBindings);
-
             InputsTab.Initialize(_settings);
             MameKeybindsTab.Initialize(_settings);
 
@@ -92,8 +90,7 @@ namespace ArcadeStick.Views
             {
                 SystemPathsTab.SyncToSettings();
                 AssetPathsTab.SyncToSettings();
-                ScraperTab.SyncToSettings();
-                ThemesTab.SyncUiToSettings();
+                ScraperTab.SyncToSettings();                
                 InputsTab.SyncToSettings();
 
                 PersistSettingsToDisk();

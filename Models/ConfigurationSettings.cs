@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ArcadeStick.Models
 {
@@ -85,6 +86,55 @@ namespace ArcadeStick.Models
         public string ThemeBootSplash { get; set; } = "";
         public string ThemeMissingPreview { get; set; } = "";
         public string ActiveThemeName { get; set; } = "";
+
+        // Resolution the active theme's layout is currently shown at (last one chosen in the Advanced tab).
+        // Persisted in settings.json alongside ActiveThemeName.
+        public int ActiveResolutionWidth { get; set; } = 1280;
+        public int ActiveResolutionHeight { get; set; } = 720;
+
+        // Per-resolution layer layouts for the active theme (loaded from the theme file, written back on
+        // theme save). Missing resolutions/layers fall back to LayerRegistry defaults.
+        public List<ThemeLayout> Layouts { get; set; } = new();
+
+        // Theme Builder alignment guides (editor preferences, not part of any theme file): four 1px lines
+        // drawn at the selected layer's edges while the Advanced tab is open.
+        public bool ShowGuideLines { get; set; } = true;
+        public string GuideLineColorHex { get; set; } = "#FF00FFFF";
+
+        // Snapshot of the active theme's layouts
+
+        // Snapshot of the active theme's layouts as last loaded from or saved to the theme file. Used as
+        // the restore point for Reset Layer / Reset Layout. Never written to settings.json.
+        [System.Text.Json.Serialization.JsonIgnore]
+        public List<ThemeLayout> SavedThemeLayouts { get; set; } = new();
+
+        // Resolution the active theme was last loaded at / saved at (0 = unknown). Delete Size returns here.
+        [System.Text.Json.Serialization.JsonIgnore]
+        public int SavedThemeWidth { get; set; } = 0;
+        [System.Text.Json.Serialization.JsonIgnore]
+        public int SavedThemeHeight { get; set; } = 0;
+
+        // Deep copy helper so the snapshot never shares objects with the live, editable layouts.
+        public static List<ThemeLayout> CloneLayouts(IEnumerable<ThemeLayout> source)
+        {
+            return source.Select(l => new ThemeLayout
+            {
+                Width = l.Width,
+                Height = l.Height,
+                Layers = l.Layers.Select(e => new LayerLayoutEntry
+                {
+                    Id = e.Id,
+                    X = e.X,
+                    Y = e.Y,
+                    Width = e.Width,
+                    Height = e.Height,
+                    Z = e.Z,
+                    Visible = e.Visible,
+                    Name = e.Name,
+                    ImagePath = e.ImagePath
+                }).ToList()
+            }).ToList();
+        }
         // =========================================================================
         // 🛑 END: CUSTOM VISUAL ENVIRONMENT WALLPAPER REFERENCES
         // =========================================================================
@@ -329,6 +379,14 @@ namespace ArcadeStick.Models
         public string GetArcadeStickFilesPath() => Path.Combine(BaseDirectory, ArcadeStickFilesFolder);
         public string GetConfigPath() => Path.Combine(GetArcadeStickFilesPath(), ConfigSubFolder);
 
+        // Full path to the bundled custom ffmpeg build (4rcade5tick_files/ffmpeg/ffmpeg.exe). Used by
+        // VideoConversionService to probe and re-encode scraped videos.
+        public string GetFfmpegPath() => Path.Combine(GetArcadeStickFilesPath(), "ffmpeg", "ffmpeg.exe");
+
+        // JSON cache of which preview videos have been probed as playable/unplayable (config/video_cache.json).
+        // Lives in the config folder, not the ffmpeg folder, since it describes the user's video library.
+        public string GetVideoCachePath() => Path.Combine(GetConfigPath(), "video_cache.json");
+
         // Resolves a single asset-category subfolder (e.g. "marquees") against the consolidated
         // media/ folder at MAME root. Mirrors the cleaning logic previously duplicated across five
         // local ResolvePath functions in MainViewModel - strips a leading ".\", trims stray leading
@@ -383,6 +441,9 @@ namespace ArcadeStick.Models
             this.ThemeBootSplash = source.ThemeBootSplash;
             this.ThemeMissingPreview = source.ThemeMissingPreview;
             this.ActiveThemeName = source.ActiveThemeName;
+            this.ActiveResolutionWidth = source.ActiveResolutionWidth;
+            this.ActiveResolutionHeight = source.ActiveResolutionHeight;
+            this.Layouts = source.Layouts ?? new List<ThemeLayout>();
 
             this.BackgroundColor = source.BackgroundColor;
             this.FileListBg = source.FileListBg;

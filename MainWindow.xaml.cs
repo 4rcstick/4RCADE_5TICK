@@ -1,7 +1,6 @@
 ﻿// [SECTION: File Overrides] - Layered preview and asset management overrides for MainWindow
 using ArcadeStick.Services;
 using ArcadeStick.ViewModels;
-using LibVLCSharp.Shared;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,8 +12,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using System.Windows.Threading;
-using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 
 namespace ArcadeStick.Services
 {
@@ -40,7 +39,6 @@ namespace ArcadeStick
         private RomCopyService? _romCopyService;
         private bool _isTogglingMouseSupport;
         private bool _isOptionsWindowOpen;
-        private LibVLC? _libVLC;
 
         // [SECTION: Folder Flyout State]
         // State for the shared Create/Rename folder-name Popup and the Choose Color Popup. Grouped here
@@ -56,8 +54,7 @@ namespace ArcadeStick
         // [END SECTION: Folder Flyout State]
 
         public WGIService? GamepadService => _gamepadService;
-        public MediaPlayer? VlcMediaPlayer { get; private set; }
-        public MediaPlayer? BootSplashMediaPlayer { get; private set; }
+        // LibVLC players removed - preview and boot splash video now play through MediaElement.
 
         // Tracks which video path is currently loaded into BootSplashMediaPlayer, so
         // RefreshBootSplashVideo() can skip a redundant Stop()/reload when nothing has actually
@@ -88,43 +85,15 @@ namespace ArcadeStick
             _delayedTooltipTimer.Tick += DelayedTooltipTimer_Tick;
             _romCopyStatusTimer.Tick += RomCopyStatusTimer_Tick;
 
-            string libVlcPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "4rcade5tick_files", "libvlc");
-
-            if (Directory.Exists(libVlcPath))
-            {
-                Core.Initialize(libVlcPath);
-            }
-            else
-            {
-                Core.Initialize();
-            }
-
-            _libVLC = new LibVLC();
-            VlcMediaPlayer = new MediaPlayer(_libVLC);
-            VlcMediaPlayer.Mute = true;
-
-            // Looping is handled natively via the input-repeat media option (see media creation),
-            // so EndReached no longer needs to manually restart playback.
-
-            // Swallow playback errors (e.g. missing/corrupt preview file) by stopping cleanly
-            VlcMediaPlayer.EncounteredError += (s, e) =>
-            {
-                Dispatcher.BeginInvoke(new Action(() => VlcMediaPlayer.Stop()));
-            };
-
-            // Separate player for the boot splash mp4, so it never conflicts with the foreground flyer/video preview
-            BootSplashMediaPlayer = new MediaPlayer(_libVLC);
-            BootSplashMediaPlayer.Mute = true;
-
-            // Looping is handled natively via the input-repeat media option (see media creation),
-            // so EndReached no longer needs to manually restart playback.
-
-            BootSplashMediaPlayer.EncounteredError += (s, e) =>
-            {
-                Dispatcher.BeginInvoke(new Action(() => BootSplashMediaPlayer.Stop()));
-            };
+            // LibVLC initialization and both LibVLC players removed - preview and boot splash video
+            // now play through MediaElement (see MediaPanelControl).
 
             InitializeComponent();
+
+            // TEMPORARY test player: MediaElementPreview lives inside MediaPanelControl, so its loop/failure
+            // events are subscribed here in code instead of in that control's XAML.
+            VideoPreviewLayer.MediaElementPreview.MediaEnded += MediaElementPreview_MediaEnded;
+            VideoPreviewLayer.MediaElementPreview.MediaFailed += MediaElementPreview_MediaFailed;
 
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
@@ -132,12 +101,22 @@ namespace ArcadeStick
             _romCopyService = new RomCopyService(_viewModel.Configuration);
 
             _viewModel.GameLaunchCompleted += RefreshVideoPreview;
+            _viewModel.ConvertAllVideosRequested += OpenBatchConvertWindow;
             _viewModel.GameLaunchCompleted += RestoreGameListScrollPosition;
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
             _viewModel.ThemeBindingsRefreshed += RefreshOptionsGearIconRestingColors;
             _viewModel.ThemeBindingsRefreshed += RefreshSortGearIconRestingColors;
             _viewModel.ThemeBindingsRefreshed += RefreshPlayRandomIconRestingColors;
+            _viewModel.ThemeBindingsRefreshed += RefreshHamburgerIconRestingColors;
             _viewModel.ThemeBindingsRefreshed += RefreshBootSplashImageCornerClip;
+            _viewModel.ThemeBindingsRefreshed += RefreshMainBgVideo;
+            _viewModel.ThemeBindingsRefreshed += ApplyLayout;
+            _viewModel.ThemeExtractionStarting += ReleaseCustomLayers;
+            _viewModel.GameLaunchCompleted += ResumeMainBgVideo;
+
+            // Position every layer from the active layout right away (the first ThemeBindingsRefreshed
+            // may have fired inside MainViewModel's constructor, before this subscription existed).
+            ApplyLayout();
 
             // Paint the three icon buttons' resting colors immediately - if MainViewModel's constructor
             // above already fired ThemeBindingsRefreshed as part of its own theme-load setup, that event
@@ -146,20 +125,12 @@ namespace ArcadeStick
             RefreshOptionsGearIconRestingColors();
             RefreshSortGearIconRestingColors();
             RefreshPlayRandomIconRestingColors();
+            RefreshHamburgerIconRestingColors();
 
             _viewModel.RandomizerSpinCompleted += winner =>
             {
-                // Jump the game tree to the winner before the reveal popup opens, so it's already
-                // expanded/selected underneath by the time the user picks Launch/Respin/Cancel.
+                // Jump the game tree to the winner - the spin just lands on it, no reveal popup anymore.
                 ExpandAndSelectGameInMainTree(winner);
-
-                // Anchored to the same spot as the Confirm popup (under the die button), rather than
-                // centered over the marquee panel - keeps both randomizer popups appearing in one
-                // consistent location instead of jumping between two different spots mid-flow.
-                RandomizerRevealPopup.PlacementTarget = BtnPlayRandom;
-                RandomizerRevealPopup.Placement = PlacementMode.Bottom;
-                CenterPopupOverTarget(RandomizerRevealPopup, RandomizerRevealContentBorder, BtnPlayRandom);
-                RandomizerRevealPopup.IsOpen = true;
             };
 
             // Fixes a pre-existing WPF quirk affecting every AllowsTransparency="True" Popup in this
@@ -171,85 +142,415 @@ namespace ArcadeStick
             // Post-load startup sequence: sync ROM paths, load the database, set idle media state, start gamepad polling
             Loaded += async (s, e) =>
             {
+                // Load the wallpaper video paused first so its first frame shows while the list builds.
+                RefreshMainBgVideo();
+
                 _ = _viewModel.SyncMameRomPathsAsync();
                 await _viewModel.InitializeDatabaseAsync();
                 ApplyDefaultMedia();
+                FinishMainBgVideoStartup();
                 InitializeGamepadInput();
-
-                // Force a synchronous, fully-settled layout pass before reading any ActualHeight/Margin
-                // values - Loaded/LayoutUpdated/Dispatcher priorities can all still fire on a premature
-                // intermediate pass during the very first layout cycle.
-                UpdateLayout();
-                UpdateGameListColumnWidth();
             };
 
             // Dispose native/unmanaged resources on window close
             Unloaded += (s, e) =>
             {
                 _gamepadService?.Dispose();
-                VlcMediaPlayer?.Dispose();
-                BootSplashMediaPlayer?.Dispose();
-                _libVLC?.Dispose();
             };
 
             KeyDown += MainWindow_KeyDown;
-            SizeChanged += MainWindow_SizeChanged;
         }
         // [END SECTION: Constructor & LibVLC Setup]
 
 
-        // [SECTION: Dynamic Game List Column Sizing]
-        // Recalculates the left column's exact pixel width on every resize so the game list panel
-        // maintains a fixed 540:1000 (width:height) ratio - measured directly off the Photoshop
-        // mockup at fullscreen 1920x1080 - and can never shrink/collapse to the point of clipping
-        // game names, regardless of window size. The media panel (right column) simply receives
-        // whatever space remains (RightColumnDef stays Star-sized in XAML) - it no longer has its
-        // own forced-16:9 pixel computation here; that lock now lives inside the media panel's own
-        // control instead.
-        private const double GameListWidthToHeightRatio = 540.0 / 1040.0;
-        private const double MinGameListWidth = 360.0;
+        // Called by Theme Builder after each committed Advanced edit so layers move live (nothing saved).
+        public void ApplyLayoutNow() => ApplyLayout();
 
-        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        // [SECTION: Theme Builder Alignment Guides]
+        // Draws (or hides, when info is null) four 1px guide lines at the selected layer's pending rect.
+        // Vertical lines span the full canvas height, horizontal lines the full canvas width. Right and
+        // bottom lines sit on the last pixel inside the layer (X + Width - 0.5) so they hug its edge.
+        public void ShowGuides(Views.AdvancedThemesTabControl.GuideInfo? info)
         {
-            UpdateGameListColumnWidth();
+            var lines = new[] { GuideLeft, GuideRight, GuideTop, GuideBottom };
+
+            if (info == null)
+            {
+                foreach (var l in lines) l.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            Brush brush;
+            try { brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(info.ColorHex)); }
+            catch { brush = Brushes.Cyan; }
+
+            double canvasW = LayoutCanvas.Width;
+            double canvasH = LayoutCanvas.Height;
+
+            void Place(Line line, double x1, double y1, double x2, double y2)
+            {
+                line.X1 = x1; line.Y1 = y1; line.X2 = x2; line.Y2 = y2;
+                line.Stroke = brush;
+                line.Visibility = Visibility.Visible;
+            }
+
+            double left = info.X + 0.5;
+            double right = info.X + info.Width - 0.5;
+            double top = info.Y + 0.5;
+            double bottom = info.Y + info.Height - 0.5;
+
+            Place(GuideLeft, left, 0, left, canvasH);
+            Place(GuideRight, right, 0, right, canvasH);
+            Place(GuideTop, 0, top, canvasW, top);
+            Place(GuideBottom, 0, bottom, canvasW, bottom);
+        }
+        // [END SECTION: Theme Builder Alignment Guides]
+
+        // [SECTION: Layout Application]
+        // Positions every layer on LayoutCanvas from the active resolution's layout (saved entries plus
+        // registry defaults for anything missing). Runs at startup and on every ThemeBindingsRefreshed,
+        // so Save Adjustments and theme loads reposition live. The window itself sizes to the canvas
+        // (SizeToContent), so the client area always equals the layout resolution.
+        // Layers not mapped here yet (GamesList, SplashImage, VideoPreview, ImagePreviews, GameInfo) are
+        // handled in later stages. GamesListPanel temporarily stands in for GamesListBg and is never hidden.
+        private void ApplyLayout()
+        {
+            if (_viewModel == null) return;
+
+            var config = _viewModel.Configuration;
+            int width = config.ActiveResolutionWidth;
+            int height = config.ActiveResolutionHeight;
+
+            var saved = config.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+            var layout = Models.LayerRegistry.ResolveLayout(saved, width, height);
+
+            LayoutCanvas.Width = width;
+            LayoutCanvas.Height = height;
+
+            var map = new Dictionary<string, FrameworkElement>
+            {
+                { Models.LayerRegistry.SearchLabel, SearchLabel },
+                { Models.LayerRegistry.SearchBox, SearchBox },
+                { Models.LayerRegistry.RandomButton, BtnPlayRandom },
+                { Models.LayerRegistry.SortButton, BtnOpenSortingGear },
+                { Models.LayerRegistry.OptionsButton, BtnOpenOptionsGear },
+                { Models.LayerRegistry.HamburgerButton, BtnOpenMenuHamburger },
+                { Models.LayerRegistry.GamesListBg, GamesListPanel },
+                { Models.LayerRegistry.GamesList, GamesListHost },
+                { Models.LayerRegistry.MarqueePanel, MarqueePanelBorder },
+                { Models.LayerRegistry.MediaPanel, MediaPanel },
+                { Models.LayerRegistry.SplashImage, SplashLayer },
+                { Models.LayerRegistry.VideoPreview, VideoPreviewLayer },
+                { Models.LayerRegistry.GameTitle, GameInfoLayer.PartTitle },
+                { Models.LayerRegistry.PublisherBlock, GameInfoLayer.PartPublisher },
+                { Models.LayerRegistry.GameInfoNav, GameInfoLayer.PartInfoNav },
+                { Models.LayerRegistry.GameInfoBody, GameInfoLayer.PartInfoBody },
+                { Models.LayerRegistry.ImagePreviewsNav, GameInfoLayer.PartPreviewsNav },
+                { Models.LayerRegistry.ImagePreviewsBody, GameInfoLayer.PartPreviewsBody },
+                { Models.LayerRegistry.VideoConvertPrompt, VideoConvertPromptLayer },
+                { Models.LayerRegistry.Footer, FooterPanel }
+            };
+
+            // The Game Info host fills the whole canvas (its six parts are positioned inside it) and takes the
+            // group's shared Z. It has no background, so empty areas don't block clicks on the layers below.
+            Canvas.SetLeft(GameInfoLayer, 0);
+            Canvas.SetTop(GameInfoLayer, 0);
+            GameInfoLayer.Width = width;
+            GameInfoLayer.Height = height;
+            var gameInfoGroupEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.GameTitle);
+            if (gameInfoGroupEntry != null) Panel.SetZIndex(GameInfoLayer, gameInfoGroupEntry.Z);
+
+            foreach (var entry in layout.Layers)
+            {
+                if (!map.TryGetValue(entry.Id, out var element)) continue;
+
+                Canvas.SetLeft(element, entry.X);
+                Canvas.SetTop(element, entry.Y);
+                element.Width = entry.Width;
+                element.Height = entry.Height;
+                Panel.SetZIndex(element, entry.Z);
+
+                // Games List stays locked visible (the registry already forces it, this is a safety net)
+                element.Visibility = (element == GamesListHost || entry.Visible) ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            ApplyCustomLayers(layout);
+            ApplyRandomGameDisplayRect(layout);
+            ApplyRandomGameDisplayFile(layout);
+        }
+        // [SECTION: Custom Image Layers]
+        // One Image element per custom layer, created on demand and kept on LayoutCanvas. Rebuilt only when
+        // a layer's file changes; otherwise just repositioned. Fill-crop (UniformToFill) is the only fit mode.
+        private readonly Dictionary<string, (FrameworkElement Element, string Path)> _customLayerElements = new();
+
+        private void ApplyCustomLayers(Models.ThemeLayout layout)
+        {
+            var wanted = layout.Layers.Where(e => Models.LayerRegistry.IsCustomId(e.Id)).ToList();
+
+            // Drop elements for layers that no longer exist at this resolution
+            foreach (var staleId in _customLayerElements.Keys.Where(id => wanted.All(e => e.Id != id)).ToList())
+            {
+                LayoutCanvas.Children.Remove(_customLayerElements[staleId].Element);
+                _customLayerElements.Remove(staleId);
+            }
+
+            foreach (var entry in wanted)
+            {
+                string? fullPath = ResolveCustomImagePath(entry.ImagePath);
+
+                if (_customLayerElements.TryGetValue(entry.Id, out var existing) && existing.Path != fullPath)
+                {
+                    LayoutCanvas.Children.Remove(existing.Element);
+                    _customLayerElements.Remove(entry.Id);
+                }
+
+                if (fullPath == null) continue;
+
+                if (!_customLayerElements.TryGetValue(entry.Id, out var current))
+                {
+                    var created = CreateCustomLayerImage(fullPath);
+                    if (created == null) continue;
+
+                    LayoutCanvas.Children.Add(created);
+                    current = (created, fullPath);
+                    _customLayerElements[entry.Id] = current;
+                }
+
+                var element = current.Element;
+                Canvas.SetLeft(element, entry.X);
+                Canvas.SetTop(element, entry.Y);
+                element.Width = entry.Width;
+                element.Height = entry.Height;
+                Panel.SetZIndex(element, entry.Z);
+                element.Visibility = entry.Visible ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
 
-        private void UpdateGameListColumnWidth()
+        // Stops and removes every custom layer element so no file stays open. Called just before LoadTheme
+        // deletes and re-extracts the theme's Extracted folder. The next ApplyLayout recreates whatever
+        // the new theme needs.
+        public void ReleaseCustomLayers()
         {
-            // RootLayoutGrid is the true client content area - unlike Window.ActualHeight, it excludes
-            // the title bar/chrome, which was the actual source of the boot-size pillarboxing bug
-            // (ActualHeight included ~39px of title bar that was never accounted for).
-            double rootHeight = RootLayoutGrid.ActualHeight;
-            if (rootHeight <= 0) return;
+            // The Random Game Display layer's file is held open the same way
+            ReleaseRandomGameDisplayFile();
 
-            // Root Row0 height = client area height minus the footer row's actual height (self-derived,
-            // no hardcoded constant), minus the left column grid's own top+bottom margin.
-            double footerHeight = FooterRowDef.ActualHeight;
-            double leftColumnVerticalMargin = LeftColumnGrid.Margin.Top + LeftColumnGrid.Margin.Bottom;
-            double availableHeight = rootHeight - footerHeight - leftColumnVerticalMargin;
-            if (availableHeight <= 0) return;
+            foreach (var entry in _customLayerElements.Values)
+            {
+                if (entry.Element is MediaElement video)
+                {
+                    video.Stop();
+                    video.Source = null;
+                    video.Close();
+                }
+                else if (entry.Element is Image image)
+                {
+                    // Clears the animated source (AnimatedImage.Wpf) and the static bitmap
+                    image.ClearValue(Image.SourceProperty);
+                    image.Source = null;
+                }
 
-            // Ratio calibrated against the real measured runtime availableHeight at fullscreen (1040px),
-            // not the Photoshop mockup's assumed 1000px reference - the two didn't line up exactly, which
-            // was the actual source of the earlier few-pixel gap (the left/right margin turned out to be
-            // a non-factor, since it's drawn inside the column and cancels out of the visible-width math).
-            // The 540:1040 ratio describes the visible background content area, but LeftColumnGrid's own
-            // left+right margin is drawn inside the column and insets that visible area below the column's
-            // actual width - add the margin back so the column ends up wider by exactly that amount,
-            // landing the true visible content at 540 regardless of window size (not just at fullscreen).
-            double leftColumnHorizontalMargin = LeftColumnGrid.Margin.Left + LeftColumnGrid.Margin.Right;
-            double neededWidth = (availableHeight * GameListWidthToHeightRatio) + leftColumnHorizontalMargin;
-
-            // Floor so the game list never shrinks past legibility on very short windows (deeply nested
-            // category names truncating, as seen when height drops too low) - the media panel (Star column)
-            // simply absorbs whatever extra width this floor leaves unclaimed once the ratio-computed
-            // width would otherwise fall below it.
-            neededWidth = Math.Max(neededWidth, MinGameListWidth);
-
-            LeftColumnDef.Width = new GridLength(neededWidth, GridUnitType.Pixel);
-            RightColumnDef.Width = new GridLength(1, GridUnitType.Star);
+                LayoutCanvas.Children.Remove(entry.Element);
+            }
+            _customLayerElements.Clear();
         }
-        // [END SECTION: Dynamic Game List Column Sizing]
+
+        // [SECTION: Random Game Display Rect]
+        // The Random Game Display layer has two rects: one used when the die is clicked with a game selected,
+        // one used when it's clicked on the splash page (no game selected). Which one applies is decided at
+        // the moment of the click and stays fixed for the whole spin, so the animation can't jump when the
+        // winner lands.
+        private bool _randomSpinFromSplash;
+
+        private void ApplyRandomGameDisplayRect(Models.ThemeLayout layout)
+        {
+            string id = _randomSpinFromSplash ? Models.LayerRegistry.RandomGameDisplaySplash : Models.LayerRegistry.RandomGameDisplay;
+            var entry = layout.Layers.FirstOrDefault(e => e.Id == id);
+            if (entry == null) return;
+
+            Canvas.SetLeft(RandomGameDisplayLayer, entry.X);
+            Canvas.SetTop(RandomGameDisplayLayer, entry.Y);
+            RandomGameDisplayLayer.Width = entry.Width;
+            RandomGameDisplayLayer.Height = entry.Height;
+            Panel.SetZIndex(RandomGameDisplayLayer, entry.Z);
+            RandomGameDisplayLayer.Visibility = entry.Visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        // Same layout resolution ApplyLayout uses - lets the die click re-apply just this layer's rect.
+        private void ApplyRandomGameDisplayRect()
+        {
+            if (_viewModel == null) return;
+
+            var config = _viewModel.Configuration;
+            int width = config.ActiveResolutionWidth;
+            int height = config.ActiveResolutionHeight;
+            var saved = config.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+            ApplyRandomGameDisplayRect(Models.LayerRegistry.ResolveLayout(saved, width, height));
+        }
+        // [END SECTION: Random Game Display Rect]
+
+        // [SECTION: Random Game Display File]
+        // The Random Game Display layer can show a file (image, gif/APNG or mp4) during a spin instead of the
+        // "Rolling the Dice!" text. Built with the same loader as the custom layers; rebuilt only when the
+        // layer's file changes. A video is kept stopped until a spin starts (see UpdateRandomGameDisplayPlayback).
+        private string? _randomDisplayFilePath;
+        private FrameworkElement? _randomDisplayElement;
+
+        private void ApplyRandomGameDisplayFile(Models.ThemeLayout layout)
+        {
+            var entry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomGameDisplay);
+            string? fullPath = entry == null ? null : ResolveCustomImagePath(entry.ImagePath);
+
+            if (fullPath == _randomDisplayFilePath) return;
+
+            ReleaseRandomGameDisplayFile();
+            _randomDisplayFilePath = fullPath;
+            if (fullPath == null) return;
+
+            var element = CreateCustomLayerImage(fullPath);
+            if (element == null) return;
+
+            if (element is MediaElement video)
+            {
+                video.Stop();
+                // Unsupported codec: fall back to the text instead of showing an empty layer
+                video.MediaFailed += (s, e) =>
+                {
+                    RandomSpinFileHost.Visibility = Visibility.Collapsed;
+                    RandomSpinFallback.Visibility = Visibility.Visible;
+                };
+            }
+
+            RandomSpinFileHost.Children.Add(element);
+            RandomSpinFileHost.Visibility = Visibility.Visible;
+            RandomSpinFallback.Visibility = Visibility.Collapsed;
+            _randomDisplayElement = element;
+        }
+
+        // Stops and removes the layer's file so nothing stays open, and brings the text fallback back.
+        public void ReleaseRandomGameDisplayFile()
+        {
+            if (_randomDisplayElement is MediaElement video)
+            {
+                video.Stop();
+                video.Source = null;
+                video.Close();
+            }
+            else if (_randomDisplayElement is Image image)
+            {
+                image.ClearValue(Image.SourceProperty);
+                image.Source = null;
+            }
+
+            if (_randomDisplayElement != null) RandomSpinFileHost.Children.Remove(_randomDisplayElement);
+
+            _randomDisplayElement = null;
+            _randomDisplayFilePath = null;
+            RandomSpinFileHost.Visibility = Visibility.Collapsed;
+            RandomSpinFallback.Visibility = Visibility.Visible;
+        }
+
+        // A video starts from the beginning each time a spin starts, and stops when it ends.
+        private void UpdateRandomGameDisplayPlayback()
+        {
+            if (_randomDisplayElement is not MediaElement video) return;
+
+            if (_viewModel.IsRandomizerSpinning)
+            {
+                video.Position = TimeSpan.Zero;
+                video.Play();
+            }
+            else
+            {
+                video.Stop();
+            }
+        }
+        // [END SECTION: Random Game Display File]
+
+        // Relative paths resolve against the app folder (same as the other theme assets). Null if the file is missing.
+        private string? ResolveCustomImagePath(string storedPath)
+        {
+            if (string.IsNullOrWhiteSpace(storedPath)) return null;
+
+            try
+            {
+                string full = System.IO.Path.IsPathRooted(storedPath)
+                    ? storedPath
+                    : System.IO.Path.GetFullPath(System.IO.Path.Combine(_viewModel.Configuration.BaseDirectory, storedPath));
+                return File.Exists(full) ? full : null;
+            }
+            catch { return null; }
+        }
+
+        // Animated gif/APNG go through AnimatedImage.Wpf (built from XAML so no extra namespace is needed in
+        // code); static png/jpg load as a normal frozen bitmap read fully into memory so the file isn't locked.
+        private static FrameworkElement? CreateCustomLayerImage(string fullPath)
+        {
+            try
+            {
+                string ext = System.IO.Path.GetExtension(fullPath).ToLowerInvariant();
+
+                // Video: muted, looping, stretched to fill the layer box so the whole picture always shows
+                if (ext == ".mp4")
+                {
+                    var video = new MediaElement
+                    {
+                        LoadedBehavior = MediaState.Manual,
+                        UnloadedBehavior = MediaState.Manual,
+                        IsMuted = true,
+                        Stretch = Stretch.Fill,
+                        IsHitTestVisible = false,
+                        Source = new Uri(fullPath, UriKind.Absolute)
+                    };
+                    // MediaElement has no built-in repeat, so rewind and keep playing (same as the wallpaper video)
+                    video.MediaEnded += (s, e) => { video.Position = TimeSpan.Zero; video.Play(); };
+                    // Unsupported codec: hide the layer instead of showing a black or frozen box
+                    video.MediaFailed += (s, e) => { video.Stop(); video.Visibility = Visibility.Collapsed; };
+                    video.Play();
+                    return video;
+                }
+
+                bool animated = ext == ".gif" || (ext == ".png" && IsAnimatedPngFile(fullPath));
+
+                if (animated)
+                {
+                    string uri = System.Security.SecurityElement.Escape(new Uri(fullPath, UriKind.Absolute).AbsoluteUri) ?? "";
+                    string xaml =
+                        "<Image xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" " +
+                        "xmlns:anim=\"https://github.com/whistyun/AnimatedImage.Wpf\" " +
+                        "Stretch=\"UniformToFill\" IsHitTestVisible=\"False\" ClipToBounds=\"True\" " +
+                        $"anim:ImageBehavior.AnimatedSource=\"{uri}\" anim:ImageBehavior.RepeatBehavior=\"Forever\"/>";
+                    return (Image)System.Windows.Markup.XamlReader.Parse(xaml);
+                }
+
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.StreamSource = new MemoryStream(File.ReadAllBytes(fullPath));
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                return new Image { Source = bitmap, Stretch = Stretch.UniformToFill, IsHitTestVisible = false, ClipToBounds = true };
+            }
+            catch { return null; }
+        }
+
+        // An APNG carries an "acTL" chunk near the start of the file, before the first image data
+        private static bool IsAnimatedPngFile(string fullPath)
+        {
+            try
+            {
+                using var stream = File.OpenRead(fullPath);
+                var buffer = new byte[1024];
+                int read = stream.Read(buffer, 0, buffer.Length);
+                string head = System.Text.Encoding.ASCII.GetString(buffer, 0, read);
+                int actl = head.IndexOf("acTL", StringComparison.Ordinal);
+                int idat = head.IndexOf("IDAT", StringComparison.Ordinal);
+                return actl >= 0 && (idat < 0 || actl < idat);
+            }
+            catch { return false; }
+        }
+        // [END SECTION: Custom Image Layers]
+        // [END SECTION: Layout Application]
 
         // [SECTION: Gamepad Input Handling]
         // Subscribes to WGIService events and routes directional/button input into tree navigation and launch actions.
@@ -318,7 +619,10 @@ namespace ArcadeStick
 
                         if (selectedContainer != null && selectedContainer.HasItems)
                         {
-                            selectedContainer.IsExpanded = !selectedContainer.IsExpanded;
+                            if (selectedContainer.DataContext is Models.TreeCategoryNode toggledNode)
+                                toggledNode.IsNodeExpanded = !toggledNode.IsNodeExpanded;
+                            else
+                                selectedContainer.IsExpanded = !selectedContainer.IsExpanded;
                         }
                         else if (_viewModel.SelectedGame != null)
                         {
@@ -410,13 +714,11 @@ namespace ArcadeStick
             {
                 if (_viewModel.SelectedGame != null && !string.IsNullOrEmpty(_viewModel.VideoSourcePath))
                 {
-                    MediaPanel.VideoPreview.Visibility = Visibility.Visible;
-                    PlayVideoPreview(_viewModel.VideoSourcePath);
+                    StartActivePreview(_viewModel.VideoSourcePath);
                 }
                 else
                 {
-                    MediaPanel.VideoPreview.Visibility = Visibility.Collapsed;
-                    VlcMediaPlayer?.Stop();
+                    StopActivePreview();
                 }
             }
 
@@ -424,41 +726,51 @@ namespace ArcadeStick
             {
                 RefreshBootSplashVideo();
             }
+
+            if (e.PropertyName == nameof(_viewModel.IsRandomizerSpinning))
+            {
+                UpdateRandomGameDisplayPlayback();
+            }
+
+            // A spin started from the splash page dimmed the splash (see BtnPlayRandom_MouseLeftButtonUp). It
+            // comes back once the winner is selected, not when the spin flag clears, so it can't flash back
+            // for a moment before the winning game appears.
+            if (e.PropertyName == nameof(_viewModel.IsGameSelected) && _viewModel.IsGameSelected && SplashLayer.Opacity < 1)
+            {
+                SplashLayer.Opacity = 1;
+            }
         }
 
         // Starts/stops the boot splash mp4 based on current selection state and whether the resolved splash asset is a video
         private void RefreshBootSplashVideo()
         {
-            if (_libVLC == null || BootSplashMediaPlayer == null) return;
+            var splash = SplashLayer.BootSplashVideoPreview;
 
             if (!_viewModel.IsGameSelected && _viewModel.IsBootSplashVideo && !string.IsNullOrEmpty(_viewModel.ThemeBootSplashVideoPath))
             {
-                // Skip a fresh load while Options still has window focus - RefreshThemeBindings() re-raises
-                // IsBootSplashVideo on close, safely retrying this once the modal dialog is gone
-                if (_isOptionsWindowOpen) return;
+                // Skip the reload if the correct video is already loaded - RefreshThemeBindings()
+                // re-raises IsBootSplashVideo on every Options close regardless of whether anything
+                // actually changed, and restarting the loop each time would be a visible hiccup.
+                if (_currentBootSplashPath == _viewModel.ThemeBootSplashVideoPath && splash.Source != null) return;
 
-                // Skip the reload entirely if the correct video is already loaded and actively playing -
-                // RefreshThemeBindings() re-raises this property on every Options close regardless of
-                // whether anything actually changed, and the resulting unconditional Stop()/reload was
-                // traced to a native LibVLC hang. Only reload when the theme's splash path genuinely
-                // changed, or playback isn't currently in a healthy running state.
-                bool samePathAlreadyPlaying = _currentBootSplashPath == _viewModel.ThemeBootSplashVideoPath
-                    && (BootSplashMediaPlayer.State == VLCState.Playing || BootSplashMediaPlayer.State == VLCState.Opening);
-
-                if (samePathAlreadyPlaying) return;
-
-                BootSplashMediaPlayer.Stop();
-                using var media = new Media(_libVLC, _viewModel.ThemeBootSplashVideoPath, FromType.FromPath);
-                media.AddOption(":input-repeat=65535");
-                BootSplashMediaPlayer.Play(media);
+                splash.Stop();
+                splash.Source = new Uri(_viewModel.ThemeBootSplashVideoPath, UriKind.Absolute);
+                splash.Play();
                 _currentBootSplashPath = _viewModel.ThemeBootSplashVideoPath;
             }
             else
             {
-                BootSplashMediaPlayer.Stop();
+                splash.Stop();
+                splash.Source = null;
                 _currentBootSplashPath = null;
             }
         }
+
+        // True while the random-winner tree jump runs (ExpandAndSelectGameInMainTree). The jump collapses
+        // folders, which destroys the previously selected row's container and fires a null selection - that
+        // would clear the winner's SelectedGame for a moment and flash the default logo, so null selections
+        // are ignored until the winner's row is selected.
+        private bool _isJumpingToRandomWinner;
 
         // Fired when the TreeView selection changes; just updates SelectedGame - video preview playback
         // is handled separately in ViewModel_PropertyChanged, once VideoSourcePath actually resolves.
@@ -472,48 +784,73 @@ namespace ArcadeStick
                 // stopping the preview player and starting the boot splash player almost simultaneously.
                 if (e.NewValue == null && _viewModel.IsRebuildingTree) return;
 
+                // While the random-winner jump runs, collapsing a folder makes WPF select that folder (not null),
+                // which would set SelectedGame to null and flash the default logo. Ignore anything that isn't
+                // a game until the winner's row is selected.
+                if (_isJumpingToRandomWinner && e.NewValue is not Models.GameItem) return;
+
                 _viewModel.SelectedGame = e.NewValue as Models.GameItem;
             }
         }
 
-        // Stops any current playback and starts the video preview at the given path
-        private void PlayVideoPreview(string path)
-        {
-            if (_libVLC == null || VlcMediaPlayer == null) return;
-
-            VlcMediaPlayer.Stop();
-            using var media = new Media(_libVLC, path, FromType.FromPath);
-            media.AddOption(":input-repeat=65535");
-            VlcMediaPlayer.Play(media);
-
-            // Nudge a theme-binding refresh shortly after playback starts - both Save and Close on the
-            // Options window do this incidentally and it fixes over-wide letterboxing, likely by forcing
-            // MediaPanelBorder's clip geometry (bound to ThemeBorderCurve/ThemeBorderWidth) to recompute
-            // and fully recomposite the video surface against its actual aspect ratio
-            // _ = NudgeVideoAspectRatioAsync();
-        //}
-
-          // Waits briefly for LibVLC to finish parsing the video, then re-raises theme bindings to force a recomposite
-          //   private async System.Threading.Tasks.Task NudgeVideoAspectRatioAsync()
-          //   {
-          //   await System.Threading.Tasks.Task.Delay(300);
-          //  _viewModel.RefreshThemeBindings();
-             }
+        // PlayVideoPreview (LibVLC) removed - StartActivePreview now drives MediaElementPreview directly.
 
         // Re-evaluates and restarts the video preview for the currently selected game (called after returning from a game launch)
         private void RefreshVideoPreview()
         {
             if (_viewModel.SelectedGame != null && !string.IsNullOrEmpty(_viewModel.VideoSourcePath))
             {
-                MediaPanel.VideoPreview.Visibility = Visibility.Visible;
-                PlayVideoPreview(_viewModel.VideoSourcePath);
+                StartActivePreview(_viewModel.VideoSourcePath);
             }
             else
             {
-                MediaPanel.VideoPreview.Visibility = Visibility.Collapsed;
-                VlcMediaPlayer?.Stop();
+                StopActivePreview();
             }
         }
+
+        // [SECTION: Video Player Test Toggle - TEMPORARY]
+        // Routes preview playback to whichever player the footer toggle has active (LibVLC VideoPreview or
+        // the MediaElementPreview test player), always stopping and hiding the other one first so only a
+        // single player is ever decoding. No fallback between them on failure - a MediaElement failure just
+        // leaves a blank preview and bumps the failure count, so the test shows the real failure rate.
+        private void StartActivePreview(string path)
+        {
+            var mediaElement = VideoPreviewLayer.MediaElementPreview;
+            mediaElement.Stop();
+            mediaElement.Source = new Uri(path, UriKind.Absolute);
+            mediaElement.Visibility = Visibility.Visible;
+            mediaElement.Play();
+        }
+
+        // Stops and hides the preview player.
+        private void StopActivePreview()
+        {
+            StopMediaElementPreview();
+        }
+
+        private void StopMediaElementPreview()
+        {
+            var mediaElement = VideoPreviewLayer.MediaElementPreview;
+            mediaElement.Stop();
+            mediaElement.Source = null;
+            mediaElement.Visibility = Visibility.Collapsed;
+        }
+
+        // Loop: MediaElement has no built-in repeat, so rewind and keep playing (same as MainBgVideo)
+        private void MediaElementPreview_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            var mediaElement = VideoPreviewLayer.MediaElementPreview;
+            mediaElement.Position = TimeSpan.Zero;
+            mediaElement.Play();
+        }
+
+        // Unsupported codec / missing Media Foundation - stop and hide the preview so it shows blank
+        // instead of a frozen or black frame.
+        private void MediaElementPreview_MediaFailed(object? sender, ExceptionRoutedEventArgs e)
+        {
+            StopMediaElementPreview();
+        }
+        // [END SECTION: Video Player Test Toggle - TEMPORARY]
 
         // Sets the idle/boot-splash media state at startup (no game selected, no video playing)
         // Collapses and stops the video preview right as a spin begins - the RandomizerSpinMediaOverlay
@@ -524,14 +861,12 @@ namespace ArcadeStick
         // is what reveals it again once a winner is set (or leaves it collapsed if the winner has none).
         private void StopVideoPreviewForSpin()
         {
-            MediaPanel.VideoPreview.Visibility = Visibility.Collapsed;
-            VlcMediaPlayer?.Stop();
+            StopActivePreview();
         }
 
         private void ApplyDefaultMedia()
         {
-            MediaPanel.VideoPreview.Visibility = Visibility.Collapsed;
-            VlcMediaPlayer?.Stop();
+            StopMediaElementPreview();
             RefreshBootSplashVideo();
         }
         // [END SECTION: Video Preview & Media Cleanup]
@@ -550,10 +885,10 @@ namespace ArcadeStick
                     _viewModel.SelectedGame = clickedGame;
                     TriggerActiveSelectionLaunch();
                 }
-                else if (rowContainer.DataContext is Models.TreeCategoryNode)
+                else if (rowContainer.DataContext is Models.TreeCategoryNode clickedNode)
                 {
                     e.Handled = true;
-                    rowContainer.IsExpanded = !rowContainer.IsExpanded;
+                    clickedNode.IsNodeExpanded = !clickedNode.IsNodeExpanded;
                     rowContainer.Focus();
                 }
             }
@@ -1365,8 +1700,8 @@ namespace ArcadeStick
             {
                 _gameBeingLaunched = _viewModel.SelectedGame;
 
-                VlcMediaPlayer?.Stop();
-                MediaPanel.VideoPreview.Visibility = Visibility.Collapsed;
+                StopActivePreview();
+                PauseMainBgVideo();
                 _viewModel.LaunchGameCommand.Execute(this);
             }
         }
@@ -1434,26 +1769,17 @@ namespace ArcadeStick
                 return;
             }
 
+            if (isCtrl && e.Key == Key.T)
+            {
+                e.Handled = true;
+                OpenThemeBuilderWindow();
+                return;
+            }
+
             if (e.Key == Key.F11)
             {
                 e.Handled = true;
-                if (WindowStyle != WindowStyle.None)
-                {
-                    WindowState = WindowState.Normal;
-                    WindowStyle = WindowStyle.None;
-                    ResizeMode = ResizeMode.NoResize;
-                    WindowState = WindowState.Maximized;
-                }
-                else
-                {
-                    WindowState = WindowState.Normal;
-                    WindowStyle = WindowStyle.ThreeDBorderWindow;
-                    ResizeMode = ResizeMode.CanResize;
-                    Width = 1296;
-                    Height = 759;
-                    UpdateLayout();
-                    UpdateGameListColumnWidth();
-                }
+                ToggleFullscreen();
                 return;
             }
 
@@ -1470,19 +1796,9 @@ namespace ArcadeStick
             if (isCtrl && e.Key == Key.D)
             {
                 e.Handled = true;
+                // Dev mode only toggles the ROM-name prefix in the tree now. The window is fixed-size
+                // (sized to the layout resolution), so there is nothing to resize here anymore.
                 _viewModel.IsDevMode = !_viewModel.IsDevMode;
-
-                if (_viewModel.IsDevMode)
-                {
-                    ResizeMode = ResizeMode.CanResize;
-                }
-                else
-                {
-                    ResizeMode = ResizeMode.CanResize;
-                    WindowStyle = WindowStyle.ThreeDBorderWindow;
-                    Width = 1296;
-                    Height = 759;
-                }
                 return;
             }
 
@@ -1592,7 +1908,7 @@ namespace ArcadeStick
             // resulting reload cascade (via RefreshThemeBindings() below re-raising IsBootSplashVideo)
             // was traced to a native LibVLC hang. Letting it keep playing uninterrupted avoids the
             // stop/restart calls entirely for the common case where nothing about it actually changed.
-            VlcMediaPlayer?.Pause();
+            VideoPreviewLayer.MediaElementPreview.Pause();
 
             _isOptionsWindowOpen = true;
             _viewModel.IsOptionsWindowOpen = true;
@@ -1616,9 +1932,9 @@ namespace ArcadeStick
             // _viewModel.RefreshThemeBindings();
             RefreshOptionsGearIconRestingColors();
 
-            // Resume rather than reload - VlcMediaPlayer was paused (not stopped) on open, so Play() with
+            // Resume rather than reload - the active player was paused (not stopped) on open, so Play() with
             // no arguments just continues from where it left off instead of restarting from the beginning
-            VlcMediaPlayer?.Play();
+            VideoPreviewLayer.MediaElementPreview.Play();
         }
 
         // Footer gear icon click handler - opens the Options window
@@ -1638,6 +1954,250 @@ namespace ArcadeStick
             sortingWindow.ShowDialog();
         }
         // [END SECTION: Sorting Window]
+
+        // [SECTION: Fullscreen Toggle]
+        // Shared by the F11 hotkey and the hamburger menu's "Toggle Fullscreen" item so the two can't drift apart.
+        private void ToggleFullscreen()
+        {
+            if (WindowStyle != WindowStyle.None)
+            {
+                // SizeToContent has to be released while maximized, otherwise it fights the maximize.
+                // The layout canvas keeps its native size and stays anchored top-left; the root grid's
+                // background fills the rest of the screen.
+                SizeToContent = SizeToContent.Manual;
+                WindowState = WindowState.Normal;
+                WindowStyle = WindowStyle.None;
+                ResizeMode = ResizeMode.NoResize;
+                WindowState = WindowState.Maximized;
+            }
+            else
+            {
+                // Back to a normal window sized to the layout (client area = layout resolution).
+                WindowState = WindowState.Normal;
+                WindowStyle = WindowStyle.ThreeDBorderWindow;
+                ResizeMode = ResizeMode.NoResize;
+                SizeToContent = SizeToContent.WidthAndHeight;
+            }
+        }
+        // [END SECTION: Fullscreen Toggle]
+
+        // [SECTION: Hamburger Menu]
+        // Same hover/resting-color pattern as the Sort/Options/Random buttons. The popup itself is the
+        // HamburgerContextMenu resource in MainWindow.xaml, opened here and anchored under the button.
+        private void BtnOpenMenuHamburger_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var menu = (ContextMenu)FindResource("HamburgerContextMenu");
+            PopulateHamburgerSubmenus(menu);
+            menu.PlacementTarget = BtnOpenMenuHamburger;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = true;
+        }
+
+        // [SECTION: Hamburger Theme & Layout Size Submenus]
+        // Rebuilt every time the menu opens, so the lists always match the themes on disk and the sizes
+        // saved in the active theme's zip. The active entry gets a checkmark in the icon column; the
+        // inactive entries get no icon, which keeps the text aligned.
+        private static TextBlock CreateCheckIcon()
+        {
+            return new TextBlock { Text = "\uE73E", FontFamily = new FontFamily("Segoe MDL2 Assets"), FontSize = 14 };
+        }
+
+        private void PopulateHamburgerSubmenus(ContextMenu menu)
+        {
+            var config = _viewModel.Configuration;
+
+            // Themes: every .zip in the Themes folder, check mark on the active one
+            if (menu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Tag as string == "ThemesMenu") is MenuItem themesMenu)
+            {
+                themesMenu.Items.Clear();
+
+                string themeDirectory = System.IO.Path.Combine(config.GetArcadeStickFilesPath(), "Themes");
+                var themeNames = Directory.Exists(themeDirectory)
+                    ? Directory.GetFiles(themeDirectory, "*.zip")
+                        .Select(f => System.IO.Path.GetFileNameWithoutExtension(f))
+                        .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                        .ToList()
+                    : new List<string>();
+
+                foreach (var themeName in themeNames)
+                {
+                    var item = new MenuItem { Header = themeName, Tag = themeName };
+                    if (string.Equals(themeName, config.ActiveThemeName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        item.Icon = CreateCheckIcon();
+                    }
+                    item.Click += HamburgerThemeItem_Click;
+                    themesMenu.Items.Add(item);
+                }
+
+                themesMenu.IsEnabled = themeNames.Count > 0;
+            }
+
+            // Layout size: every size saved in the active theme's zip, hidden when there are fewer than two
+            if (menu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Tag as string == "LayoutSizeMenu") is MenuItem sizeMenu)
+            {
+                sizeMenu.Items.Clear();
+
+                var sizes = config.SavedThemeLayouts
+                    .OrderBy(l => l.Width).ThenBy(l => l.Height)
+                    .ToList();
+
+                sizeMenu.Visibility = sizes.Count >= 2 ? Visibility.Visible : Visibility.Collapsed;
+
+                foreach (var layout in sizes)
+                {
+                    var item = new MenuItem { Header = $"{layout.Width} x {layout.Height}", Tag = (layout.Width, layout.Height) };
+                    if (layout.Width == config.ActiveResolutionWidth && layout.Height == config.ActiveResolutionHeight)
+                    {
+                        item.Icon = CreateCheckIcon();
+                    }
+                    item.Click += HamburgerLayoutSizeItem_Click;
+                    sizeMenu.Items.Add(item);
+                }
+            }
+        }
+
+        // Deferred via Dispatcher.BeginInvoke like every other menu item here. Picking the active theme
+        // does nothing: LoadTheme deletes and re-extracts that theme's folder, which could collide with a
+        // file the running wallpaper video has open.
+        private void HamburgerThemeItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem clicked || clicked.Tag is not string themeName) return;
+            if (string.Equals(themeName, _viewModel.Configuration.ActiveThemeName, StringComparison.OrdinalIgnoreCase)) return;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    // LoadTheme also switches the active size to the one the theme was saved at
+                    if (_viewModel.LoadTheme(themeName))
+                    {
+                        _viewModel.PersistConfigurationToDisk();
+                        _themeBuilderWindow?.RefreshAfterExternalThemeSwitch();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Could not load theme '{themeName}': {ex.Message}", "Load Theme", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }));
+        }
+
+        private void HamburgerLayoutSizeItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem clicked || clicked.Tag is not ValueTuple<int, int> size) return;
+
+            var config = _viewModel.Configuration;
+            int width = size.Item1;
+            int height = size.Item2;
+            if (width == config.ActiveResolutionWidth && height == config.ActiveResolutionHeight) return;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                // If the working layouts don't hold this size yet, take it from the theme's saved copy so
+                // the theme's positions are used instead of the registry defaults.
+                if (!config.Layouts.Any(l => l.Width == width && l.Height == height))
+                {
+                    var source = config.SavedThemeLayouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+                    if (source != null)
+                    {
+                        config.Layouts.Add(Models.ConfigurationSettings.CloneLayouts(new[] { source }).First());
+                    }
+                }
+
+                config.ActiveResolutionWidth = width;
+                config.ActiveResolutionHeight = height;
+                ApplyLayout();
+                _viewModel.PersistConfigurationToDisk();
+                _themeBuilderWindow?.RefreshAfterExternalSizeSwitch();
+            }));
+        }
+        // [END SECTION: Hamburger Theme & Layout Size Submenus]
+
+        private void HamburgerIcon_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            HamburgerIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
+            BtnOpenMenuHamburger.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
+            DelayedTooltip_MouseEnter(sender, e);
+        }
+
+        private void HamburgerIcon_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            RefreshHamburgerIconRestingColors();
+            DelayedTooltip_MouseLeave(sender, e);
+        }
+
+        private void RefreshHamburgerIconRestingColors()
+        {
+            HamburgerIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
+            BtnOpenMenuHamburger.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
+        }
+
+        // Closing the menu always returns the button to its resting colors, even if the mouse is no
+        // longer over it (MouseLeave already fired when the cursor moved onto the menu).
+        private void HamburgerContextMenu_Closed(object sender, RoutedEventArgs e)
+        {
+            RefreshHamburgerIconRestingColors();
+        }
+
+        // Menu item handlers are deferred via Dispatcher.BeginInvoke, same as every other menu item in this
+        // file - Click still fires from inside the ContextMenu popup's own dismissal frame, and these
+        // open modal windows / change window state.
+        private void HamburgerSortingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var sortingWindow = new Views.SortingWindow(_viewModel) { Owner = this };
+                sortingWindow.ShowDialog();
+            }));
+        }
+
+        private void HamburgerOptionsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() => OpenOptionsWindow()));
+        }
+
+        private void HamburgerThemeBuilderMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() => OpenThemeBuilderWindow()));
+        }
+
+        // Non-modal and single-instance: if Theme Builder is already open, bring it forward instead of
+        // creating a second one. Owner = this closes it automatically with the main window. Unlike the
+        // Options window, this deliberately does not pause video or block gamepad input.
+        private Views.ThemeBuilderWindow? _themeBuilderWindow;
+
+        private void OpenThemeBuilderWindow()
+        {
+            if (_themeBuilderWindow != null)
+            {
+                if (_themeBuilderWindow.WindowState == WindowState.Minimized)
+                {
+                    _themeBuilderWindow.WindowState = WindowState.Normal;
+                }
+                _themeBuilderWindow.Activate();
+                return;
+            }
+
+            _themeBuilderWindow = new Views.ThemeBuilderWindow(_viewModel) { Owner = this };
+            _themeBuilderWindow.Closed += (s, e) => _themeBuilderWindow = null;
+            _themeBuilderWindow.Show();
+        }
+
+        private void HamburgerFullscreenMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() => ToggleFullscreen()));
+        }
+        // [END SECTION: Hamburger Menu]
+
+        // [SECTION: Batch Video Converter Window]
+        // Opened by the footer bubble's CONVERT ALL link (MainViewModel.ConvertAllVideosRequested).
+        private void OpenBatchConvertWindow()
+        {
+            var batchWindow = new Views.BatchConvertWindow(_viewModel) { Owner = this };
+            batchWindow.ShowDialog();
+        }
+        // [END SECTION: Batch Video Converter Window]
 
         // [SECTION: Options Gear Icon Hover]
         // Swaps the gear badge's background between the games list background and games list hover
@@ -1713,6 +2273,8 @@ namespace ArcadeStick
         // runs.
         private void BtnPlayRandom_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            // Ignore clicks mid-spin or while the reveal popup is up, so rapid clicks can't stack spins.
+            if (_viewModel.IsRandomizerSpinning || _viewModel.IsRandomizerResultShowing) return;
             // Pool-size guard fires here, at die-click time, before the confirm popup even opens -
             // per the agreed design, rather than letting the user confirm first and find out after.
             if (!_viewModel.IsRandomizerPoolEligible())
@@ -1723,30 +2285,18 @@ namespace ArcadeStick
                 return;
             }
 
-            RandomizerConfirmPopup.PlacementTarget = BtnPlayRandom;
-            RandomizerConfirmPopup.Placement = PlacementMode.Bottom;
-            CenterPopupOverTarget(RandomizerConfirmPopup, RandomizerConfirmContentBorder, BtnPlayRandom);
-            RandomizerConfirmPopup.IsOpen = true;
-        }
+            // Which of the layer's two rects applies is decided now and stays fixed for the whole spin.
+            // From the splash page the splash is dimmed too (opacity, not Visibility - ApplyLayout owns that),
+            // so the animation sits over the plain media panel; it comes back once a game is selected.
+            _randomSpinFromSplash = !_viewModel.IsGameSelected;
+            ApplyRandomGameDisplayRect();
+            if (_randomSpinFromSplash) SplashLayer.Opacity = 0;
 
-        private void RandomizerConfirmYesButton_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            RandomizerConfirmPopup.IsOpen = false;
             StopVideoPreviewForSpin();
             _viewModel.StartRandomizerSpin();
         }
 
-        private void RandomizerConfirmNoButton_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            RandomizerConfirmPopup.IsOpen = false;
-        }
-
-        private void RandomizerConfirmPopup_Closed(object? sender, EventArgs e)
-        {
-            // No cleanup needed yet - placeholder to match the existing flyout Closed-handler pattern
-            // (FolderNameInputPopup_Closed / FolderColorPickerPopup_Closed) in case Phase 3+ needs to
-            // reset confirm-flyout state here later.
-        }
+        // Randomizer confirm popup handlers removed - the die button now spins immediately.
         // [END SECTION: Randomizer Confirm Flyout]
 
         // [SECTION: Popup Position Correction on Window Move]
@@ -1758,8 +2308,6 @@ namespace ArcadeStick
         {
             RepositionOpenPopup(FolderNameInputPopup);
             RepositionOpenPopup(FolderColorPickerPopup);
-            RepositionOpenPopup(RandomizerConfirmPopup);
-            RepositionOpenPopup(RandomizerRevealPopup);
         }
 
         private static void RepositionOpenPopup(System.Windows.Controls.Primitives.Popup popup)
@@ -1779,11 +2327,7 @@ namespace ArcadeStick
         // target instead. Measuring works even while the popup is still closed, since Popup.Child is
         // already part of the logical tree (and already reflects any DataContext-bound text, like the
         // winner's title) the moment it's assigned in XAML - so there's no visible jump on open.
-        private static void CenterPopupOverTarget(System.Windows.Controls.Primitives.Popup popup, FrameworkElement content, FrameworkElement target)
-        {
-            content.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            popup.HorizontalOffset = (target.ActualWidth - content.DesiredSize.Width) / 2;
-        }
+        // CenterPopupOverTarget removed - the randomizer popups it positioned no longer exist.
         // [END SECTION: Popup Centering]
 
         // [SECTION: Randomizer Reveal Flyout]
@@ -1792,41 +2336,13 @@ namespace ArcadeStick
         // tree refresh, and video-preview handling for free, and confirms setting SelectedGame from code
         // does NOT force the TreeView's visual selection to jump/scroll (no two-way IsSelected binding
         // wired up) - consistent with the "no tree sync needed" design decision.
-        private void RandomizerRevealLaunchButton_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            RandomizerRevealPopup.IsOpen = false;
-            _viewModel.IsRandomizerResultShowing = false;
-
-            var winner = _viewModel.RandomizerCurrentFrameGame;
-            if (winner != null)
-            {
-                _viewModel.SelectedGame = winner;
-                TriggerActiveSelectionLaunch();
-            }
-        }
-
-        private void RandomizerRevealRespinButton_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            RandomizerRevealPopup.IsOpen = false;
-            _viewModel.IsRandomizerResultShowing = false;
-            StopVideoPreviewForSpin();
-            _viewModel.StartRandomizerSpin();
-        }
-
-        private void RandomizerRevealCancelButton_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            RandomizerRevealPopup.IsOpen = false;
-            _viewModel.IsRandomizerResultShowing = false;
-        }
+        // Randomizer reveal popup handlers removed - the spin now just lands on the winner in the list.
 
         // Fires whenever the popup closes for ANY reason - explicit button clicks above already set
         // IsOpen=false themselves (which triggers this too, redundantly but harmlessly), and now also
         // an outside click (StaysOpen="False"), which otherwise would have left IsRandomizerResultShowing
         // stuck true with no equivalent cleanup, same gap Cancel's handler already covers.
-        private void RandomizerRevealPopup_Closed(object? sender, EventArgs e)
-        {
-            _viewModel.IsRandomizerResultShowing = false;
-        }
+        // RandomizerRevealPopup_Closed removed along with the reveal popup.
         // [END SECTION: Randomizer Reveal Flyout]
 
         // Applies the Sort gear icon's resting-state colors (folder font color / games list background) -
@@ -1839,6 +2355,87 @@ namespace ArcadeStick
         }
         // [END SECTION: Sort Gear Icon Hover]
 
+        // [SECTION: Main Background Video]
+        // Drives the MediaElement wallpaper layer (MainBgVideo). Runs on every ThemeBindingsRefreshed plus once at
+        // startup. Skips a reload when the same file is already loaded, so saving unrelated theme tweaks doesn't
+        // restart the loop. When the wallpaper isn't an mp4 (or is disabled), stops and hides the layer - the root
+        // Grid's ImageBrush/solid color background takes over as before. A two-player gapless-loop swap was tried
+        // and reverted: WPF MediaElement doesn't hand off cleanly between instances (visible flash at the swap),
+        // so the single player's slight loop-point slowdown is the better trade-off.
+        private string? _currentMainBgVideoPath;
+
+        // True from launch until the game list is built. While set, the wallpaper video loads paused so
+        // only its first frame shows (a static image); FinishMainBgVideoStartup() then starts playback.
+        private bool _mainBgVideoHoldFirstFrame = true;
+
+        private void RefreshMainBgVideo()
+        {
+            string? videoPath = _viewModel.ThemeMainWallpaperVideoPath;
+
+            if (string.IsNullOrEmpty(videoPath))
+            {
+                MainBgVideo.Stop();
+                MainBgVideo.Source = null;
+                MainBgVideo.Visibility = Visibility.Collapsed;
+                _currentMainBgVideoPath = null;
+                return;
+            }
+
+            if (_currentMainBgVideoPath == videoPath) return;
+
+            MainBgVideo.Source = new Uri(videoPath, UriKind.Absolute);
+            MainBgVideo.Visibility = Visibility.Visible;
+            if (_mainBgVideoHoldFirstFrame) MainBgVideo.Pause();
+            else MainBgVideo.Play();
+            _currentMainBgVideoPath = videoPath;
+        }
+
+        // Called once the game list is built: releases the first-frame hold and starts the loop.
+        private void FinishMainBgVideoStartup()
+        {
+            _mainBgVideoHoldFirstFrame = false;
+            if (_currentMainBgVideoPath != null) MainBgVideo.Play();
+        }
+
+        // Loop: MediaElement has no built-in repeat, so rewind to the start and keep playing
+        private void MainBgVideo_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            MainBgVideo.Position = TimeSpan.Zero;
+            MainBgVideo.Play();
+        }
+
+        // Unsupported codec / missing Media Foundation (e.g. Windows N) - hide the layer so the root Grid's
+        // solid ThemeMainColor background shows instead of a black or frozen rectangle
+        private void MainBgVideo_MediaFailed(object? sender, ExceptionRoutedEventArgs e)
+        {
+            MainBgVideo.Stop();
+            MainBgVideo.Source = null;
+            MainBgVideo.Visibility = Visibility.Collapsed;
+        }
+
+        // Paused while a game runs so it isn't decoding in the background alongside MAME; resumed on return
+        private void PauseMainBgVideo()
+        {
+            if (_currentMainBgVideoPath != null) MainBgVideo.Pause();
+
+            // Custom video layers pause too, so nothing keeps decoding behind MAME
+            foreach (var entry in _customLayerElements.Values)
+            {
+                if (entry.Element is MediaElement customVideo) customVideo.Pause();
+            }
+        }
+
+        private void ResumeMainBgVideo()
+        {
+            if (_currentMainBgVideoPath != null) MainBgVideo.Play();
+
+            foreach (var entry in _customLayerElements.Values)
+            {
+                if (entry.Element is MediaElement customVideo && customVideo.Visibility == Visibility.Visible) customVideo.Play();
+            }
+        }
+        // [END SECTION: Main Background Video]
+
         // [SECTION: Boot Splash Corner Clip Refresh]
         // MediaLayer0_Back's CornerRadius is evaluated inside the Viewbox's pre-scaled 1600x900 canvas, so
         // its rounded-corner render doesn't self-repaint on a theme change the way it does on a manual
@@ -1846,9 +2443,9 @@ namespace ArcadeStick
         // splash image's corners stay correctly rounded immediately after a theme swap.
         private void RefreshBootSplashImageCornerClip()
         {
-            MediaPanel.MediaLayer0_Back.InvalidateMeasure();
-            MediaPanel.MediaLayer0_Back.InvalidateArrange();
-            MediaPanel.MediaLayer0_Back.InvalidateVisual();
+            SplashLayer.MediaLayer0_Back.InvalidateMeasure();
+            SplashLayer.MediaLayer0_Back.InvalidateArrange();
+            SplashLayer.MediaLayer0_Back.InvalidateVisual();
         }
         // [END SECTION: Boot Splash Corner Clip Refresh]
 
@@ -1901,7 +2498,10 @@ namespace ArcadeStick
 
                 if (!isTargetOrAncestor)
                 {
-                    container.IsExpanded = false;
+                    // Collapse through the model so the container's one-way IsExpanded binding stays
+                    // alive - setting container.IsExpanded directly replaces that binding for good.
+                    if (item is Models.TreeCategoryNode siblingNode) siblingNode.IsNodeExpanded = false;
+                    else container.IsExpanded = false;
                     continue;
                 }
 
@@ -1959,6 +2559,24 @@ namespace ArcadeStick
             var path = _viewModel.FindMainTreePathToGame(winner);
             if (path == null || path.Count == 0) return;
 
+            // From here until the winner's row is selected (cleared below), null selections caused by the
+            // folder collapses are ignored, so SelectedGame stays on the winner and the logo never flashes.
+            _isJumpingToRandomWinner = true;
+
+            // Collapse everything NOT on the winner's path first, through the model. Doing this up front
+            // means GameTree_Expanded's sibling-collapse has nothing left to collapse afterward, so it
+            // can't pull the selection onto a folder mid-jump.
+            var pathSet = new HashSet<Models.TreeCategoryNode>(path);
+            void CollapseOffPath(IEnumerable<Models.TreeCategoryNode> nodes)
+            {
+                foreach (var n in nodes)
+                {
+                    if (!pathSet.Contains(n)) n.IsNodeExpanded = false;
+                    CollapseOffPath(n.SubFolders);
+                }
+            }
+            CollapseOffPath(_viewModel.TreeNodesCollection);
+
             foreach (var node in path)
             {
                 node.IsNodeExpanded = true;
@@ -1966,18 +2584,42 @@ namespace ArcadeStick
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                var winnerContainer = FindTreeViewItemContainer(GameTree, winner);
-                if (winnerContainer != null)
+                // Re-assert the real selection - a folder collapse above can have nulled it transiently.
+                _viewModel.SelectedGame = winner;
+
+                // The tree is virtualized, so a far-down winner's row may not exist yet. Ask the
+                // winner's parent folder's panel to realize that index before looking for the container.
+                var parentContainer = FindTreeViewItemContainer(GameTree, path[path.Count - 1]);
+                if (parentContainer != null)
                 {
+                    int index = parentContainer.Items.IndexOf(winner);
+                    var panel = FindVisualChild<VirtualizingPanel>(parentContainer);
+                    if (panel != null && index >= 0)
+                    {
+                        panel.BringIndexIntoViewPublic(index);
+                    }
+                }
+                GameTree.UpdateLayout();
+
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    var winnerContainer = FindTreeViewItemContainer(GameTree, winner);
+                    if (winnerContainer == null)
+                    {
+                        _isJumpingToRandomWinner = false;
+                        return;
+                    }
+
                     winnerContainer.IsSelected = true;
+                    _isJumpingToRandomWinner = false;
                     winnerContainer.BringIntoView();
 
                     // BringIntoView only guarantees the item is somewhere within the viewport (often
-                    // landing at the nearest edge) - this second pass, deferred one more Loaded-priority
-                    // dispatch so BringIntoView's own layout/scroll pass has already settled, manually
-                    // recenters the winner in the middle of the visible list instead.
+                    // landing at the nearest edge) - this final pass, deferred one more Loaded-priority
+                    // dispatch so its own layout/scroll pass has settled, recenters the winner.
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
+                        _isJumpingToRandomWinner = false; // safety net in case an earlier step bailed out
                         var scrollViewer = FindVisualChild<ScrollViewer>(GameTree);
                         if (scrollViewer != null)
                         {
@@ -1987,7 +2629,7 @@ namespace ArcadeStick
                             scrollViewer.ScrollToVerticalOffset(targetOffset);
                         }
                     }), System.Windows.Threading.DispatcherPriority.Loaded);
-                }
+                }), System.Windows.Threading.DispatcherPriority.Loaded);
             }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
         // [END SECTION: Randomizer Tree Jump]

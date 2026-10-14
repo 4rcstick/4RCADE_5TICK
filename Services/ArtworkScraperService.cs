@@ -15,10 +15,14 @@ namespace ArcadeStick.Services
         private const string BaseUrl = "https://adb.arcadeitalia.net/service_scraper.php";
 
         private readonly ConfigurationSettings _settings;
+        private readonly VideoConversionService _videoConverter;
+        private readonly VideoCacheService _videoCache;
 
-        public ArtworkScraperService(ConfigurationSettings settings)
+        public ArtworkScraperService(ConfigurationSettings settings, VideoCacheService videoCache)
         {
             _settings = settings;
+            _videoCache = videoCache;
+            _videoConverter = new VideoConversionService(settings);
         }
 
         // Fetches and saves any enabled, missing artwork categories for a single game. Safe to call
@@ -146,7 +150,25 @@ namespace ArcadeStick.Services
             {
                 Directory.CreateDirectory(folder);
                 byte[] fileBytes = await _httpClient.GetByteArrayAsync(sourceUrl, ct);
-                await File.WriteAllBytesAsync(destinationPath, fileBytes, ct);
+
+                if (extension.Equals(".mp4", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Videos land in a temp file first, then get probed and (if needed) re-encoded to
+                    // H.264 yuv420p + AAC before being placed at the final path. A failed or
+                    // unconvertible video leaves nothing in media/videos.
+                    string tempDownloadPath = destinationPath + ".download";
+                    await File.WriteAllBytesAsync(tempDownloadPath, fileBytes, ct);
+                    if (await _videoConverter.PlaceCompatibleVideoAsync(tempDownloadPath, destinationPath, ct))
+                    {
+                        // Placed files are guaranteed compatible, so cache them as playable and skip a re-probe.
+                        _videoCache.Set(folder, destinationPath, true);
+                        _videoCache.Save();
+                    }
+                }
+                else
+                {
+                    await File.WriteAllBytesAsync(destinationPath, fileBytes, ct);
+                }
             }
             catch
             {
