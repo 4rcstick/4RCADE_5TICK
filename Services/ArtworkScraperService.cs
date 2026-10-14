@@ -147,12 +147,9 @@ namespace ArcadeStick.Services
                 Directory.CreateDirectory(folder);
                 byte[] fileBytes = await _httpClient.GetByteArrayAsync(sourceUrl, ct);
 
-                // Videos are saved exactly as downloaded; the FFmpeg preview player plays them directly,
-                // so there is no probe or re-encode step. Written to a temp name first so a half-finished
-                // download never appears as a playable file.
-                string tempPath = destinationPath + ".download";
-                await File.WriteAllBytesAsync(tempPath, fileBytes, ct);
-                File.Move(tempPath, destinationPath, overwrite: true);
+                // Every category, videos included, is saved exactly as downloaded; the FFmpeg preview
+                // player plays videos directly, so there is no probe or re-encode step.
+                await File.WriteAllBytesAsync(destinationPath, fileBytes, ct);
             }
             catch
             {
