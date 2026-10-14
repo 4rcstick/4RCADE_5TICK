@@ -1,0 +1,35 @@
+{
+  "sourceRepository": "https://code.ffmpeg.org/FFmpeg/FFmpeg.git",
+  "sourceRevision": "0eeb79fcc5b2761e8fdd3d0cfc5e5ba0e786645a",
+  "buildSystem": "media-autobuild_suite",
+  "sourceDirectory": "E:\\Arcade Stick Dev\\mabs\\build\\FFmpeg-git",
+  "installedDirectory": "E:\\Arcade Stick Dev\\mabs\\local64\\bin-video",
+  "architecture": "x64",
+  "files": [
+    {
+      "name": "avutil-61.dll",
+      "bytes": 1146368,
+      "sha256": "306BA80240D8D9951731D0CC7F7D57477D4424E804BFDF1E5477F7A28639FBC5"
+    },
+    {
+      "name": "swresample-7.dll",
+      "bytes": 182784,
+      "sha256": "C13361D0E0751A0943521F697A83B85B850856E4EC542CB9D425EE9DAEEE9F00"
+    },
+    {
+      "name": "swscale-10.dll",
+      "bytes": 2180096,
+      "sha256": "E80A19D4F4FCE4FE1078E5A84F54E6283FC2603E9B8406E345A325D803F7D8F8"
+    },
+    {
+      "name": "avcodec-63.dll",
+      "bytes": 20440064,
+      "sha256": "64958F43F68E69B590DC6640D092ECB25881F37B36635640950899DCA7187903"
+    },
+    {
+      "name": "avformat-63.dll",
+      "bytes": 4184064,
+      "sha256": "BD5AD0AFF2DC7A3281E8A4E018451C8BA7CFECF13D04106C3F0FF101A6C5505A"
+    }
+  ]
+}
