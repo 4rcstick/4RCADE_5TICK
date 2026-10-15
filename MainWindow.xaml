@@ -544,7 +544,7 @@
                                                               Grid.Column="0"
                                                               Width="16" Height="16"
                                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                                                              IsChecked="{Binding IsNodeExpanded, Mode=TwoWay}"
                                                               ClickMode="Press">
                                                     <ToggleButton.Style>
                                                         <Style TargetType="ToggleButton">
