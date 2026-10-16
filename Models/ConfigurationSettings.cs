@@ -131,7 +131,30 @@ namespace ArcadeStick.Models
                     Z = e.Z,
                     Visible = e.Visible,
                     Name = e.Name,
-                    ImagePath = e.ImagePath
+                    ImagePath = e.ImagePath,
+                    FolderFontSize = e.FolderFontSize,
+                    FolderColorHex = e.FolderColorHex,
+                    FolderSelectedColorHex = e.FolderSelectedColorHex,
+                    FolderSelectedBgColorHex = e.FolderSelectedBgColorHex,
+                    FolderFontFamily = e.FolderFontFamily,
+                    FolderBold = e.FolderBold,
+                    ArrowColorHex = e.ArrowColorHex,
+                    ArrowNudgeY = e.ArrowNudgeY,
+                    GameFontSize = e.GameFontSize,
+                    GameColorHex = e.GameColorHex,
+                    GameSelectedColorHex = e.GameSelectedColorHex,
+                    GameSelectedBgColorHex = e.GameSelectedBgColorHex,
+                    GameHoverColorHex = e.GameHoverColorHex,
+                    GameFontFamily = e.GameFontFamily,
+                    GameBold = e.GameBold,
+                    FolderShadowEnabled = e.FolderShadowEnabled,
+                    FolderShadowColorHex = e.FolderShadowColorHex,
+                    FolderShadowBlur = e.FolderShadowBlur,
+                    FolderShadowDepth = e.FolderShadowDepth,
+                    GameShadowEnabled = e.GameShadowEnabled,
+                    GameShadowColorHex = e.GameShadowColorHex,
+                    GameShadowBlur = e.GameShadowBlur,
+                    GameShadowDepth = e.GameShadowDepth
                 }).ToList()
             }).ToList();
         }
@@ -142,17 +165,9 @@ namespace ArcadeStick.Models
         // =========================================================================
         // 🏁 START: SECTION 4 TYPOGRAPHY AND SUB-INTERFACE SPECIFICATION RULES
         // =========================================================================
-        public int FolderFontSize { get; set; } = 17;
-        public string FolderColorHex { get; set; } = "#FF00D4FF";
         public string FolderSelectedColorHex { get; set; } = "#FF000000";
         public string FolderSelectedBgColorHex { get; set; } = "#FF00D4FF";
-        public int GameFontSize { get; set; } = 15;
-        public string GameColorHex { get; set; } = "#FFA0A0A2";
-        public string GameHoverColorHex { get; set; } = "#FFEF44C3";
-        public string GameSelectedColorHex { get; set; } = "#FF000000";
-        public string GameSelectedBgColorHex { get; set; } = "#FF00D4FF";
         public string FavoritesColorHex { get; set; } = "#FFFFCC00";
-        public string ArrowColorHex { get; set; } = "#FFA0A0A2";
         public int TabFontSize { get; set; } = 12;
         public string TabColorHex { get; set; } = "#FFA0A0A2";
         public string TabBgColorHex { get; set; } = "Transparent";
@@ -455,19 +470,11 @@ namespace ArcadeStick.Models
             this.ScrollThumbHoverColor = source.ScrollThumbHoverColor;
             this.ScrollThumbDragColor = source.ScrollThumbDragColor;
 
-            this.FolderFontSize = source.FolderFontSize;
-            this.FolderColorHex = source.FolderColorHex;
             this.FolderSelectedColorHex = source.FolderSelectedColorHex;
             this.FolderSelectedBgColorHex = source.FolderSelectedBgColorHex;
-            this.GameFontSize = source.GameFontSize;
-            this.GameColorHex = source.GameColorHex;
-            this.GameHoverColorHex = source.GameHoverColorHex;
-            this.GameSelectedColorHex = source.GameSelectedColorHex;
-            this.GameSelectedBgColorHex = source.GameSelectedBgColorHex;
             this.FavoritesColorHex = source.FavoritesColorHex;
             this.RecentlyPlayedColorFile = source.RecentlyPlayedColorFile;
             this.MostPlayedColorFile = source.MostPlayedColorFile;
-            this.ArrowColorHex = source.ArrowColorHex;
 
             this.TabFontSize = source.TabFontSize;
             this.TabColorHex = source.TabColorHex;

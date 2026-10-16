@@ -421,6 +421,9 @@ namespace ArcadeStick.Views
 
         private void LoadSelectedLayerIntoFields()
         {
+            // Games List styling section: shown or hidden for the current selection, filled from the entry
+            LoadGamesListStyleFields();
+
             // A group row shows every part's fields at once on its own page
             if (LstLayers.SelectedItem is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition selectedGroup)
             {
@@ -455,7 +458,7 @@ namespace ArcadeStick.Views
             BtnRemoveLayer.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
 
             PnlRectFields.Visibility = positionable ? Visibility.Visible : Visibility.Collapsed;
-            ChkLayerHidden.Visibility = positionable ? Visibility.Visible : Visibility.Collapsed;
+            ChkLayerHidden.Visibility = (positionable && canHide) ? Visibility.Visible : Visibility.Collapsed;
             BtnResetLayer.Visibility = (positionable && !isCustom) ? Visibility.Visible : Visibility.Collapsed;
             ChkLayerHidden.IsEnabled = canHide;
 
@@ -723,6 +726,713 @@ namespace ArcadeStick.Views
             entry.Visible = ChkLayerHidden.IsChecked != true;
             LayoutChanged?.Invoke();
         }
+
+        // [SECTION: Games List Styling Fields]
+        // Shown only while the Games List layer is selected. Values live on the layer entry (per resolution)
+        // and apply live on Enter or focus loss; invalid input reverts to the stored value.
+        private bool _suppressGLColorSync;
+
+        // Shows or hides the section for the current selection and fills it from the entry.
+        private void LoadGamesListStyleFields()
+        {
+            bool show = LstLayers.SelectedItem is LayerListItem sel && sel.Id == LayerRegistry.GamesList && GetEntry(LayerRegistry.GamesList) != null;
+            PnlGamesListStyle.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            if (!show) return;
+
+            var entry = GetEntry(LayerRegistry.GamesList)!;
+            string hex = entry.FolderColorHex ?? LayerRegistry.DefaultFolderColorHex;
+
+            _loading = true;
+            TxtGLFolderFontSize.Text = (entry.FolderFontSize ?? LayerRegistry.DefaultFolderFontSize).ToString(CultureInfo.InvariantCulture);
+            TxtGLFolderColorHex.Text = hex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLFolderColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(hex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            string selHex = entry.FolderSelectedColorHex ?? LayerRegistry.DefaultFolderSelectedColorHex;
+            TxtGLFolderSelectedColorHex.Text = selHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLFolderSelectedColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(selHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            string selBgHex = entry.FolderSelectedBgColorHex ?? LayerRegistry.DefaultFolderSelectedBgColorHex;
+            TxtGLFolderSelectedBgColorHex.Text = selBgHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLFolderSelectedBgColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(selBgHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            // Font dropdown: filled once from the registry's font list, then set to the saved family
+            if (CboGLFolderFont.Items.Count == 0)
+            {
+                foreach (string font in LayerRegistry.AvailableFonts) CboGLFolderFont.Items.Add(font);
+            }
+            string family = string.IsNullOrWhiteSpace(entry.FolderFontFamily) ? LayerRegistry.DefaultFontFamily : entry.FolderFontFamily;
+            CboGLFolderFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
+            ChkGLFolderBold.IsChecked = entry.FolderBold ?? LayerRegistry.DefaultFolderBold;
+
+            string arrowHex = entry.ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex;
+            TxtGLArrowColorHex.Text = arrowHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLArrowColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(arrowHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+            TxtGLArrowNudge.Text = (entry.ArrowNudgeY ?? LayerRegistry.DefaultArrowNudgeY).ToString(CultureInfo.InvariantCulture);
+
+            // Game title section
+            TxtGLGameFontSize.Text = (entry.GameFontSize ?? LayerRegistry.DefaultGameFontSize).ToString(CultureInfo.InvariantCulture);
+
+            string gameHex = entry.GameColorHex ?? LayerRegistry.DefaultGameColorHex;
+            TxtGLGameColorHex.Text = gameHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLGameColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(gameHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            if (CboGLGameFont.Items.Count == 0)
+            {
+                foreach (string font in LayerRegistry.AvailableFonts) CboGLGameFont.Items.Add(font);
+            }
+            string gameFamily = string.IsNullOrWhiteSpace(entry.GameFontFamily) ? LayerRegistry.DefaultFontFamily : entry.GameFontFamily;
+            CboGLGameFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(gameFamily) ? gameFamily : LayerRegistry.DefaultFontFamily;
+            ChkGLGameBold.IsChecked = entry.GameBold ?? LayerRegistry.DefaultGameBold;
+
+            string gameSelHex = entry.GameSelectedColorHex ?? LayerRegistry.DefaultGameSelectedColorHex;
+            TxtGLGameSelectedColorHex.Text = gameSelHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLGameSelectedColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(gameSelHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            string gameSelBgHex = entry.GameSelectedBgColorHex ?? LayerRegistry.DefaultGameSelectedBgColorHex;
+            TxtGLGameSelectedBgColorHex.Text = gameSelBgHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLGameSelectedBgColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(gameSelBgHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            string gameHoverHex = entry.GameHoverColorHex ?? LayerRegistry.DefaultGameHoverColorHex;
+            TxtGLGameHoverColorHex.Text = gameHoverHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLGameHoverColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(gameHoverHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            // Drop shadow controls
+            ChkGLFolderShadow.IsChecked = entry.FolderShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            string folderShadowHex = entry.FolderShadowColorHex ?? LayerRegistry.DefaultShadowColorHex;
+            TxtGLFolderShadowColorHex.Text = folderShadowHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLFolderShadowColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(folderShadowHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+            TxtGLFolderShadowBlur.Text = (entry.FolderShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtGLFolderShadowDepth.Text = (entry.FolderShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            ChkGLGameShadow.IsChecked = entry.GameShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            string gameShadowHex = entry.GameShadowColorHex ?? LayerRegistry.DefaultShadowColorHex;
+            TxtGLGameShadowColorHex.Text = gameShadowHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLGameShadowColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(gameShadowHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+            TxtGLGameShadowBlur.Text = (entry.GameShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtGLGameShadowDepth.Text = (entry.GameShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            // Favorites folder color (theme-wide, read from the settings object). Older themes may store a
+            // name like "Transparent", so it is shown in the same #AARRGGBB form as the other colors.
+            string favoritesHex = _settings.FavoritesColorHex;
+            try
+            {
+                var favoritesColor = (Color)ColorConverter.ConvertFromString(favoritesHex);
+                favoritesHex = $"#{favoritesColor.A:X2}{favoritesColor.R:X2}{favoritesColor.G:X2}{favoritesColor.B:X2}";
+                _suppressGLColorSync = true;
+                GLFavoritesColorPicker.SelectedColor = favoritesColor;
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+            TxtGLFavoritesColorHex.Text = favoritesHex;
+
+            _loading = false;
+        }
+
+        private void GLStyleField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyGLFolderFontSize();
+        }
+
+        private void GLStyleField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyGLFolderFontSize();
+        }
+
+        private void ApplyGLFolderFontSize()
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            if (int.TryParse(TxtGLFolderFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int size) && size >= 6 && size <= 72)
+            {
+                entry.FolderFontSize = size;
+            }
+
+            // Re-display the stored value (reverts invalid input) and re-apply the layout, which repaints the rows
+            LoadSelectedLayerIntoFields();
+        }
+
+        private void GLFolderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLFolderColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLFolderColorHex.Text = hex;
+            entry.FolderColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLFolderColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLFolderColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLFolderColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLFolderColorHex.Text = hex;
+                entry.FolderColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLFolderColorHex.Text = entry.FolderColorHex ?? LayerRegistry.DefaultFolderColorHex;
+            }
+        }
+
+        private void GLFolderSelectedColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLFolderSelectedColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLFolderSelectedColorHex.Text = hex;
+            entry.FolderSelectedColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLFolderSelectedColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLFolderSelectedColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLFolderSelectedColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLFolderSelectedColorHex.Text = hex;
+                entry.FolderSelectedColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLFolderSelectedColorHex.Text = entry.FolderSelectedColorHex ?? LayerRegistry.DefaultFolderSelectedColorHex;
+            }
+        }
+
+        private void GLFolderSelectedBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLFolderSelectedBgColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLFolderSelectedBgColorHex.Text = hex;
+            entry.FolderSelectedBgColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLFolderSelectedBgColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLFolderSelectedBgColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLFolderSelectedBgColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLFolderSelectedBgColorHex.Text = hex;
+                entry.FolderSelectedBgColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLFolderSelectedBgColorHex.Text = entry.FolderSelectedBgColorHex ?? LayerRegistry.DefaultFolderSelectedBgColorHex;
+            }
+        }
+        private void CboGLFolderFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboGLFolderFont.SelectedItem is not string family) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            entry.FolderFontFamily = family;
+            RaiseGuides();
+        }
+
+        private void ChkGLFolderBold_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            entry.FolderBold = ChkGLFolderBold.IsChecked == true;
+            RaiseGuides();
+        }
+        private void GLArrowColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLArrowColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLArrowColorHex.Text = hex;
+            entry.ArrowColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLArrowColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLArrowColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLArrowColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLArrowColorHex.Text = hex;
+                entry.ArrowColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLArrowColorHex.Text = entry.ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex;
+            }
+        }
+
+        private void GLArrowNudge_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyGLArrowNudge();
+        }
+
+        private void GLArrowNudge_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyGLArrowNudge();
+        }
+
+        private void ApplyGLArrowNudge()
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            if (int.TryParse(TxtGLArrowNudge.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nudge) && nudge >= -10 && nudge <= 10)
+            {
+                entry.ArrowNudgeY = nudge;
+            }
+
+            // Re-display the stored value (reverts invalid input) and re-apply the layout
+            LoadSelectedLayerIntoFields();
+        }
+        private void GLGameSizeField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyGLGameFontSize();
+        }
+
+        private void GLGameSizeField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyGLGameFontSize();
+        }
+
+        private void ApplyGLGameFontSize()
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            if (int.TryParse(TxtGLGameFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int size) && size >= 6 && size <= 72)
+            {
+                entry.GameFontSize = size;
+            }
+
+            // Re-display the stored value (reverts invalid input) and re-apply the layout, which repaints the rows
+            LoadSelectedLayerIntoFields();
+        }
+        private void GLGameColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLGameColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLGameColorHex.Text = hex;
+            entry.GameColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLGameColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLGameColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLGameColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLGameColorHex.Text = hex;
+                entry.GameColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLGameColorHex.Text = entry.GameColorHex ?? LayerRegistry.DefaultGameColorHex;
+            }
+        }
+
+        private void GLGameSelectedColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLGameSelectedColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLGameSelectedColorHex.Text = hex;
+            entry.GameSelectedColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLGameSelectedColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLGameSelectedColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLGameSelectedColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLGameSelectedColorHex.Text = hex;
+                entry.GameSelectedColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLGameSelectedColorHex.Text = entry.GameSelectedColorHex ?? LayerRegistry.DefaultGameSelectedColorHex;
+            }
+        }
+
+        private void GLGameSelectedBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLGameSelectedBgColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLGameSelectedBgColorHex.Text = hex;
+            entry.GameSelectedBgColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLGameSelectedBgColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLGameSelectedBgColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLGameSelectedBgColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLGameSelectedBgColorHex.Text = hex;
+                entry.GameSelectedBgColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLGameSelectedBgColorHex.Text = entry.GameSelectedBgColorHex ?? LayerRegistry.DefaultGameSelectedBgColorHex;
+            }
+        }
+        private void GLGameHoverColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLGameHoverColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLGameHoverColorHex.Text = hex;
+            entry.GameHoverColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLGameHoverColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLGameHoverColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLGameHoverColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLGameHoverColorHex.Text = hex;
+                entry.GameHoverColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLGameHoverColorHex.Text = entry.GameHoverColorHex ?? LayerRegistry.DefaultGameHoverColorHex;
+            }
+        }
+        private void CboGLGameFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboGLGameFont.SelectedItem is not string family) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            entry.GameFontFamily = family;
+            RaiseGuides();
+        }
+
+        private void ChkGLGameBold_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            entry.GameBold = ChkGLGameBold.IsChecked == true;
+            RaiseGuides();
+        }
+        // Drop shadow controls (folder and game title). Checkbox and color apply immediately; blur and depth
+        // apply on Enter or focus loss and revert invalid input to the stored value.
+        private void ChkGLFolderShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            entry.FolderShadowEnabled = ChkGLFolderShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void ChkGLGameShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            entry.GameShadowEnabled = ChkGLGameShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void GLFolderShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLFolderShadowColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLFolderShadowColorHex.Text = hex;
+            entry.FolderShadowColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLFolderShadowColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLFolderShadowColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLFolderShadowColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLFolderShadowColorHex.Text = hex;
+                entry.FolderShadowColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLFolderShadowColorHex.Text = entry.FolderShadowColorHex ?? LayerRegistry.DefaultShadowColorHex;
+            }
+        }
+
+        private void GLGameShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLGameShadowColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLGameShadowColorHex.Text = hex;
+            entry.GameShadowColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLGameShadowColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLGameShadowColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLGameShadowColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLGameShadowColorHex.Text = hex;
+                entry.GameShadowColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLGameShadowColorHex.Text = entry.GameShadowColorHex ?? LayerRegistry.DefaultShadowColorHex;
+            }
+        }
+
+        // One shared handler pair for all four numeric shadow fields (folder blur/depth, game blur/depth).
+        private void GLShadowField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyGLShadowFields();
+        }
+
+        private void GLShadowField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyGLShadowFields();
+        }
+
+        private void ApplyGLShadowFields()
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            // Blur 0-30, depth 0-20. Each field is checked on its own; an invalid one keeps its stored value.
+            if (int.TryParse(TxtGLFolderShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int fBlur) && fBlur >= 0 && fBlur <= 30)
+                entry.FolderShadowBlur = fBlur;
+            if (int.TryParse(TxtGLFolderShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int fDepth) && fDepth >= 0 && fDepth <= 20)
+                entry.FolderShadowDepth = fDepth;
+            if (int.TryParse(TxtGLGameShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int gBlur) && gBlur >= 0 && gBlur <= 30)
+                entry.GameShadowBlur = gBlur;
+            if (int.TryParse(TxtGLGameShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int gDepth) && gDepth >= 0 && gDepth <= 20)
+                entry.GameShadowDepth = gDepth;
+
+            // Re-display the stored values (reverts invalid input) and re-apply the layout
+            LoadSelectedLayerIntoFields();
+        }
+        // Favorites folder color: one theme-wide value (not per resolution). It lives on the settings object and
+        // Save Changes on the Basic tab writes it into the theme file. RaiseGuides re-applies the layout live.
+        private void GLFavoritesColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+
+            var c = GLFavoritesColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLFavoritesColorHex.Text = hex;
+            _settings.FavoritesColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLFavoritesColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLFavoritesColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLFavoritesColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLFavoritesColorHex.Text = hex;
+                _settings.FavoritesColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLFavoritesColorHex.Text = _settings.FavoritesColorHex;
+            }
+        }
+        // [END SECTION: Games List Styling Fields]
         // [END SECTION: Layer Fields]
 
         // [SECTION: Alignment Guide Preferences]
@@ -812,7 +1522,30 @@ namespace ArcadeStick.Views
                         Height = l.Height,
                         Z = l.Z,
                         Visible = l.Visible,
-                        ImagePath = l.ImagePath
+                        ImagePath = l.ImagePath,
+                        FolderFontSize = l.FolderFontSize,
+                        FolderColorHex = l.FolderColorHex,
+                        FolderSelectedColorHex = l.FolderSelectedColorHex,
+                        FolderSelectedBgColorHex = l.FolderSelectedBgColorHex,
+                        FolderFontFamily = l.FolderFontFamily,
+                        FolderBold = l.FolderBold,
+                        ArrowColorHex = l.ArrowColorHex,
+                        ArrowNudgeY = l.ArrowNudgeY,
+                        GameFontSize = l.GameFontSize,
+                        GameColorHex = l.GameColorHex,
+                        GameSelectedColorHex = l.GameSelectedColorHex,
+                        GameSelectedBgColorHex = l.GameSelectedBgColorHex,
+                        GameHoverColorHex = l.GameHoverColorHex,
+                        GameFontFamily = l.GameFontFamily,
+                        GameBold = l.GameBold,
+                        FolderShadowEnabled = l.FolderShadowEnabled,
+                        FolderShadowColorHex = l.FolderShadowColorHex,
+                        FolderShadowBlur = l.FolderShadowBlur,
+                        FolderShadowDepth = l.FolderShadowDepth,
+                        GameShadowEnabled = l.GameShadowEnabled,
+                        GameShadowColorHex = l.GameShadowColorHex,
+                        GameShadowBlur = l.GameShadowBlur,
+                        GameShadowDepth = l.GameShadowDepth
                     }).ToList()
                 };
 
@@ -1113,6 +1846,29 @@ namespace ArcadeStick.Views
             entry.Height = defEntry.Height;
             entry.Visible = defEntry.Visible;
             if (!LayerRegistry.IsCustomId(entry.Id)) entry.ImagePath = defEntry.ImagePath;
+            entry.FolderFontSize = defEntry.FolderFontSize;
+            entry.FolderColorHex = defEntry.FolderColorHex;
+            entry.FolderSelectedColorHex = defEntry.FolderSelectedColorHex;
+            entry.FolderSelectedBgColorHex = defEntry.FolderSelectedBgColorHex;
+            entry.FolderFontFamily = defEntry.FolderFontFamily;
+            entry.FolderBold = defEntry.FolderBold;
+            entry.ArrowColorHex = defEntry.ArrowColorHex;
+            entry.ArrowNudgeY = defEntry.ArrowNudgeY;
+            entry.GameFontSize = defEntry.GameFontSize;
+            entry.GameColorHex = defEntry.GameColorHex;
+            entry.GameSelectedColorHex = defEntry.GameSelectedColorHex;
+            entry.GameSelectedBgColorHex = defEntry.GameSelectedBgColorHex;
+            entry.GameHoverColorHex = defEntry.GameHoverColorHex;
+            entry.GameFontFamily = defEntry.GameFontFamily;
+            entry.GameBold = defEntry.GameBold;
+            entry.FolderShadowEnabled = defEntry.FolderShadowEnabled;
+            entry.FolderShadowColorHex = defEntry.FolderShadowColorHex;
+            entry.FolderShadowBlur = defEntry.FolderShadowBlur;
+            entry.FolderShadowDepth = defEntry.FolderShadowDepth;
+            entry.GameShadowEnabled = defEntry.GameShadowEnabled;
+            entry.GameShadowColorHex = defEntry.GameShadowColorHex;
+            entry.GameShadowBlur = defEntry.GameShadowBlur;
+            entry.GameShadowDepth = defEntry.GameShadowDepth;
 
             NormalizeZ(GetAscendingOrder());
             RebuildLayerList(selected.Id);

@@ -152,6 +152,50 @@ namespace ArcadeStick.Models
             }
         }
 
+        private System.Windows.Media.FontFamily _gameFontFamily = new System.Windows.Media.FontFamily("Segoe UI");
+        public System.Windows.Media.FontFamily GameFontFamily
+        {
+            get => _gameFontFamily;
+            set
+            {
+                if (!Equals(_gameFontFamily, value))
+                {
+                    _gameFontFamily = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private System.Windows.FontWeight _gameFontWeight = System.Windows.FontWeights.Bold;
+        public System.Windows.FontWeight GameFontWeight
+        {
+            get => _gameFontWeight;
+            set
+            {
+                if (_gameFontWeight != value)
+                {
+                    _gameFontWeight = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Drop shadow on the game title text and mouse dot, pushed from MainViewModel. Null = no shadow.
+        // The same frozen effect object is shared by every game row.
+        private System.Windows.Media.Effects.Effect? _gameTextEffect;
+        public System.Windows.Media.Effects.Effect? GameTextEffect
+        {
+            get => _gameTextEffect;
+            set
+            {
+                if (!ReferenceEquals(_gameTextEffect, value))
+                {
+                    _gameTextEffect = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private System.Windows.Media.Brush _gameColor = System.Windows.Media.Brushes.White;
         public System.Windows.Media.Brush GameColor
         {

@@ -21,14 +21,7 @@ using System.Windows.Threading;
 
 namespace ArcadeStick.ViewModels
 {
-    // Controls how folder/game text is emphasized against busy backgrounds.
-    // None = plain text, DropShadow = soft shadow, Stroke = solid outline.
-    public enum TextEmphasisMode
-    {
-        None,
-        DropShadow,
-        Stroke
-    }
+    
     // Used by MoveFolderInOrder (context menu "Move" submenu) - shared between MainViewModel and
     // MainWindow_xaml.cs.
     public enum MoveDirection
@@ -369,35 +362,6 @@ namespace ArcadeStick.ViewModels
             }
         }
 
-        // [SECTION: Context Menu Text Size]
-        // Multiplicative nudge (not a flat +/- N) so FolderFontSize and GameFontSize scale by the same
-        // ratio every time, preserving whatever visual hierarchy the active theme set between them
-        // regardless of how many times this gets clicked. Clamped to a sane range so repeated clicks
-        // can't collapse text to unreadable or runaway sizes. Persists immediately, same as
-        // IsCategorySortEnabled's setter above - this lives in a context menu, not behind Options' Save.
-        public void NudgeFontSize(double percentChange)
-        {
-            Configuration.FolderFontSize = (int)Math.Round(Math.Clamp(Configuration.FolderFontSize * (1 + percentChange), 6, 72));
-            Configuration.GameFontSize = (int)Math.Round(Math.Clamp(Configuration.GameFontSize * (1 + percentChange), 6, 72));
-
-            RefreshThemeBindings();
-            RefreshFolderColorsLive();
-            RefreshGameColorsLive();
-            PersistConfigurationToDisk();
-        }
-
-        // Reverts both font sizes (and, as a side effect of LoadTheme, everything else theme-related)
-        // back to the currently active theme's saved values - re-persists afterward so settings.json
-        // stays in sync with what's now displayed.
-        public void ResetFontSizeToSavedTheme()
-        {
-            if (string.IsNullOrWhiteSpace(Configuration.ActiveThemeName)) return;
-
-            LoadTheme(Configuration.ActiveThemeName);
-            PersistConfigurationToDisk();
-        }
-        // [END SECTION: Context Menu Text Size]
-
         // Single entry point for the Sorting window's Apply button - writes every filter field into
         // Configuration, persists once, and rebuilds the tree once, rather than each field triggering
         // its own save/rebuild the way the old single-checkbox setter did.
@@ -688,20 +652,22 @@ namespace ArcadeStick.ViewModels
         public string ThemeScrollThumbColor => Configuration.ScrollThumbColor;
         public string ThemeScrollThumbHoverColor => Configuration.ScrollThumbHoverColor;
         public string ThemeScrollThumbDragColor => Configuration.ScrollThumbDragColor;
-        public int ThemeFolderFontSize => Configuration.FolderFontSize;
-        public int ThemeGameFontSize => Configuration.GameFontSize;
-        public string ThemeGameColor => Configuration.GameColorHex;
+        // The active resolution's Games List entry, where its styling lives (per resolution). Resolved
+        // with registry defaults filling any gaps, so it is never null.
+        public LayerLayoutEntry GetGamesListEntry()
+        {
+            int width = Configuration.ActiveResolutionWidth;
+            int height = Configuration.ActiveResolutionHeight;
+            var saved = Configuration.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+            var layout = LayerRegistry.ResolveLayout(saved, width, height);
+            return layout.Layers.First(e => e.Id == LayerRegistry.GamesList);
+        }
+
+        public int ThemeFolderFontSize => GetGamesListEntry().FolderFontSize ?? LayerRegistry.DefaultFolderFontSize;
         public string ThemeFolderSelectedColor => Configuration.FolderSelectedColorHex;
         public string ThemeFolderSelectedBgColor => Configuration.FolderSelectedBgColorHex;
-        public string ThemeGameHoverColor => Configuration.GameHoverColorHex;
-        public string ThemeGameSelectedColor => Configuration.GameSelectedColorHex;
-        public string ThemeGameSelectedBgColor => Configuration.GameSelectedBgColorHex;
-        public string ThemeArrowColor => Configuration.ArrowColorHex;
-        public string ThemeFolderColor => Configuration.FolderColorHex;
-
-        // Temporary hardcoded test switch for folder/game text emphasis (drop shadow vs stroke).
-        // Will be replaced by a real theme setting + checkbox once we decide which look to keep.
-        public TextEmphasisMode TextEmphasisMode => TextEmphasisMode.DropShadow;
+        public string ThemeArrowColor => GetGamesListEntry().ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex;
+        public string ThemeFolderColor => GetGamesListEntry().FolderColorHex ?? LayerRegistry.DefaultFolderColorHex;
 
         public int ThemeSearchBoxFontSize => Configuration.SearchBoxFontSize;
         public string ThemeSearchBoxColor => Configuration.SearchBoxColorHex;
@@ -1040,18 +1006,12 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeOptionsBtnFontSize));
             OnPropertyChanged(nameof(ThemeOptionsBtnColorHover));
             OnPropertyChanged(nameof(ThemeOptionsBtnBorderSize));
-            OnPropertyChanged(nameof(ThemeOptionsBtnBorderRadius));
-            OnPropertyChanged(nameof(ThemeFolderFontSize));
+            OnPropertyChanged(nameof(ThemeOptionsBtnBorderRadius));            
             OnPropertyChanged(nameof(ThemeSearchBoxColor));
             OnPropertyChanged(nameof(ThemeSearchBoxBgColor));
             OnPropertyChanged(nameof(ThemeFolderFontSize));
-            OnPropertyChanged(nameof(ThemeGameFontSize));
-            OnPropertyChanged(nameof(ThemeGameColor));
             OnPropertyChanged(nameof(ThemeFolderSelectedColor));
             OnPropertyChanged(nameof(ThemeFolderSelectedBgColor));
-            OnPropertyChanged(nameof(ThemeGameHoverColor));
-            OnPropertyChanged(nameof(ThemeGameSelectedColor));
-            OnPropertyChanged(nameof(ThemeGameSelectedBgColor));
             OnPropertyChanged(nameof(ThemeArrowColor));
             OnPropertyChanged(nameof(ThemeFolderColor));
             OnPropertyChanged(nameof(ThemeTabColor));
@@ -1086,12 +1046,21 @@ namespace ArcadeStick.ViewModels
         // in XAML, which were causing severe UI freezes when generating containers for very large (30k+) folders.
         public void RefreshFolderColorsLive()
         {
-            var mainFolderBrush = SafeConvertToBrush(Configuration.FolderColorHex);
+            var gamesListEntry = GetGamesListEntry();
+            var mainFolderBrush = SafeConvertToBrush(gamesListEntry.FolderColorHex ?? LayerRegistry.DefaultFolderColorHex);
             var favoritesBrush = SafeConvertToBrush(Configuration.FavoritesColorHex);
-            var folderSelectedBgBrush = SafeConvertToBrush(Configuration.FolderSelectedBgColorHex);
-            var folderSelectedBrush = SafeConvertToBrush(Configuration.FolderSelectedColorHex);
-            var arrowBrush = SafeConvertToBrush(Configuration.ArrowColorHex);
-            double folderFontSize = Configuration.FolderFontSize;
+            var folderSelectedBgBrush = SafeConvertToBrush(gamesListEntry.FolderSelectedBgColorHex ?? LayerRegistry.DefaultFolderSelectedBgColorHex);
+            var folderSelectedBrush = SafeConvertToBrush(gamesListEntry.FolderSelectedColorHex ?? LayerRegistry.DefaultFolderSelectedColorHex);
+            var arrowBrush = SafeConvertToBrush(gamesListEntry.ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex);
+            var arrowMargin = new Thickness(2, 2 + (gamesListEntry.ArrowNudgeY ?? LayerRegistry.DefaultArrowNudgeY), 0, 0);
+            double folderFontSize = gamesListEntry.FolderFontSize ?? LayerRegistry.DefaultFolderFontSize;
+            var folderFontFamily = new FontFamily(string.IsNullOrWhiteSpace(gamesListEntry.FolderFontFamily) ? LayerRegistry.DefaultFontFamily : gamesListEntry.FolderFontFamily);
+            var folderFontWeight = (gamesListEntry.FolderBold ?? LayerRegistry.DefaultFolderBold) ? FontWeights.Bold : FontWeights.Normal;
+            var folderTextEffect = BuildShadowEffect(
+                gamesListEntry.FolderShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                gamesListEntry.FolderShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                gamesListEntry.FolderShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                gamesListEntry.FolderShadowDepth ?? LayerRegistry.DefaultShadowDepth);
 
             void Walk(TreeCategoryNode node)
             {
@@ -1103,9 +1072,13 @@ namespace ArcadeStick.ViewModels
                 }
 
                 node.FolderFontSize = folderFontSize;
+                node.FolderFontFamily = folderFontFamily;
+                node.FolderFontWeight = folderFontWeight;
+                node.FolderTextEffect = folderTextEffect;
                 node.FolderSelectedBgColor = folderSelectedBgBrush;
                 node.FolderSelectedColor = folderSelectedBrush;
                 node.ArrowColor = arrowBrush;
+                node.ArrowMargin = arrowMargin;
 
                 foreach (var sub in node.SubFolders)
                 {
@@ -1124,22 +1097,56 @@ namespace ArcadeStick.ViewModels
         // live refresh without needing a full tree rebuild - mirrors the RefreshFolderColorsLive pattern.
         public void RefreshGameColorsLive()
         {
-            var gameColorBrush = SafeConvertToBrush(Configuration.GameColorHex);
-            var gameHoverBrush = SafeConvertToBrush(Configuration.GameHoverColorHex);
-            var gameSelectedBgBrush = SafeConvertToBrush(Configuration.GameSelectedBgColorHex);
-            var gameSelectedBrush = SafeConvertToBrush(Configuration.GameSelectedColorHex);
-            var arrowBrush = SafeConvertToBrush(Configuration.ArrowColorHex);
+            var gamesListEntry = GetGamesListEntry();
+            var gameColorBrush = SafeConvertToBrush(gamesListEntry.GameColorHex ?? LayerRegistry.DefaultGameColorHex);
+            var gameHoverBrush = SafeConvertToBrush(gamesListEntry.GameHoverColorHex ?? LayerRegistry.DefaultGameHoverColorHex);
+            var gameSelectedBgBrush = SafeConvertToBrush(gamesListEntry.GameSelectedBgColorHex ?? LayerRegistry.DefaultGameSelectedBgColorHex);
+            var gameSelectedBrush = SafeConvertToBrush(gamesListEntry.GameSelectedColorHex ?? LayerRegistry.DefaultGameSelectedColorHex);
+            double gameFontSize = gamesListEntry.GameFontSize ?? LayerRegistry.DefaultGameFontSize;
+            var gameFontFamily = new FontFamily(string.IsNullOrWhiteSpace(gamesListEntry.GameFontFamily) ? LayerRegistry.DefaultFontFamily : gamesListEntry.GameFontFamily);
+            var gameFontWeight = (gamesListEntry.GameBold ?? LayerRegistry.DefaultGameBold) ? FontWeights.Bold : FontWeights.Normal;
+            var gameTextEffect = BuildShadowEffect(
+                gamesListEntry.GameShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                gamesListEntry.GameShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                gamesListEntry.GameShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                gamesListEntry.GameShadowDepth ?? LayerRegistry.DefaultShadowDepth);
 
             foreach (var game in GamesCollection)
             {
                 game.IsMouseSupported = MouseSupportRoms.Contains(game.RomName);
-                game.FontSize = Configuration.GameFontSize;
+                game.FontSize = gameFontSize;
+                game.GameFontFamily = gameFontFamily;
+                game.GameFontWeight = gameFontWeight;
+                game.GameTextEffect = gameTextEffect;
                 game.GameColor = gameColorBrush;
                 game.GameHoverColor = gameHoverBrush;
                 game.GameSelectedBgColor = gameSelectedBgBrush;
                 game.GameSelectedColor = gameSelectedBrush;
-                game.ArrowColor = arrowBrush;
             }
+        }
+        // Builds the drop shadow for one kind of text from the Games List entry's values. Returns null when the
+        // shadow is off. The picked color's alpha sets the shadow's strength: it becomes the effect's Opacity,
+        // and the effect's own color is made fully opaque so the strength is not applied twice.
+        // The result is frozen so every row can share the one object.
+        private static System.Windows.Media.Effects.Effect? BuildShadowEffect(bool enabled, string colorHex, int blur, int depth)
+        {
+            if (!enabled) return null;
+
+            System.Windows.Media.Color color;
+            try { color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colorHex); }
+            catch { color = System.Windows.Media.Colors.Black; }
+
+            var effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = System.Windows.Media.Color.FromRgb(color.R, color.G, color.B),
+                Opacity = color.A / 255.0,
+                BlurRadius = blur,
+                ShadowDepth = depth,
+                Direction = 315,
+                RenderingBias = System.Windows.Media.Effects.RenderingBias.Quality
+            };
+            effect.Freeze();
+            return effect;
         }
         // [END SECTION: Theme Refresh - Sync Points 2 & 3]
 
@@ -1221,17 +1228,9 @@ namespace ArcadeStick.ViewModels
             Configuration.SeparatorColorHex = themeData.SeparatorColorHex;
             Configuration.MarqueeBorderColorHex = themeData.MarqueeBorderColorHex;
             Configuration.MarqueeBorderWidthValue = themeData.MarqueeBorderWidthValue;
-            Configuration.FolderFontSize = themeData.FolderFontSize;
-            Configuration.FolderColorHex = themeData.FolderColorHex;
-            Configuration.FolderSelectedColorHex = themeData.FolderSelectedColorHex;
+            Configuration.FolderSelectedColorHex = themeData.FolderSelectedColorHex; 
             Configuration.FolderSelectedBgColorHex = themeData.FolderSelectedBgColorHex;
-            Configuration.GameFontSize = themeData.GameFontSize;
-            Configuration.GameColorHex = themeData.GameColorHex;
-            Configuration.GameHoverColorHex = themeData.GameHoverColorHex;
-            Configuration.GameSelectedColorHex = themeData.GameSelectedColorHex;
-            Configuration.GameSelectedBgColorHex = themeData.GameSelectedBgColorHex;
             Configuration.FavoritesColorHex = themeData.FavoritesColorHex;
-            Configuration.ArrowColorHex = themeData.ArrowColorHex;
             Configuration.TabFontSize = themeData.TabFontSize;
             Configuration.TabColorHex = themeData.TabColorHex;
             Configuration.TabBgColorHex = themeData.TabBgColorHex;
@@ -1548,7 +1547,7 @@ namespace ArcadeStick.ViewModels
             TreeNodesCollection.Add(new TreeCategoryNode
             {
                 HeaderText = "LOADING... PLEASE WAIT",
-                FolderColor = SafeConvertToBrush(Configuration.FolderColorHex)
+                FolderColor = SafeConvertToBrush(GetGamesListEntry().FolderColorHex ?? LayerRegistry.DefaultFolderColorHex)
             });
 
             await Task.Run(async () =>
@@ -2315,15 +2314,15 @@ namespace ArcadeStick.ViewModels
                 Directory.CreateDirectory(playlistsDir);
             }
 
-            var rootCategories = new Dictionary<string, TreeCategoryNode>(StringComparer.OrdinalIgnoreCase);
-            var mainFolderBrush = SafeConvertToBrush(Configuration.FolderColorHex);
+                var rootCategories = new Dictionary<string, TreeCategoryNode>(StringComparer.OrdinalIgnoreCase);
+                var mainFolderBrush = SafeConvertToBrush(GetGamesListEntry().FolderColorHex ?? LayerRegistry.DefaultFolderColorHex);
 
-            // Prefixes the rom name onto the title when Dev Mode is active, and appends a parenthetical
-            // differentiator for clones (e.g. "1941: Counter Attack (World)") so they read distinctly
-            // from their parent - mirrors BuildVirtualTree's clone-display logic, extended here since the
-            // custom-folder branch previously had no equivalent, leaving same-titled clones and parents
-            // visually indistinguishable.
-            string GetFormattedTitle(GameItem gameItem)
+                // Prefixes the rom name onto the title when Dev Mode is active, and appends a parenthetical
+                // differentiator for clones (e.g. "1941: Counter Attack (World)") so they read distinctly
+                // from their parent - mirrors BuildVirtualTree's clone-display logic, extended here since the
+                // custom-folder branch previously had no equivalent, leaving same-titled clones and parents
+                // visually indistinguishable.
+                string GetFormattedTitle(GameItem gameItem)
             {
                 string differentiator = !string.IsNullOrEmpty(gameItem.CloneOf)
                     ? Services.VirtualCategorySortService.BuildCloneDifferentiator(gameItem)

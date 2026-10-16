@@ -323,21 +323,6 @@
                                 </MenuItem.Icon>
                             </MenuItem>
 
-                            <!-- Text Size: nudges FolderFontSize + GameFontSize together by the same
-                                 percentage, preserving whatever ratio the active theme set between them.
-                                 Same submenu duplicated in GameRowContextMenu - both fire the same
-                                 shared handlers in code-behind. -->
-                            <MenuItem Header="Text Size">
-                                <MenuItem.Icon>
-                                    <TextBlock Text="&#xE8E9;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
-                                </MenuItem.Icon>
-                                <MenuItem Header="Smaller (-15%)" Tag="-0.15" Click="TextSizeNudge_Click"/>
-                                <MenuItem Header="Slightly Smaller (-5%)" Tag="-0.05" Click="TextSizeNudge_Click"/>
-                                <MenuItem Header="Reset to Saved Theme" Click="TextSizeReset_Click"/>
-                                <MenuItem Header="Slightly Larger (+5%)" Tag="0.05" Click="TextSizeNudge_Click"/>
-                                <MenuItem Header="Larger (+15%)" Tag="0.15" Click="TextSizeNudge_Click"/>
-                            </MenuItem>
-
                             <MenuItem x:Name="MoveFolderMenuItem" Header="Move">
                                 <MenuItem.Icon>
                                     <TextBlock Text="&#xE8CB;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
@@ -398,18 +383,6 @@
                                     <TextBlock Text="&#xE8B9;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
                                 </MenuItem.Icon>
                             </MenuItem>
-
-                            <!-- Text Size: same shared handlers as FolderRowContextMenu's copy above. -->
-                            <MenuItem Header="Text Size">
-                                <MenuItem.Icon>
-                                    <TextBlock Text="&#xE8E9;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="14"/>
-                                </MenuItem.Icon>
-                                <MenuItem Header="Smaller (-15%)" Tag="-0.15" Click="TextSizeNudge_Click"/>
-                                <MenuItem Header="Slightly Smaller (-5%)" Tag="-0.05" Click="TextSizeNudge_Click"/>
-                                <MenuItem Header="Reset to Saved Theme" Click="TextSizeReset_Click"/>
-                                <MenuItem Header="Slightly Larger (+5%)" Tag="0.05" Click="TextSizeNudge_Click"/>
-                                <MenuItem Header="Larger (+15%)" Tag="0.15" Click="TextSizeNudge_Click"/>
-                            </MenuItem>
                         </ContextMenu>
                         <!-- [END SECTION: Row Context Menus] -->
 
@@ -417,14 +390,8 @@
                         <HierarchicalDataTemplate DataType="{x:Type Models:TreeCategoryNode}" ItemsSource="{Binding DisplayItems}">
                             <Border x:Name="FolderRowBorder" Background="Transparent" HorizontalAlignment="Stretch" Margin="-3,0,0,0" Padding="0,0,0,2" ContextMenu="{StaticResource FolderRowContextMenu}" PreviewMouseRightButtonDown="FolderRowBorder_PreviewMouseRightButtonDown">
                                 <Grid VerticalAlignment="Center" Margin="0,0,0,0">
-                                    <!-- Stroke layer: 4 black offset copies, shown only in Stroke mode -->
-                                    <TextBlock x:Name="FolderStrokeTL" Text="{Binding HeaderText}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" Margin="2,-1,0,1" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
-                                    <TextBlock x:Name="FolderStrokeTR" Text="{Binding HeaderText}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" Margin="4,-1,0,1" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
-                                    <TextBlock x:Name="FolderStrokeBL" Text="{Binding HeaderText}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" Margin="2,1,0,-1" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
-                                    <TextBlock x:Name="FolderStrokeBR" Text="{Binding HeaderText}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" Margin="4,1,0,-1" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
-
                                     <!-- Real text, rendered on top -->
-                                    <TextBlock x:Name="FolderHeaderText" Text="{Binding HeaderText}" Foreground="{Binding FolderColor}" FontWeight="Bold" FontSize="{Binding FolderFontSize, FallbackValue=16}" VerticalAlignment="Center" Padding="3,0,0,0" Margin="0,0,0,0" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="FolderHeaderText" Text="{Binding HeaderText}" Foreground="{Binding FolderColor}" FontFamily="{Binding FolderFontFamily}" FontWeight="{Binding FolderFontWeight}" Effect="{Binding FolderTextEffect}" FontSize="{Binding FolderFontSize, FallbackValue=16}" VerticalAlignment="Center" Padding="3,0,0,0" Margin="0,0,0,0" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </Border>
                             <HierarchicalDataTemplate.Triggers>
@@ -434,25 +401,7 @@
                                     <Setter TargetName="FolderHeaderText" Property="Foreground" Value="{Binding FolderSelectedColor, FallbackValue=#00D4FF}"/>
                                 </DataTrigger>
 
-                                <!-- Text emphasis mode: Stroke - reveal the 4 offset black copies -->
-                                <DataTrigger Binding="{Binding DataContext.TextEmphasisMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="Stroke">
-                                    <Setter TargetName="FolderStrokeTL" Property="Visibility" Value="Visible"/>
-                                    <Setter TargetName="FolderStrokeTR" Property="Visibility" Value="Visible"/>
-                                    <Setter TargetName="FolderStrokeBL" Property="Visibility" Value="Visible"/>
-                                    <Setter TargetName="FolderStrokeBR" Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-
-                                <!-- Text emphasis mode: DropShadow - apply a soft shadow to the real text only -->
-                                <DataTrigger Binding="{Binding DataContext.TextEmphasisMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="DropShadow">
-                                    <Setter TargetName="FolderHeaderText" Property="Effect">
-                                        <Setter.Value>
-                                            <DropShadowEffect Color="Black" Direction="315" ShadowDepth="1" BlurRadius="3" Opacity="1"/>
-                                        </Setter.Value>
-                                    </Setter>
-                                </DataTrigger>
-
-                                <!-- Selected + DropShadow mode: clear the shadow, the highlight already provides contrast.
-                                     Declared after the DropShadow trigger above so it wins when both conditions are true. -->
+                                <!-- Selected row: clear the shadow, the highlight already provides contrast. -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
                                     <Setter TargetName="FolderHeaderText" Property="Effect" Value="{x:Null}"/>
                                 </DataTrigger>
@@ -468,15 +417,9 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <!-- Mouse-support glyph, only shown when IsMouseSupported is true -->
-                                    <TextBlock x:Name="MouseGlyph" Grid.Column="0" Text="&#8226;" Foreground="{Binding GameColor, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0" Visibility="Collapsed"/>
+                                    <TextBlock x:Name="MouseGlyph" Grid.Column="0" Text="&#8226;" Foreground="{Binding GameColor, FallbackValue=#F2F2F7}" FontFamily="{Binding GameFontFamily}" FontWeight="{Binding GameFontWeight}" Effect="{Binding GameTextEffect}" FontSize="{Binding FontSize, FallbackValue=14}" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,0" Visibility="Collapsed"/>
 
-                                    <!-- Stroke layer: 4 black offset copies, shown only in Stroke mode -->
-                                    <TextBlock x:Name="GameStrokeTL" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2" Margin="1,-1,0,1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
-                                    <TextBlock x:Name="GameStrokeTR" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2" Margin="3,-1,0,1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
-                                    <TextBlock x:Name="GameStrokeBL" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2" Margin="1,1,0,-1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
-                                    <TextBlock x:Name="GameStrokeBR" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="Black" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2" Margin="3,1,0,-1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Visibility="Collapsed"/>
-
-                                    <TextBlock x:Name="GameTitleText" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="{Binding GameColor, FallbackValue=#F2F2F7}" FontWeight="Bold" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="GameTitleText" Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="{Binding GameColor, FallbackValue=#F2F2F7}" FontFamily="{Binding GameFontFamily}" FontWeight="{Binding GameFontWeight}" Effect="{Binding GameTextEffect}" FontSize="{Binding FontSize, FallbackValue=14}" Padding="2,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </Border>
                             <DataTemplate.Triggers>
@@ -495,27 +438,10 @@
                                     <Setter TargetName="MouseGlyph" Property="Foreground" Value="{Binding GameSelectedColor, FallbackValue=#00D4FF}"/>
                                 </DataTrigger>
 
-                                <!-- Text emphasis mode: Stroke - reveal the 4 offset black copies -->
-                                <DataTrigger Binding="{Binding DataContext.TextEmphasisMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="Stroke">
-                                    <Setter TargetName="GameStrokeTL" Property="Visibility" Value="Visible"/>
-                                    <Setter TargetName="GameStrokeTR" Property="Visibility" Value="Visible"/>
-                                    <Setter TargetName="GameStrokeBL" Property="Visibility" Value="Visible"/>
-                                    <Setter TargetName="GameStrokeBR" Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-
-                                <!-- Text emphasis mode: DropShadow - apply a soft shadow to the real text only -->
-                                <DataTrigger Binding="{Binding DataContext.TextEmphasisMode, RelativeSource={RelativeSource AncestorType=Window}}" Value="DropShadow">
-                                    <Setter TargetName="GameTitleText" Property="Effect">
-                                        <Setter.Value>
-                                            <DropShadowEffect Color="Black" Direction="315" ShadowDepth="1" BlurRadius="3" Opacity="1"/>
-                                        </Setter.Value>
-                                    </Setter>
-                                </DataTrigger>
-
-                                <!-- Selected + DropShadow mode: clear the shadow, the highlight already provides contrast.
-                                     Declared after the DropShadow trigger above so it wins when both conditions are true. -->
+                                <!-- Selected row: clear the shadow, the highlight already provides contrast. -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
                                     <Setter TargetName="GameTitleText" Property="Effect" Value="{x:Null}"/>
+                                    <Setter TargetName="MouseGlyph" Property="Effect" Value="{x:Null}"/>
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
@@ -557,7 +483,7 @@
                                                                                   Data="M 0 0 L 6 4 L 0 8 Z"
                                                                                   Fill="{Binding ArrowColor, FallbackValue=#A0A0A2}"
                                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                                  Margin="2,2,0,0"/>
+                                                                                  Margin="{Binding ArrowMargin}"/>
                                                                         </Border>
                                                                         <ControlTemplate.Triggers>
                                                                             <!-- Rotate arrow shape (right-pointing to down-pointing) when expanded -->

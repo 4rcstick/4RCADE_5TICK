@@ -21,6 +21,80 @@ namespace ArcadeStick.Models
         // folder when the file is inside it, otherwise absolute.
         public string Name { get; set; } = "";
         public string ImagePath { get; set; } = "";
+
+        // Games List styling, stored per resolution on the layer's entry. Null on every other layer and
+        // left out of the theme file when null. LayerRegistry fills the Games List entry's values from
+        // defaults when a saved entry doesn't have them yet.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? FolderFontSize { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? FolderColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? FolderSelectedColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? FolderSelectedBgColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? FolderFontFamily { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? FolderBold { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? ArrowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? ArrowNudgeY { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GameFontSize { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameSelectedColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameSelectedBgColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameHoverColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameFontFamily { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? GameBold { get; set; }
+
+        // Drop shadow on the folder text and on the game title text (and the mouse dot). Same rules as above:
+        // null on every other layer, left out of the theme file when null, filled from defaults on the Games List.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? FolderShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? FolderShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? FolderShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? FolderShadowDepth { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? GameShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GameShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GameShadowDepth { get; set; }
     }
 
     // All layer entries for one resolution. A theme file can hold several of these, keyed by Width/Height.
@@ -181,7 +255,7 @@ namespace ArcadeStick.Models
                     continue;
                 }
 
-                layout.Layers.Add(new LayerLayoutEntry
+                var entry = new LayerLayoutEntry
                 {
                     Id = def.Id,
                     X = Math.Round(def.X * sx),
@@ -190,7 +264,37 @@ namespace ArcadeStick.Models
                     Height = Math.Round(def.Height * sy),
                     Z = def.Z,
                     Visible = true
-                });
+                };
+
+                // Games List styling defaults (today's compiled defaults)
+                if (def.Id == GamesList)
+                {
+                    entry.FolderFontSize = DefaultFolderFontSize;
+                    entry.FolderColorHex = DefaultFolderColorHex;
+                    entry.FolderSelectedColorHex = DefaultFolderSelectedColorHex;
+                    entry.FolderSelectedBgColorHex = DefaultFolderSelectedBgColorHex;
+                    entry.FolderFontFamily = DefaultFontFamily;
+                    entry.FolderBold = DefaultFolderBold;
+                    entry.ArrowColorHex = DefaultArrowColorHex;
+                    entry.ArrowNudgeY = DefaultArrowNudgeY;
+                    entry.GameFontSize = DefaultGameFontSize;
+                    entry.GameColorHex = DefaultGameColorHex;
+                    entry.GameSelectedColorHex = DefaultGameSelectedColorHex;
+                    entry.GameSelectedBgColorHex = DefaultGameSelectedBgColorHex;
+                    entry.GameHoverColorHex = DefaultGameHoverColorHex;
+                    entry.GameFontFamily = DefaultFontFamily;
+                    entry.GameBold = DefaultGameBold;
+                    entry.FolderShadowEnabled = DefaultShadowEnabled;
+                    entry.FolderShadowColorHex = DefaultShadowColorHex;
+                    entry.FolderShadowBlur = DefaultShadowBlur;
+                    entry.FolderShadowDepth = DefaultShadowDepth;
+                    entry.GameShadowEnabled = DefaultShadowEnabled;
+                    entry.GameShadowColorHex = DefaultShadowColorHex;
+                    entry.GameShadowBlur = DefaultShadowBlur;
+                    entry.GameShadowDepth = DefaultShadowDepth;
+                }
+
+                layout.Layers.Add(entry);
             }
             return layout;
         }
@@ -212,6 +316,34 @@ namespace ArcadeStick.Models
                 var def = GetDefinition(entry.Id);
                 if (def != null && !def.CanHide) entry.Visible = true;
 
+                // Older saved Games List entries have no style values yet: fill them from defaults
+                if (entry.Id == GamesList)
+                {
+                    entry.FolderFontSize ??= DefaultFolderFontSize;
+                    if (string.IsNullOrWhiteSpace(entry.FolderColorHex)) entry.FolderColorHex = DefaultFolderColorHex;
+                    if (string.IsNullOrWhiteSpace(entry.FolderSelectedColorHex)) entry.FolderSelectedColorHex = DefaultFolderSelectedColorHex;
+                    if (string.IsNullOrWhiteSpace(entry.FolderSelectedBgColorHex)) entry.FolderSelectedBgColorHex = DefaultFolderSelectedBgColorHex;
+                    if (string.IsNullOrWhiteSpace(entry.FolderFontFamily)) entry.FolderFontFamily = DefaultFontFamily;
+                    entry.FolderBold ??= DefaultFolderBold;
+                    if (string.IsNullOrWhiteSpace(entry.ArrowColorHex)) entry.ArrowColorHex = DefaultArrowColorHex;
+                    entry.ArrowNudgeY ??= DefaultArrowNudgeY;
+                    entry.GameFontSize ??= DefaultGameFontSize;
+                    if (string.IsNullOrWhiteSpace(entry.GameColorHex)) entry.GameColorHex = DefaultGameColorHex;
+                    if (string.IsNullOrWhiteSpace(entry.GameSelectedColorHex)) entry.GameSelectedColorHex = DefaultGameSelectedColorHex;
+                    if (string.IsNullOrWhiteSpace(entry.GameSelectedBgColorHex)) entry.GameSelectedBgColorHex = DefaultGameSelectedBgColorHex;
+                    if (string.IsNullOrWhiteSpace(entry.GameHoverColorHex)) entry.GameHoverColorHex = DefaultGameHoverColorHex;
+                    if (string.IsNullOrWhiteSpace(entry.GameFontFamily)) entry.GameFontFamily = DefaultFontFamily;
+                    entry.GameBold ??= DefaultGameBold;
+                    entry.FolderShadowEnabled ??= DefaultShadowEnabled;
+                    if (string.IsNullOrWhiteSpace(entry.FolderShadowColorHex)) entry.FolderShadowColorHex = DefaultShadowColorHex;
+                    entry.FolderShadowBlur ??= DefaultShadowBlur;
+                    entry.FolderShadowDepth ??= DefaultShadowDepth;
+                    entry.GameShadowEnabled ??= DefaultShadowEnabled;
+                    if (string.IsNullOrWhiteSpace(entry.GameShadowColorHex)) entry.GameShadowColorHex = DefaultShadowColorHex;
+                    entry.GameShadowBlur ??= DefaultShadowBlur;
+                    entry.GameShadowDepth ??= DefaultShadowDepth;
+                }
+
                 result.Layers.Add(entry);
             }
 
@@ -222,6 +354,39 @@ namespace ArcadeStick.Models
             }
             return result;
         }
+
+        // Games List styling defaults (today's compiled defaults)
+        public const int DefaultFolderFontSize = 17;
+        public const string DefaultFolderColorHex = "#FF00D4FF";
+        public const string DefaultFolderSelectedColorHex = "#FF000000";
+        public const string DefaultFolderSelectedBgColorHex = "#FF00D4FF";
+        public const string DefaultFontFamily = "Segoe UI";
+        public const bool DefaultFolderBold = true;
+        public const string DefaultArrowColorHex = "#FFA0A0A2";
+        public const int DefaultArrowNudgeY = 0;
+        public const int DefaultGameFontSize = 15;
+        public const string DefaultGameColorHex = "#FFA0A0A2";
+        public const string DefaultGameSelectedColorHex = "#FF000000";
+        public const string DefaultGameSelectedBgColorHex = "#FF00D4FF";
+        public const string DefaultGameHoverColorHex = "#FFEF44C3";
+        public const bool DefaultGameBold = true;
+
+        // Drop shadow defaults: off. The color, blur and depth are the starting values when someone turns it on
+        // (the old built-in look: black, soft, one pixel down and to the right).
+        public const bool DefaultShadowEnabled = false;
+        public const string DefaultShadowColorHex = "#FF000000";
+        public const int DefaultShadowBlur = 3;
+        public const int DefaultShadowDepth = 1;
+
+        // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
+        // Segoe UI is also the fallback when a theme has no saved family.
+        public static readonly IReadOnlyList<string> AvailableFonts = new List<string>
+        {
+            "Segoe UI", "Arial", "Bahnschrift",
+            "Georgia", "Times New Roman", "Palatino Linotype",
+            "Impact", "Arial Black", "Segoe UI Black",
+            "Consolas", "Courier New"
+        };
     }
     // [END SECTION: Layer Registry]
 }

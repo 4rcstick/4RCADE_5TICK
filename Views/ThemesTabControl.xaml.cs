@@ -30,10 +30,7 @@ namespace ArcadeStick.Views
         private bool _suppressGamesColorSync;
         private bool _suppressMarqueeColorSync;
         private bool _suppressMediaColorSync;
-        private bool _suppressOptionsColorSync;
-        private bool _suppressGameHoverColorSync;
-        private bool _suppressArrowColorSync;
-        private bool _suppressFavoritesColorSync;
+        private bool _suppressOptionsColorSync;        
         private bool _suppressTabActiveColorSync;
         private bool _suppressTabActiveBgColorSync;
         private bool _suppressFrameworkBorderColorSync;
@@ -48,16 +45,12 @@ namespace ArcadeStick.Views
         private bool _suppressScrollThumbDragColorSync;
         private bool _suppressScrollTrackColorSync;
         private bool _suppressScrollTrackHoverColorSync;
-        private bool _suppressFolderColorSync;
-        private bool _suppressGameColorSync;
         private bool _suppressHeaderColorSync;
         private bool _suppressSubHeaderColorSync;
         private bool _suppressStandardColorSync;
         private bool _suppressTabColorSync;
         private bool _suppressFolderSelectedColorSync;
         private bool _suppressFolderSelectedBgColorSync;
-        private bool _suppressGameSelectedColorSync;
-        private bool _suppressGameSelectedBgColorSync;
         private bool _suppressGameNameHeaderColorSync;
         private bool _suppressPubYearRatingColorSync;
         private bool _suppressInfoHeaderColorSync;
@@ -950,69 +943,6 @@ namespace ArcadeStick.Views
             }
         }
 
-        private void GameHoverColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameHoverColorSync) return;
-            var newColor = GameHoverColorPicker.SelectedColor;
-            _suppressGameHoverColorSync = true;
-            TxtGameHoverColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressGameHoverColorSync = false;
-        }
-
-        private void TxtGameHoverColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameHoverColorSync) return;
-            var parsedColor = TryParseColor(TxtGameHoverColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressGameHoverColorSync = true;
-                GameHoverColorPicker.SelectedColor = parsedColor.Value;
-                _suppressGameHoverColorSync = false;
-            }
-        }
-
-        private void ArrowColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressArrowColorSync) return;
-            var newColor = ArrowColorPicker.SelectedColor;
-            _suppressArrowColorSync = true;
-            TxtArrowColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressArrowColorSync = false;
-        }
-
-        private void TxtArrowColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressArrowColorSync) return;
-            var parsedColor = TryParseColor(TxtArrowColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressArrowColorSync = true;
-                ArrowColorPicker.SelectedColor = parsedColor.Value;
-                _suppressArrowColorSync = false;
-            }
-        }
-
-        private void FavoritesColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressFavoritesColorSync) return;
-            var newColor = FavoritesColorPicker.SelectedColor;
-            _suppressFavoritesColorSync = true;
-            TxtFavoritesColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressFavoritesColorSync = false;
-        }
-
-        private void TxtFavoritesColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressFavoritesColorSync) return;
-            var parsedColor = TryParseColor(TxtFavoritesColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressFavoritesColorSync = true;
-                FavoritesColorPicker.SelectedColor = parsedColor.Value;
-                _suppressFavoritesColorSync = false;
-            }
-        }
-
         private void TabActiveColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
             if (_suppressTabActiveColorSync) return;
@@ -1292,48 +1222,6 @@ namespace ArcadeStick.Views
             }
         }
 
-        private void FolderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressFolderColorSync) return;
-            var newColor = FolderColorPicker.SelectedColor;
-            _suppressFolderColorSync = true;
-            TxtFolderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressFolderColorSync = false;
-        }
-
-        private void TxtFolderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressFolderColorSync) return;
-            var parsedColor = TryParseColor(TxtFolderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressFolderColorSync = true;
-                FolderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressFolderColorSync = false;
-            }
-        }
-
-        private void GameColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameColorSync) return;
-            var newColor = GameColorPicker.SelectedColor;
-            _suppressGameColorSync = true;
-            TxtGameColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressGameColorSync = false;
-        }
-
-        private void TxtGameColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameColorSync) return;
-            var parsedColor = TryParseColor(TxtGameColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressGameColorSync = true;
-                GameColorPicker.SelectedColor = parsedColor.Value;
-                _suppressGameColorSync = false;
-            }
-        }
-
         private void HeaderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
             if (_suppressHeaderColorSync) return;
@@ -1457,48 +1345,6 @@ namespace ArcadeStick.Views
                 _suppressFolderSelectedBgColorSync = true;
                 FolderSelectedBgColorPicker.SelectedColor = parsedColor.Value;
                 _suppressFolderSelectedBgColorSync = false;
-            }
-        }
-
-        private void GameSelectedColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameSelectedColorSync) return;
-            var newColor = GameSelectedColorPicker.SelectedColor;
-            _suppressGameSelectedColorSync = true;
-            TxtGameSelectedColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressGameSelectedColorSync = false;
-        }
-
-        private void TxtGameSelectedColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameSelectedColorSync) return;
-            var parsedColor = TryParseColor(TxtGameSelectedColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressGameSelectedColorSync = true;
-                GameSelectedColorPicker.SelectedColor = parsedColor.Value;
-                _suppressGameSelectedColorSync = false;
-            }
-        }
-
-        private void GameSelectedBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameSelectedBgColorSync) return;
-            var newColor = GameSelectedBgColorPicker.SelectedColor;
-            _suppressGameSelectedBgColorSync = true;
-            TxtGameSelectedBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressGameSelectedBgColorSync = false;
-        }
-
-        private void TxtGameSelectedBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameSelectedBgColorSync) return;
-            var parsedColor = TryParseColor(TxtGameSelectedBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressGameSelectedBgColorSync = true;
-                GameSelectedBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressGameSelectedBgColorSync = false;
             }
         }
 
@@ -2044,17 +1890,6 @@ namespace ArcadeStick.Views
             TxtMarqueeBorderWidthValue.Text = _settings.MarqueeBorderWidthValue.ToString();
 
             // Typography & State Colors (Filtered through Gatekeeper)
-            TxtFolderFontSize.Text = _settings.FolderFontSize.ToString();
-            TxtFolderColorHex.Text = FormatHexCode(_settings.FolderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtFolderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressFolderColorSync = true;
-                    FolderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressFolderColorSync = false;
-                }
-            }
             TxtFolderSelectedColorHex.Text = FormatHexCode(_settings.FolderSelectedColorHex);
             {
                 var parsedColor = TryParseColor(TxtFolderSelectedColorHex.Text);
@@ -2075,67 +1910,7 @@ namespace ArcadeStick.Views
                     _suppressFolderSelectedBgColorSync = false;
                 }
             }
-            TxtGameFontSize.Text = _settings.GameFontSize.ToString();
-            TxtGameColorHex.Text = FormatHexCode(_settings.GameColorHex);
-            {
-                var parsedColor = TryParseColor(TxtGameColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressGameColorSync = true;
-                    GameColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressGameColorSync = false;
-                }
-            }
-            TxtGameHoverColorHex.Text = FormatHexCode(_settings.GameHoverColorHex);
-            {
-                var parsedColor = TryParseColor(TxtGameHoverColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressGameHoverColorSync = true;
-                    GameHoverColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressGameHoverColorSync = false;
-                }
-            }
-            TxtGameSelectedColorHex.Text = FormatHexCode(_settings.GameSelectedColorHex);
-            {
-                var parsedColor = TryParseColor(TxtGameSelectedColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressGameSelectedColorSync = true;
-                    GameSelectedColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressGameSelectedColorSync = false;
-                }
-            }
-            TxtGameSelectedBgColorHex.Text = FormatHexCode(_settings.GameSelectedBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtGameSelectedBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressGameSelectedBgColorSync = true;
-                    GameSelectedBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressGameSelectedBgColorSync = false;
-                }
-            }
-            TxtFavoritesColorHex.Text = FormatHexCode(_settings.FavoritesColorHex);
-            {
-                var parsedColor = TryParseColor(TxtFavoritesColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressFavoritesColorSync = true;
-                    FavoritesColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressFavoritesColorSync = false;
-                }
-            }
-            TxtArrowColorHex.Text = FormatHexCode(_settings.ArrowColorHex);
-            {
-                var parsedColor = TryParseColor(TxtArrowColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressArrowColorSync = true;
-                    ArrowColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressArrowColorSync = false;
-                }
-            }
+            
             TxtTabFontSize.Text = _settings.TabFontSize.ToString();
             TxtTabColorHex.Text = FormatHexCode(_settings.TabColorHex);
             {
@@ -2391,17 +2166,9 @@ namespace ArcadeStick.Views
                     SeparatorColorHex = _settings.SeparatorColorHex,
                     MarqueeBorderColorHex = _settings.MarqueeBorderColorHex,
                     MarqueeBorderWidthValue = _settings.MarqueeBorderWidthValue,
-                    FolderFontSize = _settings.FolderFontSize,
-                    FolderColorHex = _settings.FolderColorHex,
                     FolderSelectedColorHex = _settings.FolderSelectedColorHex,
                     FolderSelectedBgColorHex = _settings.FolderSelectedBgColorHex,
-                    GameFontSize = _settings.GameFontSize,
-                    GameColorHex = _settings.GameColorHex,
-                    GameHoverColorHex = _settings.GameHoverColorHex,
-                    GameSelectedColorHex = _settings.GameSelectedColorHex,
-                    GameSelectedBgColorHex = _settings.GameSelectedBgColorHex,
                     FavoritesColorHex = _settings.FavoritesColorHex,
-                    ArrowColorHex = _settings.ArrowColorHex,
                     TabFontSize = _settings.TabFontSize,
                     TabColorHex = _settings.TabColorHex,
                     TabBgColorHex = _settings.TabBgColorHex,
@@ -2663,17 +2430,9 @@ namespace ArcadeStick.Views
             _settings.MarqueeBorderColorHex = NormalizeHexInput(TxtMarqueeBorderColorHex.Text);
             if (double.TryParse(TxtMarqueeBorderWidthValue.Text, out double mbWidth)) _settings.MarqueeBorderWidthValue = mbWidth;
 
-            if (int.TryParse(TxtFolderFontSize.Text, out int fSize)) _settings.FolderFontSize = fSize;
-            _settings.FolderColorHex = NormalizeHexInput(TxtFolderColorHex.Text);
             _settings.FolderSelectedColorHex = NormalizeHexInput(TxtFolderSelectedColorHex.Text);
             _settings.FolderSelectedBgColorHex = NormalizeHexInput(TxtFolderSelectedBgColorHex.Text);
-            if (int.TryParse(TxtGameFontSize.Text, out int gSize)) _settings.GameFontSize = gSize;
-            _settings.GameColorHex = NormalizeHexInput(TxtGameColorHex.Text);
-            _settings.GameHoverColorHex = NormalizeHexInput(TxtGameHoverColorHex.Text);
-            _settings.GameSelectedColorHex = NormalizeHexInput(TxtGameSelectedColorHex.Text);
-            _settings.GameSelectedBgColorHex = NormalizeHexInput(TxtGameSelectedBgColorHex.Text);
-            _settings.FavoritesColorHex = NormalizeHexInput(TxtFavoritesColorHex.Text);
-            _settings.ArrowColorHex = NormalizeHexInput(TxtArrowColorHex.Text);
+            
 
             if (int.TryParse(TxtTabFontSize.Text, out int tSize)) _settings.TabFontSize = tSize;
             _settings.TabColorHex = NormalizeHexInput(TxtTabColorHex.Text);

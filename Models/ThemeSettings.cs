@@ -41,17 +41,9 @@ namespace ArcadeStick.Models
         public string ThemeBootSplash { get; set; } = "";
         public string ThemeMissingPreview { get; set; } = "";
 
-        public int FolderFontSize { get; set; } = 14;
-        public string FolderColorHex { get; set; } = "#FFF2F2F7";
         public string FolderSelectedColorHex { get; set; } = "#FF00D4FF";
         public string FolderSelectedBgColorHex { get; set; } = "#FF2C2C2E";
-        public int GameFontSize { get; set; } = 13;
-        public string GameColorHex { get; set; } = "#FFA0A0A2";
-        public string GameHoverColorHex { get; set; } = "#FFFFFFFF";
-        public string GameSelectedColorHex { get; set; } = "#FF00D4FF";
-        public string GameSelectedBgColorHex { get; set; } = "#FF2C2C2E";
         public string FavoritesColorHex { get; set; } = "#FFFFCC00";
-        public string ArrowColorHex { get; set; } = "#FFA0A0A2";
 
         public int TabFontSize { get; set; } = 12;
         public string TabColorHex { get; set; } = "#FFA0A0A2";

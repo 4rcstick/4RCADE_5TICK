@@ -296,10 +296,499 @@
                         </Grid>
                     </StackPanel>
 
+                    <!-- Games List styling: only shown when the Games List layer is selected (code-behind).
+                         Values are stored per resolution on the layer entry and apply live on Enter or focus loss. -->
+                    <StackPanel x:Name="PnlGamesListStyle" Margin="0,0,0,12" Visibility="Collapsed">
+                        <TextBlock Text="Folder Font" FontWeight="Bold" Margin="0,4,0,4"
+                                   Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontSize="{Binding HeaderFontSize, FallbackValue=14}"/>
+                        <Grid Margin="0,0,0,3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Size:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            <TextBlock Grid.Column="2" Text="Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" x:Name="TxtGLFolderFontSize" HorizontalContentAlignment="Center" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="GLStyleField_LostFocus" KeyDown="GLStyleField_KeyDown"/>
+                            <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                <colorpicker:PortableColorPicker x:Name="GLFolderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderColorPicker_ColorChanged">
+                                    <colorpicker:PortableColorPicker.Resources>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <Trigger Property="Name" Value="MainGrid">
+                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </colorpicker:PortableColorPicker.Resources>
+                                </colorpicker:PortableColorPicker>
+                            </Border>
+                            <TextBox Grid.Column="4" x:Name="TxtGLFolderColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLFolderColorHex_LostFocus"/>
+                        </Grid>
+
+                        <TextBlock Text="Font:" Margin="0,8,0,3" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox x:Name="CboGLFolderFont" Width="180" Height="25"
+                                      Foreground="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=White}"
+                                      SelectionChanged="CboGLFolderFont_SelectionChanged">
+                                <ComboBox.Template>
+                                    <ControlTemplate TargetType="ComboBox">
+                                        <Grid>
+                                            <ToggleButton x:Name="ToggleButton" Focusable="false"
+                                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press">
+                                                <ToggleButton.Template>
+                                                    <ControlTemplate TargetType="ToggleButton">
+                                                        <Border Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
+                                                                BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"
+                                                                BorderThickness="1">
+                                                            <Path Fill="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"
+                                                                  HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </ToggleButton.Template>
+                                            </ToggleButton>
+                                            <ContentPresenter IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" Margin="8,0,25,0" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                                <Grid SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                                    <Border Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
+                                                            BorderThickness="1"
+                                                            BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
+                                                    <ScrollViewer Margin="1" SnapsToDevicePixels="True">
+                                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                                    </ScrollViewer>
+                                                </Grid>
+                                            </Popup>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ComboBox.Template>
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                        <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsHighlighted" Value="True">
+                                                <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
+                                                <Setter Property="Foreground" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
+                            <CheckBox x:Name="ChkGLFolderBold" Content="Bold" Click="ChkGLFolderBold_Click" VerticalContentAlignment="Center" Margin="15,0,0,0"
+                                      Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
+                        </StackPanel>
+
+                        <Grid Margin="0,8,0,3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Selected Text:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            <TextBlock Grid.Column="2" Text="Selected Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="5"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GLFolderSelectedColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderSelectedColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <Trigger Property="Name" Value="MainGrid">
+                                                        <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox Grid.Column="2" x:Name="TxtGLFolderSelectedColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLFolderSelectedColorHex_LostFocus"/>
+                            </Grid>
+                            <Grid Grid.Column="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="5"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GLFolderSelectedBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderSelectedBgColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <Trigger Property="Name" Value="MainGrid">
+                                                        <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox Grid.Column="2" x:Name="TxtGLFolderSelectedBgColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLFolderSelectedBgColorHex_LostFocus"/>
+                            </Grid>
+                        </Grid>
+
+                        <TextBlock Text="Folder Drop Shadow" FontWeight="Bold" Margin="0,12,0,4"
+                                   Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontSize="{Binding HeaderFontSize, FallbackValue=14}"/>
+                        <CheckBox x:Name="ChkGLFolderShadow" Content="Drop shadow" Click="ChkGLFolderShadow_Click" VerticalContentAlignment="Center" Margin="0,0,0,8"
+                                  Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
+                        <StackPanel IsEnabled="{Binding IsChecked, ElementName=ChkGLFolderShadow}">
+                            <TextBlock Text="Color:" Margin="0,0,0,3" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="5"/>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GLFolderShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderShadowColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <Trigger Property="Name" Value="MainGrid">
+                                                        <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox Grid.Column="2" x:Name="TxtGLFolderShadowColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLFolderShadowColorHex_LostFocus"/>
+                            </Grid>
+                            <Grid Margin="0,8,0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Blur:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                                <TextBlock Grid.Column="2" Text="Depth:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" x:Name="TxtGLFolderShadowBlur" HorizontalContentAlignment="Center" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="GLShadowField_LostFocus" KeyDown="GLShadowField_KeyDown"/>
+                                <TextBox Grid.Column="2" x:Name="TxtGLFolderShadowDepth" HorizontalContentAlignment="Center" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="GLShadowField_LostFocus" KeyDown="GLShadowField_KeyDown"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <TextBlock Text="Folder Arrow" FontWeight="Bold" Margin="0,12,0,4"
+                                   Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontSize="{Binding HeaderFontSize, FallbackValue=14}"/>
+                        <Grid Margin="0,0,0,3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="141"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            <TextBlock Grid.Column="2" Text="Vertical Nudge (px):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                <colorpicker:PortableColorPicker x:Name="GLArrowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLArrowColorPicker_ColorChanged">
+                                    <colorpicker:PortableColorPicker.Resources>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <Trigger Property="Name" Value="MainGrid">
+                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </colorpicker:PortableColorPicker.Resources>
+                                </colorpicker:PortableColorPicker>
+                            </Border>
+                            <TextBox Grid.Column="2" x:Name="TxtGLArrowColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLArrowColorHex_LostFocus"/>
+                            <TextBox Grid.Column="4" x:Name="TxtGLArrowNudge" HorizontalContentAlignment="Center" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="GLArrowNudge_LostFocus" KeyDown="GLArrowNudge_KeyDown"/>
+                        </Grid>
+
+                        <TextBlock Text="Game Title Font" FontWeight="Bold" Margin="0,12,0,4"
+                                   Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontSize="{Binding HeaderFontSize, FallbackValue=14}"/>
+                        <Grid Margin="0,0,0,3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Size:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            <TextBlock Grid.Column="2" Text="Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="60"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" x:Name="TxtGLGameFontSize" HorizontalContentAlignment="Center" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="GLGameSizeField_LostFocus" KeyDown="GLGameSizeField_KeyDown"/>
+                            <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                <colorpicker:PortableColorPicker x:Name="GLGameColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameColorPicker_ColorChanged">
+                                    <colorpicker:PortableColorPicker.Resources>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <Trigger Property="Name" Value="MainGrid">
+                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </colorpicker:PortableColorPicker.Resources>
+                                </colorpicker:PortableColorPicker>
+                            </Border>
+                            <TextBox Grid.Column="4" x:Name="TxtGLGameColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLGameColorHex_LostFocus"/>
+                        </Grid>
+
+                        <TextBlock Text="Font:" Margin="0,8,0,3" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox x:Name="CboGLGameFont" Width="180" Height="25"
+                                      Foreground="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=White}"
+                                      SelectionChanged="CboGLGameFont_SelectionChanged">
+                                <ComboBox.Template>
+                                    <ControlTemplate TargetType="ComboBox">
+                                        <Grid>
+                                            <ToggleButton x:Name="ToggleButton" Focusable="false"
+                                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press">
+                                                <ToggleButton.Template>
+                                                    <ControlTemplate TargetType="ToggleButton">
+                                                        <Border Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
+                                                                BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"
+                                                                BorderThickness="1">
+                                                            <Path Fill="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"
+                                                                  HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </ToggleButton.Template>
+                                            </ToggleButton>
+                                            <ContentPresenter IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" Margin="8,0,25,0" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                            <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                                <Grid SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                                    <Border Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
+                                                            BorderThickness="1"
+                                                            BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
+                                                    <ScrollViewer Margin="1" SnapsToDevicePixels="True">
+                                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                                    </ScrollViewer>
+                                                </Grid>
+                                            </Popup>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ComboBox.Template>
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                        <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsHighlighted" Value="True">
+                                                <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
+                                                <Setter Property="Foreground" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
+                            <CheckBox x:Name="ChkGLGameBold" Content="Bold" Click="ChkGLGameBold_Click" VerticalContentAlignment="Center" Margin="15,0,0,0"
+                                      Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
+                        </StackPanel>
+
+                        <Grid Margin="0,8,0,3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Selected Text:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            <TextBlock Grid.Column="2" Text="Selected Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="5"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GLGameSelectedColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameSelectedColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <Trigger Property="Name" Value="MainGrid">
+                                                        <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox Grid.Column="2" x:Name="TxtGLGameSelectedColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLGameSelectedColorHex_LostFocus"/>
+                            </Grid>
+                            <Grid Grid.Column="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="5"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GLGameSelectedBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameSelectedBgColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <Trigger Property="Name" Value="MainGrid">
+                                                        <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox Grid.Column="2" x:Name="TxtGLGameSelectedBgColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLGameSelectedBgColorHex_LostFocus"/>
+                            </Grid>
+                        </Grid>
+
+                        <TextBlock Text="Hover Color:" Margin="0,8,0,3" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                <colorpicker:PortableColorPicker x:Name="GLGameHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameHoverColorPicker_ColorChanged">
+                                    <colorpicker:PortableColorPicker.Resources>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <Trigger Property="Name" Value="MainGrid">
+                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </colorpicker:PortableColorPicker.Resources>
+                                </colorpicker:PortableColorPicker>
+                            </Border>
+                            <TextBox Grid.Column="2" x:Name="TxtGLGameHoverColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLGameHoverColorHex_LostFocus"/>
+                        </Grid>
+                        <TextBlock Text="Game Title Drop Shadow" FontWeight="Bold" Margin="0,12,0,4"
+                                   Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontSize="{Binding HeaderFontSize, FallbackValue=14}"/>
+                        <CheckBox x:Name="ChkGLGameShadow" Content="Drop shadow" Click="ChkGLGameShadow_Click" VerticalContentAlignment="Center" Margin="0,0,0,8"
+                                  Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
+                        <StackPanel IsEnabled="{Binding IsChecked, ElementName=ChkGLGameShadow}">
+                            <TextBlock Text="Color:" Margin="0,0,0,3" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="26"/>
+                                    <ColumnDefinition Width="5"/>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GLGameShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameShadowColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid">
+                                                <Style.Triggers>
+                                                    <Trigger Property="Name" Value="MainGrid">
+                                                        <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox Grid.Column="2" x:Name="TxtGLGameShadowColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLGameShadowColorHex_LostFocus"/>
+                            </Grid>
+                            <Grid Margin="0,8,0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Blur:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                                <TextBlock Grid.Column="2" Text="Depth:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" x:Name="TxtGLGameShadowBlur" HorizontalContentAlignment="Center" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="GLShadowField_LostFocus" KeyDown="GLShadowField_KeyDown"/>
+                                <TextBox Grid.Column="2" x:Name="TxtGLGameShadowDepth" HorizontalContentAlignment="Center" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="GLShadowField_LostFocus" KeyDown="GLShadowField_KeyDown"/>
+                            </Grid>
+                        </StackPanel>
+                        <TextBlock Text="Favorites Folder" FontWeight="Bold" Margin="0,12,0,4"
+                                   Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontSize="{Binding HeaderFontSize, FallbackValue=14}"/>
+                        <TextBlock Text="Applies to the whole theme, not per resolution." TextWrapping="Wrap" Margin="0,0,0,6"
+                                   Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
+                        <TextBlock Text="Color:" Margin="0,0,0,3" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="5"/>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                <colorpicker:PortableColorPicker x:Name="GLFavoritesColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFavoritesColorPicker_ColorChanged">
+                                    <colorpicker:PortableColorPicker.Resources>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <Trigger Property="Name" Value="MainGrid">
+                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </colorpicker:PortableColorPicker.Resources>
+                                </colorpicker:PortableColorPicker>
+                            </Border>
+                            <TextBox Grid.Column="2" x:Name="TxtGLFavoritesColorHex" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtGLFavoritesColorHex_LostFocus"/>
+                        </Grid>
+                    </StackPanel>
+
                     <CheckBox x:Name="ChkLayerHidden" Content="Hide this layer" Click="ChkLayerHidden_Click"
                           Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=12}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
-                <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal">
                     <Button x:Name="BtnResetLayer" Content="Reset Layer" Click="BtnResetLayer_Click" HorizontalAlignment="Left"
                             Style="{StaticResource ThemedActionButtonStyle}"
                             Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"

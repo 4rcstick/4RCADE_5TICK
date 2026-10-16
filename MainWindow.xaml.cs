@@ -170,6 +170,11 @@ namespace ArcadeStick
         // Called by Theme Builder after each committed Advanced edit so layers move live (nothing saved).
         public void ApplyLayoutNow() => ApplyLayout();
 
+        // The Games List style values last pushed onto the rows. ApplyLayout runs often (every position
+        // edit, reorder and theme refresh), so the rows are only repainted when this actually changes.
+        private string? _lastGamesListStyleKey;
+        private string? _lastGameTitleStyleKey;
+
         // [SECTION: Theme Builder Alignment Guides]
         // Draws (or hides, when info is null) four 1px guide lines at the selected layer's pending rect.
         // Vertical lines span the full canvas height, horizontal lines the full canvas width. Right and
@@ -227,6 +232,23 @@ namespace ArcadeStick
 
             var saved = config.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
             var layout = Models.LayerRegistry.ResolveLayout(saved, width, height);
+
+            // Repaint the Games List rows only when its style values changed since the last paint
+            var gamesListEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.GamesList);
+            string gamesListStyleKey = $"{gamesListEntry?.FolderFontSize}|{gamesListEntry?.FolderColorHex}|{gamesListEntry?.FolderSelectedColorHex}|{gamesListEntry?.FolderSelectedBgColorHex}|{gamesListEntry?.FolderFontFamily}|{gamesListEntry?.FolderBold}|{gamesListEntry?.ArrowColorHex}|{gamesListEntry?.ArrowNudgeY}|{gamesListEntry?.FolderShadowEnabled}|{gamesListEntry?.FolderShadowColorHex}|{gamesListEntry?.FolderShadowBlur}|{gamesListEntry?.FolderShadowDepth}|{config.FavoritesColorHex}";
+            if (gamesListStyleKey != _lastGamesListStyleKey)
+            {
+                _lastGamesListStyleKey = gamesListStyleKey;
+                _viewModel.RefreshFolderColorsLive();
+            }
+
+            // Same for the game title rows (separate key, so folder-only edits don't walk the games list)
+            string gameTitleStyleKey = $"{gamesListEntry?.GameFontSize}|{gamesListEntry?.GameColorHex}|{gamesListEntry?.GameSelectedColorHex}|{gamesListEntry?.GameSelectedBgColorHex}|{gamesListEntry?.GameHoverColorHex}|{gamesListEntry?.GameFontFamily}|{gamesListEntry?.GameBold}|{gamesListEntry?.GameShadowEnabled}|{gamesListEntry?.GameShadowColorHex}|{gamesListEntry?.GameShadowBlur}|{gamesListEntry?.GameShadowDepth}";
+            if (gameTitleStyleKey != _lastGameTitleStyleKey)
+            {
+                _lastGameTitleStyleKey = gameTitleStyleKey;
+                _viewModel.RefreshGameColorsLive();
+            }
 
             LayoutCanvas.Width = width;
             LayoutCanvas.Height = height;
@@ -1225,25 +1247,6 @@ namespace ArcadeStick
             var selectedGame = _viewModel.SelectedGame;
             Dispatcher.BeginInvoke(new Action(() => _viewModel.FetchArtworkForGame(selectedGame)));
         }
-
-        // [SECTION: Context Menu Text Size]
-        // Shared by both FolderRowContextMenu's and GameRowContextMenu's "Text Size" submenus - each
-        // percent item's Tag carries the multiplier (e.g. "-0.15", "0.05"), parsed with InvariantCulture
-        // since ini/culture-formatted decimals could otherwise misparse the minus sign or decimal point.
-        private void TextSizeNudge_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is MenuItem menuItem && menuItem.Tag is string tagStr &&
-                double.TryParse(tagStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double percent))
-            {
-                _viewModel.NudgeFontSize(percent);
-            }
-        }
-
-        private void TextSizeReset_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.ResetFontSizeToSavedTheme();
-        }
-        // [END SECTION: Context Menu Text Size]
 
         // Confirms first - there's currently no "Remove from exclusion list" menu item anywhere, so
         // undoing this today means manually editing rom_exclusion_list.cfg. Same reasoning as Delete

@@ -43,6 +43,66 @@ namespace ArcadeStick.Models
             }
         }
 
+        private System.Windows.Media.FontFamily _folderFontFamily = new System.Windows.Media.FontFamily("Segoe UI");
+        public System.Windows.Media.FontFamily FolderFontFamily
+        {
+            get => _folderFontFamily;
+            set
+            {
+                if (!Equals(_folderFontFamily, value))
+                {
+                    _folderFontFamily = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private System.Windows.FontWeight _folderFontWeight = System.Windows.FontWeights.Bold;
+        public System.Windows.FontWeight FolderFontWeight
+        {
+            get => _folderFontWeight;
+            set
+            {
+                if (_folderFontWeight != value)
+                {
+                    _folderFontWeight = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Margin of the expand/collapse arrow: the template's original 2,2,0,0 with the theme's vertical
+        // nudge added to the top (positive moves the arrow down).
+        private System.Windows.Thickness _arrowMargin = new System.Windows.Thickness(2, 2, 0, 0);
+        public System.Windows.Thickness ArrowMargin
+        {
+            get => _arrowMargin;
+            set
+            {
+                if (_arrowMargin != value)
+                {
+                    _arrowMargin = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Drop shadow on the folder text, pushed from MainViewModel. Null = no shadow. The same frozen
+        // effect object is shared by every folder row.
+        private System.Windows.Media.Effects.Effect? _folderTextEffect;
+        public System.Windows.Media.Effects.Effect? FolderTextEffect
+        {
+            get => _folderTextEffect;
+            set
+            {
+                if (!ReferenceEquals(_folderTextEffect, value))
+                {
+                    _folderTextEffect = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private Brush _folderSelectedBgColor = Brushes.Black;
         public Brush FolderSelectedBgColor
         {
