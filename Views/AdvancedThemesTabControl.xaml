@@ -679,7 +679,7 @@
                     <!-- [END SECTION: Games List - Game Titles Tab] -->
 
                     <!-- [SECTION: Search & Buttons - Search Tab] -->
-                    <!-- Label: font + bold; size / color; background; alignment; drop shadow. Then the search box:
+                    <!-- Label: font + bold; size / color; background; alignment; vertical nudge; drop shadow. Then the search box:
                          size / color; background. Label values live on the SearchLabel entry, box values on the
                          SearchBox entry. Same column grid as the Games List tabs. -->
                     <TabItem x:Name="TabSBSearch" Header="SEARCH" Visibility="Collapsed">
@@ -762,13 +762,18 @@
                                 <ComboBox x:Name="CboSBLabelAlign" Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="3" Width="110" Height="25" HorizontalAlignment="Left"
                                           Style="{StaticResource ThemedComboBoxStyle}" SelectionChanged="CboSBLabelAlign_SelectionChanged"/>
 
+                                <!-- Label: vertical nudge (moves only the text, -10 to 10 px) -->
+                                <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Text="Vertical nudge (px):" Style="{StaticResource GLLabelStyle}"/>
+                                <TextBox x:Name="TxtSBLabelNudge" Grid.Row="7" Grid.Column="0" Width="48" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+
                                 <!-- Label: drop shadow -->
-                                <CheckBox x:Name="ChkSBLabelShadow" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
+                                <CheckBox x:Name="ChkSBLabelShadow" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
                                           Style="{StaticResource GLCheckBoxStyle}" Click="ChkSBLabelShadow_Click"/>
-                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                <TextBlock Grid.Row="7" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                <TextBlock Grid.Row="7" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                <StackPanel Grid.Row="8" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}">
+                                <TextBlock Grid.Row="9" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <TextBlock Grid.Row="9" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <TextBlock Grid.Row="9" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <StackPanel Grid.Row="10" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}">
                                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
                                         <colorpicker:PortableColorPicker x:Name="SBLabelShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBLabelShadowColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
@@ -778,14 +783,14 @@
                                     </Border>
                                     <TextBox x:Name="TxtSBLabelShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBLabelShadowColorHex_LostFocus"/>
                                 </StackPanel>
-                                <TextBox x:Name="TxtSBLabelShadowBlur" Grid.Row="8" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}"
+                                <TextBox x:Name="TxtSBLabelShadowBlur" Grid.Row="10" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
-                                <TextBox x:Name="TxtSBLabelShadowDepth" Grid.Row="8" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}"
+                                <TextBox x:Name="TxtSBLabelShadowDepth" Grid.Row="10" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
 
                                 <!-- Search box: size, color (side by side) -->
-                                <TextBlock Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="5" Text="Search box" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,24,0,3"/>
-                                <Grid Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="5">
+                                <TextBlock Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="5" Text="Search box" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,24,0,3"/>
+                                <Grid Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="5">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="48"/>
                                         <ColumnDefinition Width="14"/>
@@ -812,8 +817,8 @@
                                 </Grid>
 
                                 <!-- Search box: background -->
-                                <TextBlock Grid.Row="11" Grid.Column="0" Text="Background:" Style="{StaticResource GLLabelStyle}"/>
-                                <StackPanel Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                <TextBlock Grid.Row="13" Grid.Column="0" Text="Background:" Style="{StaticResource GLLabelStyle}"/>
+                                <StackPanel Grid.Row="14" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
                                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
                                         <colorpicker:PortableColorPicker x:Name="SBBoxBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBBoxBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>

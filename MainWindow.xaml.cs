@@ -259,7 +259,7 @@ namespace ArcadeStick
             var searchLabelEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SearchLabel);
             var searchBoxEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SearchBox);
             var buttonEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomButton);
-            string searchButtonsStyleKey = $"{searchLabelEntry?.TextFontSize}|{searchLabelEntry?.TextColorHex}|{searchLabelEntry?.BgColorHex}|{searchLabelEntry?.TextFontFamily}|{searchLabelEntry?.TextBold}|{searchLabelEntry?.TextAlign}|{searchLabelEntry?.TextShadowEnabled}|{searchLabelEntry?.TextShadowColorHex}|{searchLabelEntry?.TextShadowBlur}|{searchLabelEntry?.TextShadowDepth}"
+            string searchButtonsStyleKey = $"{searchLabelEntry?.TextFontSize}|{searchLabelEntry?.TextColorHex}|{searchLabelEntry?.BgColorHex}|{searchLabelEntry?.TextFontFamily}|{searchLabelEntry?.TextBold}|{searchLabelEntry?.TextAlign}|{searchLabelEntry?.TextShadowEnabled}|{searchLabelEntry?.TextShadowColorHex}|{searchLabelEntry?.TextShadowBlur}|{searchLabelEntry?.TextShadowDepth}|{searchLabelEntry?.TextNudgeY}"
                 + $"|{searchBoxEntry?.TextFontSize}|{searchBoxEntry?.TextColorHex}|{searchBoxEntry?.BgColorHex}"
                 + $"|{buttonEntry?.TextFontSize}|{buttonEntry?.TextColorHex}|{buttonEntry?.BgColorHex}|{buttonEntry?.HoverColorHex}|{buttonEntry?.HoverBgColorHex}|{buttonEntry?.BorderSize}|{buttonEntry?.BorderColorHex}|{buttonEntry?.HoverBorderColorHex}|{buttonEntry?.CornerRadius}";
             if (searchButtonsStyleKey != _lastSearchButtonsStyleKey)

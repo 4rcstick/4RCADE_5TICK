@@ -707,6 +707,8 @@ namespace ArcadeStick.ViewModels
                     entry.TextShadowDepth ?? LayerRegistry.DefaultShadowDepth);
             }
         }
+        // Vertical offset of the label text only (bound to the inner TextBlock's TranslateTransform)
+        public double ThemeSearchLabelTextNudgeY => GetLayerEntry(LayerRegistry.SearchLabel).TextNudgeY ?? LayerRegistry.DefaultSearchLabelNudgeY;
         public int ThemeSearchBoxFontSize => GetLayerEntry(LayerRegistry.SearchBox).TextFontSize ?? LayerRegistry.DefaultSearchBoxFontSize;
         public string ThemeSearchBoxColor => GetLayerEntry(LayerRegistry.SearchBox).TextColorHex ?? LayerRegistry.DefaultSearchBoxColorHex;
         public string ThemeSearchBoxBgColor => GetLayerEntry(LayerRegistry.SearchBox).BgColorHex ?? LayerRegistry.DefaultSearchBoxBgColorHex;
@@ -731,6 +733,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeSearchLabelFontWeight));
             OnPropertyChanged(nameof(ThemeSearchLabelTextAlignment));
             OnPropertyChanged(nameof(ThemeSearchLabelEffect));
+            OnPropertyChanged(nameof(ThemeSearchLabelTextNudgeY));
             OnPropertyChanged(nameof(ThemeSearchBoxFontSize));
             OnPropertyChanged(nameof(ThemeSearchBoxColor));
             OnPropertyChanged(nameof(ThemeSearchBoxBgColor));

@@ -185,6 +185,11 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? TextShadowDepth { get; set; }
 
+        // Moves only the drawn text up (negative) or down (positive) in pixels, -10 to 10; the layer's fill,
+        // size and position stay put. Lets the user re-center text when a font's ascent/descent shifts it.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TextNudgeY { get; set; }
+
         // [SECTION: Style Copy]
         // Copies every styling field (everything except Id, rect, Z, Visible, Name and ImagePath) from source.
         // The one place entry styling is copied: CloneLayouts, the resolution-switch copy and Reset Layer all
@@ -240,6 +245,7 @@ namespace ArcadeStick.Models
             TextShadowColorHex = source.TextShadowColorHex;
             TextShadowBlur = source.TextShadowBlur;
             TextShadowDepth = source.TextShadowDepth;
+            TextNudgeY = source.TextNudgeY;
         }
         // [END SECTION: Style Copy]
     }
@@ -535,6 +541,7 @@ namespace ArcadeStick.Models
                 if (string.IsNullOrWhiteSpace(entry.TextShadowColorHex)) entry.TextShadowColorHex = DefaultShadowColorHex;
                 entry.TextShadowBlur ??= DefaultShadowBlur;
                 entry.TextShadowDepth ??= DefaultShadowDepth;
+                entry.TextNudgeY ??= DefaultSearchLabelNudgeY;
             }
             else if (entry.Id == SearchBox)
             {
@@ -679,6 +686,9 @@ namespace ArcadeStick.Models
         public const string DefaultSearchLabelBgColorHex = "#001C1C1E";
         public const bool DefaultSearchLabelBold = false;
         public const string DefaultSearchLabelAlign = "Right";
+        public const int DefaultSearchLabelNudgeY = 0;
+        public const int MinTextNudgeY = -10;
+        public const int MaxTextNudgeY = 10;
         public const int DefaultSearchBoxFontSize = 13;
         public const string DefaultSearchBoxColorHex = "#FFF2F2F7";
         public const string DefaultSearchBoxBgColorHex = "#FF1C1C1E";

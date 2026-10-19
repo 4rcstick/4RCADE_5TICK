@@ -187,7 +187,17 @@
         <Canvas x:Name="LayoutCanvas" Width="1280" Height="720" HorizontalAlignment="Left" VerticalAlignment="Top">
 
             <!-- Search label + textbox + buttons: each is its own positioned layer now -->
-            <TextBlock x:Name="SearchLabel" Canvas.Left="20" Canvas.Top="20" Width="67" Height="30" TextAlignment="{Binding ThemeSearchLabelTextAlignment, FallbackValue=Right}" Text="SEARCH:" Foreground="{Binding ThemeSearchLabelColor, FallbackValue=#00D4FF}" Background="{Binding ThemeSearchLabelBgColor, FallbackValue=#00000000}" Padding="4,6,4,6" FontFamily="{Binding ThemeSearchLabelFontFamily, FallbackValue=Segoe UI}" FontWeight="{Binding ThemeSearchLabelFontWeight, FallbackValue=DemiBold}" Effect="{Binding ThemeSearchLabelEffect}" FontSize="{Binding ThemeSearchLabelFontSize, FallbackValue=13}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            <!-- Search label: the outer Border is the positioned layer and holds the fill; the inner TextBlock is the text.
+                 The vertical nudge is a RenderTransform on the text only, so it never changes layout: the fill, size and
+                 position stay put and 0 looks exactly like the old single TextBlock. The text stretches to fill the
+                 Border so the padding and alignment place it as before. Not clipped, like the drop shadow. -->
+            <Border x:Name="SearchLabel" Canvas.Left="20" Canvas.Top="20" Width="67" Height="30" Background="{Binding ThemeSearchLabelBgColor, FallbackValue=#00000000}">
+                <TextBlock x:Name="SearchLabelText" TextAlignment="{Binding ThemeSearchLabelTextAlignment, FallbackValue=Right}" Text="SEARCH:" Foreground="{Binding ThemeSearchLabelColor, FallbackValue=#00D4FF}" Padding="4,6,4,6" FontFamily="{Binding ThemeSearchLabelFontFamily, FallbackValue=Segoe UI}" FontWeight="{Binding ThemeSearchLabelFontWeight, FallbackValue=DemiBold}" Effect="{Binding ThemeSearchLabelEffect}" FontSize="{Binding ThemeSearchLabelFontSize, FallbackValue=13}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <TextBlock.RenderTransform>
+                        <TranslateTransform Y="{Binding ThemeSearchLabelTextNudgeY, FallbackValue=0}"/>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+            </Border>
             <TextBox x:Name="SearchBox" Canvas.Left="87" Canvas.Top="20" Width="142" Height="30" VerticalContentAlignment="Center" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="{Binding ThemeSearchBoxBgColor, FallbackValue=#000000}" Foreground="{Binding ThemeSearchBoxColor, FallbackValue=#F2F2F7}" FontSize="{Binding ThemeSearchBoxFontSize, FallbackValue=13}" FontWeight="DemiBold" BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Padding="2,0,0,1">
                     <TextBox.Template>
                         <ControlTemplate TargetType="TextBox">

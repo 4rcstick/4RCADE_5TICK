@@ -1969,6 +1969,7 @@ namespace ArcadeStick.Views
             }
             string alignment = label.TextAlign ?? LayerRegistry.DefaultSearchLabelAlign;
             CboSBLabelAlign.SelectedItem = TextAlignChoices.Contains(alignment) ? alignment : LayerRegistry.DefaultSearchLabelAlign;
+            TxtSBLabelNudge.Text = (label.TextNudgeY ?? LayerRegistry.DefaultSearchLabelNudgeY).ToString(CultureInfo.InvariantCulture);
 
             TxtSBLabelFontSize.Text = (label.TextFontSize ?? LayerRegistry.DefaultSearchLabelFontSize).ToString(CultureInfo.InvariantCulture);
             ShowColor(SBLabelColorPicker, TxtSBLabelColorHex, label.TextColorHex ?? LayerRegistry.DefaultSearchLabelColorHex);
@@ -2130,7 +2131,7 @@ namespace ArcadeStick.Views
         private void TxtSBHoverBorderColorHex_LostFocus(object sender, RoutedEventArgs e) =>
             ApplyHexColor(SBHoverBorderColorPicker, TxtSBHoverBorderColorHex, SBButtonEntry, en => en.HoverBorderColorHex ?? LayerRegistry.DefaultButtonHoverBorderColorHex, (en, hex) => en.HoverBorderColorHex = hex);
 
-        // One shared handler pair for the number fields: the three font sizes (6-72) and the label shadow's blur (0-30) and depth (0-20)
+        // One shared handler pair for the number fields: the three font sizes (6-72), the label's vertical nudge (-10 to 10) and the label shadow's blur (0-30) and depth (0-20)
         private void SBField_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
@@ -2151,6 +2152,9 @@ namespace ArcadeStick.Views
 
             if (int.TryParse(TxtSBLabelFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int labelSize) && labelSize >= 6 && labelSize <= 72)
                 label.TextFontSize = labelSize;
+            // Vertical nudge: any whole number is accepted and clamped to -10..10; anything else reverts
+            if (int.TryParse(TxtSBLabelNudge.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nudge))
+                label.TextNudgeY = Math.Clamp(nudge, LayerRegistry.MinTextNudgeY, LayerRegistry.MaxTextNudgeY);
             if (int.TryParse(TxtSBLabelShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int blur) && blur >= 0 && blur <= 30)
                 label.TextShadowBlur = blur;
             if (int.TryParse(TxtSBLabelShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth) && depth >= 0 && depth <= 20)
