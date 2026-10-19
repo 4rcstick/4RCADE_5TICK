@@ -107,10 +107,7 @@ namespace ArcadeStick
             _viewModel.GameLaunchCompleted += RefreshVideoPreview;
             _viewModel.GameLaunchCompleted += RestoreGameListScrollPosition;
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
-            _viewModel.ThemeBindingsRefreshed += RefreshOptionsGearIconRestingColors;
-            _viewModel.ThemeBindingsRefreshed += RefreshSortGearIconRestingColors;
-            _viewModel.ThemeBindingsRefreshed += RefreshPlayRandomIconRestingColors;
-            _viewModel.ThemeBindingsRefreshed += RefreshHamburgerIconRestingColors;
+            _viewModel.ThemeBindingsRefreshed += RefreshMainButtonsRestingColors;
             _viewModel.ThemeBindingsRefreshed += RefreshBootSplashImageCornerClip;
             _viewModel.ThemeBindingsRefreshed += RefreshMainBgVideo;
             _viewModel.ThemeBindingsRefreshed += ApplyLayout;
@@ -121,14 +118,11 @@ namespace ArcadeStick
             // may have fired inside MainViewModel's constructor, before this subscription existed).
             ApplyLayout();
 
-            // Paint the three icon buttons' resting colors immediately - if MainViewModel's constructor
+            // Paint the four main window buttons' resting colors immediately - if MainViewModel's constructor
             // above already fired ThemeBindingsRefreshed as part of its own theme-load setup, that event
-            // was missed entirely since these subscriptions didn't exist yet, leaving the TextBlocks with
+            // was missed entirely since this subscription didn't exist yet, leaving the TextBlocks with
             // no Foreground set at all (black) until the first manual MouseEnter/MouseLeave cycle.
-            RefreshOptionsGearIconRestingColors();
-            RefreshSortGearIconRestingColors();
-            RefreshPlayRandomIconRestingColors();
-            RefreshHamburgerIconRestingColors();
+            RefreshMainButtonsRestingColors();
 
             _viewModel.RandomizerSpinCompleted += winner =>
             {
@@ -175,6 +169,7 @@ namespace ArcadeStick
         private string? _lastGamesListStyleKey;
         private string? _lastGameTitleStyleKey;
         private string? _lastMarqueeLogoPath;
+        private string? _lastSearchButtonsStyleKey;
 
         // [SECTION: Theme Builder Alignment Guides]
         // Draws (or hides, when info is null) four 1px guide lines at the selected layer's pending rect.
@@ -257,6 +252,21 @@ namespace ArcadeStick
             {
                 _lastMarqueeLogoPath = marqueeLogoPath;
                 _viewModel.RefreshMarqueeLogo();
+            }
+
+            // Search & Buttons: re-raise the label, box and button bindings and repaint the buttons' resting
+            // colors only when one of their style values changed
+            var searchLabelEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SearchLabel);
+            var searchBoxEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SearchBox);
+            var buttonEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomButton);
+            string searchButtonsStyleKey = $"{searchLabelEntry?.TextFontSize}|{searchLabelEntry?.TextColorHex}|{searchLabelEntry?.BgColorHex}|{searchLabelEntry?.TextFontFamily}|{searchLabelEntry?.TextBold}|{searchLabelEntry?.TextAlign}|{searchLabelEntry?.TextShadowEnabled}|{searchLabelEntry?.TextShadowColorHex}|{searchLabelEntry?.TextShadowBlur}|{searchLabelEntry?.TextShadowDepth}"
+                + $"|{searchBoxEntry?.TextFontSize}|{searchBoxEntry?.TextColorHex}|{searchBoxEntry?.BgColorHex}"
+                + $"|{buttonEntry?.TextFontSize}|{buttonEntry?.TextColorHex}|{buttonEntry?.BgColorHex}|{buttonEntry?.HoverColorHex}|{buttonEntry?.HoverBgColorHex}|{buttonEntry?.BorderSize}|{buttonEntry?.BorderColorHex}|{buttonEntry?.HoverBorderColorHex}|{buttonEntry?.CornerRadius}";
+            if (searchButtonsStyleKey != _lastSearchButtonsStyleKey)
+            {
+                _lastSearchButtonsStyleKey = searchButtonsStyleKey;
+                _viewModel.RefreshSearchButtonBindings();
+                RefreshMainButtonsRestingColors();
             }
 
             LayoutCanvas.Width = width;
@@ -2139,7 +2149,7 @@ namespace ArcadeStick
             // rewired to their own plain Theme* properties, or whether it's the source of the residual
             // memory growth on Options close. Re-enable if anything stops updating live after this test.
             // _viewModel.RefreshThemeBindings();
-            RefreshOptionsGearIconRestingColors();
+            RefreshMainButtonsRestingColors();
 
             // Resume rather than reload - the active player was paused (not stopped) on open, so Play() with
             // no arguments just continues from where it left off instead of restarting from the beginning
@@ -2352,30 +2362,11 @@ namespace ArcadeStick
         }
         // [END SECTION: Hamburger Theme & Layout Size Submenus]
 
-        private void HamburgerIcon_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            HamburgerIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
-            BtnOpenMenuHamburger.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
-            DelayedTooltip_MouseEnter(sender, e);
-        }
-
-        private void HamburgerIcon_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            RefreshHamburgerIconRestingColors();
-            DelayedTooltip_MouseLeave(sender, e);
-        }
-
-        private void RefreshHamburgerIconRestingColors()
-        {
-            HamburgerIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
-            BtnOpenMenuHamburger.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
-        }
-
         // Closing the menu always returns the button to its resting colors, even if the mouse is no
         // longer over it (MouseLeave already fired when the cursor moved onto the menu).
         private void HamburgerContextMenu_Closed(object sender, RoutedEventArgs e)
         {
-            RefreshHamburgerIconRestingColors();
+            RefreshMainButtonsRestingColors();
         }
 
         // Menu item handlers are deferred via Dispatcher.BeginInvoke, same as every other menu item in this
@@ -2428,73 +2419,51 @@ namespace ArcadeStick
         }
         // [END SECTION: Hamburger Menu]
 
-        // [SECTION: Options Gear Icon Hover]
-        // Swaps the gear badge's background between the games list background and games list hover
-        // theme colors on mouse enter/leave for a simple hover affordance.
-        private void OptionsGearIcon_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        // [SECTION: Main Window Buttons Hover]
+        // The four main window buttons (Random, Sort, Options, Hamburger) share one style, read from the
+        // Random Game Button entry. Colors are pushed from code-behind rather than XAML triggers (the same
+        // direct-push convention as the games list rows). The sender is the button's Border; its Child is
+        // the icon TextBlock. A locally set BorderBrush replaces the XAML binding, so the resting refresh
+        // sets it explicitly too. The search box borrows only the resting border, through its binding.
+
+        // Applies the hover colors and border to the button under the mouse
+        private void MainButton_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            OptionsGearIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
-            BtnOpenOptionsGear.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
+            if (sender is Border button)
+            {
+                button.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
+                button.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColorHover);
+                if (button.Child is TextBlock icon) icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
+            }
             DelayedTooltip_MouseEnter(sender, e);
         }
 
-        private void OptionsGearIcon_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        // Returns the button to its resting colors when the mouse leaves
+        private void MainButton_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            RefreshOptionsGearIconRestingColors();
+            if (sender is Border button) ApplyMainButtonRestingColors(button);
             DelayedTooltip_MouseLeave(sender, e);
         }
 
-        // Applies the gear icon's resting-state colors (folder font color / games list background) - shared
-        // by MouseLeave and by the Options-close path, so the button reflects a new theme immediately rather
-        // than only refreshing on the next real hover
-        private void RefreshOptionsGearIconRestingColors()
+        // Applies the resting colors to all four buttons. Called at startup, on every theme refresh, when a
+        // Search & Buttons style value changes in ApplyLayout, after the Options window closes, and when the
+        // hamburger menu closes, so the buttons reflect new values without waiting for a hover.
+        private void RefreshMainButtonsRestingColors()
         {
-            OptionsGearIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
-            BtnOpenOptionsGear.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
-        }
-        // [END SECTION: Options Gear Icon Hover]
-
-        // [SECTION: Sort Gear Icon Hover]
-        // Mirrors the Options gear icon's hover treatment exactly - same theme-color swap on
-        // mouse enter/leave, same live-refresh-on-theme-load wiring via ThemeBindingsRefreshed.
-        private void SortGearIcon_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            SortGearIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
-            BtnOpenSortingGear.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
-            DelayedTooltip_MouseEnter(sender, e);
+            ApplyMainButtonRestingColors(BtnPlayRandom);
+            ApplyMainButtonRestingColors(BtnOpenSortingGear);
+            ApplyMainButtonRestingColors(BtnOpenOptionsGear);
+            ApplyMainButtonRestingColors(BtnOpenMenuHamburger);
         }
 
-        private void SortGearIcon_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        // Applies the resting background, border and icon color to one button
+        private void ApplyMainButtonRestingColors(Border button)
         {
-            RefreshSortGearIconRestingColors();
-            DelayedTooltip_MouseLeave(sender, e);
+            button.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
+            button.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColor);
+            if (button.Child is TextBlock icon) icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
         }
-
-        // [SECTION: Play Random Icon Hover]
-        // Same pattern as Sort/Options gear hover - handled in code-behind rather than XAML triggers
-        // since GameColor/ArrowColor-style properties were moved off RelativeSource bindings for
-        // performance, and this icon's colors follow that same direct-push convention. Subscribed to
-        // ThemeBindingsRefreshed in the constructor so the resting color stays correct if the user
-        // changes themes while not currently hovering this icon.
-        private void PlayRandomIcon_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            PlayRandomIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
-            BtnPlayRandom.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
-            DelayedTooltip_MouseEnter(sender, e);
-        }
-
-        private void PlayRandomIcon_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            RefreshPlayRandomIconRestingColors();
-            DelayedTooltip_MouseLeave(sender, e);
-        }
-
-        private void RefreshPlayRandomIconRestingColors()
-        {
-            PlayRandomIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
-            BtnPlayRandom.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
-        }
-        // [END SECTION: Play Random Icon Hover]
+        // [END SECTION: Main Window Buttons Hover]
 
         // [SECTION: Randomizer Confirm Flyout]
         // Opens the small "Spin?" confirm popup anchored directly under the die button - guards against
@@ -2573,16 +2542,6 @@ namespace ArcadeStick
         // stuck true with no equivalent cleanup, same gap Cancel's handler already covers.
         // RandomizerRevealPopup_Closed removed along with the reveal popup.
         // [END SECTION: Randomizer Reveal Flyout]
-
-        // Applies the Sort gear icon's resting-state colors (folder font color / games list background) -
-        // shared by MouseLeave and by the theme-refresh event, so the button reflects a new theme
-        // immediately rather than only refreshing on the next real hover
-        private void RefreshSortGearIconRestingColors()
-        {
-            SortGearIcon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
-            BtnOpenSortingGear.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
-        }
-        // [END SECTION: Sort Gear Icon Hover]
 
         // [SECTION: Main Background Video]
         // Drives the MediaElement wallpaper layer (MainBgVideo). Runs on every ThemeBindingsRefreshed plus once at

@@ -57,7 +57,7 @@ namespace ArcadeStick.Models
         public string VirtualListsColor { get; set; } = "#FFD60A";
         public string FavoritesColor { get; set; } = "#EFBF04";
 
-        public string OptionsBg { get; set; } = "#FF00000";
+        public string OptionsBg { get; set; } = "#FF000000";
         public string BorderColorFramework { get; set; } = "#FF3A3A3C";
 
         public string ScrollTrackColor { get; set; } = "#FF000000";
@@ -104,61 +104,29 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore]
         public int SavedThemeHeight { get; set; } = 0;
 
-        // Deep copy helper so the snapshot never shares objects with the live, editable layouts.
+        // Deep copies layouts so the snapshot never shares objects with the live, editable layouts.
         public static List<ThemeLayout> CloneLayouts(IEnumerable<ThemeLayout> source)
         {
             return source.Select(l => new ThemeLayout
             {
                 Width = l.Width,
                 Height = l.Height,
-                Layers = l.Layers.Select(e => new LayerLayoutEntry
+                Layers = l.Layers.Select(e =>
                 {
-                    Id = e.Id,
-                    X = e.X,
-                    Y = e.Y,
-                    Width = e.Width,
-                    Height = e.Height,
-                    Z = e.Z,
-                    Visible = e.Visible,
-                    Name = e.Name,
-                    ImagePath = e.ImagePath,
-                    FolderFontSize = e.FolderFontSize,
-                    FolderColorHex = e.FolderColorHex,
-                    FolderSelectedColorHex = e.FolderSelectedColorHex,
-                    FolderSelectedBgColorHex = e.FolderSelectedBgColorHex,
-                    FolderFontFamily = e.FolderFontFamily,
-                    FolderBold = e.FolderBold,
-                    ArrowColorHex = e.ArrowColorHex,
-                    ArrowNudgeY = e.ArrowNudgeY,
-                    GameFontSize = e.GameFontSize,
-                    GameColorHex = e.GameColorHex,
-                    GameSelectedColorHex = e.GameSelectedColorHex,
-                    GameSelectedBgColorHex = e.GameSelectedBgColorHex,
-                    GameHoverColorHex = e.GameHoverColorHex,
-                    GameFontFamily = e.GameFontFamily,
-                    GameBold = e.GameBold,
-                    FolderShadowEnabled = e.FolderShadowEnabled,
-                    FolderShadowColorHex = e.FolderShadowColorHex,
-                    FolderShadowBlur = e.FolderShadowBlur,
-                    FolderShadowDepth = e.FolderShadowDepth,
-                    GameShadowEnabled = e.GameShadowEnabled,
-                    GameShadowColorHex = e.GameShadowColorHex,
-                    GameShadowBlur = e.GameShadowBlur,
-                    GameShadowDepth = e.GameShadowDepth,
-                    FolderSelectedShadowEnabled = e.FolderSelectedShadowEnabled,
-                    FolderSelectedShadowColorHex = e.FolderSelectedShadowColorHex,
-                    FolderSelectedShadowBlur = e.FolderSelectedShadowBlur,
-                    FolderSelectedShadowDepth = e.FolderSelectedShadowDepth,
-                    GameSelectedShadowEnabled = e.GameSelectedShadowEnabled,
-                    GameSelectedShadowColorHex = e.GameSelectedShadowColorHex,
-                    GameSelectedShadowBlur = e.GameSelectedShadowBlur,
-                    GameSelectedShadowDepth = e.GameSelectedShadowDepth,
-                    VisibilityMode = e.VisibilityMode,
-                    BgColorHex = e.BgColorHex,
-                    BorderSize = e.BorderSize,
-                    BorderColorHex = e.BorderColorHex,
-                    CornerRadius = e.CornerRadius,
-                    FileOpacity = e.FileOpacity
+                    var copy = new LayerLayoutEntry
+                    {
+                        Id = e.Id,
+                        X = e.X,
+                        Y = e.Y,
+                        Width = e.Width,
+                        Height = e.Height,
+                        Z = e.Z,
+                        Visible = e.Visible,
+                        Name = e.Name,
+                        ImagePath = e.ImagePath
+                    };
+                    copy.CopyStyleFrom(e);
+                    return copy;
                 }).ToList()
             }).ToList();
         }
@@ -189,10 +157,6 @@ namespace ArcadeStick.Models
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;
 
-        public int SearchBoxFontSize { get; set; } = 13;
-        public string SearchBoxColorHex { get; set; } = "#FFF2F2F7";
-        public string SearchBoxBgColorHex { get; set; } = "#FF1C1C1E";
-
         public int GameNameHeaderFontSize { get; set; } = 32;
         public string GameNameHeaderColorHex { get; set; } = "#FFFFFFFF";
         public int PubYearRatingFontSize { get; set; } = 13;
@@ -214,19 +178,6 @@ namespace ArcadeStick.Models
         public double PreviewBorderSize { get; set; } = 1;
         public string PreviewBorderColorHex { get; set; } = "#FF3A3A3C";
         public double PreviewBorderRadius { get; set; } = 0;
-
-        public int SearchLabelFontSize { get; set; } = 13;
-        public string SearchLabelColorHex { get; set; } = "#FF00D4FF";
-        public string SearchLabelBgColorHex { get; set; } = "#001C1C1E";
-
-        public int MainWinBtnFontSize { get; set; } = 13;
-        public string MainWinBtnColorHex { get; set; } = "#FF00D4FF";
-        public string MainWinBtnBgColorHex { get; set; } = "#FF1C1C1E";
-        public string MainWinBtnColorHoverHex { get; set; } = "#FF00D4FF";
-        public string MainWinBtnBgColorHoverHex { get; set; } = "#FF2C2C2E";
-        public double MainWinBtnBorderSize { get; set; } = 1;
-        public string MainWinBtnBorderColorHex { get; set; } = "#FF00D4FF";
-        public double MainWinBtnCornerRadius { get; set; } = 0;
         public string ContextMenuFontColorHex { get; set; } = "#FFF2F2F7";
         public string ContextMenuIconColorHex { get; set; } = "#FF00D4FF";
         public string ContextMenuBgColorHex { get; set; } = "#FF1C1C1E";
@@ -480,9 +431,6 @@ namespace ArcadeStick.Models
             this.SeparatorColorHex = source.SeparatorColorHex;
             this.BorderWidthValue = source.BorderWidthValue;
             this.BorderCurveValue = source.BorderCurveValue;
-            this.SearchBoxFontSize = source.SearchBoxFontSize;
-            this.SearchBoxColorHex = source.SearchBoxColorHex;
-            this.SearchBoxBgColorHex = source.SearchBoxBgColorHex;
             this.GameNameHeaderFontSize = source.GameNameHeaderFontSize;
             this.GameNameHeaderColorHex = source.GameNameHeaderColorHex;
             this.PubYearRatingFontSize = source.PubYearRatingFontSize;
@@ -504,17 +452,6 @@ namespace ArcadeStick.Models
             this.PreviewBorderSize = source.PreviewBorderSize;
             this.PreviewBorderColorHex = source.PreviewBorderColorHex;
             this.PreviewBorderRadius = source.PreviewBorderRadius;
-            this.SearchLabelFontSize = source.SearchLabelFontSize;
-            this.SearchLabelColorHex = source.SearchLabelColorHex;
-            this.SearchLabelBgColorHex = source.SearchLabelBgColorHex;
-            this.MainWinBtnFontSize = source.MainWinBtnFontSize;
-            this.MainWinBtnColorHex = source.MainWinBtnColorHex;
-            this.MainWinBtnBgColorHex = source.MainWinBtnBgColorHex;
-            this.MainWinBtnColorHoverHex = source.MainWinBtnColorHoverHex;
-            this.MainWinBtnBgColorHoverHex = source.MainWinBtnBgColorHoverHex;
-            this.MainWinBtnBorderSize = source.MainWinBtnBorderSize;
-            this.MainWinBtnBorderColorHex = source.MainWinBtnBorderColorHex;
-            this.MainWinBtnCornerRadius = source.MainWinBtnCornerRadius;
             this.ContextMenuFontColorHex = source.ContextMenuFontColorHex;
             this.ContextMenuIconColorHex = source.ContextMenuIconColorHex;
             this.ContextMenuBgColorHex = source.ContextMenuBgColorHex;

@@ -330,6 +330,11 @@
                                     <TextBox Grid.Row="3" Grid.Column="2" x:Name="TxtLayerHeight" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
                                 </Grid>
 
+                                <!-- Group move: for groups that allow it (Search & Buttons, Game Info), an X or Y edit on one
+                                     part moves every part by the same amount. Session-only, like the ratio lock. -->
+                                <CheckBox x:Name="ChkGroupMove" Content="Move all parts together" HorizontalAlignment="Left" Margin="0,0,0,8"
+                                          Style="{StaticResource GLCheckBoxStyle}" Visibility="Collapsed"/>
+
                                 <!-- Group parts: for a grouped layer (Search & Buttons, Game Info) one section per part is
                                      built here in code-behind, all visible at once. Hidden for single layers. -->
                                 <StackPanel x:Name="PnlGroupParts" Margin="0,0,0,12" Visibility="Collapsed"/>
@@ -673,6 +678,246 @@
                     </TabItem>
                     <!-- [END SECTION: Games List - Game Titles Tab] -->
 
+                    <!-- [SECTION: Search & Buttons - Search Tab] -->
+                    <!-- Label: font + bold; size / color; background; alignment; drop shadow. Then the search box:
+                         size / color; background. Label values live on the SearchLabel entry, box values on the
+                         SearchBox entry. Same column grid as the Games List tabs. -->
+                    <TabItem x:Name="TabSBSearch" Header="SEARCH" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="52"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Label: font family + bold -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Label" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                    <ComboBox x:Name="CboSBLabelFont" Width="160" Height="25"
+                                              Style="{StaticResource ThemedComboBoxStyle}" SelectionChanged="CboSBLabelFont_SelectionChanged"/>
+                                    <CheckBox x:Name="ChkSBLabelBold" Content="Bold" Margin="12,0,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="ChkSBLabelBold_Click"/>
+                                </StackPanel>
+
+                                <!-- Label: size, color (side by side) -->
+                                <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="48"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
+                                    <TextBox x:Name="TxtSBLabelFontSize" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="SBLabelColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBLabelColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtSBLabelColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBLabelColorHex_LostFocus"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Label: background, then text alignment -->
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Background:" Style="{StaticResource GLLabelStyle}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3" Text="Alignment:" Style="{StaticResource GLLabelStyle}"/>
+                                <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="SBLabelBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBLabelBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtSBLabelBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBLabelBgColorHex_LostFocus"/>
+                                </StackPanel>
+                                <ComboBox x:Name="CboSBLabelAlign" Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="3" Width="110" Height="25" HorizontalAlignment="Left"
+                                          Style="{StaticResource ThemedComboBoxStyle}" SelectionChanged="CboSBLabelAlign_SelectionChanged"/>
+
+                                <!-- Label: drop shadow -->
+                                <CheckBox x:Name="ChkSBLabelShadow" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
+                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkSBLabelShadow_Click"/>
+                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <TextBlock Grid.Row="7" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <TextBlock Grid.Row="7" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <StackPanel Grid.Row="8" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="SBLabelShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBLabelShadowColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtSBLabelShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBLabelShadowColorHex_LostFocus"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtSBLabelShadowBlur" Grid.Row="8" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+                                <TextBox x:Name="TxtSBLabelShadowDepth" Grid.Row="8" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+
+                                <!-- Search box: size, color (side by side) -->
+                                <TextBlock Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="5" Text="Search box" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,24,0,3"/>
+                                <Grid Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="48"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <TextBox x:Name="TxtSBBoxFontSize" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="SBBoxColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBBoxColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtSBBoxColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBBoxColorHex_LostFocus"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Search box: background -->
+                                <TextBlock Grid.Row="11" Grid.Column="0" Text="Background:" Style="{StaticResource GLLabelStyle}"/>
+                                <StackPanel Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="SBBoxBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBBoxBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtSBBoxBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBBoxBgColorHex_LostFocus"/>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Search & Buttons - Search Tab] -->
+
+                    <!-- [SECTION: Search & Buttons - Buttons Tab] -->
+                    <!-- One style shared by the Random, Sort, Options and Hamburger buttons, stored on the Random Game
+                         Button entry: size / color; background; hover color / hover background. Border is on the
+                         BORDER tab. -->
+                    <TabItem x:Name="TabSBButtons" Header="BUTTONS" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="52"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Size, color (side by side) -->
+                                <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="48"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBox x:Name="TxtSBButtonFontSize" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="SBButtonColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtSBButtonColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonColorHex_LostFocus"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Background -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Background:" Style="{StaticResource GLLabelStyle}"/>
+                                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="SBButtonBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtSBButtonBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonBgColorHex_LostFocus"/>
+                                </StackPanel>
+
+                                <!-- Hover state: icon color, background -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Hover color:" Style="{StaticResource GLLabelStyle}" Margin="0,20,0,3"/>
+                                <TextBlock Grid.Row="3" Grid.Column="2" Grid.ColumnSpan="3" Text="Hover BG:" Style="{StaticResource GLLabelStyle}" Margin="0,20,0,3"/>
+                                <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="SBButtonHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonHoverColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtSBButtonHoverColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonHoverColorHex_LostFocus"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="SBButtonHoverBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonHoverBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtSBButtonHoverBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonHoverBgColorHex_LostFocus"/>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Search & Buttons - Buttons Tab] -->
+
                     <!-- [SECTION: Shape Layer - Background Tab] -->
                     <TabItem x:Name="TabShapeBackground" Header="BACKGROUND" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
@@ -733,6 +978,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
@@ -752,6 +998,21 @@
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeBorderField_LostFocus" KeyDown="ShapeBorderField_KeyDown"/>
                                 <TextBox x:Name="TxtShapeCornerRadius" Grid.Row="1" Grid.Column="4" HorizontalContentAlignment="Center"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeBorderField_LostFocus" KeyDown="ShapeBorderField_KeyDown"/>
+
+                                <!-- Hover border color: Search & Buttons only (the four buttons' border while the mouse is over them) -->
+                                <StackPanel x:Name="PnlSBHoverBorder" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Visibility="Collapsed">
+                                    <TextBlock Text="Hover border color:" Style="{StaticResource GLLabelStyle}" Margin="0,20,0,3"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="SBHoverBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBHoverBorderColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtSBHoverBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBHoverBorderColorHex_LostFocus"/>
+                                    </StackPanel>
+                                </StackPanel>
                             </Grid>
                         </ScrollViewer>
                     </TabItem>

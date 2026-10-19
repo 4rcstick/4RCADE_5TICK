@@ -419,11 +419,15 @@ namespace ArcadeStick.Views
         // Position is always the first tab. Each layer type lists the other tabs it shows; every other tab is
         // hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabShapeBackground, TabShapeBorder, TabMarqueeLogo };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabShapeBackground, TabShapeBorder, TabMarqueeLogo };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
             if (unitKey == LayerRegistry.GamesList) return new[] { TabGLFolders, TabGLGameTitles };
+
+            // Search & Buttons group: label/box, shared button style, and the shared Border tab (mapped to the
+            // Random Game Button entry by GetSelectedBorderEntry)
+            if (unitKey == LayerRegistry.SearchAndButtonsGroup) return new[] { TabSBSearch, TabSBButtons, TabShapeBorder };
 
             // Marquee gets the Logo tab (the logo shown when no game is selected)
             if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo };
@@ -473,6 +477,9 @@ namespace ArcadeStick.Views
             LoadShapeStyleFields();
             LoadBorderOnlyFields();
 
+            // Search & Buttons fields (Search and Buttons tabs, Border tab hover row): filled when that group is selected
+            LoadSearchButtonsStyleFields();
+
             // Marquee logo field: filled when the Marquee layer is selected
             if (LstLayers.SelectedItem is LayerListItem marqueeSel && marqueeSel.Id == LayerRegistry.MarqueePanel)
             {
@@ -495,6 +502,7 @@ namespace ArcadeStick.Views
 
             // Single layer: undo anything the group page changed
             PnlGroupParts.Visibility = Visibility.Collapsed;
+            ChkGroupMove.Visibility = Visibility.Collapsed;
 
             var def = LayerRegistry.GetDefinition(entry.Id);
             bool positionable = def?.IsPositionable ?? true;
@@ -550,6 +558,7 @@ namespace ArcadeStick.Views
             BtnRemoveLayer.Visibility = Visibility.Collapsed;
             BtnResetLayer.Visibility = Visibility.Visible;
             PnlGroupParts.Visibility = Visibility.Visible;
+            ChkGroupMove.Visibility = group.AllowGroupMove ? Visibility.Visible : Visibility.Collapsed;
 
             if (_builtGroupKey != group.Id)
             {
@@ -670,6 +679,8 @@ namespace ArcadeStick.Views
         }
 
         // Applies one part field's value. Invalid input is discarded and the field shows the stored value again.
+        // With "Move all parts together" on, an X or Y change moves every other part of the group by the same
+        // amount; Width and Height never propagate.
         private void ApplyPartField(TextBox? box)
         {
             if (_loading || box == null || box.Tag is not string partId) return;
@@ -677,10 +688,22 @@ namespace ArcadeStick.Views
 
             if (double.TryParse(box.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
             {
-                if (box == controls.X) entry.X = value;
-                else if (box == controls.Y) entry.Y = value;
+                double dx = 0, dy = 0;
+                if (box == controls.X) { dx = value - entry.X; entry.X = value; }
+                else if (box == controls.Y) { dy = value - entry.Y; entry.Y = value; }
                 else if (box == controls.Width && value > 0) entry.Width = value;
                 else if (box == controls.Height && value > 0) entry.Height = value;
+
+                if ((dx != 0 || dy != 0) && ChkGroupMove.IsChecked == true
+                    && GetGroup(LayerRegistry.GetDefinition(partId)?.GroupId ?? "") is LayerGroupDefinition group && group.AllowGroupMove)
+                {
+                    foreach (string otherId in group.PartIds.Where(id => id != partId))
+                    {
+                        if (GetEntry(otherId) is not LayerLayoutEntry other) continue;
+                        other.X += dx;
+                        other.Y += dy;
+                    }
+                }
             }
 
             _guidePartId = partId;
@@ -817,14 +840,17 @@ namespace ArcadeStick.Views
             return null;
         }
 
-        // Any selected layer that has a Border tab (the shape layers, Splash Image and Video Preview)
+        // Returns the entry the Border tab edits: the selected layer when it has a Border tab (shape layers, Splash
+        // Image, Video Preview), or the Random Game Button entry (the shared button style) for Search & Buttons
         private LayerLayoutEntry? GetSelectedBorderEntry()
         {
-            if (LstLayers.SelectedItem is LayerListItem sel && LayerRegistry.HasBorderTab(sel.Id)) return GetEntry(sel.Id);
+            if (LstLayers.SelectedItem is not LayerListItem sel) return null;
+            if (sel.Id == LayerRegistry.SearchAndButtonsGroup) return GetEntry(LayerRegistry.RandomButton);
+            if (LayerRegistry.HasBorderTab(sel.Id)) return GetEntry(sel.Id);
             return null;
         }
 
-        // Fills the Border tab for Splash Image and Video Preview (the shape layers are filled by LoadShapeStyleFields)
+        // Fills the Border tab for Splash Image, Video Preview and Search & Buttons (the shape layers are filled by LoadShapeStyleFields)
         private void LoadBorderOnlyFields()
         {
             if (GetSelectedShapeEntry() != null) return;
@@ -1909,6 +1935,235 @@ namespace ArcadeStick.Views
         }
         
         // [END SECTION: Games List Styling Fields]
+
+        // [SECTION: Search & Buttons Styling Fields]
+        // Shown while the Search & Buttons group is selected. Label values live on the SearchLabel entry, box values
+        // on SearchBox, and the style shared by the four buttons on RandomButton (all per resolution). Colors,
+        // checkboxes and combos apply immediately; number fields apply on Enter or focus loss and revert invalid input.
+        private static readonly string[] TextAlignChoices = { "Left", "Center", "Right" };
+
+        private bool IsSearchButtonsSelected => LstLayers.SelectedItem is LayerListItem sel && sel.Id == LayerRegistry.SearchAndButtonsGroup;
+
+        // Fills the Search and Buttons tabs and the Border tab's hover row from the three entries
+        private void LoadSearchButtonsStyleFields()
+        {
+            PnlSBHoverBorder.Visibility = IsSearchButtonsSelected ? Visibility.Visible : Visibility.Collapsed;
+            if (!IsSearchButtonsSelected) return;
+            if (GetEntry(LayerRegistry.SearchLabel) is not LayerLayoutEntry label
+                || GetEntry(LayerRegistry.SearchBox) is not LayerLayoutEntry box
+                || GetEntry(LayerRegistry.RandomButton) is not LayerLayoutEntry button) return;
+
+            _loading = true;
+
+            if (CboSBLabelFont.Items.Count == 0)
+            {
+                foreach (string font in LayerRegistry.AvailableFonts) CboSBLabelFont.Items.Add(font);
+            }
+            string family = string.IsNullOrWhiteSpace(label.TextFontFamily) ? LayerRegistry.DefaultFontFamily : label.TextFontFamily;
+            CboSBLabelFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
+            ChkSBLabelBold.IsChecked = label.TextBold ?? LayerRegistry.DefaultSearchLabelBold;
+
+            if (CboSBLabelAlign.Items.Count == 0)
+            {
+                foreach (string align in TextAlignChoices) CboSBLabelAlign.Items.Add(align);
+            }
+            string alignment = label.TextAlign ?? LayerRegistry.DefaultSearchLabelAlign;
+            CboSBLabelAlign.SelectedItem = TextAlignChoices.Contains(alignment) ? alignment : LayerRegistry.DefaultSearchLabelAlign;
+
+            TxtSBLabelFontSize.Text = (label.TextFontSize ?? LayerRegistry.DefaultSearchLabelFontSize).ToString(CultureInfo.InvariantCulture);
+            ShowColor(SBLabelColorPicker, TxtSBLabelColorHex, label.TextColorHex ?? LayerRegistry.DefaultSearchLabelColorHex);
+            ShowColor(SBLabelBgColorPicker, TxtSBLabelBgColorHex, label.BgColorHex ?? LayerRegistry.DefaultSearchLabelBgColorHex);
+            ChkSBLabelShadow.IsChecked = label.TextShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            ShowColor(SBLabelShadowColorPicker, TxtSBLabelShadowColorHex, label.TextShadowColorHex ?? LayerRegistry.DefaultShadowColorHex);
+            TxtSBLabelShadowBlur.Text = (label.TextShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtSBLabelShadowDepth.Text = (label.TextShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            TxtSBBoxFontSize.Text = (box.TextFontSize ?? LayerRegistry.DefaultSearchBoxFontSize).ToString(CultureInfo.InvariantCulture);
+            ShowColor(SBBoxColorPicker, TxtSBBoxColorHex, box.TextColorHex ?? LayerRegistry.DefaultSearchBoxColorHex);
+            ShowColor(SBBoxBgColorPicker, TxtSBBoxBgColorHex, box.BgColorHex ?? LayerRegistry.DefaultSearchBoxBgColorHex);
+
+            TxtSBButtonFontSize.Text = (button.TextFontSize ?? LayerRegistry.DefaultButtonFontSize).ToString(CultureInfo.InvariantCulture);
+            ShowColor(SBButtonColorPicker, TxtSBButtonColorHex, button.TextColorHex ?? LayerRegistry.DefaultButtonColorHex);
+            ShowColor(SBButtonBgColorPicker, TxtSBButtonBgColorHex, button.BgColorHex ?? LayerRegistry.DefaultButtonBgColorHex);
+            ShowColor(SBButtonHoverColorPicker, TxtSBButtonHoverColorHex, button.HoverColorHex ?? LayerRegistry.DefaultButtonHoverColorHex);
+            ShowColor(SBButtonHoverBgColorPicker, TxtSBButtonHoverBgColorHex, button.HoverBgColorHex ?? LayerRegistry.DefaultButtonHoverBgColorHex);
+            ShowColor(SBHoverBorderColorPicker, TxtSBHoverBorderColorHex, button.HoverBorderColorHex ?? LayerRegistry.DefaultButtonHoverBorderColorHex);
+
+            _loading = false;
+        }
+
+        // Shows a stored color in a picker and its hex box without firing the picker's change handler
+        private void ShowColor(ColorPicker.PortableColorPicker picker, TextBox hexBox, string hex)
+        {
+            hexBox.Text = hex;
+            try
+            {
+                _suppressGLColorSync = true;
+                picker.SelectedColor = (Color)ColorConverter.ConvertFromString(hex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+        }
+
+        // Stores a picker's color on an entry (through store) and mirrors it in the hex box
+        private void ApplyPickerColor(ColorPicker.PortableColorPicker picker, TextBox hexBox, LayerLayoutEntry? entry, Action<LayerLayoutEntry, string> store)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null || entry == null) return;
+
+            var c = picker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            hexBox.Text = hex;
+            store(entry, hex);
+            RaiseGuides();
+        }
+
+        // Stores a typed hex color on an entry and syncs the picker; invalid input reverts to the stored value
+        private void ApplyHexColor(ColorPicker.PortableColorPicker picker, TextBox hexBox, LayerLayoutEntry? entry, Func<LayerLayoutEntry, string> stored, Action<LayerLayoutEntry, string> store)
+        {
+            if (_loading || _settings == null || entry == null) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(hexBox.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                picker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                hexBox.Text = hex;
+                store(entry, hex);
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                hexBox.Text = stored(entry);
+            }
+        }
+
+        private LayerLayoutEntry? SBLabelEntry => IsSearchButtonsSelected ? GetEntry(LayerRegistry.SearchLabel) : null;
+        private LayerLayoutEntry? SBBoxEntry => IsSearchButtonsSelected ? GetEntry(LayerRegistry.SearchBox) : null;
+        private LayerLayoutEntry? SBButtonEntry => IsSearchButtonsSelected ? GetEntry(LayerRegistry.RandomButton) : null;
+
+        // Label font, bold, alignment and shadow toggle
+        private void CboSBLabelFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboSBLabelFont.SelectedItem is not string family || SBLabelEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextFontFamily = family;
+            RaiseGuides();
+        }
+
+        private void ChkSBLabelBold_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || SBLabelEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextBold = ChkSBLabelBold.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void CboSBLabelAlign_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboSBLabelAlign.SelectedItem is not string align || SBLabelEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextAlign = align;
+            RaiseGuides();
+        }
+
+        private void ChkSBLabelShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || SBLabelEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextShadowEnabled = ChkSBLabelShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        // Color pickers and hex boxes (label, box, buttons, hover border)
+        private void SBLabelColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBLabelColorPicker, TxtSBLabelColorHex, SBLabelEntry, (en, hex) => en.TextColorHex = hex);
+        private void TxtSBLabelColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBLabelColorPicker, TxtSBLabelColorHex, SBLabelEntry, en => en.TextColorHex ?? LayerRegistry.DefaultSearchLabelColorHex, (en, hex) => en.TextColorHex = hex);
+
+        private void SBLabelBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBLabelBgColorPicker, TxtSBLabelBgColorHex, SBLabelEntry, (en, hex) => en.BgColorHex = hex);
+        private void TxtSBLabelBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBLabelBgColorPicker, TxtSBLabelBgColorHex, SBLabelEntry, en => en.BgColorHex ?? LayerRegistry.DefaultSearchLabelBgColorHex, (en, hex) => en.BgColorHex = hex);
+
+        private void SBLabelShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBLabelShadowColorPicker, TxtSBLabelShadowColorHex, SBLabelEntry, (en, hex) => en.TextShadowColorHex = hex);
+        private void TxtSBLabelShadowColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBLabelShadowColorPicker, TxtSBLabelShadowColorHex, SBLabelEntry, en => en.TextShadowColorHex ?? LayerRegistry.DefaultShadowColorHex, (en, hex) => en.TextShadowColorHex = hex);
+
+        private void SBBoxColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBBoxColorPicker, TxtSBBoxColorHex, SBBoxEntry, (en, hex) => en.TextColorHex = hex);
+        private void TxtSBBoxColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBBoxColorPicker, TxtSBBoxColorHex, SBBoxEntry, en => en.TextColorHex ?? LayerRegistry.DefaultSearchBoxColorHex, (en, hex) => en.TextColorHex = hex);
+
+        private void SBBoxBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBBoxBgColorPicker, TxtSBBoxBgColorHex, SBBoxEntry, (en, hex) => en.BgColorHex = hex);
+        private void TxtSBBoxBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBBoxBgColorPicker, TxtSBBoxBgColorHex, SBBoxEntry, en => en.BgColorHex ?? LayerRegistry.DefaultSearchBoxBgColorHex, (en, hex) => en.BgColorHex = hex);
+
+        private void SBButtonColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBButtonColorPicker, TxtSBButtonColorHex, SBButtonEntry, (en, hex) => en.TextColorHex = hex);
+        private void TxtSBButtonColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBButtonColorPicker, TxtSBButtonColorHex, SBButtonEntry, en => en.TextColorHex ?? LayerRegistry.DefaultButtonColorHex, (en, hex) => en.TextColorHex = hex);
+
+        private void SBButtonBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBButtonBgColorPicker, TxtSBButtonBgColorHex, SBButtonEntry, (en, hex) => en.BgColorHex = hex);
+        private void TxtSBButtonBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBButtonBgColorPicker, TxtSBButtonBgColorHex, SBButtonEntry, en => en.BgColorHex ?? LayerRegistry.DefaultButtonBgColorHex, (en, hex) => en.BgColorHex = hex);
+
+        private void SBButtonHoverColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBButtonHoverColorPicker, TxtSBButtonHoverColorHex, SBButtonEntry, (en, hex) => en.HoverColorHex = hex);
+        private void TxtSBButtonHoverColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBButtonHoverColorPicker, TxtSBButtonHoverColorHex, SBButtonEntry, en => en.HoverColorHex ?? LayerRegistry.DefaultButtonHoverColorHex, (en, hex) => en.HoverColorHex = hex);
+
+        private void SBButtonHoverBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBButtonHoverBgColorPicker, TxtSBButtonHoverBgColorHex, SBButtonEntry, (en, hex) => en.HoverBgColorHex = hex);
+        private void TxtSBButtonHoverBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBButtonHoverBgColorPicker, TxtSBButtonHoverBgColorHex, SBButtonEntry, en => en.HoverBgColorHex ?? LayerRegistry.DefaultButtonHoverBgColorHex, (en, hex) => en.HoverBgColorHex = hex);
+
+        private void SBHoverBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBHoverBorderColorPicker, TxtSBHoverBorderColorHex, SBButtonEntry, (en, hex) => en.HoverBorderColorHex = hex);
+        private void TxtSBHoverBorderColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBHoverBorderColorPicker, TxtSBHoverBorderColorHex, SBButtonEntry, en => en.HoverBorderColorHex ?? LayerRegistry.DefaultButtonHoverBorderColorHex, (en, hex) => en.HoverBorderColorHex = hex);
+
+        // One shared handler pair for the number fields: the three font sizes (6-72) and the label shadow's blur (0-30) and depth (0-20)
+        private void SBField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplySearchButtonsFields();
+        }
+
+        private void SBField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplySearchButtonsFields();
+        }
+
+        // Stores each valid number field on its entry; an invalid one keeps its stored value
+        private void ApplySearchButtonsFields()
+        {
+            if (_loading || _settings == null) return;
+            if (SBLabelEntry is not LayerLayoutEntry label || SBBoxEntry is not LayerLayoutEntry box || SBButtonEntry is not LayerLayoutEntry button) return;
+
+            if (int.TryParse(TxtSBLabelFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int labelSize) && labelSize >= 6 && labelSize <= 72)
+                label.TextFontSize = labelSize;
+            if (int.TryParse(TxtSBLabelShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int blur) && blur >= 0 && blur <= 30)
+                label.TextShadowBlur = blur;
+            if (int.TryParse(TxtSBLabelShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth) && depth >= 0 && depth <= 20)
+                label.TextShadowDepth = depth;
+            if (int.TryParse(TxtSBBoxFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int boxSize) && boxSize >= 6 && boxSize <= 72)
+                box.TextFontSize = boxSize;
+            if (int.TryParse(TxtSBButtonFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int buttonSize) && buttonSize >= 6 && buttonSize <= 72)
+                button.TextFontSize = buttonSize;
+
+            // Re-display the stored values (reverts invalid input) and re-apply the layout
+            LoadSelectedLayerIntoFields();
+        }
+        // [END SECTION: Search & Buttons Styling Fields]
         // [END SECTION: Layer Fields]
 
         // [SECTION: Alignment Guide Preferences]
@@ -1989,53 +2244,21 @@ namespace ArcadeStick.Views
                 {
                     Width = preset.Width,
                     Height = preset.Height,
-                    Layers = _currentLayout.Layers.Where(l => !LayerRegistry.IsCustomId(l.Id)).Select(l => new LayerLayoutEntry
+                    Layers = _currentLayout.Layers.Where(l => !LayerRegistry.IsCustomId(l.Id)).Select(l =>
                     {
-                        Id = l.Id,
-                        X = l.X,
-                        Y = l.Y,
-                        Width = l.Width,
-                        Height = l.Height,
-                        Z = l.Z,
-                        Visible = l.Visible,
-                        ImagePath = l.ImagePath,
-                        FolderFontSize = l.FolderFontSize,
-                        FolderColorHex = l.FolderColorHex,
-                        FolderSelectedColorHex = l.FolderSelectedColorHex,
-                        FolderSelectedBgColorHex = l.FolderSelectedBgColorHex,
-                        FolderFontFamily = l.FolderFontFamily,
-                        FolderBold = l.FolderBold,
-                        ArrowColorHex = l.ArrowColorHex,
-                        ArrowNudgeY = l.ArrowNudgeY,
-                        GameFontSize = l.GameFontSize,
-                        GameColorHex = l.GameColorHex,
-                        GameSelectedColorHex = l.GameSelectedColorHex,
-                        GameSelectedBgColorHex = l.GameSelectedBgColorHex,
-                        GameHoverColorHex = l.GameHoverColorHex,
-                        GameFontFamily = l.GameFontFamily,
-                        GameBold = l.GameBold,
-                        FolderShadowEnabled = l.FolderShadowEnabled,
-                        FolderShadowColorHex = l.FolderShadowColorHex,
-                        FolderShadowBlur = l.FolderShadowBlur,
-                        FolderShadowDepth = l.FolderShadowDepth,
-                        GameShadowEnabled = l.GameShadowEnabled,
-                        GameShadowColorHex = l.GameShadowColorHex,
-                        GameShadowBlur = l.GameShadowBlur,
-                        GameShadowDepth = l.GameShadowDepth,
-                        FolderSelectedShadowEnabled = l.FolderSelectedShadowEnabled,
-                        FolderSelectedShadowColorHex = l.FolderSelectedShadowColorHex,
-                        FolderSelectedShadowBlur = l.FolderSelectedShadowBlur,
-                        FolderSelectedShadowDepth = l.FolderSelectedShadowDepth,
-                        GameSelectedShadowEnabled = l.GameSelectedShadowEnabled,
-                        GameSelectedShadowColorHex = l.GameSelectedShadowColorHex,
-                        GameSelectedShadowBlur = l.GameSelectedShadowBlur,
-                        GameSelectedShadowDepth = l.GameSelectedShadowDepth,
-                        VisibilityMode = l.VisibilityMode,
-                        BgColorHex = l.BgColorHex,
-                        BorderSize = l.BorderSize,
-                        BorderColorHex = l.BorderColorHex,
-                        CornerRadius = l.CornerRadius,
-                        FileOpacity = l.FileOpacity
+                        var copy = new LayerLayoutEntry
+                        {
+                            Id = l.Id,
+                            X = l.X,
+                            Y = l.Y,
+                            Width = l.Width,
+                            Height = l.Height,
+                            Z = l.Z,
+                            Visible = l.Visible,
+                            ImagePath = l.ImagePath
+                        };
+                        copy.CopyStyleFrom(l);
+                        return copy;
                     }).ToList()
                 };
 
@@ -2315,6 +2538,9 @@ namespace ArcadeStick.Views
                     partEntry.Height = partDefault.Height;
                     partEntry.Visible = partDefault.Visible;
 
+                    // Style values too (the Search & Buttons label, box and shared button style live on its parts)
+                    partEntry.CopyStyleFrom(partDefault);
+
                     // The Random Game Display group's shared file lives on its first part
                     if (partId == LayerRegistry.RandomGameDisplay) partEntry.ImagePath = partDefault.ImagePath;
                 }
@@ -2336,43 +2562,7 @@ namespace ArcadeStick.Views
             entry.Height = defEntry.Height;
             entry.Visible = defEntry.Visible;
             if (!LayerRegistry.IsCustomId(entry.Id)) entry.ImagePath = defEntry.ImagePath;
-            entry.FolderFontSize = defEntry.FolderFontSize;
-            entry.FolderColorHex = defEntry.FolderColorHex;
-            entry.FolderSelectedColorHex = defEntry.FolderSelectedColorHex;
-            entry.FolderSelectedBgColorHex = defEntry.FolderSelectedBgColorHex;
-            entry.FolderFontFamily = defEntry.FolderFontFamily;
-            entry.FolderBold = defEntry.FolderBold;
-            entry.ArrowColorHex = defEntry.ArrowColorHex;
-            entry.ArrowNudgeY = defEntry.ArrowNudgeY;
-            entry.GameFontSize = defEntry.GameFontSize;
-            entry.GameColorHex = defEntry.GameColorHex;
-            entry.GameSelectedColorHex = defEntry.GameSelectedColorHex;
-            entry.GameSelectedBgColorHex = defEntry.GameSelectedBgColorHex;
-            entry.GameHoverColorHex = defEntry.GameHoverColorHex;
-            entry.GameFontFamily = defEntry.GameFontFamily;
-            entry.GameBold = defEntry.GameBold;
-            entry.FolderShadowEnabled = defEntry.FolderShadowEnabled;
-            entry.FolderShadowColorHex = defEntry.FolderShadowColorHex;
-            entry.FolderShadowBlur = defEntry.FolderShadowBlur;
-            entry.FolderShadowDepth = defEntry.FolderShadowDepth;
-            entry.GameShadowEnabled = defEntry.GameShadowEnabled;
-            entry.GameShadowColorHex = defEntry.GameShadowColorHex;
-            entry.GameShadowBlur = defEntry.GameShadowBlur;
-            entry.GameShadowDepth = defEntry.GameShadowDepth;
-            entry.FolderSelectedShadowEnabled = defEntry.FolderSelectedShadowEnabled;
-            entry.FolderSelectedShadowColorHex = defEntry.FolderSelectedShadowColorHex;
-            entry.FolderSelectedShadowBlur = defEntry.FolderSelectedShadowBlur;
-            entry.FolderSelectedShadowDepth = defEntry.FolderSelectedShadowDepth;
-            entry.GameSelectedShadowEnabled = defEntry.GameSelectedShadowEnabled;
-            entry.GameSelectedShadowColorHex = defEntry.GameSelectedShadowColorHex;
-            entry.GameSelectedShadowBlur = defEntry.GameSelectedShadowBlur;
-            entry.GameSelectedShadowDepth = defEntry.GameSelectedShadowDepth;
-            entry.VisibilityMode = defEntry.VisibilityMode;
-            entry.BgColorHex = defEntry.BgColorHex;
-            entry.BorderSize = defEntry.BorderSize;
-            entry.BorderColorHex = defEntry.BorderColorHex;
-            entry.CornerRadius = defEntry.CornerRadius;
-            entry.FileOpacity = defEntry.FileOpacity;
+            entry.CopyStyleFrom(defEntry);
 
             NormalizeZ(GetAscendingOrder());
             RebuildLayerList(selected.Id);

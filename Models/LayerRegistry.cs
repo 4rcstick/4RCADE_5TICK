@@ -144,6 +144,104 @@ namespace ArcadeStick.Models
         // Null on every other layer and left out of the theme file when null.
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? FileOpacity { get; set; }
+
+        // Generic text styling for layers that show one block of text (Search Label, Search Box, the shared
+        // main window button style on the Random Game Button entry; later Game Info). Same rules as above:
+        // null on every other layer, left out of the theme file when null, filled from defaults where used.
+        // TextAlign: "Left", "Center" or "Right".
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TextFontSize { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? TextColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? TextFontFamily { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? TextBold { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? TextAlign { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? HoverColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? HoverBgColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? HoverBorderColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? TextShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? TextShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TextShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TextShadowDepth { get; set; }
+
+        // [SECTION: Style Copy]
+        // Copies every styling field (everything except Id, rect, Z, Visible, Name and ImagePath) from source.
+        // The one place entry styling is copied: CloneLayouts, the resolution-switch copy and Reset Layer all
+        // use it, so a new style field only has to be added here.
+        public void CopyStyleFrom(LayerLayoutEntry source)
+        {
+            FolderFontSize = source.FolderFontSize;
+            FolderColorHex = source.FolderColorHex;
+            FolderSelectedColorHex = source.FolderSelectedColorHex;
+            FolderSelectedBgColorHex = source.FolderSelectedBgColorHex;
+            FolderFontFamily = source.FolderFontFamily;
+            FolderBold = source.FolderBold;
+            ArrowColorHex = source.ArrowColorHex;
+            ArrowNudgeY = source.ArrowNudgeY;
+            GameFontSize = source.GameFontSize;
+            GameColorHex = source.GameColorHex;
+            GameSelectedColorHex = source.GameSelectedColorHex;
+            GameSelectedBgColorHex = source.GameSelectedBgColorHex;
+            GameHoverColorHex = source.GameHoverColorHex;
+            GameFontFamily = source.GameFontFamily;
+            GameBold = source.GameBold;
+            FolderShadowEnabled = source.FolderShadowEnabled;
+            FolderShadowColorHex = source.FolderShadowColorHex;
+            FolderShadowBlur = source.FolderShadowBlur;
+            FolderShadowDepth = source.FolderShadowDepth;
+            GameShadowEnabled = source.GameShadowEnabled;
+            GameShadowColorHex = source.GameShadowColorHex;
+            GameShadowBlur = source.GameShadowBlur;
+            GameShadowDepth = source.GameShadowDepth;
+            FolderSelectedShadowEnabled = source.FolderSelectedShadowEnabled;
+            FolderSelectedShadowColorHex = source.FolderSelectedShadowColorHex;
+            FolderSelectedShadowBlur = source.FolderSelectedShadowBlur;
+            FolderSelectedShadowDepth = source.FolderSelectedShadowDepth;
+            GameSelectedShadowEnabled = source.GameSelectedShadowEnabled;
+            GameSelectedShadowColorHex = source.GameSelectedShadowColorHex;
+            GameSelectedShadowBlur = source.GameSelectedShadowBlur;
+            GameSelectedShadowDepth = source.GameSelectedShadowDepth;
+            VisibilityMode = source.VisibilityMode;
+            BgColorHex = source.BgColorHex;
+            BorderSize = source.BorderSize;
+            BorderColorHex = source.BorderColorHex;
+            CornerRadius = source.CornerRadius;
+            FileOpacity = source.FileOpacity;
+            TextFontSize = source.TextFontSize;
+            TextColorHex = source.TextColorHex;
+            TextFontFamily = source.TextFontFamily;
+            TextBold = source.TextBold;
+            TextAlign = source.TextAlign;
+            HoverColorHex = source.HoverColorHex;
+            HoverBgColorHex = source.HoverBgColorHex;
+            HoverBorderColorHex = source.HoverBorderColorHex;
+            TextShadowEnabled = source.TextShadowEnabled;
+            TextShadowColorHex = source.TextShadowColorHex;
+            TextShadowBlur = source.TextShadowBlur;
+            TextShadowDepth = source.TextShadowDepth;
+        }
+        // [END SECTION: Style Copy]
     }
 
     // All layer entries for one resolution. A theme file can hold several of these, keyed by Width/Height.
@@ -183,8 +281,9 @@ namespace ArcadeStick.Models
     }
 
     // A group of layers shown as one row in the Advanced tab's layer list. PartIds are in the order the
-    // parts appear on the group's edit page. All parts share the group's Z.
-    public record LayerGroupDefinition(string Id, string DisplayName, string[] PartIds);
+    // parts appear on the group's edit page. All parts share the group's Z. AllowGroupMove offers the
+    // "Move all parts together" checkbox on the group's Position tab.
+    public record LayerGroupDefinition(string Id, string DisplayName, string[] PartIds, bool AllowGroupMove = false);
 
     // [SECTION: Layer Registry]
     // Single source of truth for the layer list. Adding a layer = adding one entry to AllLayers; the
@@ -271,8 +370,8 @@ namespace ArcadeStick.Models
         // Each group's parts share one Z and are edited on one page, in the order listed here.
         public static readonly IReadOnlyList<LayerGroupDefinition> AllGroups = new List<LayerGroupDefinition>
         {
-            new(SearchAndButtonsGroup, "Search & Buttons", new[] { SearchLabel, SearchBox, RandomButton, SortButton, OptionsButton, HamburgerButton }),
-            new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsNav, ImagePreviewsBody }),
+            new(SearchAndButtonsGroup, "Search & Buttons", new[] { SearchLabel, SearchBox, RandomButton, SortButton, OptionsButton, HamburgerButton }, AllowGroupMove: true),
+            new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsNav, ImagePreviewsBody }, AllowGroupMove: true),
             new(RandomGameGroup, "Random Game Display", new[] { RandomGameDisplay, RandomGameDisplaySplash })
         };
 
@@ -411,9 +510,50 @@ namespace ArcadeStick.Models
                     entry.CornerRadius = DefaultShapeCornerRadius;
                 }
 
+                // Search & Buttons styling: label, box and the shared button style (on the Random Game Button)
+                FillSearchButtonsStyle(entry);
+
                 layout.Layers.Add(entry);
             }
             return layout;
+        }
+
+        // Fills any missing Search & Buttons style value from defaults. Label values live on the SearchLabel
+        // entry, box values on SearchBox, and the style shared by all four buttons on RandomButton. Other
+        // entries are left untouched; saved values are kept.
+        private static void FillSearchButtonsStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id == SearchLabel)
+            {
+                entry.TextFontSize ??= DefaultSearchLabelFontSize;
+                if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultSearchLabelColorHex;
+                if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultSearchLabelBgColorHex;
+                if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
+                entry.TextBold ??= DefaultSearchLabelBold;
+                if (string.IsNullOrWhiteSpace(entry.TextAlign)) entry.TextAlign = DefaultSearchLabelAlign;
+                entry.TextShadowEnabled ??= DefaultShadowEnabled;
+                if (string.IsNullOrWhiteSpace(entry.TextShadowColorHex)) entry.TextShadowColorHex = DefaultShadowColorHex;
+                entry.TextShadowBlur ??= DefaultShadowBlur;
+                entry.TextShadowDepth ??= DefaultShadowDepth;
+            }
+            else if (entry.Id == SearchBox)
+            {
+                entry.TextFontSize ??= DefaultSearchBoxFontSize;
+                if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultSearchBoxColorHex;
+                if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultSearchBoxBgColorHex;
+            }
+            else if (entry.Id == RandomButton)
+            {
+                entry.TextFontSize ??= DefaultButtonFontSize;
+                if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultButtonColorHex;
+                if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultButtonBgColorHex;
+                if (string.IsNullOrWhiteSpace(entry.HoverColorHex)) entry.HoverColorHex = DefaultButtonHoverColorHex;
+                if (string.IsNullOrWhiteSpace(entry.HoverBgColorHex)) entry.HoverBgColorHex = DefaultButtonHoverBgColorHex;
+                entry.BorderSize ??= DefaultButtonBorderSize;
+                if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = DefaultButtonBorderColorHex;
+                entry.CornerRadius ??= DefaultButtonCornerRadius;
+                if (string.IsNullOrWhiteSpace(entry.HoverBorderColorHex)) entry.HoverBorderColorHex = DefaultButtonHoverBorderColorHex;
+            }
         }
 
         // Returns a complete layout for the resolution: uses the saved layout's entries where present and
@@ -488,6 +628,9 @@ namespace ArcadeStick.Models
                     entry.FileOpacity ??= DefaultFileOpacity;
                 }
 
+                // Search & Buttons: fill any missing label, box or shared button style value
+                FillSearchButtonsStyle(entry);
+
                 result.Layers.Add(entry);
             }
 
@@ -529,6 +672,25 @@ namespace ArcadeStick.Models
         public const string DefaultShadowColorHex = "#FF000000";
         public const int DefaultShadowBlur = 3;
         public const int DefaultShadowDepth = 1;
+
+        // Search & Buttons styling defaults (the former flat SearchLabel*, SearchBox* and MainWinBtn* defaults)
+        public const int DefaultSearchLabelFontSize = 13;
+        public const string DefaultSearchLabelColorHex = "#FF00D4FF";
+        public const string DefaultSearchLabelBgColorHex = "#001C1C1E";
+        public const bool DefaultSearchLabelBold = false;
+        public const string DefaultSearchLabelAlign = "Right";
+        public const int DefaultSearchBoxFontSize = 13;
+        public const string DefaultSearchBoxColorHex = "#FFF2F2F7";
+        public const string DefaultSearchBoxBgColorHex = "#FF1C1C1E";
+        public const int DefaultButtonFontSize = 13;
+        public const string DefaultButtonColorHex = "#FF00D4FF";
+        public const string DefaultButtonBgColorHex = "#FF1C1C1E";
+        public const string DefaultButtonHoverColorHex = "#FF00D4FF";
+        public const string DefaultButtonHoverBgColorHex = "#FF2C2C2E";
+        public const int DefaultButtonBorderSize = 1;
+        public const string DefaultButtonBorderColorHex = "#FF00D4FF";
+        public const int DefaultButtonCornerRadius = 0;
+        public const string DefaultButtonHoverBorderColorHex = "#FF00D4FF";
 
         // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
         // Segoe UI is also the fallback when a theme has no saved family.

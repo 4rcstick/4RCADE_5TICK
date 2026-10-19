@@ -656,26 +656,96 @@ namespace ArcadeStick.ViewModels
         public string ThemeScrollThumbColor => Configuration.ScrollThumbColor;
         public string ThemeScrollThumbHoverColor => Configuration.ScrollThumbHoverColor;
         public string ThemeScrollThumbDragColor => Configuration.ScrollThumbDragColor;
-        // The active resolution's Games List entry, where its styling lives (per resolution). Resolved
-        // with registry defaults filling any gaps, so it is never null.
-        public LayerLayoutEntry GetGamesListEntry()
+        // Returns one layer's entry for the active resolution, where its styling lives (per resolution).
+        // Resolved with registry defaults filling any gaps, so it is never null for a registry layer.
+        private LayerLayoutEntry GetLayerEntry(string id)
         {
             int width = Configuration.ActiveResolutionWidth;
             int height = Configuration.ActiveResolutionHeight;
             var saved = Configuration.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
             var layout = LayerRegistry.ResolveLayout(saved, width, height);
-            return layout.Layers.First(e => e.Id == LayerRegistry.GamesList);
+            return layout.Layers.First(e => e.Id == id);
         }
 
-        public int ThemeFolderFontSize => GetGamesListEntry().FolderFontSize ?? LayerRegistry.DefaultFolderFontSize;
+        public int ThemeFolderFontSize => GetLayerEntry(LayerRegistry.GamesList).FolderFontSize ?? LayerRegistry.DefaultFolderFontSize;
         public string ThemeFolderSelectedColor => Configuration.FolderSelectedColorHex;
         public string ThemeFolderSelectedBgColor => Configuration.FolderSelectedBgColorHex;
-        public string ThemeArrowColor => GetGamesListEntry().ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex;
-        public string ThemeFolderColor => GetGamesListEntry().FolderColorHex ?? LayerRegistry.DefaultFolderColorHex;
+        public string ThemeArrowColor => GetLayerEntry(LayerRegistry.GamesList).ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex;
+        public string ThemeFolderColor => GetLayerEntry(LayerRegistry.GamesList).FolderColorHex ?? LayerRegistry.DefaultFolderColorHex;
 
-        public int ThemeSearchBoxFontSize => Configuration.SearchBoxFontSize;
-        public string ThemeSearchBoxColor => Configuration.SearchBoxColorHex;
-        public string ThemeSearchBoxBgColor => Configuration.SearchBoxBgColorHex;
+        // [SECTION: Search & Buttons Forwarders]
+        // Search label, search box and the style shared by the four main window buttons, read from the
+        // SearchLabel, SearchBox and RandomButton entries of the active resolution.
+        public int ThemeSearchLabelFontSize => GetLayerEntry(LayerRegistry.SearchLabel).TextFontSize ?? LayerRegistry.DefaultSearchLabelFontSize;
+        public string ThemeSearchLabelColor => GetLayerEntry(LayerRegistry.SearchLabel).TextColorHex ?? LayerRegistry.DefaultSearchLabelColorHex;
+        public string ThemeSearchLabelBgColor => GetLayerEntry(LayerRegistry.SearchLabel).BgColorHex ?? LayerRegistry.DefaultSearchLabelBgColorHex;
+        public FontFamily ThemeSearchLabelFontFamily
+        {
+            get
+            {
+                string? family = GetLayerEntry(LayerRegistry.SearchLabel).TextFontFamily;
+                return new FontFamily(string.IsNullOrWhiteSpace(family) ? LayerRegistry.DefaultFontFamily : family);
+            }
+        }
+        // Unchecked Bold keeps the label's original DemiBold look
+        public FontWeight ThemeSearchLabelFontWeight => (GetLayerEntry(LayerRegistry.SearchLabel).TextBold ?? LayerRegistry.DefaultSearchLabelBold) ? FontWeights.Bold : FontWeights.DemiBold;
+        public TextAlignment ThemeSearchLabelTextAlignment => GetLayerEntry(LayerRegistry.SearchLabel).TextAlign switch
+        {
+            "Left" => TextAlignment.Left,
+            "Center" => TextAlignment.Center,
+            _ => TextAlignment.Right
+        };
+        public System.Windows.Media.Effects.Effect? ThemeSearchLabelEffect
+        {
+            get
+            {
+                var entry = GetLayerEntry(LayerRegistry.SearchLabel);
+                return BuildShadowEffect(
+                    entry.TextShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                    entry.TextShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                    entry.TextShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                    entry.TextShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+            }
+        }
+        public int ThemeSearchBoxFontSize => GetLayerEntry(LayerRegistry.SearchBox).TextFontSize ?? LayerRegistry.DefaultSearchBoxFontSize;
+        public string ThemeSearchBoxColor => GetLayerEntry(LayerRegistry.SearchBox).TextColorHex ?? LayerRegistry.DefaultSearchBoxColorHex;
+        public string ThemeSearchBoxBgColor => GetLayerEntry(LayerRegistry.SearchBox).BgColorHex ?? LayerRegistry.DefaultSearchBoxBgColorHex;
+        public int ThemeMainWinBtnFontSize => GetLayerEntry(LayerRegistry.RandomButton).TextFontSize ?? LayerRegistry.DefaultButtonFontSize;
+        public string ThemeMainWinBtnColor => GetLayerEntry(LayerRegistry.RandomButton).TextColorHex ?? LayerRegistry.DefaultButtonColorHex;
+        public string ThemeMainWinBtnBgColor => GetLayerEntry(LayerRegistry.RandomButton).BgColorHex ?? LayerRegistry.DefaultButtonBgColorHex;
+        public string ThemeMainWinBtnColorHover => GetLayerEntry(LayerRegistry.RandomButton).HoverColorHex ?? LayerRegistry.DefaultButtonHoverColorHex;
+        public string ThemeMainWinBtnBgColorHover => GetLayerEntry(LayerRegistry.RandomButton).HoverBgColorHex ?? LayerRegistry.DefaultButtonHoverBgColorHex;
+        public double ThemeMainWinBtnBorderSize => GetLayerEntry(LayerRegistry.RandomButton).BorderSize ?? LayerRegistry.DefaultButtonBorderSize;
+        public string ThemeMainWinBtnBorderColor => GetLayerEntry(LayerRegistry.RandomButton).BorderColorHex ?? LayerRegistry.DefaultButtonBorderColorHex;
+        public string ThemeMainWinBtnBorderColorHover => GetLayerEntry(LayerRegistry.RandomButton).HoverBorderColorHex ?? LayerRegistry.DefaultButtonHoverBorderColorHex;
+        public double ThemeMainWinBtnCornerRadius => GetLayerEntry(LayerRegistry.RandomButton).CornerRadius ?? LayerRegistry.DefaultButtonCornerRadius;
+
+        // Re-raises the Search & Buttons forwarders after their entry values changed (a lighter path than
+        // RefreshThemeBindings, used by MainWindow.ApplyLayout's style key).
+        public void RefreshSearchButtonBindings()
+        {
+            OnPropertyChanged(nameof(ThemeSearchLabelFontSize));
+            OnPropertyChanged(nameof(ThemeSearchLabelColor));
+            OnPropertyChanged(nameof(ThemeSearchLabelBgColor));
+            OnPropertyChanged(nameof(ThemeSearchLabelFontFamily));
+            OnPropertyChanged(nameof(ThemeSearchLabelFontWeight));
+            OnPropertyChanged(nameof(ThemeSearchLabelTextAlignment));
+            OnPropertyChanged(nameof(ThemeSearchLabelEffect));
+            OnPropertyChanged(nameof(ThemeSearchBoxFontSize));
+            OnPropertyChanged(nameof(ThemeSearchBoxColor));
+            OnPropertyChanged(nameof(ThemeSearchBoxBgColor));
+            OnPropertyChanged(nameof(ThemeMainWinBtnFontSize));
+            OnPropertyChanged(nameof(ThemeMainWinBtnColor));
+            OnPropertyChanged(nameof(ThemeMainWinBtnBgColor));
+            OnPropertyChanged(nameof(ThemeMainWinBtnColorHover));
+            OnPropertyChanged(nameof(ThemeMainWinBtnBgColorHover));
+            OnPropertyChanged(nameof(ThemeMainWinBtnBorderSize));
+            OnPropertyChanged(nameof(ThemeMainWinBtnBorderColor));
+            OnPropertyChanged(nameof(ThemeMainWinBtnBorderColorHover));
+            OnPropertyChanged(nameof(ThemeMainWinBtnCornerRadius));
+        }
+        // [END SECTION: Search & Buttons Forwarders]
+
         public int ThemeGameNameHeaderFontSize => Configuration.GameNameHeaderFontSize;
         public string ThemeGameNameHeaderColor => Configuration.GameNameHeaderColorHex;
         public int ThemePubYearRatingFontSize => Configuration.PubYearRatingFontSize;
@@ -697,17 +767,6 @@ namespace ArcadeStick.ViewModels
         public double ThemePreviewBorderSize => Configuration.PreviewBorderSize;
         public string ThemePreviewBorderColor => Configuration.PreviewBorderColorHex;
         public double ThemePreviewBorderRadius => Configuration.PreviewBorderRadius;
-        public int ThemeSearchLabelFontSize => Configuration.SearchLabelFontSize;
-        public string ThemeSearchLabelColor => Configuration.SearchLabelColorHex;
-        public string ThemeSearchLabelBgColor => Configuration.SearchLabelBgColorHex;
-        public int ThemeMainWinBtnFontSize => Configuration.MainWinBtnFontSize;
-        public string ThemeMainWinBtnColor => Configuration.MainWinBtnColorHex;
-        public string ThemeMainWinBtnBgColor => Configuration.MainWinBtnBgColorHex;
-        public string ThemeMainWinBtnColorHover => Configuration.MainWinBtnColorHoverHex;
-        public string ThemeMainWinBtnBgColorHover => Configuration.MainWinBtnBgColorHoverHex;
-        public double ThemeMainWinBtnBorderSize => Configuration.MainWinBtnBorderSize;
-        public string ThemeMainWinBtnBorderColor => Configuration.MainWinBtnBorderColorHex;
-        public double ThemeMainWinBtnCornerRadius => Configuration.MainWinBtnCornerRadius;
         public string ThemeContextMenuFontColor => Configuration.ContextMenuFontColorHex;
         public string ThemeContextMenuIconColor => Configuration.ContextMenuIconColorHex;
         public string ThemeContextMenuBgColor => Configuration.ContextMenuBgColorHex;
@@ -756,20 +815,9 @@ namespace ArcadeStick.ViewModels
         
         public ImageSource? ThemeMediaWallpaper => LoadThemeImage(Configuration.MediaWindowWallpaper);
 
-        // The Marquee layer's entry for the active resolution, where its logo path lives (per resolution).
-        // Resolved with registry defaults filling any gaps, so it is never null.
-        private LayerLayoutEntry GetMarqueeEntry()
-        {
-            int width = Configuration.ActiveResolutionWidth;
-            int height = Configuration.ActiveResolutionHeight;
-            var saved = Configuration.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
-            var layout = LayerRegistry.ResolveLayout(saved, width, height);
-            return layout.Layers.First(e => e.Id == LayerRegistry.MarqueePanel);
-        }
-
         // The logo path currently set on the Marquee layer (empty = use the built-in logo). MainWindow compares
         // this between ApplyLayout runs to know when the logo needs refreshing.
-        public string MarqueeLogoPath => GetMarqueeEntry().ImagePath ?? "";
+        public string MarqueeLogoPath => GetLayerEntry(LayerRegistry.MarqueePanel).ImagePath ?? "";
 
         public ImageSource? ThemeLogoAsset => LoadThemeImage(
             !string.IsNullOrWhiteSpace(MarqueeLogoPath)
@@ -965,9 +1013,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeScrollThumbColor));
             OnPropertyChanged(nameof(ThemeScrollThumbHoverColor));
             OnPropertyChanged(nameof(ThemeScrollThumbDragColor));
-            OnPropertyChanged(nameof(ThemeSearchBoxFontSize));
-            OnPropertyChanged(nameof(ThemeSearchBoxColor));
-            OnPropertyChanged(nameof(ThemeSearchBoxBgColor));
             OnPropertyChanged(nameof(ThemeGameNameHeaderFontSize));
             OnPropertyChanged(nameof(ThemeGameNameHeaderColor));
             OnPropertyChanged(nameof(ThemePubYearRatingFontSize));
@@ -989,17 +1034,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemePreviewBorderSize));
             OnPropertyChanged(nameof(ThemePreviewBorderColor));
             OnPropertyChanged(nameof(ThemePreviewBorderRadius));
-            OnPropertyChanged(nameof(ThemeSearchLabelFontSize));
-            OnPropertyChanged(nameof(ThemeSearchLabelColor));
-            OnPropertyChanged(nameof(ThemeSearchLabelBgColor));
-            OnPropertyChanged(nameof(ThemeMainWinBtnFontSize));
-            OnPropertyChanged(nameof(ThemeMainWinBtnColor));
-            OnPropertyChanged(nameof(ThemeMainWinBtnBgColor));
-            OnPropertyChanged(nameof(ThemeMainWinBtnColorHover));
-            OnPropertyChanged(nameof(ThemeMainWinBtnBgColorHover));
-            OnPropertyChanged(nameof(ThemeMainWinBtnBorderSize));
-            OnPropertyChanged(nameof(ThemeMainWinBtnBorderColor));
-            OnPropertyChanged(nameof(ThemeMainWinBtnCornerRadius));
+            RefreshSearchButtonBindings();
             OnPropertyChanged(nameof(ThemeContextMenuFontColor));
             OnPropertyChanged(nameof(ThemeContextMenuIconColor));
             OnPropertyChanged(nameof(ThemeContextMenuBgColor));
@@ -1017,8 +1052,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeOptionsBtnColorHover));
             OnPropertyChanged(nameof(ThemeOptionsBtnBorderSize));
             OnPropertyChanged(nameof(ThemeOptionsBtnBorderRadius));            
-            OnPropertyChanged(nameof(ThemeSearchBoxColor));
-            OnPropertyChanged(nameof(ThemeSearchBoxBgColor));
             OnPropertyChanged(nameof(ThemeFolderFontSize));
             OnPropertyChanged(nameof(ThemeFolderSelectedColor));
             OnPropertyChanged(nameof(ThemeFolderSelectedBgColor));
@@ -1054,7 +1087,7 @@ namespace ArcadeStick.ViewModels
         // in XAML, which were causing severe UI freezes when generating containers for very large (30k+) folders.
         public void RefreshFolderColorsLive()
         {
-            var gamesListEntry = GetGamesListEntry();
+            var gamesListEntry = GetLayerEntry(LayerRegistry.GamesList);
             var mainFolderBrush = SafeConvertToBrush(gamesListEntry.FolderColorHex ?? LayerRegistry.DefaultFolderColorHex);
             var folderSelectedBgBrush = SafeConvertToBrush(gamesListEntry.FolderSelectedBgColorHex ?? LayerRegistry.DefaultFolderSelectedBgColorHex);
             var folderSelectedBrush = SafeConvertToBrush(gamesListEntry.FolderSelectedColorHex ?? LayerRegistry.DefaultFolderSelectedColorHex);
@@ -1108,7 +1141,7 @@ namespace ArcadeStick.ViewModels
         // live refresh without needing a full tree rebuild - mirrors the RefreshFolderColorsLive pattern.
         public void RefreshGameColorsLive()
         {
-            var gamesListEntry = GetGamesListEntry();
+            var gamesListEntry = GetLayerEntry(LayerRegistry.GamesList);
             var gameColorBrush = SafeConvertToBrush(gamesListEntry.GameColorHex ?? LayerRegistry.DefaultGameColorHex);
             var gameHoverBrush = SafeConvertToBrush(gamesListEntry.GameHoverColorHex ?? LayerRegistry.DefaultGameHoverColorHex);
             var gameSelectedBgBrush = SafeConvertToBrush(gamesListEntry.GameSelectedBgColorHex ?? LayerRegistry.DefaultGameSelectedBgColorHex);
@@ -1250,9 +1283,6 @@ namespace ArcadeStick.ViewModels
             Configuration.StandardColorHex = themeData.StandardColorHex;
             Configuration.InputFontSize = themeData.InputFontSize;
             Configuration.InputColorHex = themeData.InputColorHex;
-            Configuration.SearchBoxFontSize = themeData.SearchBoxFontSize;
-            Configuration.SearchBoxColorHex = themeData.SearchBoxColorHex;
-            Configuration.SearchBoxBgColorHex = themeData.SearchBoxBgColorHex;
             Configuration.GameNameHeaderFontSize = themeData.GameNameHeaderFontSize;
             Configuration.GameNameHeaderColorHex = themeData.GameNameHeaderColorHex;
             Configuration.PubYearRatingFontSize = themeData.PubYearRatingFontSize;
@@ -1274,17 +1304,6 @@ namespace ArcadeStick.ViewModels
             Configuration.PreviewBorderSize = themeData.PreviewBorderSize;
             Configuration.PreviewBorderColorHex = themeData.PreviewBorderColorHex;
             Configuration.PreviewBorderRadius = themeData.PreviewBorderRadius;
-            Configuration.SearchLabelFontSize = themeData.SearchLabelFontSize;
-            Configuration.SearchLabelColorHex = themeData.SearchLabelColorHex;
-            Configuration.SearchLabelBgColorHex = themeData.SearchLabelBgColorHex;
-            Configuration.MainWinBtnFontSize = themeData.MainWinBtnFontSize;
-            Configuration.MainWinBtnColorHex = themeData.MainWinBtnColorHex;
-            Configuration.MainWinBtnBgColorHex = themeData.MainWinBtnBgColorHex;
-            Configuration.MainWinBtnColorHoverHex = themeData.MainWinBtnColorHoverHex;
-            Configuration.MainWinBtnBgColorHoverHex = themeData.MainWinBtnBgColorHoverHex;
-            Configuration.MainWinBtnBorderSize = themeData.MainWinBtnBorderSize;
-            Configuration.MainWinBtnBorderColorHex = themeData.MainWinBtnBorderColorHex;
-            Configuration.MainWinBtnCornerRadius = themeData.MainWinBtnCornerRadius;
             Configuration.ContextMenuFontColorHex = themeData.ContextMenuFontColorHex;
             Configuration.ContextMenuIconColorHex = themeData.ContextMenuIconColorHex;
             Configuration.ContextMenuBgColorHex = themeData.ContextMenuBgColorHex;
@@ -1549,7 +1568,7 @@ namespace ArcadeStick.ViewModels
             TreeNodesCollection.Add(new TreeCategoryNode
             {
                 HeaderText = "LOADING... PLEASE WAIT",
-                FolderColor = SafeConvertToBrush(GetGamesListEntry().FolderColorHex ?? LayerRegistry.DefaultFolderColorHex)
+                FolderColor = SafeConvertToBrush(GetLayerEntry(LayerRegistry.GamesList).FolderColorHex ?? LayerRegistry.DefaultFolderColorHex)
             });
 
             await Task.Run(async () =>
@@ -2318,7 +2337,7 @@ namespace ArcadeStick.ViewModels
             }
 
                 var rootCategories = new Dictionary<string, TreeCategoryNode>(StringComparer.OrdinalIgnoreCase);
-                var mainFolderBrush = SafeConvertToBrush(GetGamesListEntry().FolderColorHex ?? LayerRegistry.DefaultFolderColorHex);
+                var mainFolderBrush = SafeConvertToBrush(GetLayerEntry(LayerRegistry.GamesList).FolderColorHex ?? LayerRegistry.DefaultFolderColorHex);
 
                 // Prefixes the rom name onto the title when Dev Mode is active, and appends a parenthetical
                 // differentiator for clones (e.g. "1941: Counter Attack (World)") so they read distinctly

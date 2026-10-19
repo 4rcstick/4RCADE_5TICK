@@ -25,8 +25,6 @@ namespace ArcadeStick.Views
         // ColorChanged and the hex textbox's LostFocus from re-triggering each other.
         private bool _suppressTabBgColorSync;
         private bool _suppressMainColorSync;
-        private bool _suppressSearchBoxColorSync;
-        private bool _suppressSearchBoxBgColorSync; 
         private bool _suppressMediaColorSync;
         private bool _suppressOptionsColorSync;        
         private bool _suppressTabActiveColorSync;
@@ -58,13 +56,6 @@ namespace ArcadeStick.Views
         private bool _suppressVideoBorderColorSync;
         private bool _suppressNavIconsColorSync;
         private bool _suppressPreviewBorderColorSync;
-        private bool _suppressSearchLabelColorSync;
-        private bool _suppressSearchLabelBgColorSync;
-        private bool _suppressMainWinBtnColorSync;
-        private bool _suppressMainWinBtnBgColorSync;
-        private bool _suppressMainWinBtnColorHoverSync;
-        private bool _suppressMainWinBtnBgColorHoverSync;
-        private bool _suppressMainWinBtnBorderColorSync;        
         private bool _suppressContextMenuFontColorSync;
         private bool _suppressContextMenuIconColorSync;
         private bool _suppressContextMenuBgColorSync;
@@ -180,48 +171,6 @@ namespace ArcadeStick.Views
                 _suppressTabBgColorSync = true;
                 TabBgColorPicker.SelectedColor = parsedColor.Value;
                 _suppressTabBgColorSync = false;
-            }
-        }
-
-        private void SearchBoxColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressSearchBoxColorSync) return;
-            var newColor = SearchBoxColorPicker.SelectedColor;
-            _suppressSearchBoxColorSync = true;
-            TxtSearchBoxColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressSearchBoxColorSync = false;
-        }
-
-        private void TxtSearchBoxColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressSearchBoxColorSync) return;
-            var parsedColor = TryParseColor(TxtSearchBoxColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressSearchBoxColorSync = true;
-                SearchBoxColorPicker.SelectedColor = parsedColor.Value;
-                _suppressSearchBoxColorSync = false;
-            }
-        }
-
-        private void SearchBoxBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressSearchBoxBgColorSync) return;
-            var newColor = SearchBoxBgColorPicker.SelectedColor;
-            _suppressSearchBoxBgColorSync = true;
-            TxtSearchBoxBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressSearchBoxBgColorSync = false;
-        }
-
-        private void TxtSearchBoxBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressSearchBoxBgColorSync) return;
-            var parsedColor = TryParseColor(TxtSearchBoxBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressSearchBoxBgColorSync = true;
-                SearchBoxBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressSearchBoxBgColorSync = false;
             }
         }
 
@@ -432,153 +381,6 @@ namespace ArcadeStick.Views
                 _suppressPreviewBorderColorSync = true;
                 PreviewBorderColorPicker.SelectedColor = parsedColor.Value;
                 _suppressPreviewBorderColorSync = false;
-            }
-        }
-
-        private void SearchLabelColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressSearchLabelColorSync) return;
-            var newColor = SearchLabelColorPicker.SelectedColor;
-            _suppressSearchLabelColorSync = true;
-            TxtSearchLabelColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressSearchLabelColorSync = false;
-        }
-
-        private void TxtSearchLabelColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressSearchLabelColorSync) return;
-            var parsedColor = TryParseColor(TxtSearchLabelColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressSearchLabelColorSync = true;
-                SearchLabelColorPicker.SelectedColor = parsedColor.Value;
-                _suppressSearchLabelColorSync = false;
-            }
-        }
-
-        private void SearchLabelBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressSearchLabelBgColorSync) return;
-            var newColor = SearchLabelBgColorPicker.SelectedColor;
-            _suppressSearchLabelBgColorSync = true;
-            TxtSearchLabelBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressSearchLabelBgColorSync = false;
-        }
-
-        private void TxtSearchLabelBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressSearchLabelBgColorSync) return;
-            var parsedColor = TryParseColor(TxtSearchLabelBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressSearchLabelBgColorSync = true;
-                SearchLabelBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressSearchLabelBgColorSync = false;
-            }
-        }
-
-        private void MainWinBtnColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnColorSync) return;
-            var newColor = MainWinBtnColorPicker.SelectedColor;
-            _suppressMainWinBtnColorSync = true;
-            TxtMainWinBtnColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMainWinBtnColorSync = false;
-        }
-
-        private void TxtMainWinBtnColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnColorSync) return;
-            var parsedColor = TryParseColor(TxtMainWinBtnColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMainWinBtnColorSync = true;
-                MainWinBtnColorPicker.SelectedColor = parsedColor.Value;
-                _suppressMainWinBtnColorSync = false;
-            }
-        }
-
-        private void MainWinBtnBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnBgColorSync) return;
-            var newColor = MainWinBtnBgColorPicker.SelectedColor;
-            _suppressMainWinBtnBgColorSync = true;
-            TxtMainWinBtnBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMainWinBtnBgColorSync = false;
-        }
-
-        private void TxtMainWinBtnBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnBgColorSync) return;
-            var parsedColor = TryParseColor(TxtMainWinBtnBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMainWinBtnBgColorSync = true;
-                MainWinBtnBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressMainWinBtnBgColorSync = false;
-            }
-        }
-
-        private void MainWinBtnColorHoverPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnColorHoverSync) return;
-            var newColor = MainWinBtnColorHoverPicker.SelectedColor;
-            _suppressMainWinBtnColorHoverSync = true;
-            TxtMainWinBtnColorHoverHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMainWinBtnColorHoverSync = false;
-        }
-
-        private void TxtMainWinBtnColorHoverHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnColorHoverSync) return;
-            var parsedColor = TryParseColor(TxtMainWinBtnColorHoverHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMainWinBtnColorHoverSync = true;
-                MainWinBtnColorHoverPicker.SelectedColor = parsedColor.Value;
-                _suppressMainWinBtnColorHoverSync = false;
-            }
-        }
-
-        private void MainWinBtnBgColorHoverPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnBgColorHoverSync) return;
-            var newColor = MainWinBtnBgColorHoverPicker.SelectedColor;
-            _suppressMainWinBtnBgColorHoverSync = true;
-            TxtMainWinBtnBgColorHoverHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMainWinBtnBgColorHoverSync = false;
-        }
-
-        private void TxtMainWinBtnBgColorHoverHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnBgColorHoverSync) return;
-            var parsedColor = TryParseColor(TxtMainWinBtnBgColorHoverHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMainWinBtnBgColorHoverSync = true;
-                MainWinBtnBgColorHoverPicker.SelectedColor = parsedColor.Value;
-                _suppressMainWinBtnBgColorHoverSync = false;
-            }
-        }
-
-        private void MainWinBtnBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnBorderColorSync) return;
-            var newColor = MainWinBtnBorderColorPicker.SelectedColor;
-            _suppressMainWinBtnBorderColorSync = true;
-            TxtMainWinBtnBorderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMainWinBtnBorderColorSync = false;
-        }
-
-        private void TxtMainWinBtnBorderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainWinBtnBorderColorSync) return;
-            var parsedColor = TryParseColor(TxtMainWinBtnBorderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMainWinBtnBorderColorSync = true;
-                MainWinBtnBorderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressMainWinBtnBorderColorSync = false;
             }
         }
 
@@ -1372,27 +1174,6 @@ namespace ArcadeStick.Views
             // Framework Border Color sync removed - no UI field currently exists (see note near
             // SeparatorColorPicker_ColorChanged). _settings.BorderColorFramework is untouched here,
             // so it still loads correctly for runtime use, it just isn't reflected in any control.
-            TxtSearchBoxFontSize.Text = _settings.SearchBoxFontSize.ToString();
-            TxtSearchBoxColorHex.Text = FormatHexCode(_settings.SearchBoxColorHex);
-            {
-                var parsedColor = TryParseColor(TxtSearchBoxColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressSearchBoxColorSync = true;
-                    SearchBoxColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressSearchBoxColorSync = false;
-                }
-            }
-            TxtSearchBoxBgColorHex.Text = FormatHexCode(_settings.SearchBoxBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtSearchBoxBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressSearchBoxBgColorSync = true;
-                    SearchBoxBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressSearchBoxBgColorSync = false;
-                }
-            }
             TxtGameNameHeaderFontSize.Text = _settings.GameNameHeaderFontSize.ToString();
             TxtGameNameHeaderColorHex.Text = FormatHexCode(_settings.GameNameHeaderColorHex);
             {
@@ -1504,80 +1285,6 @@ namespace ArcadeStick.Views
                 }
             }
             TxtPreviewBorderRadius.Text = _settings.PreviewBorderRadius.ToString();
-            TxtSearchLabelFontSize.Text = _settings.SearchLabelFontSize.ToString();
-            TxtSearchLabelColorHex.Text = FormatHexCode(_settings.SearchLabelColorHex);
-            {
-                var parsedColor = TryParseColor(TxtSearchLabelColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressSearchLabelColorSync = true;
-                    SearchLabelColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressSearchLabelColorSync = false;
-                }
-            }
-            TxtSearchLabelBgColorHex.Text = FormatHexCode(_settings.SearchLabelBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtSearchLabelBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressSearchLabelBgColorSync = true;
-                    SearchLabelBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressSearchLabelBgColorSync = false;
-                }
-            }
-            TxtMainWinBtnFontSize.Text = _settings.MainWinBtnFontSize.ToString();
-            TxtMainWinBtnColorHex.Text = FormatHexCode(_settings.MainWinBtnColorHex);
-            {
-                var parsedColor = TryParseColor(TxtMainWinBtnColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMainWinBtnColorSync = true;
-                    MainWinBtnColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressMainWinBtnColorSync = false;
-                }
-            }
-            TxtMainWinBtnBgColorHex.Text = FormatHexCode(_settings.MainWinBtnBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtMainWinBtnBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMainWinBtnBgColorSync = true;
-                    MainWinBtnBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressMainWinBtnBgColorSync = false;
-                }
-            }
-            TxtMainWinBtnColorHoverHex.Text = FormatHexCode(_settings.MainWinBtnColorHoverHex);
-            {
-                var parsedColor = TryParseColor(TxtMainWinBtnColorHoverHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMainWinBtnColorHoverSync = true;
-                    MainWinBtnColorHoverPicker.SelectedColor = parsedColor.Value;
-                    _suppressMainWinBtnColorHoverSync = false;
-                }
-            }
-            TxtMainWinBtnBgColorHoverHex.Text = FormatHexCode(_settings.MainWinBtnBgColorHoverHex);
-            {
-                var parsedColor = TryParseColor(TxtMainWinBtnBgColorHoverHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMainWinBtnBgColorHoverSync = true;
-                    MainWinBtnBgColorHoverPicker.SelectedColor = parsedColor.Value;
-                    _suppressMainWinBtnBgColorHoverSync = false;
-                }
-            }
-            TxtMainWinBtnBorderSize.Text = _settings.MainWinBtnBorderSize.ToString();
-            TxtMainWinBtnBorderColorHex.Text = FormatHexCode(_settings.MainWinBtnBorderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtMainWinBtnBorderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMainWinBtnBorderColorSync = true;
-                    MainWinBtnBorderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressMainWinBtnBorderColorSync = false;
-                }
-            }
-            TxtMainWinBtnCornerRadius.Text = _settings.MainWinBtnCornerRadius.ToString();            
             
                         
             TxtContextMenuFontColorHex.Text = FormatHexCode(_settings.ContextMenuFontColorHex);
@@ -2047,9 +1754,6 @@ namespace ArcadeStick.Views
                     StandardColorHex = _settings.StandardColorHex,
                     InputFontSize = _settings.InputFontSize,
                     InputColorHex = _settings.InputColorHex,
-                    SearchBoxFontSize = _settings.SearchBoxFontSize,
-                    SearchBoxColorHex = _settings.SearchBoxColorHex,
-                    SearchBoxBgColorHex = _settings.SearchBoxBgColorHex,
                     GameNameHeaderFontSize = _settings.GameNameHeaderFontSize,
                     GameNameHeaderColorHex = _settings.GameNameHeaderColorHex,
                     PubYearRatingFontSize = _settings.PubYearRatingFontSize,
@@ -2071,17 +1775,6 @@ namespace ArcadeStick.Views
                     PreviewBorderSize = _settings.PreviewBorderSize,
                     PreviewBorderColorHex = _settings.PreviewBorderColorHex,
                     PreviewBorderRadius = _settings.PreviewBorderRadius,
-                    SearchLabelFontSize = _settings.SearchLabelFontSize,
-                    SearchLabelColorHex = _settings.SearchLabelColorHex,
-                    SearchLabelBgColorHex = _settings.SearchLabelBgColorHex,
-                    MainWinBtnFontSize = _settings.MainWinBtnFontSize,
-                    MainWinBtnColorHex = _settings.MainWinBtnColorHex,
-                    MainWinBtnBgColorHex = _settings.MainWinBtnBgColorHex,
-                    MainWinBtnColorHoverHex = _settings.MainWinBtnColorHoverHex,
-                    MainWinBtnBgColorHoverHex = _settings.MainWinBtnBgColorHoverHex,
-                    MainWinBtnBorderSize = _settings.MainWinBtnBorderSize,
-                    MainWinBtnBorderColorHex = _settings.MainWinBtnBorderColorHex,
-                    MainWinBtnCornerRadius = _settings.MainWinBtnCornerRadius,
                     ContextMenuFontColorHex = _settings.ContextMenuFontColorHex,
                     ContextMenuIconColorHex = _settings.ContextMenuIconColorHex,
                     ContextMenuBgColorHex = _settings.ContextMenuBgColorHex,
@@ -2302,9 +1995,6 @@ namespace ArcadeStick.Views
             _settings.StandardColorHex = NormalizeHexInput(TxtStandardColorHex.Text);
             // if (int.TryParse(TxtInputFontSize.Text, out int iSize)) _settings.InputFontSize = iSize;
             // _settings.InputColorHex = TxtInputColorHex.Text;
-            if (int.TryParse(TxtSearchBoxFontSize.Text, out int sbSize)) _settings.SearchBoxFontSize = sbSize;
-            _settings.SearchBoxColorHex = NormalizeHexInput(TxtSearchBoxColorHex.Text);
-            _settings.SearchBoxBgColorHex = NormalizeHexInput(TxtSearchBoxBgColorHex.Text);
 
             if (int.TryParse(TxtGameNameHeaderFontSize.Text, out int gameNameHeaderSize)) _settings.GameNameHeaderFontSize = gameNameHeaderSize;
             _settings.GameNameHeaderColorHex = NormalizeHexInput(TxtGameNameHeaderColorHex.Text);
@@ -2327,19 +2017,6 @@ namespace ArcadeStick.Views
             if (double.TryParse(TxtPreviewBorderSize.Text, out double previewBorderSize)) _settings.PreviewBorderSize = previewBorderSize;
             _settings.PreviewBorderColorHex = NormalizeHexInput(TxtPreviewBorderColorHex.Text);
             if (double.TryParse(TxtPreviewBorderRadius.Text, out double previewBorderRadius)) _settings.PreviewBorderRadius = previewBorderRadius;
-
-            if (int.TryParse(TxtSearchLabelFontSize.Text, out int searchLabelSize)) _settings.SearchLabelFontSize = searchLabelSize;
-            _settings.SearchLabelColorHex = NormalizeHexInput(TxtSearchLabelColorHex.Text);
-            _settings.SearchLabelBgColorHex = NormalizeHexInput(TxtSearchLabelBgColorHex.Text);
-
-            if (int.TryParse(TxtMainWinBtnFontSize.Text, out int mainWinBtnSize)) _settings.MainWinBtnFontSize = mainWinBtnSize;
-            _settings.MainWinBtnColorHex = NormalizeHexInput(TxtMainWinBtnColorHex.Text);
-            _settings.MainWinBtnBgColorHex = NormalizeHexInput(TxtMainWinBtnBgColorHex.Text);
-            _settings.MainWinBtnColorHoverHex = NormalizeHexInput(TxtMainWinBtnColorHoverHex.Text);
-            _settings.MainWinBtnBgColorHoverHex = NormalizeHexInput(TxtMainWinBtnBgColorHoverHex.Text);
-            if (double.TryParse(TxtMainWinBtnBorderSize.Text, out double mainWinBtnBorderSize)) _settings.MainWinBtnBorderSize = mainWinBtnBorderSize;
-            _settings.MainWinBtnBorderColorHex = NormalizeHexInput(TxtMainWinBtnBorderColorHex.Text);
-            if (double.TryParse(TxtMainWinBtnCornerRadius.Text, out double mainWinBtnCornerRadius)) _settings.MainWinBtnCornerRadius = mainWinBtnCornerRadius;
 
             
 
