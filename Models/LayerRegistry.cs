@@ -370,6 +370,11 @@ namespace ArcadeStick.Models
         // Main Window Background: the image (or the built-in default) shows unless the user disables it
         public const bool DefaultImageDisabled = false;
 
+        // Main Window Background color (the former flat BackgroundColor default). Also the app's popup and dialog
+        // background: the Theme Builder picker popups, Sorting and Manage Playlists windows, main window popups and
+        // the no-art banner all follow it.
+        public const string DefaultMainBackgroundColorHex = "#FF1C1C1E";
+
         // Group Ids (a group is one row in the Advanced tab's layer list - see AllGroups)
         public const string SearchAndButtonsGroup = "SearchAndButtons";
         public const string GameInfoGroup = "GameInfoGroup";
@@ -454,8 +459,9 @@ namespace ArcadeStick.Models
             {
                 if (!def.IsPositionable)
                 {
-                    // Fill layers (the Main Window Background): image on by default, empty path = built-in image
-                    layout.Layers.Add(new LayerLayoutEntry { Id = def.Id, X = 0, Y = 0, Width = width, Height = height, Z = def.Z, Visible = true, ImageDisabled = DefaultImageDisabled });
+                    // Fill layers (the Main Window Background): image on by default, empty path = built-in image, and the
+                    // background color (BgColorHex) under it
+                    layout.Layers.Add(new LayerLayoutEntry { Id = def.Id, X = 0, Y = 0, Width = width, Height = height, Z = def.Z, Visible = true, ImageDisabled = DefaultImageDisabled, BgColorHex = DefaultMainBackgroundColorHex });
                     continue;
                 }
 
@@ -648,8 +654,12 @@ namespace ArcadeStick.Models
                 // Search & Buttons: fill any missing label, box or shared button style value
                 FillSearchButtonsStyle(entry);
 
-                // Main Window Background: the Disable flag fills in when missing (saved value kept)
-                if (entry.Id == MainBackground) entry.ImageDisabled ??= DefaultImageDisabled;
+                // Main Window Background: the Disable flag and the background color fill in when missing (saved values kept)
+                if (entry.Id == MainBackground)
+                {
+                    entry.ImageDisabled ??= DefaultImageDisabled;
+                    if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultMainBackgroundColorHex;
+                }
 
                 result.Layers.Add(entry);
             }

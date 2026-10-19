@@ -62,22 +62,26 @@ namespace ArcadeStick.Views
         // [END SECTION: Constructor & Playlist Context Setup]
 
         // [SECTION: Theme Application]
-        // Applies the current theme's background color (falling back to main window background if
-        // OptionsBg is unset) and input font size/color to this dialog's text fields.
+        // Applies the current theme's background color (OptionsBg, or the Main Window Background layer's color
+        // when OptionsBg is unset) and input font size/color to this dialog's text fields.
         private void ApplyThemeConfigurations()
         {
-            // Fallback rule mapping: Inherit background color from main window context if blank
-            string backgroundHex = !string.IsNullOrWhiteSpace(_viewModel.Configuration.OptionsBg)
-                ? _viewModel.Configuration.OptionsBg
-                : _viewModel.Configuration.BackgroundColor;
-
-            try
+            // Fallback rule mapping: inherit the Main Window Background layer's color (the shared MainBackgroundBrush
+            // resource, which follows it live) when OptionsBg is blank
+            if (string.IsNullOrWhiteSpace(_viewModel.Configuration.OptionsBg))
             {
-                this.Background = (SolidColorBrush)new BrushConverter().ConvertFromString(backgroundHex)!;
+                SetResourceReference(BackgroundProperty, MainWindow.MainBackgroundBrushKey);
             }
-            catch
+            else
             {
-                this.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E1E24"));
+                try
+                {
+                    this.Background = (SolidColorBrush)new BrushConverter().ConvertFromString(_viewModel.Configuration.OptionsBg)!;
+                }
+                catch
+                {
+                    this.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E1E24"));
+                }
             }
 
             // Apply global user typography size definitions

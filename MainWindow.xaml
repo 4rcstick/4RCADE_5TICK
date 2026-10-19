@@ -768,11 +768,10 @@
                         <colorpicker:PortableColorPicker x:Name="FolderColorPickerControl" Width="26" Height="26" ShowAlpha="False" ColorChanged="FolderColorPickerControl_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
                                 <!-- Themes the picker's OWN internal popup (the part that opens on click) to
-                                     match the rest of the app, mirroring ThemesTabControl's MainColorPicker
-                                     pattern - AncestorType=Window here resolves to MainWindow (this flyout's
-                                     host), so it binds ThemeMainColor/ThemeBorderColor (MainViewModel's actual
-                                     property names) rather than ThemesTabControl's BackgroundColor, which
-                                     would resolve against OptionsWindow instead. -->
+                                     match the rest of the app - AncestorType=Window here resolves to MainWindow
+                                     (this flyout's host), so it binds MainViewModel's ThemeMainColor (the Main
+                                     Window Background layer's color) and ThemeBorderColor directly. The Theme
+                                     Builder's pickers use the shared MainBackgroundBrush resource instead. -->
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">

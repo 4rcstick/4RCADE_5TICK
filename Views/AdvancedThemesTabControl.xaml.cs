@@ -498,6 +498,7 @@ namespace ArcadeStick.Views
                 && GetEntry(LayerRegistry.MainBackground) is LayerLayoutEntry bgEntry)
             {
                 _loading = true;
+                ShowColor(MainBgColorPicker, TxtMainBgColorHex, bgEntry.BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex);
                 TxtMainBgFile.Text = bgEntry.ImagePath ?? "";
                 ChkMainBgImageDisabled.IsChecked = bgEntry.ImageDisabled ?? LayerRegistry.DefaultImageDisabled;
                 _loading = false;
@@ -1087,6 +1088,12 @@ namespace ArcadeStick.Views
             entry.ImageDisabled = ChkMainBgImageDisabled.IsChecked == true;
             RaiseGuides();
         }
+
+        // Background color picker and hex box (same helpers and revert rules as the Search & Buttons colors)
+        private void MainBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(MainBgColorPicker, TxtMainBgColorHex, GetEntry(LayerRegistry.MainBackground), (en, hex) => en.BgColorHex = hex);
+        private void TxtMainBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(MainBgColorPicker, TxtMainBgColorHex, GetEntry(LayerRegistry.MainBackground), en => en.BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex, (en, hex) => en.BgColorHex = hex);
         // [END SECTION: Main Window Background Image]
 
         private void BtnClearShapeFile_Click(object sender, RoutedEventArgs e)

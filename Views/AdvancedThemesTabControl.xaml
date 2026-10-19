@@ -14,7 +14,7 @@
         <Style x:Key="PickerPopupGridStyle" TargetType="Grid">
             <Style.Triggers>
                 <Trigger Property="Name" Value="MainGrid">
-                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -1055,11 +1055,26 @@
                     <!-- [END SECTION: Marquee - Logo Tab] -->
 
                     <!-- [SECTION: Main Window Background - Image Tab] -->
-                    <!-- The Main Window Background layer's wallpaper (per resolution): an image or a looping mp4, stored in the
-                         entry's ImagePath, plus the Disable flag (solid Background Color only). Same layout as the Logo tab. -->
+                    <!-- The Main Window Background layer (per resolution): the background color (BgColorHex), then the wallpaper,
+                         an image or a looping mp4 stored in the entry's ImagePath, plus the Disable flag (solid background color
+                         only). Same layout as the Logo tab, with a color row on top. -->
                     <TabItem x:Name="TabMainBgImage" Header="IMAGE" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
+                                <!-- Background color: fills the window under the wallpaper (and alone when it is disabled); also the
+                                     app's popup and dialog background -->
+                                <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="MainBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="MainBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtMainBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtMainBgColorHex_LostFocus"/>
+                                </StackPanel>
+
                                 <TextBlock Text="Background image or video (png, jpg, bmp, mp4):" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>

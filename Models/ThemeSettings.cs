@@ -17,7 +17,6 @@ namespace ArcadeStick.Models
         // 0 means "not saved" (older themes), in which case the current resolution is kept.
         public int ActiveWidth { get; set; } = 0;
         public int ActiveHeight { get; set; } = 0;
-        public string BackgroundColor { get; set; } = "#FF1C1C1E";
         public string VideoBoxBg { get; set; } = "#FF000000";
         public string OptionsBg { get; set; } = "";
         public string BorderColorFramework { get; set; } = "#FF3A3A3C";

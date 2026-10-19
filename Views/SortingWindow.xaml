@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ArcadeStick"
         Title="4RCADE 5TICK Sorting and Filter Options" Height="610" Width="500"
         WindowStartupLocation="CenterOwner"
-        Background="{Binding BackgroundColor, FallbackValue=#1C1C1E}"
+        Background="{DynamicResource MainBackgroundBrush}"
         BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}"
         BorderThickness="1">
 

@@ -126,47 +126,6 @@
 
                 <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
-                <!-- [SECTION: Main Window] -->
-                <!-- Main Window Background Color (carried over unchanged from the old Background Colors section). The
-                 background image and its Disable checkbox moved to the Advanced tab's Main Window Background layer
-                 (Image tab); the search label, search box and main window button styling moved to its Search &
-                 Buttons layer. -->
-                <TextBlock Text="MAIN WINDOW" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-
-                <!-- Background Color (CARRIED OVER - unchanged bindings) -->
-                <TextBlock Text="Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                <Grid Margin="0,0,0,15" HorizontalAlignment="Left">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="100"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="MainColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="MainColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="2" x:Name="TxtMainColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtMainColorHex_LostFocus"/>
-                </Grid>
-                <!-- [END SECTION: Main Window] -->
-
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
-
                 <!-- [SECTION: Games List Panel] -->
                 <!-- Consolidates Games List Panel Fonts (carried over unchanged) with the Games List Panel's
                  background image/color (carried over from old Background Images/Background Colors) and new
@@ -211,7 +170,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -232,7 +191,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -296,7 +255,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -368,7 +327,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -390,7 +349,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -446,7 +405,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -468,7 +427,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -524,7 +483,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -546,7 +505,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -602,7 +561,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -633,7 +592,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -690,7 +649,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -744,7 +703,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -841,7 +800,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -863,7 +822,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -919,7 +878,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -941,7 +900,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -988,7 +947,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1009,7 +968,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1058,7 +1017,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1107,7 +1066,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -1135,7 +1094,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -1201,7 +1160,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1222,7 +1181,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1243,7 +1202,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1264,7 +1223,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1312,7 +1271,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -1340,7 +1299,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -1388,7 +1347,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1409,7 +1368,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1467,7 +1426,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1489,7 +1448,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1551,7 +1510,7 @@
                                         <Style TargetType="Grid">
                                             <Style.Triggers>
                                                 <Trigger Property="Name" Value="MainGrid">
-                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
@@ -1583,7 +1542,7 @@
                                         <Style TargetType="Grid">
                                             <Style.Triggers>
                                                 <Trigger Property="Name" Value="MainGrid">
-                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
@@ -1615,7 +1574,7 @@
                                         <Style TargetType="Grid">
                                             <Style.Triggers>
                                                 <Trigger Property="Name" Value="MainGrid">
-                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
@@ -1647,7 +1606,7 @@
                                         <Style TargetType="Grid">
                                             <Style.Triggers>
                                                 <Trigger Property="Name" Value="MainGrid">
-                                                    <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
@@ -1684,7 +1643,7 @@
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                             </Trigger>
                                         </Style.Triggers>
                                     </Style>
@@ -1744,7 +1703,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1765,7 +1724,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1786,7 +1745,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1829,7 +1788,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1850,7 +1809,7 @@
                                 <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.BackgroundColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
+                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>

@@ -24,7 +24,6 @@ namespace ArcadeStick.Views
         // per Theme*ColorHex field (rename to match, e.g. _suppressGameColorSync). Prevents the picker's
         // ColorChanged and the hex textbox's LostFocus from re-triggering each other.
         private bool _suppressTabBgColorSync;
-        private bool _suppressMainColorSync;
         private bool _suppressMediaColorSync;
         private bool _suppressOptionsColorSync;        
         private bool _suppressTabActiveColorSync;
@@ -619,27 +618,6 @@ namespace ArcadeStick.Views
             }
         }
 
-        private void MainColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainColorSync) return;
-            var newColor = MainColorPicker.SelectedColor;
-            _suppressMainColorSync = true;
-            TxtMainColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMainColorSync = false;
-        }
-
-        private void TxtMainColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMainColorSync) return;
-            var parsedColor = TryParseColor(TxtMainColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMainColorSync = true;
-                MainColorPicker.SelectedColor = parsedColor.Value;
-                _suppressMainColorSync = false;
-            }
-        }       
-        
         private void MediaColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
             if (_suppressMediaColorSync) return;
@@ -1138,16 +1116,6 @@ namespace ArcadeStick.Views
             TxtThemeMissingPreviewPath.Text = _settings.ThemeMissingPreview;
 
             // Color System Enforcements (Filtered through Gatekeeper)
-            TxtMainColorHex.Text = FormatHexCode(_settings.BackgroundColor);
-            {
-                var parsedColor = TryParseColor(TxtMainColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMainColorSync = true;
-                    MainColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressMainColorSync = false;
-                }
-            }
             
             TxtMediaColorHex.Text = FormatHexCode(_settings.VideoBoxBg);
             {
@@ -1723,7 +1691,6 @@ namespace ArcadeStick.Views
                     MediaWindowWallpaper = _settings.MediaWindowWallpaper,
                     ThemeBootSplash = _settings.ThemeBootSplash,
                     ThemeMissingPreview = _settings.ThemeMissingPreview,
-                    BackgroundColor = _settings.BackgroundColor,
                     VideoBoxBg = _settings.VideoBoxBg,
                     OptionsBg = _settings.OptionsBg,
                     BorderColorFramework = _settings.BorderColorFramework,
@@ -1955,7 +1922,6 @@ namespace ArcadeStick.Views
             _settings.ThemeBootSplash = TxtThemeBootSplashPath.Text;
             _settings.ThemeMissingPreview = TxtThemeMissingPreviewPath.Text;
 
-            _settings.BackgroundColor = NormalizeHexInput(TxtMainColorHex.Text);
             
             _settings.VideoBoxBg = NormalizeHexInput(TxtMediaColorHex.Text);
             _settings.OptionsBg = NormalizeHexInput(TxtOptionsColorHex.Text);

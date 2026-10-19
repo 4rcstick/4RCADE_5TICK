@@ -645,7 +645,10 @@ namespace ArcadeStick.ViewModels
         // Any new theme property added to ConfigurationSettings needs a forwarder here too, or XAML bindings
         // referencing "Theme*" names will silently fail. This list must also be raised in RefreshThemeBindings()
         // below (sync point 2) - a property added here but missing there won't update live after Theme Builder saves.
-        public string ThemeMainColor => Configuration.BackgroundColor;
+        // The Main Window Background layer's color for the active resolution (its BgColorHex). Fills the main window
+        // under the wallpaper (and alone when the wallpaper is disabled), and is also the app's popup and dialog
+        // background (see MainWindow.UpdateMainBackgroundBrush for the windows that cannot bind here).
+        public string ThemeMainColor => GetLayerEntry(LayerRegistry.MainBackground).BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex;
         public string ThemeMediaColor => Configuration.VideoBoxBg;
         public string ThemeBorderColor => Configuration.BorderColorFramework;
         public double ThemeBorderWidth => Configuration.BorderWidthValue;
@@ -820,6 +823,12 @@ namespace ArcadeStick.ViewModels
 
         // Full resolved path for the MediaElement wallpaper; null unless the wallpaper is an mp4 that exists on disk
         public string? ThemeMainWallpaperVideoPath => IsMainWallpaperVideo ? ResolveThemeFilePath(MainWallpaperPath) : null;
+
+        // Re-raises the background color binding after the Main Window Background entry's color changed (MainWindow.ApplyLayout)
+        public void RefreshMainBackgroundColor()
+        {
+            OnPropertyChanged(nameof(ThemeMainColor));
+        }
 
         // Re-raises the three wallpaper bindings after the Main Window Background entry changed (MainWindow.ApplyLayout's key)
         public void RefreshMainWallpaper()
@@ -1269,7 +1278,6 @@ namespace ArcadeStick.ViewModels
             Configuration.MediaWindowWallpaper = themeData.MediaWindowWallpaper;
             Configuration.ThemeBootSplash = themeData.ThemeBootSplash;
             Configuration.ThemeMissingPreview = themeData.ThemeMissingPreview;
-            Configuration.BackgroundColor = themeData.BackgroundColor;
             Configuration.VideoBoxBg = themeData.VideoBoxBg;
             Configuration.OptionsBg = themeData.OptionsBg;
             Configuration.BorderColorFramework = themeData.BorderColorFramework;

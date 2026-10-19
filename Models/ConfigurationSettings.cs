@@ -49,7 +49,6 @@ namespace ArcadeStick.Models
         // =========================================================================
         // 🏁 START: THEME PALETTE HEX BRUSH PROPERTIES
         // =========================================================================
-        public string BackgroundColor { get; set; } = "#FF1C1C1E";
         public string VideoBoxBg { get; set; } = "#FF000000";
         public string VideoBoxRecordBg { get; set; } = "#4A0000";
         public string TextColor { get; set; } = "#F2F2F7";
@@ -395,7 +394,6 @@ namespace ArcadeStick.Models
             this.ActiveResolutionWidth = source.ActiveResolutionWidth;
             this.ActiveResolutionHeight = source.ActiveResolutionHeight;
             this.Layouts = source.Layouts ?? new List<ThemeLayout>();
-            this.BackgroundColor = source.BackgroundColor;
             this.VideoBoxBg = source.VideoBoxBg;
             this.OptionsBg = source.OptionsBg;
             this.BorderColorFramework = source.BorderColorFramework;
