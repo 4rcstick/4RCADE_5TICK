@@ -435,6 +435,14 @@ namespace ArcadeStick.ViewModels
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(IsGameSelected));
 
+                    // Nothing selected (e.g. a folder was clicked): drop the marquee and the no-art banner
+                    // right away instead of waiting for the preview debounce, so they don't linger over the logo.
+                    if (value == null)
+                    {
+                        MarqueeImage = null;
+                        MarqueeMissing = false;
+                    }
+
                     // Play-stats footer text - a plain synchronous string lookup, completely independent
                     // of the video/preview pipeline below. Deliberately its own separate line, not folded
                     // into any of the media-loading logic that follows.
@@ -638,14 +646,10 @@ namespace ArcadeStick.ViewModels
         // referencing "Theme*" names will silently fail. This list must also be raised in RefreshThemeBindings()
         // below (sync point 2) - a property added here but missing there won't update live after Theme Builder saves.
         public string ThemeMainColor => Configuration.BackgroundColor;
-        public string ThemeGamesColor => Configuration.FileListBg;
-        public string ThemeMarqueeColor => Configuration.MarqueeBoxBg;
         public string ThemeMediaColor => Configuration.VideoBoxBg;
         public string ThemeBorderColor => Configuration.BorderColorFramework;
         public double ThemeBorderWidth => Configuration.BorderWidthValue;
         public double ThemeBorderCurve => Configuration.BorderCurveValue;
-        public string ThemeMarqueeBorderColor => Configuration.MarqueeBorderColorHex;
-        public double ThemeMarqueeBorderWidth => Configuration.MarqueeBorderWidthValue;
         public string ThemeSeparatorColor => Configuration.SeparatorColorHex;
         public string ThemeScrollTrackColor => Configuration.ScrollTrackColor;
         public string ThemeScrollTrackHoverColor => Configuration.ScrollTrackHoverColor;
@@ -704,15 +708,11 @@ namespace ArcadeStick.ViewModels
         public double ThemeMainWinBtnBorderSize => Configuration.MainWinBtnBorderSize;
         public string ThemeMainWinBtnBorderColor => Configuration.MainWinBtnBorderColorHex;
         public double ThemeMainWinBtnCornerRadius => Configuration.MainWinBtnCornerRadius;
-        public double ThemeGamesBorderSize => Configuration.GamesBorderSize;
-        public string ThemeGamesBorderColor => Configuration.GamesBorderColorHex;
-        public double ThemeGamesBorderCornerRadius => Configuration.GamesBorderCornerRadius;
         public string ThemeContextMenuFontColor => Configuration.ContextMenuFontColorHex;
         public string ThemeContextMenuIconColor => Configuration.ContextMenuIconColorHex;
         public string ThemeContextMenuBgColor => Configuration.ContextMenuBgColorHex;
         public string ThemeContextMenuHoverColor => Configuration.ContextMenuHoverColorHex;
         public string ThemeContextMenuHoverBgColor => Configuration.ContextMenuHoverBgColorHex;
-        public double ThemeMarqueeBorderRadius => Configuration.MarqueeBorderRadius;
         public int ThemeSubTextFontSize => Configuration.SubTextFontSize;
         public string ThemeSubTextColor => Configuration.SubTextColorHex;
         public string ThemeOptionsMenuBgColor => Configuration.OptionsMenuBgColorHex;
@@ -753,16 +753,34 @@ namespace ArcadeStick.ViewModels
 
         // Full resolved path for the MediaElement wallpaper; null unless the wallpaper is an mp4 that exists on disk
         public string? ThemeMainWallpaperVideoPath => IsMainWallpaperVideo ? ResolveThemeFilePath(Configuration.MainWindowWallpaper) : null;
-        public ImageSource? ThemeGamesWallpaper => LoadThemeImage(Configuration.GamesListWallpaper);
-
-        public ImageSource? ThemeMarqueeWallpaper => LoadThemeImage(Configuration.MarqueeWindowWallpaper);
-
+        
         public ImageSource? ThemeMediaWallpaper => LoadThemeImage(Configuration.MediaWindowWallpaper);
 
+        // The Marquee layer's entry for the active resolution, where its logo path lives (per resolution).
+        // Resolved with registry defaults filling any gaps, so it is never null.
+        private LayerLayoutEntry GetMarqueeEntry()
+        {
+            int width = Configuration.ActiveResolutionWidth;
+            int height = Configuration.ActiveResolutionHeight;
+            var saved = Configuration.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+            var layout = LayerRegistry.ResolveLayout(saved, width, height);
+            return layout.Layers.First(e => e.Id == LayerRegistry.MarqueePanel);
+        }
+
+        // The logo path currently set on the Marquee layer (empty = use the built-in logo). MainWindow compares
+        // this between ApplyLayout runs to know when the logo needs refreshing.
+        public string MarqueeLogoPath => GetMarqueeEntry().ImagePath ?? "";
+
         public ImageSource? ThemeLogoAsset => LoadThemeImage(
-            !string.IsNullOrWhiteSpace(Configuration.ThemeLogo)
-                ? Configuration.ThemeLogo
+            !string.IsNullOrWhiteSpace(MarqueeLogoPath)
+                ? MarqueeLogoPath
                 : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_marquee.png"));
+
+        // Re-raises the logo binding after the Marquee layer's logo path changed.
+        public void RefreshMarqueeLogo()
+        {
+            OnPropertyChanged(nameof(ThemeLogoAsset));
+        }
 
         // Resolves the boot splash to the custom theme path if set, else the bundled default - preferring
         // an mp4 companion file over the png when falling back to the default asset
@@ -937,14 +955,10 @@ namespace ArcadeStick.ViewModels
             ResolveMarqueeImage();
 
             OnPropertyChanged(nameof(ThemeMainColor));
-            OnPropertyChanged(nameof(ThemeGamesColor));
-            OnPropertyChanged(nameof(ThemeMarqueeColor));
             OnPropertyChanged(nameof(ThemeMediaColor));
             OnPropertyChanged(nameof(ThemeBorderColor));
             OnPropertyChanged(nameof(ThemeBorderWidth));
             OnPropertyChanged(nameof(ThemeBorderCurve));
-            OnPropertyChanged(nameof(ThemeMarqueeBorderColor));
-            OnPropertyChanged(nameof(ThemeMarqueeBorderWidth));
             OnPropertyChanged(nameof(ThemeSeparatorColor));
             OnPropertyChanged(nameof(ThemeScrollTrackColor));
             OnPropertyChanged(nameof(ThemeScrollTrackHoverColor));
@@ -986,15 +1000,11 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMainWinBtnBorderSize));
             OnPropertyChanged(nameof(ThemeMainWinBtnBorderColor));
             OnPropertyChanged(nameof(ThemeMainWinBtnCornerRadius));
-            OnPropertyChanged(nameof(ThemeGamesBorderSize));
-            OnPropertyChanged(nameof(ThemeGamesBorderColor));
-            OnPropertyChanged(nameof(ThemeGamesBorderCornerRadius));
             OnPropertyChanged(nameof(ThemeContextMenuFontColor));
             OnPropertyChanged(nameof(ThemeContextMenuIconColor));
             OnPropertyChanged(nameof(ThemeContextMenuBgColor));
             OnPropertyChanged(nameof(ThemeContextMenuHoverColor));
             OnPropertyChanged(nameof(ThemeContextMenuHoverBgColor));
-            OnPropertyChanged(nameof(ThemeMarqueeBorderRadius));
             OnPropertyChanged(nameof(ThemeSubTextFontSize));
             OnPropertyChanged(nameof(ThemeSubTextColor));
             OnPropertyChanged(nameof(ThemeOptionsMenuBgColor));
@@ -1024,8 +1034,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMainWallpaper));
             OnPropertyChanged(nameof(IsMainWallpaperVideo));
             OnPropertyChanged(nameof(ThemeMainWallpaperVideoPath));
-            OnPropertyChanged(nameof(ThemeGamesWallpaper));
-            OnPropertyChanged(nameof(ThemeMarqueeWallpaper));
             OnPropertyChanged(nameof(ThemeMediaWallpaper));
             OnPropertyChanged(nameof(ThemeLogoAsset));
             OnPropertyChanged(nameof(ThemeBootSplashAsset));
@@ -1039,7 +1047,7 @@ namespace ArcadeStick.ViewModels
             ThemeBindingsRefreshed?.Invoke();
         }
 
-        // Walks the existing tree in-place and reapplies folder/favorites colors from the current theme.
+        // Walks the existing tree in-place and reapplies the folder color from the current theme (folders with their own color file are left alone).
         // Does NOT rebuild the tree (that would lose expand state) - see project notes on RefreshFolderColorsLive.
         // Also pushes FolderFontSize/FolderSelectedBgColor/FolderSelectedColor/ArrowColor onto every node -
         // these were added alongside FolderColor to eliminate RelativeSource AncestorType=TreeView bindings
@@ -1048,7 +1056,6 @@ namespace ArcadeStick.ViewModels
         {
             var gamesListEntry = GetGamesListEntry();
             var mainFolderBrush = SafeConvertToBrush(gamesListEntry.FolderColorHex ?? LayerRegistry.DefaultFolderColorHex);
-            var favoritesBrush = SafeConvertToBrush(Configuration.FavoritesColorHex);
             var folderSelectedBgBrush = SafeConvertToBrush(gamesListEntry.FolderSelectedBgColorHex ?? LayerRegistry.DefaultFolderSelectedBgColorHex);
             var folderSelectedBrush = SafeConvertToBrush(gamesListEntry.FolderSelectedColorHex ?? LayerRegistry.DefaultFolderSelectedColorHex);
             var arrowBrush = SafeConvertToBrush(gamesListEntry.ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex);
@@ -1061,20 +1068,24 @@ namespace ArcadeStick.ViewModels
                 gamesListEntry.FolderShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
                 gamesListEntry.FolderShadowBlur ?? LayerRegistry.DefaultShadowBlur,
                 gamesListEntry.FolderShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+            var folderSelectedTextEffect = BuildShadowEffect(
+                gamesListEntry.FolderSelectedShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                gamesListEntry.FolderSelectedShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                gamesListEntry.FolderSelectedShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                gamesListEntry.FolderSelectedShadowDepth ?? LayerRegistry.DefaultShadowDepth);
 
             void Walk(TreeCategoryNode node)
             {
                 if (!node.IsCustomColor)
                 {
-                    node.FolderColor = node.HeaderText.Equals("FAVORITES", StringComparison.OrdinalIgnoreCase)
-                        ? favoritesBrush
-                        : mainFolderBrush;
+                    node.FolderColor = mainFolderBrush;
                 }
 
                 node.FolderFontSize = folderFontSize;
                 node.FolderFontFamily = folderFontFamily;
                 node.FolderFontWeight = folderFontWeight;
                 node.FolderTextEffect = folderTextEffect;
+                node.FolderSelectedTextEffect = folderSelectedTextEffect;
                 node.FolderSelectedBgColor = folderSelectedBgBrush;
                 node.FolderSelectedColor = folderSelectedBrush;
                 node.ArrowColor = arrowBrush;
@@ -1110,6 +1121,11 @@ namespace ArcadeStick.ViewModels
                 gamesListEntry.GameShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
                 gamesListEntry.GameShadowBlur ?? LayerRegistry.DefaultShadowBlur,
                 gamesListEntry.GameShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+            var gameSelectedTextEffect = BuildShadowEffect(
+                gamesListEntry.GameSelectedShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                gamesListEntry.GameSelectedShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                gamesListEntry.GameSelectedShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                gamesListEntry.GameSelectedShadowDepth ?? LayerRegistry.DefaultShadowDepth);
 
             foreach (var game in GamesCollection)
             {
@@ -1118,6 +1134,7 @@ namespace ArcadeStick.ViewModels
                 game.GameFontFamily = gameFontFamily;
                 game.GameFontWeight = gameFontWeight;
                 game.GameTextEffect = gameTextEffect;
+                game.GameSelectedTextEffect = gameSelectedTextEffect;
                 game.GameColor = gameColorBrush;
                 game.GameHoverColor = gameHoverBrush;
                 game.GameSelectedBgColor = gameSelectedBgBrush;
@@ -1196,25 +1213,17 @@ namespace ArcadeStick.ViewModels
             }
 
             themeData.MainWindowWallpaper = RewriteAssetPath(themeData.MainWindowWallpaper);
-            themeData.GamesListWallpaper = RewriteAssetPath(themeData.GamesListWallpaper);
-            themeData.MarqueeWindowWallpaper = RewriteAssetPath(themeData.MarqueeWindowWallpaper);
             themeData.MediaWindowWallpaper = RewriteAssetPath(themeData.MediaWindowWallpaper);
-            themeData.ThemeLogo = RewriteAssetPath(themeData.ThemeLogo);
             themeData.ThemeBootSplash = RewriteAssetPath(themeData.ThemeBootSplash);
             themeData.ThemeMissingPreview = RewriteAssetPath(themeData.ThemeMissingPreview);
 
             // Map ThemeSettings DTO properties back to the main ConfigurationSettings object
             Configuration.MainWindowWallpaper = themeData.MainWindowWallpaper;
             Configuration.DisableMainBgImage = themeData.DisableMainBgImage;
-            Configuration.GamesListWallpaper = themeData.GamesListWallpaper;
-            Configuration.MarqueeWindowWallpaper = themeData.MarqueeWindowWallpaper;
             Configuration.MediaWindowWallpaper = themeData.MediaWindowWallpaper;
-            Configuration.ThemeLogo = themeData.ThemeLogo;
             Configuration.ThemeBootSplash = themeData.ThemeBootSplash;
             Configuration.ThemeMissingPreview = themeData.ThemeMissingPreview;
             Configuration.BackgroundColor = themeData.BackgroundColor;
-            Configuration.FileListBg = themeData.FileListBg;
-            Configuration.MarqueeBoxBg = themeData.MarqueeBoxBg;
             Configuration.VideoBoxBg = themeData.VideoBoxBg;
             Configuration.OptionsBg = themeData.OptionsBg;
             Configuration.BorderColorFramework = themeData.BorderColorFramework;
@@ -1226,11 +1235,8 @@ namespace ArcadeStick.ViewModels
             Configuration.BorderWidthValue = themeData.BorderWidthValue;
             Configuration.BorderCurveValue = themeData.BorderCurveValue;
             Configuration.SeparatorColorHex = themeData.SeparatorColorHex;
-            Configuration.MarqueeBorderColorHex = themeData.MarqueeBorderColorHex;
-            Configuration.MarqueeBorderWidthValue = themeData.MarqueeBorderWidthValue;
             Configuration.FolderSelectedColorHex = themeData.FolderSelectedColorHex; 
             Configuration.FolderSelectedBgColorHex = themeData.FolderSelectedBgColorHex;
-            Configuration.FavoritesColorHex = themeData.FavoritesColorHex;
             Configuration.TabFontSize = themeData.TabFontSize;
             Configuration.TabColorHex = themeData.TabColorHex;
             Configuration.TabBgColorHex = themeData.TabBgColorHex;
@@ -1279,15 +1285,11 @@ namespace ArcadeStick.ViewModels
             Configuration.MainWinBtnBorderSize = themeData.MainWinBtnBorderSize;
             Configuration.MainWinBtnBorderColorHex = themeData.MainWinBtnBorderColorHex;
             Configuration.MainWinBtnCornerRadius = themeData.MainWinBtnCornerRadius;
-            Configuration.GamesBorderSize = themeData.GamesBorderSize;
-            Configuration.GamesBorderColorHex = themeData.GamesBorderColorHex;
-            Configuration.GamesBorderCornerRadius = themeData.GamesBorderCornerRadius;
             Configuration.ContextMenuFontColorHex = themeData.ContextMenuFontColorHex;
             Configuration.ContextMenuIconColorHex = themeData.ContextMenuIconColorHex;
             Configuration.ContextMenuBgColorHex = themeData.ContextMenuBgColorHex;
             Configuration.ContextMenuHoverColorHex = themeData.ContextMenuHoverColorHex;
             Configuration.ContextMenuHoverBgColorHex = themeData.ContextMenuHoverBgColorHex;
-            Configuration.MarqueeBorderRadius = themeData.MarqueeBorderRadius;
             Configuration.SubTextFontSize = themeData.SubTextFontSize;
             Configuration.SubTextColorHex = themeData.SubTextColorHex;
             Configuration.OptionsMenuBgColorHex = themeData.OptionsMenuBgColorHex;
@@ -2065,9 +2067,9 @@ namespace ArcadeStick.ViewModels
         // [END SECTION: Play Random Game - Spin Animation]
 
         // [SECTION: Play History]
-        // Reads a single-hex-line color file (RecentlyPlayedColorFile / MostPlayedColorFile) - same
-        // shape as a custom folder's own .cfg minus the ROM membership lines. Falls back to a sensible
-        // gold/yellow default if the file doesn't exist yet (matches FavoritesColorHex's own default).
+        // Reads a single-hex-line color file (RecentlyPlayedColorFile / MostPlayedColorFile /
+        // FavoritesColorFile) - same shape as a custom folder's own .cfg minus the ROM membership lines.
+        // Falls back to a sensible gold/yellow default if the file doesn't exist yet.
         private string ReadFolderColorFile(string fileName)
         {
             try
@@ -2107,6 +2109,7 @@ namespace ArcadeStick.ViewModels
 
         public void SetRecentlyPlayedColor(string hexColor) => SetFolderColorFile(Configuration.RecentlyPlayedColorFile, hexColor);
         public void SetMostPlayedColor(string hexColor) => SetFolderColorFile(Configuration.MostPlayedColorFile, hexColor);
+        public void SetFavoritesColor(string hexColor) => SetFolderColorFile(Configuration.FavoritesColorFile, hexColor);
         // [END SECTION: Play History - Color]
 
         // Parses play_history.cfg into a list of (RomName, LastPlayedUnixTimestamp, PlayCount,
@@ -2561,7 +2564,8 @@ namespace ArcadeStick.ViewModels
                     var favoritesRoot = new TreeCategoryNode
                     {
                         HeaderText = "FAVORITES",
-                        FolderColor = SafeConvertToBrush(Configuration.FavoritesColorHex)
+                        FolderColor = SafeConvertToBrush(ReadFolderColorFile(Configuration.FavoritesColorFile)),
+                        IsCustomColor = true // otherwise RefreshFolderColorsLive() overwrites this with the generic folder color
                     };
 
                     foreach (var romName in FavoriteRoms)
@@ -2780,11 +2784,27 @@ namespace ArcadeStick.ViewModels
         // NOTE: known beta trade-off - video preview can stay black after returning from MAME until reselection.
         // Resolves and applies MarqueeImage for the currently selected game - extracted so it can be re-run
         // independently (e.g. after a theme change closes) without touching video/flyer preview state
+        // True only when the selected game's marquee lookup found no file. Drives the no-art banner.
+        private bool _marqueeMissing;
+        public bool MarqueeMissing
+        {
+            get => _marqueeMissing;
+            private set
+            {
+                if (_marqueeMissing != value)
+                {
+                    _marqueeMissing = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private void ResolveMarqueeImage()
         {
             if (SelectedGame == null)
             {
                 MarqueeImage = null;
+                MarqueeMissing = false;
                 return;
             }
 
@@ -2793,13 +2813,16 @@ namespace ArcadeStick.ViewModels
             // case - a differently-branded bootleg/hack borrowing the wrong marquee name is a rarer
             // trade-off accepted in exchange for this.
             string? targetMarqueeFile = TryResolveMediaFile(marqueeDir, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png" });
-            // Marquee fallback: if neither the game's own marquee nor its parent's is found, load the default boot logo
+            // No marquee file for this game (or its parent): leave MarqueeImage empty. HasMarqueeImage then
+            // turns false, and the no-art banner shows instead of the logo.
             if (targetMarqueeFile == null)
             {
-                targetMarqueeFile = !string.IsNullOrWhiteSpace(Configuration.ThemeLogo)
-                    ? Path.GetFullPath(Configuration.ThemeLogo, Configuration.GetMamePath())
-                    : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_marquee.png");
+                MarqueeImage = null;
+                MarqueeMissing = true;
+                return;
             }
+
+            MarqueeMissing = false;
 
             try
             {
@@ -3156,6 +3179,7 @@ namespace ArcadeStick.ViewModels
             if (SelectedGame == null)
             {
                 MarqueeImage = null;
+                MarqueeMissing = false;
                 PreviewImage = null;
                 VideoSourcePath = string.Empty;
                 HasActiveMedia = false;

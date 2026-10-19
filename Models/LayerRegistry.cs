@@ -95,6 +95,55 @@ namespace ArcadeStick.Models
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? GameShadowDepth { get; set; }
+
+        // Drop shadow on the text of the selected row (folders and game titles). Same rules as above:
+        // null on every other layer, left out of the theme file when null, filled from defaults on the Games List.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? FolderSelectedShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? FolderSelectedShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? FolderSelectedShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? FolderSelectedShadowDepth { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? GameSelectedShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameSelectedShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GameSelectedShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GameSelectedShadowDepth { get; set; }
+
+        // Shape layer properties (Shape Layer 01 to 04). Null on every other layer and left out of the theme
+        // file when null; LayerRegistry fills them from defaults on the shape layers.
+        // VisibilityMode: "Always", "GameSelected", "NoGameSelected" or "Never".
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? VisibilityMode { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? BgColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? BorderSize { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? BorderColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? CornerRadius { get; set; }
+
+        // Opacity of the layer's image or video, 0 to 100 percent (the fill and border keep their own alpha).
+        // Null on every other layer and left out of the theme file when null.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? FileOpacity { get; set; }
     }
 
     // All layer entries for one resolution. A theme file can hold several of these, keyed by Width/Height.
@@ -169,6 +218,44 @@ namespace ArcadeStick.Models
         public const string RandomGameDisplaySplash = "RandomGameDisplaySplash";
         public const string RandomGameGroup = "RandomGameGroup";
 
+        // Shape layers: four identical background/border layers (image or video, color with alpha, border).
+        public const string ShapeLayer01 = "ShapeLayer01";
+        public const string ShapeLayer02 = "ShapeLayer02";
+        public const string ShapeLayer03 = "ShapeLayer03";
+        public const string ShapeLayer04 = "ShapeLayer04";
+        public static readonly string[] AllShapeIds = { ShapeLayer01, ShapeLayer02, ShapeLayer03, ShapeLayer04 };
+        public static bool IsShapeId(string id) => AllShapeIds.Contains(id);
+
+        // Layers that have a Border tab (size, color, corner radius stored on the entry): the shape layers,
+        // plus the Splash Image and Video Preview layers.
+        public static bool HasBorderTab(string id) => IsShapeId(id) || IsCustomId(id) || id == SplashImage || id == VideoPreview;
+
+        // Layers drawn as a bordered box with a fill and an optional image or video: the shape layers and the
+        // custom layers. They share one renderer, one tab set and the visibility dropdown.
+        public static bool IsBoxId(string id) => IsShapeId(id) || IsCustomId(id);
+
+        // Where a newly added custom layer starts (the layer then resizes itself when a file is chosen)
+        public const double NewLayerX = 20;
+        public const double NewLayerY = 20;
+        public const double NewLayerWidth = 200;
+        public const double NewLayerHeight = 200;
+
+        // Visibility modes (stored as text in the entry's VisibilityMode). Never hides the layer entirely.
+        public const string VisibilityAlways = "Always";
+        public const string VisibilityGameSelected = "GameSelected";
+        public const string VisibilityNoGameSelected = "NoGameSelected";
+        public const string VisibilityNever = "Never";
+
+        // Shape layer defaults: a black fill with a 1px gray border, the look of the old Games List BG and
+        // Media Panel. Shape Layer 03 (under the Marquee) starts transparent with no border, and Shape Layer 04
+        // (the spare) starts hidden. These per-layer differences are applied where the defaults are built.
+        public const string DefaultVisibilityMode = VisibilityAlways;
+        public const string DefaultShapeBgColorHex = "#FF000000";
+        public const int DefaultShapeBorderSize = 1;
+        public const string DefaultShapeBorderColorHex = "#FF3A3A3C";
+        public const int DefaultShapeCornerRadius = 0;
+        public const int DefaultFileOpacity = 100;
+
         // Group Ids (a group is one row in the Advanced tab's layer list - see AllGroups)
         public const string SearchAndButtonsGroup = "SearchAndButtons";
         public const string GameInfoGroup = "GameInfoGroup";
@@ -207,11 +294,13 @@ namespace ArcadeStick.Models
         {
             new() { Id = MainBackground, DisplayName = "Main Window Background", X = 0, Y = 0, Width = 1280, Height = 720, Z = 0, IsPositionable = false, CanHide = false },
 
-            new() { Id = GamesListBg,    DisplayName = "Games List BG",     X = 20,  Y = 60,  Width = 353, Height = 640, Z = 50 },
-            new() { Id = MediaPanel,     DisplayName = "Media Panel",       X = 393, Y = 177, Width = 867, Height = 523, Z = 30 },
+            new() { Id = ShapeLayer01,   DisplayName = "Shape Layer 01",    X = 20,  Y = 60,  Width = 353, Height = 640, Z = 4 },
+            new() { Id = ShapeLayer02,   DisplayName = "Shape Layer 02",    X = 393, Y = 177, Width = 867, Height = 523, Z = 3 },
+            new() { Id = ShapeLayer03,   DisplayName = "Shape Layer 03",    X = 393, Y = 20,  Width = 867, Height = 137, Z = 2 },
+            new() { Id = ShapeLayer04,   DisplayName = "Shape Layer 04",    X = 393, Y = 177, Width = 867, Height = 523, Z = 1 },
 
             new() { Id = GamesList,      DisplayName = "Games List",        X = 25,  Y = 70,  Width = 343, Height = 625, Z = 51, CanHide = false },
-            new() { Id = MarqueePanel,   DisplayName = "Marquee Panel",     X = 393, Y = 20,  Width = 867, Height = 137, Z = 40 },
+                        new() { Id = MarqueePanel,   DisplayName = "Marquee",           X = 393, Y = 20,  Width = 867, Height = 137, Z = 40 },
 
             new() { Id = SplashImage,    DisplayName = "Splash Image",      X = 393, Y = 177, Width = 867, Height = 523, Z = 31 },
 
@@ -219,7 +308,7 @@ namespace ArcadeStick.Models
             
 
             new() { Id = GameTitle,        DisplayName = "Game Title",          X = 765, Y = 198, Width = 490, Height = 45,  Z = 34, GroupId = GameInfoGroup },
-            new() { Id = PublisherBlock,   DisplayName = "Publisher Block",     X = 765, Y = 248, Width = 490, Height = 90,  Z = 34, GroupId = GameInfoGroup },
+            new() { Id = PublisherBlock,   DisplayName = "Publisher Block",     X = 745, Y = 248, Width = 490, Height = 90,  Z = 34, GroupId = GameInfoGroup },
             new() { Id = GameInfoNav,      DisplayName = "Game Info Nav",       X = 765, Y = 348, Width = 490, Height = 40,  Z = 34, GroupId = GameInfoGroup },
             new() { Id = GameInfoBody,     DisplayName = "Game Info",           X = 765, Y = 398, Width = 490, Height = 298, Z = 34, GroupId = GameInfoGroup },
             new() { Id = ImagePreviewsNav, DisplayName = "Image Previews Nav",  X = 414, Y = 456, Width = 328, Height = 20,  Z = 34, GroupId = GameInfoGroup },
@@ -292,6 +381,34 @@ namespace ArcadeStick.Models
                     entry.GameShadowColorHex = DefaultShadowColorHex;
                     entry.GameShadowBlur = DefaultShadowBlur;
                     entry.GameShadowDepth = DefaultShadowDepth;
+                    entry.FolderSelectedShadowEnabled = DefaultShadowEnabled;
+                    entry.FolderSelectedShadowColorHex = DefaultShadowColorHex;
+                    entry.FolderSelectedShadowBlur = DefaultShadowBlur;
+                    entry.FolderSelectedShadowDepth = DefaultShadowDepth;
+                    entry.GameSelectedShadowEnabled = DefaultShadowEnabled;
+                    entry.GameSelectedShadowColorHex = DefaultShadowColorHex;
+                    entry.GameSelectedShadowBlur = DefaultShadowBlur;
+                    entry.GameSelectedShadowDepth = DefaultShadowDepth;
+                }
+
+                // Shape layer defaults: Shape Layer 03 (under the Marquee) is transparent with no border, and
+                // Shape Layer 04 (the spare) is hidden with the Never mode. The others use the standard look.
+                if (IsShapeId(def.Id))
+                {
+                    bool underMarquee = def.Id == ShapeLayer03;
+                    entry.VisibilityMode = def.Id == ShapeLayer04 ? VisibilityNever : DefaultVisibilityMode;
+                    entry.BgColorHex = underMarquee ? "#00000000" : DefaultShapeBgColorHex;
+                    entry.BorderSize = underMarquee ? 0 : DefaultShapeBorderSize;
+                    entry.BorderColorHex = DefaultShapeBorderColorHex;
+                    entry.CornerRadius = DefaultShapeCornerRadius;
+                }
+
+                // Splash Image and Video Preview have a Border tab too: size 0 (no border) with the gray color ready
+                if (def.Id == SplashImage || def.Id == VideoPreview)
+                {
+                    entry.BorderSize = 0;
+                    entry.BorderColorHex = DefaultShapeBorderColorHex;
+                    entry.CornerRadius = DefaultShapeCornerRadius;
                 }
 
                 layout.Layers.Add(entry);
@@ -342,6 +459,33 @@ namespace ArcadeStick.Models
                     if (string.IsNullOrWhiteSpace(entry.GameShadowColorHex)) entry.GameShadowColorHex = DefaultShadowColorHex;
                     entry.GameShadowBlur ??= DefaultShadowBlur;
                     entry.GameShadowDepth ??= DefaultShadowDepth;
+                    entry.FolderSelectedShadowEnabled ??= DefaultShadowEnabled;
+                    if (string.IsNullOrWhiteSpace(entry.FolderSelectedShadowColorHex)) entry.FolderSelectedShadowColorHex = DefaultShadowColorHex;
+                    entry.FolderSelectedShadowBlur ??= DefaultShadowBlur;
+                    entry.FolderSelectedShadowDepth ??= DefaultShadowDepth;
+                    entry.GameSelectedShadowEnabled ??= DefaultShadowEnabled;
+                    if (string.IsNullOrWhiteSpace(entry.GameSelectedShadowColorHex)) entry.GameSelectedShadowColorHex = DefaultShadowColorHex;
+                    entry.GameSelectedShadowBlur ??= DefaultShadowBlur;
+                    entry.GameSelectedShadowDepth ??= DefaultShadowDepth;
+                }
+
+                // Splash Image and Video Preview: border values fill in from defaults when missing
+                if (entry.Id == SplashImage || entry.Id == VideoPreview)
+                {
+                    entry.BorderSize ??= 0;
+                    if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = DefaultShapeBorderColorHex;
+                    entry.CornerRadius ??= DefaultShapeCornerRadius;
+                }
+
+                // Shape layers: fill any missing value from the matching default entry
+                if (IsShapeId(entry.Id))
+                {
+                    if (string.IsNullOrWhiteSpace(entry.VisibilityMode)) entry.VisibilityMode = defEntry.VisibilityMode ?? DefaultVisibilityMode;
+                    if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = defEntry.BgColorHex ?? DefaultShapeBgColorHex;
+                    entry.BorderSize ??= defEntry.BorderSize ?? DefaultShapeBorderSize;
+                    if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = defEntry.BorderColorHex ?? DefaultShapeBorderColorHex;
+                    entry.CornerRadius ??= defEntry.CornerRadius ?? DefaultShapeCornerRadius;
+                    entry.FileOpacity ??= DefaultFileOpacity;
                 }
 
                 result.Layers.Add(entry);
@@ -350,6 +494,14 @@ namespace ArcadeStick.Models
             // Custom image layers aren't in the registry, so carry them through from the saved layout
             foreach (var customEntry in saved.Layers.Where(e => IsCustomId(e.Id)))
             {
+                // Custom layers use the shape layer properties: fill any missing value from the shape defaults
+                if (string.IsNullOrWhiteSpace(customEntry.VisibilityMode)) customEntry.VisibilityMode = DefaultVisibilityMode;
+                if (string.IsNullOrWhiteSpace(customEntry.BgColorHex)) customEntry.BgColorHex = DefaultShapeBgColorHex;
+                customEntry.BorderSize ??= DefaultShapeBorderSize;
+                if (string.IsNullOrWhiteSpace(customEntry.BorderColorHex)) customEntry.BorderColorHex = DefaultShapeBorderColorHex;
+                customEntry.CornerRadius ??= DefaultShapeCornerRadius;
+                customEntry.FileOpacity ??= DefaultFileOpacity;
+
                 result.Layers.Add(customEntry);
             }
             return result;

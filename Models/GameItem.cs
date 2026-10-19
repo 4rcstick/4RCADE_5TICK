@@ -196,6 +196,22 @@ namespace ArcadeStick.Models
             }
         }
 
+        // Drop shadow on the game title text and mouse dot while the row is selected, pushed from MainViewModel.
+        // Null = no shadow. The same frozen effect object is shared by every game row.
+        private System.Windows.Media.Effects.Effect? _gameSelectedTextEffect;
+        public System.Windows.Media.Effects.Effect? GameSelectedTextEffect
+        {
+            get => _gameSelectedTextEffect;
+            set
+            {
+                if (!ReferenceEquals(_gameSelectedTextEffect, value))
+                {
+                    _gameSelectedTextEffect = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private System.Windows.Media.Brush _gameColor = System.Windows.Media.Brushes.White;
         public System.Windows.Media.Brush GameColor
         {
@@ -247,20 +263,6 @@ namespace ArcadeStick.Models
                 if (_gameSelectedColor != value)
                 {
                     _gameSelectedColor = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private System.Windows.Media.Brush _arrowColor = System.Windows.Media.Brushes.Gray;
-        public System.Windows.Media.Brush ArrowColor
-        {
-            get => _arrowColor;
-            set
-            {
-                if (_arrowColor != value)
-                {
-                    _arrowColor = value;
                     OnPropertyChanged();
                 }
             }

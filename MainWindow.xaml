@@ -164,7 +164,6 @@
                 </Style.Triggers>
             </Style>
         </Grid.Style>
-        <!-- [END SECTION: Root Grid Background Style] -->
 
         <!-- [END SECTION: Root Grid Background Style] -->
 
@@ -234,29 +233,21 @@
                     </Border.ToolTip>
                     <TextBlock x:Name="HamburgerIcon" Text="&#xE700;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=18}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
-            
 
-            <!-- Game list panel container (wallpaper/color themed border wrapping the TreeView) -->
-            <Border x:Name="GamesListPanel" IsHitTestVisible="False" Canvas.Left="20" Canvas.Top="60" Width="353" Height="640" CornerRadius="{Binding ThemeGamesBorderCornerRadius, FallbackValue=4}" BorderBrush="{Binding ThemeGamesBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeGamesBorderSize, FallbackValue=1}">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <ImageBrush ImageSource="{Binding ThemeGamesWallpaper}" Stretch="Fill" AlignmentX="Left" AlignmentY="Top" TileMode="None" Viewport="0,0,1,1" ViewportUnits="RelativeToBoundingBox"/>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding ThemeGamesWallpaper}" Value="{x:Null}">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <SolidColorBrush Color="{Binding ThemeGamesColor, FallbackValue=#000000}"/>
-                                    </Setter.Value>
-                                </Setter>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
 
+            <!-- Shape layers 01 to 04: background/border layers. Fill, border, corner radius, visibility and the image or
+     video (stretched to fill, shown inside the host Grid) are all set from the layer entry in ApplyLayout(). -->
+            <Border x:Name="ShapeLayer01" IsHitTestVisible="False" Canvas.Left="20" Canvas.Top="60" Width="353" Height="640" ClipToBounds="True">
+                <Grid x:Name="ShapeLayer01Host"/>
+            </Border>
+            <Border x:Name="ShapeLayer02" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" ClipToBounds="True">
+                <Grid x:Name="ShapeLayer02Host"/>
+            </Border>
+            <Border x:Name="ShapeLayer03" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="20" Width="867" Height="137" ClipToBounds="True">
+                <Grid x:Name="ShapeLayer03Host"/>
+            </Border>
+            <Border x:Name="ShapeLayer04" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" ClipToBounds="True" Visibility="Collapsed">
+                <Grid x:Name="ShapeLayer04Host"/>
             </Border>
 
             <!-- Games List layer: its own positioned element above the BG. The TreeView and everything
@@ -401,9 +392,9 @@
                                     <Setter TargetName="FolderHeaderText" Property="Foreground" Value="{Binding FolderSelectedColor, FallbackValue=#00D4FF}"/>
                                 </DataTrigger>
 
-                                <!-- Selected row: clear the shadow, the highlight already provides contrast. -->
+                                <!-- Selected row: use the selected-state shadow (off by default; set in the Theme Builder's Folders tab). -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
-                                    <Setter TargetName="FolderHeaderText" Property="Effect" Value="{x:Null}"/>
+                                    <Setter TargetName="FolderHeaderText" Property="Effect" Value="{Binding FolderSelectedTextEffect}"/>
                                 </DataTrigger>
                             </HierarchicalDataTemplate.Triggers>
                         </HierarchicalDataTemplate>
@@ -438,10 +429,10 @@
                                     <Setter TargetName="MouseGlyph" Property="Foreground" Value="{Binding GameSelectedColor, FallbackValue=#00D4FF}"/>
                                 </DataTrigger>
 
-                                <!-- Selected row: clear the shadow, the highlight already provides contrast. -->
+                                <!-- Selected row: use the selected-state shadow (off by default; set in the Theme Builder's Game Titles tab). -->
                                 <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsSelected}" Value="True">
-                                    <Setter TargetName="GameTitleText" Property="Effect" Value="{x:Null}"/>
-                                    <Setter TargetName="MouseGlyph" Property="Effect" Value="{x:Null}"/>
+                                    <Setter TargetName="GameTitleText" Property="Effect" Value="{Binding GameSelectedTextEffect}"/>
+                                    <Setter TargetName="MouseGlyph" Property="Effect" Value="{Binding GameSelectedTextEffect}"/>
                                 </DataTrigger>
                             </DataTemplate.Triggers>
                         </DataTemplate>
@@ -480,8 +471,9 @@
                                                                         <!-- Arrows -->
                                                                         <Border Background="Transparent" Width="16" Height="16" Padding="0,1,0,1">
                                                                             <Path x:Name="ExpandArrow"
-                                                                                  Data="M 0 0 L 6 4 L 0 8 Z"
-                                                                                  Fill="{Binding ArrowColor, FallbackValue=#A0A0A2}"
+                                                                            Data="M 0 0 L 6 4 L 0 8 Z"
+                                                                            Effect="{Binding FolderTextEffect}"
+                                                                            Fill="{Binding ArrowColor, FallbackValue=#A0A0A2}"
                                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
                                                                                   Margin="{Binding ArrowMargin}"/>
                                                                         </Border>
@@ -533,28 +525,10 @@
 
             <!-- ROW 0: MARQUEE / LOGO PANEL -->
             <!-- Shows the theme logo asset by default, swaps to the game's marquee image once a game is selected -->
-            <Border x:Name="MarqueePanelBorder" Canvas.Left="393" Canvas.Top="20" Width="867" Height="137" CornerRadius="{Binding ThemeMarqueeBorderRadius, FallbackValue=4}" BorderBrush="{Binding ThemeMarqueeBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemeMarqueeBorderWidth, FallbackValue=1}">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <ImageBrush ImageSource="{Binding ThemeMarqueeWallpaper}" Stretch="UniformToFill"/>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding ThemeMarqueeWallpaper}" Value="{x:Null}">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <SolidColorBrush Color="{Binding ThemeMarqueeColor, FallbackValue=#000000}"/>
-                                    </Setter.Value>
-                                </Setter>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
+            <Border x:Name="MarqueePanelBorder" Canvas.Left="393" Canvas.Top="20" Width="867" Height="137">
                 <Grid>
                     <!-- Default logo, hidden once a game is selected -->
-                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" Margin="10,10" RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -570,7 +544,7 @@
                         </Image.Style>
                     </Image>
                     <!-- Selected game's marquee image -->
-                    <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" Margin="10,10" RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -582,16 +556,34 @@
                             </Style>
                         </Image.Style>
                     </Image>
-                    
 
-                    <!-- Play Random Game spin overlay - layered on top of the logo/MarqueeDisplay above,
-                         never modifies either. Only visible during an active spin, swapping source on
-                         every timer tick from MainViewModel's swap-loop. Same Margin/Stretch as
-                         MarqueeDisplay so it resizes identically on window resize. -->
-                    <!-- Opaque backing behind the spin frame - the marquee PNG's own transparent
-                         letterbox margins would otherwise let the logo/MarqueeDisplay layers underneath
-                         show through during the spin. -->
-                    <Border x:Name="RandomizerSpinMarqueeOverlay" CornerRadius="{Binding ThemeMarqueeBorderRadius, FallbackValue=4}" Background="{Binding ThemeMarqueeColor, FallbackValue=#000000}">
+                    <!-- No-art banner: shown when the selected game has no marquee file (and no spin is running).
+     Same ~4:1 card as the spin's no-marquee fallback below, so it letterboxes the same way. -->
+                    <Viewbox x:Name="NoMarqueeBanner" Stretch="Uniform">
+                        <Viewbox.Style>
+                            <Style TargetType="Viewbox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding MarqueeMissing}" Value="True"/>
+                                            <Condition Binding="{Binding IsRandomizerOverlayActive}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Viewbox.Style>
+                        <Border Width="400" Height="100" Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" BorderThickness="2">
+                            <TextBlock Text="{Binding SelectedGame.DisplayTitle}" FontSize="30" FontWeight="Bold" Foreground="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" TextAlignment="Center" TextWrapping="Wrap" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </Viewbox>
+
+                    <!-- Play Random Game spin overlay - sits on top of the logo/MarqueeDisplay above and only shows during
+             a spin. The layer is transparent now (background and border come from separate layers), so the logo
+             and the selected marquee are collapsed above while the overlay is active, which keeps them from
+             showing underneath. Same Stretch as MarqueeDisplay, no margins. -->
+                    <Border x:Name="RandomizerSpinMarqueeOverlay">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -604,8 +596,7 @@
                         </Border.Style>
                         <Grid>
                             <!-- Winner blink: hides the whole frame (marquee image or no-marquee title card) during the
-                                 blink's "off" steps. The overlay Border's opaque background stays visible, so the
-                                 previously selected game never shows through. -->
+                     blink's "off" steps. -->
                             <Grid.Style>
                                 <Style TargetType="Grid">
                                     <Setter Property="Visibility" Value="Visible"/>
@@ -616,15 +607,11 @@
                                     </Style.Triggers>
                                 </Style>
                             </Grid.Style>
-                            <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" Margin="10,10" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
 
-                            <!-- No-marquee fallback - shown whenever the current frame's game has no
-                                 real marquee file. Renders a fixed-aspect card (~3.4:1, standard horizontal
-                                 marquee ratio) inside a Viewbox so it letterboxes against the panel's own
-                                 background exactly like a real marquee image would, instead of plain text
-                                 spanning the whole panel. Card colors are deliberately NOT theme-marquee-bound
-                                 (avoids the transparency/zero-thickness trap) - reuses the same ThemeMainColor/
-                                 ThemeHeaderColor pairing as the context menus, which always contrast by design. -->
+                            <!-- No-marquee fallback - shown whenever the current frame's game has no real marquee file.
+                     A fixed-aspect card (~4:1) inside a Viewbox, so it letterboxes like a real marquee image.
+                     Card colors reuse ThemeMainColor/ThemeHeaderColor, which always contrast by design. -->
                             <Border x:Name="RandomizerNoMarqueeFallback">
                                 <Border.Style>
                                     <Style TargetType="Border">
@@ -636,7 +623,7 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <Viewbox Stretch="Uniform" Margin="10,10">
+                                <Viewbox Stretch="Uniform">
                                     <Border Width="400" Height="100" Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" BorderThickness="2">
                                         <TextBlock Text="{Binding RandomizerCurrentFrameGame.DisplayTitle}" FontSize="30" FontWeight="Bold" Foreground="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" TextAlignment="Center" TextWrapping="Wrap" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
@@ -654,43 +641,7 @@
                  before, just relocated so the upcoming redesign happens in isolation. VideoPreview and
                  MediaLayer0_Back are exposed as public fields on the control for MainWindow.xaml.cs's
                  existing call sites (see MediaPanel.VideoPreview / MediaPanel.MediaLayer0_Back below). -->
-            <Border x:Name="MediaPanel" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" IsHitTestVisible="False" ClipToBounds="True"
-                    CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}" BorderBrush="{Binding ThemePreviewBorderColor, FallbackValue=#2C2C2E}" BorderThickness="{Binding ThemePreviewBorderSize, FallbackValue=1}">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <SolidColorBrush Color="{Binding ThemeMediaColor, FallbackValue=#000000}"/>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </Border.Style>
-                <Grid>
-                    <!-- Themed media wallpaper, shown only once a game is selected -->
-                    <Border CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}">
-                        <Border.Style>
-                            <Style TargetType="Border">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <ImageBrush ImageSource="{Binding ThemeMediaWallpaper}" Stretch="UniformToFill"/>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsGameSelected}" Value="False">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding ThemeMediaWallpaper}" Value="{x:Null}">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Border.Style>
-                    </Border>
-
-                    <!-- (The spin overlay that was here moved to the Random Game Display layer.) -->
-                </Grid>
-            </Border>
-
+            
             <!-- Splash Image layer: its own positioned element, mapped in ApplyLayout() -->
             <views:SplashLayerControl x:Name="SplashLayer" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523"/>
 

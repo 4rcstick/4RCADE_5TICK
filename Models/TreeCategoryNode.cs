@@ -103,6 +103,22 @@ namespace ArcadeStick.Models
             }
         }
 
+        // Drop shadow on the folder text while the row is selected, pushed from MainViewModel. Null = no shadow.
+        // The same frozen effect object is shared by every folder row.
+        private System.Windows.Media.Effects.Effect? _folderSelectedTextEffect;
+        public System.Windows.Media.Effects.Effect? FolderSelectedTextEffect
+        {
+            get => _folderSelectedTextEffect;
+            set
+            {
+                if (!ReferenceEquals(_folderSelectedTextEffect, value))
+                {
+                    _folderSelectedTextEffect = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         private Brush _folderSelectedBgColor = Brushes.Black;
         public Brush FolderSelectedBgColor
         {

@@ -10,11 +10,12 @@
     <!-- Splash Image layer: static, animated and video variants of the boot splash. Each is shown only
          while no game is selected, and the matching variant is picked by IsBootSplashAnimated /
          IsBootSplashVideo. All three simply fill this control's rect (set by ApplyLayout). -->
-    <Grid ClipToBounds="True">
+    <Grid>
+        <Grid x:Name="SplashContent" ClipToBounds="True">
 
-        <!-- Static splash (png/jpg) -->
-        <Border x:Name="MediaLayer0_Back" x:FieldModifier="public" CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}">
-            <Border.Style>
+            <!-- Static splash (png/jpg) -->
+            <Border x:Name="MediaLayer0_Back" x:FieldModifier="public">
+                <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Background" Value="Transparent"/>
                     <Style.Triggers>
@@ -64,6 +65,21 @@
                     </Style.Triggers>
                 </Style>
             </MediaElement.Style>
-        </MediaElement>
+            </MediaElement>
+        </Grid>
+
+        <!-- Border ring on top: size, color and corner radius come from the layer's entry (ApplyBorder) -->
+        <Border x:Name="SplashRing" Background="Transparent" IsHitTestVisible="False">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <!-- Splash border only shows while no game is selected, like the splash itself -->
+                        <DataTrigger Binding="{Binding IsGameSelected}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+        </Border>
     </Grid>
 </UserControl>

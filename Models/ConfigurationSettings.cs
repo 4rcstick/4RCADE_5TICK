@@ -50,8 +50,6 @@ namespace ArcadeStick.Models
         // 🏁 START: THEME PALETTE HEX BRUSH PROPERTIES
         // =========================================================================
         public string BackgroundColor { get; set; } = "#FF1C1C1E";
-        public string FileListBg { get; set; } = "#FF000000";
-        public string MarqueeBoxBg { get; set; } = "#FF000000";
         public string VideoBoxBg { get; set; } = "#FF000000";
         public string VideoBoxRecordBg { get; set; } = "#4A0000";
         public string TextColor { get; set; } = "#F2F2F7";
@@ -61,8 +59,6 @@ namespace ArcadeStick.Models
 
         public string OptionsBg { get; set; } = "#FF00000";
         public string BorderColorFramework { get; set; } = "#FF3A3A3C";
-        public string MarqueeBorderColorHex { get; set; } = "#FF3A3A3C";
-        public double MarqueeBorderWidthValue { get; set; } = 1;
 
         public string ScrollTrackColor { get; set; } = "#FF000000";
         public string ScrollTrackHoverColor { get; set; } = "#FF1C1C1E";
@@ -78,11 +74,7 @@ namespace ArcadeStick.Models
         // =========================================================================
         public string MainWindowWallpaper { get; set; } = "";
         public bool DisableMainBgImage { get; set; } = false;
-        public string GamesListWallpaper { get; set; } = "";
-        public string MarqueeWindowWallpaper { get; set; } = "";
         public string MediaWindowWallpaper { get; set; } = "";
-
-        public string ThemeLogo { get; set; } = "";
         public string ThemeBootSplash { get; set; } = "";
         public string ThemeMissingPreview { get; set; } = "";
         public string ActiveThemeName { get; set; } = "";
@@ -100,8 +92,6 @@ namespace ArcadeStick.Models
         // drawn at the selected layer's edges while the Advanced tab is open.
         public bool ShowGuideLines { get; set; } = true;
         public string GuideLineColorHex { get; set; } = "#FF00FFFF";
-
-        // Snapshot of the active theme's layouts
 
         // Snapshot of the active theme's layouts as last loaded from or saved to the theme file. Used as
         // the restore point for Reset Layer / Reset Layout. Never written to settings.json.
@@ -154,7 +144,21 @@ namespace ArcadeStick.Models
                     GameShadowEnabled = e.GameShadowEnabled,
                     GameShadowColorHex = e.GameShadowColorHex,
                     GameShadowBlur = e.GameShadowBlur,
-                    GameShadowDepth = e.GameShadowDepth
+                    GameShadowDepth = e.GameShadowDepth,
+                    FolderSelectedShadowEnabled = e.FolderSelectedShadowEnabled,
+                    FolderSelectedShadowColorHex = e.FolderSelectedShadowColorHex,
+                    FolderSelectedShadowBlur = e.FolderSelectedShadowBlur,
+                    FolderSelectedShadowDepth = e.FolderSelectedShadowDepth,
+                    GameSelectedShadowEnabled = e.GameSelectedShadowEnabled,
+                    GameSelectedShadowColorHex = e.GameSelectedShadowColorHex,
+                    GameSelectedShadowBlur = e.GameSelectedShadowBlur,
+                    GameSelectedShadowDepth = e.GameSelectedShadowDepth,
+                    VisibilityMode = e.VisibilityMode,
+                    BgColorHex = e.BgColorHex,
+                    BorderSize = e.BorderSize,
+                    BorderColorHex = e.BorderColorHex,
+                    CornerRadius = e.CornerRadius,
+                    FileOpacity = e.FileOpacity
                 }).ToList()
             }).ToList();
         }
@@ -167,7 +171,6 @@ namespace ArcadeStick.Models
         // =========================================================================
         public string FolderSelectedColorHex { get; set; } = "#FF000000";
         public string FolderSelectedBgColorHex { get; set; } = "#FF00D4FF";
-        public string FavoritesColorHex { get; set; } = "#FFFFCC00";
         public int TabFontSize { get; set; } = 12;
         public string TabColorHex { get; set; } = "#FFA0A0A2";
         public string TabBgColorHex { get; set; } = "Transparent";
@@ -224,19 +227,11 @@ namespace ArcadeStick.Models
         public double MainWinBtnBorderSize { get; set; } = 1;
         public string MainWinBtnBorderColorHex { get; set; } = "#FF00D4FF";
         public double MainWinBtnCornerRadius { get; set; } = 0;
-
-        public double GamesBorderSize { get; set; } = 1;
-        public string GamesBorderColorHex { get; set; } = "#FF3A3A3C";
-        public double GamesBorderCornerRadius { get; set; } = 0;
-
         public string ContextMenuFontColorHex { get; set; } = "#FFF2F2F7";
         public string ContextMenuIconColorHex { get; set; } = "#FF00D4FF";
         public string ContextMenuBgColorHex { get; set; } = "#FF1C1C1E";
         public string ContextMenuHoverColorHex { get; set; } = "#FFFFFFFF";
         public string ContextMenuHoverBgColorHex { get; set; } = "#FF2C2C2E";
-
-        public double MarqueeBorderRadius { get; set; } = 0;
-
         public int SubTextFontSize { get; set; } = 12;
         public string SubTextColorHex { get; set; } = "#FFA0A0A2";
         public string OptionsMenuBgColorHex { get; set; } = "#FF1C1C1E";
@@ -365,6 +360,7 @@ namespace ArcadeStick.Models
         // instead of a manually-curated list.
         public string RecentlyPlayedColorFile { get; set; } = "recently_played_color.cfg";
         public string MostPlayedColorFile { get; set; } = "most_played_color.cfg";
+        public string FavoritesColorFile { get; set; } = "favorites_color.cfg";
         public string FolderOrderFile { get; set; } = "folder_order.cfg";
         public string VirtualOrderFile { get; set; } = "virtual_order.cfg";
         public string MediaOrderFile { get; set; } = "media_order.cfg";
@@ -445,37 +441,27 @@ namespace ArcadeStick.Models
 
             this.MainWindowWallpaper = source.MainWindowWallpaper;
             this.DisableMainBgImage = source.DisableMainBgImage;
-            this.GamesListWallpaper = source.GamesListWallpaper;
-            this.MarqueeWindowWallpaper = source.MarqueeWindowWallpaper;
             this.MediaWindowWallpaper = source.MediaWindowWallpaper;
-            this.ThemeLogo = source.ThemeLogo;
             this.ThemeBootSplash = source.ThemeBootSplash;
             this.ThemeMissingPreview = source.ThemeMissingPreview;
             this.ActiveThemeName = source.ActiveThemeName;
             this.ActiveResolutionWidth = source.ActiveResolutionWidth;
             this.ActiveResolutionHeight = source.ActiveResolutionHeight;
             this.Layouts = source.Layouts ?? new List<ThemeLayout>();
-
             this.BackgroundColor = source.BackgroundColor;
-            this.FileListBg = source.FileListBg;
-            this.MarqueeBoxBg = source.MarqueeBoxBg;
             this.VideoBoxBg = source.VideoBoxBg;
             this.OptionsBg = source.OptionsBg;
             this.BorderColorFramework = source.BorderColorFramework;
-            this.MarqueeBorderColorHex = source.MarqueeBorderColorHex;
-            this.MarqueeBorderWidthValue = source.MarqueeBorderWidthValue;
             this.ScrollTrackColor = source.ScrollTrackColor;
             this.ScrollTrackHoverColor = source.ScrollTrackHoverColor;
             this.ScrollThumbColor = source.ScrollThumbColor;
             this.ScrollThumbHoverColor = source.ScrollThumbHoverColor;
             this.ScrollThumbDragColor = source.ScrollThumbDragColor;
-
             this.FolderSelectedColorHex = source.FolderSelectedColorHex;
             this.FolderSelectedBgColorHex = source.FolderSelectedBgColorHex;
-            this.FavoritesColorHex = source.FavoritesColorHex;
+            this.FavoritesColorFile = source.FavoritesColorFile;
             this.RecentlyPlayedColorFile = source.RecentlyPlayedColorFile;
             this.MostPlayedColorFile = source.MostPlayedColorFile;
-
             this.TabFontSize = source.TabFontSize;
             this.TabColorHex = source.TabColorHex;
             this.TabColorHex = source.TabColorHex;
@@ -497,7 +483,6 @@ namespace ArcadeStick.Models
             this.SearchBoxFontSize = source.SearchBoxFontSize;
             this.SearchBoxColorHex = source.SearchBoxColorHex;
             this.SearchBoxBgColorHex = source.SearchBoxBgColorHex;
-
             this.GameNameHeaderFontSize = source.GameNameHeaderFontSize;
             this.GameNameHeaderColorHex = source.GameNameHeaderColorHex;
             this.PubYearRatingFontSize = source.PubYearRatingFontSize;
@@ -519,11 +504,9 @@ namespace ArcadeStick.Models
             this.PreviewBorderSize = source.PreviewBorderSize;
             this.PreviewBorderColorHex = source.PreviewBorderColorHex;
             this.PreviewBorderRadius = source.PreviewBorderRadius;
-
             this.SearchLabelFontSize = source.SearchLabelFontSize;
             this.SearchLabelColorHex = source.SearchLabelColorHex;
             this.SearchLabelBgColorHex = source.SearchLabelBgColorHex;
-
             this.MainWinBtnFontSize = source.MainWinBtnFontSize;
             this.MainWinBtnColorHex = source.MainWinBtnColorHex;
             this.MainWinBtnBgColorHex = source.MainWinBtnBgColorHex;
@@ -532,19 +515,11 @@ namespace ArcadeStick.Models
             this.MainWinBtnBorderSize = source.MainWinBtnBorderSize;
             this.MainWinBtnBorderColorHex = source.MainWinBtnBorderColorHex;
             this.MainWinBtnCornerRadius = source.MainWinBtnCornerRadius;
-
-            this.GamesBorderSize = source.GamesBorderSize;
-            this.GamesBorderColorHex = source.GamesBorderColorHex;
-            this.GamesBorderCornerRadius = source.GamesBorderCornerRadius;
-
             this.ContextMenuFontColorHex = source.ContextMenuFontColorHex;
             this.ContextMenuIconColorHex = source.ContextMenuIconColorHex;
             this.ContextMenuBgColorHex = source.ContextMenuBgColorHex;
             this.ContextMenuHoverColorHex = source.ContextMenuHoverColorHex;
             this.ContextMenuHoverBgColorHex = source.ContextMenuHoverBgColorHex;
-
-            this.MarqueeBorderRadius = source.MarqueeBorderRadius;
-
             this.SubTextFontSize = source.SubTextFontSize;
             this.SubTextColorHex = source.SubTextColorHex;
             this.OptionsMenuBgColorHex = source.OptionsMenuBgColorHex;

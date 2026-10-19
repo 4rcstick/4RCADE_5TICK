@@ -174,6 +174,7 @@ namespace ArcadeStick
         // edit, reorder and theme refresh), so the rows are only repainted when this actually changes.
         private string? _lastGamesListStyleKey;
         private string? _lastGameTitleStyleKey;
+        private string? _lastMarqueeLogoPath;
 
         // [SECTION: Theme Builder Alignment Guides]
         // Draws (or hides, when info is null) four 1px guide lines at the selected layer's pending rect.
@@ -235,7 +236,7 @@ namespace ArcadeStick
 
             // Repaint the Games List rows only when its style values changed since the last paint
             var gamesListEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.GamesList);
-            string gamesListStyleKey = $"{gamesListEntry?.FolderFontSize}|{gamesListEntry?.FolderColorHex}|{gamesListEntry?.FolderSelectedColorHex}|{gamesListEntry?.FolderSelectedBgColorHex}|{gamesListEntry?.FolderFontFamily}|{gamesListEntry?.FolderBold}|{gamesListEntry?.ArrowColorHex}|{gamesListEntry?.ArrowNudgeY}|{gamesListEntry?.FolderShadowEnabled}|{gamesListEntry?.FolderShadowColorHex}|{gamesListEntry?.FolderShadowBlur}|{gamesListEntry?.FolderShadowDepth}|{config.FavoritesColorHex}";
+            string gamesListStyleKey = $"{gamesListEntry?.FolderFontSize}|{gamesListEntry?.FolderColorHex}|{gamesListEntry?.FolderSelectedColorHex}|{gamesListEntry?.FolderSelectedBgColorHex}|{gamesListEntry?.FolderFontFamily}|{gamesListEntry?.FolderBold}|{gamesListEntry?.ArrowColorHex}|{gamesListEntry?.ArrowNudgeY}|{gamesListEntry?.FolderShadowEnabled}|{gamesListEntry?.FolderShadowColorHex}|{gamesListEntry?.FolderShadowBlur}|{gamesListEntry?.FolderShadowDepth}|{gamesListEntry?.FolderSelectedShadowEnabled}|{gamesListEntry?.FolderSelectedShadowColorHex}|{gamesListEntry?.FolderSelectedShadowBlur}|{gamesListEntry?.FolderSelectedShadowDepth}";
             if (gamesListStyleKey != _lastGamesListStyleKey)
             {
                 _lastGamesListStyleKey = gamesListStyleKey;
@@ -243,11 +244,19 @@ namespace ArcadeStick
             }
 
             // Same for the game title rows (separate key, so folder-only edits don't walk the games list)
-            string gameTitleStyleKey = $"{gamesListEntry?.GameFontSize}|{gamesListEntry?.GameColorHex}|{gamesListEntry?.GameSelectedColorHex}|{gamesListEntry?.GameSelectedBgColorHex}|{gamesListEntry?.GameHoverColorHex}|{gamesListEntry?.GameFontFamily}|{gamesListEntry?.GameBold}|{gamesListEntry?.GameShadowEnabled}|{gamesListEntry?.GameShadowColorHex}|{gamesListEntry?.GameShadowBlur}|{gamesListEntry?.GameShadowDepth}";
+            string gameTitleStyleKey = $"{gamesListEntry?.GameFontSize}|{gamesListEntry?.GameColorHex}|{gamesListEntry?.GameSelectedColorHex}|{gamesListEntry?.GameSelectedBgColorHex}|{gamesListEntry?.GameHoverColorHex}|{gamesListEntry?.GameFontFamily}|{gamesListEntry?.GameBold}|{gamesListEntry?.GameShadowEnabled}|{gamesListEntry?.GameShadowColorHex}|{gamesListEntry?.GameShadowBlur}|{gamesListEntry?.GameShadowDepth}|{gamesListEntry?.GameSelectedShadowEnabled}|{gamesListEntry?.GameSelectedShadowColorHex}|{gamesListEntry?.GameSelectedShadowBlur}|{gamesListEntry?.GameSelectedShadowDepth}";
             if (gameTitleStyleKey != _lastGameTitleStyleKey)
             {
                 _lastGameTitleStyleKey = gameTitleStyleKey;
                 _viewModel.RefreshGameColorsLive();
+            }
+
+            // Marquee logo: re-raise the logo binding only when the layer's logo path changed
+            string marqueeLogoPath = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.MarqueePanel)?.ImagePath ?? "";
+            if (marqueeLogoPath != _lastMarqueeLogoPath)
+            {
+                _lastMarqueeLogoPath = marqueeLogoPath;
+                _viewModel.RefreshMarqueeLogo();
             }
 
             LayoutCanvas.Width = width;
@@ -261,10 +270,8 @@ namespace ArcadeStick
                 { Models.LayerRegistry.SortButton, BtnOpenSortingGear },
                 { Models.LayerRegistry.OptionsButton, BtnOpenOptionsGear },
                 { Models.LayerRegistry.HamburgerButton, BtnOpenMenuHamburger },
-                { Models.LayerRegistry.GamesListBg, GamesListPanel },
                 { Models.LayerRegistry.GamesList, GamesListHost },
                 { Models.LayerRegistry.MarqueePanel, MarqueePanelBorder },
-                { Models.LayerRegistry.MediaPanel, MediaPanel },
                 { Models.LayerRegistry.SplashImage, SplashLayer },
                 { Models.LayerRegistry.VideoPreview, VideoPreviewLayer },
                 { Models.LayerRegistry.GameTitle, GameInfoLayer.PartTitle },
@@ -299,6 +306,20 @@ namespace ArcadeStick
                 element.Visibility = (element == GamesListHost || entry.Visible) ? Visibility.Visible : Visibility.Collapsed;
             }
 
+            ApplyShapeLayers(layout);
+
+            // Splash Image and Video Preview draw their own border from their entries
+            var splashEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SplashImage);
+            if (splashEntry != null)
+            {
+                SplashLayer.ApplyBorder(splashEntry.BorderSize ?? 0, splashEntry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, splashEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
+            }
+            var videoEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview);
+            if (videoEntry != null)
+            {
+                VideoPreviewLayer.ApplyBorder(videoEntry.BorderSize ?? 0, videoEntry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, videoEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
+            }
+
             ApplyCustomLayers(layout);
             ApplyRandomGameDisplayRect(layout);
             ApplyRandomGameDisplayFile(layout);
@@ -326,51 +347,201 @@ namespace ArcadeStick
             }
         }
         // [SECTION: Custom Image Layers]
-        // One Image element per custom layer, created on demand and kept on LayoutCanvas. Rebuilt only when
-        // a layer's file changes; otherwise just repositioned. Fill-crop (UniformToFill) is the only fit mode.
-        private readonly Dictionary<string, (FrameworkElement Element, string Path)> _customLayerElements = new();
+        // Custom layers are drawn by the same box renderer as the shape layers (see ApplyCustomLayers below).
+        // Their image or video stretches to fill the box, and a file only reloads when its path changes.
+
+        // [SECTION: Shape Layers]
+        // Shape Layer 01 to 04: each is a Border (fill, border, corner radius) with a host Grid that holds the
+        // layer's image or video, stretched to fill. Position, size, Z, fill, border and file all come from the
+        // layer entry. Visibility follows the entry's mode, and is re-evaluated whenever a game is selected or
+        // deselected (see UpdateShapeVisibility).
+        private readonly Dictionary<string, (FrameworkElement Element, string Path)> _shapeFileElements = new();
+        private readonly Dictionary<string, string> _shapeVisibilityModes = new();
+
+        private void ApplyShapeLayers(Models.ThemeLayout layout)
+        {
+            var shapes = new (string Id, Border Box, Grid Host)[]
+            {
+                (Models.LayerRegistry.ShapeLayer01, ShapeLayer01, ShapeLayer01Host),
+                (Models.LayerRegistry.ShapeLayer02, ShapeLayer02, ShapeLayer02Host),
+                (Models.LayerRegistry.ShapeLayer03, ShapeLayer03, ShapeLayer03Host),
+                (Models.LayerRegistry.ShapeLayer04, ShapeLayer04, ShapeLayer04Host)
+            };
+
+            foreach (var (id, box, host) in shapes)
+            {
+                var entry = layout.Layers.FirstOrDefault(e => e.Id == id);
+                if (entry == null) continue;
+
+                Canvas.SetLeft(box, entry.X);
+                Canvas.SetTop(box, entry.Y);
+                box.Width = entry.Width;
+                box.Height = entry.Height;
+                Panel.SetZIndex(box, entry.Z);
+
+                box.Background = MainViewModel.SafeConvertToBrush(entry.BgColorHex ?? Models.LayerRegistry.DefaultShapeBgColorHex);
+                box.BorderBrush = MainViewModel.SafeConvertToBrush(entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex);
+                box.BorderThickness = new Thickness(entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize);
+                box.CornerRadius = new CornerRadius(entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
+
+                // Round the image/video's clip to the border's inner edge (ClipToBounds alone clips to a plain rectangle)
+                double borderSize = entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize;
+                double innerWidth = Math.Max(0, entry.Width - (borderSize * 2));
+                double innerHeight = Math.Max(0, entry.Height - (borderSize * 2));
+                double innerRadius = Math.Max(0, (entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius) - borderSize);
+                var clip = new RectangleGeometry(new Rect(0, 0, innerWidth, innerHeight), innerRadius, innerRadius);
+                clip.Freeze();
+                host.Clip = clip;
+                host.Opacity = (entry.FileOpacity ?? Models.LayerRegistry.DefaultFileOpacity) / 100.0; // file opacity
+
+                ApplyShapeFile(id, host, entry.ImagePath);
+                _shapeVisibilityModes[id] = entry.VisibilityMode ?? Models.LayerRegistry.DefaultVisibilityMode;
+            }
+
+            UpdateShapeVisibility();
+        }
+
+        // Shows or hides each shape layer from its mode and whether a game is selected.
+        private void UpdateShapeVisibility()
+        {
+            if (_viewModel == null) return;
+
+            var shapes = new List<(string Id, Border Box)>
+            {
+                (Models.LayerRegistry.ShapeLayer01, ShapeLayer01),
+                (Models.LayerRegistry.ShapeLayer02, ShapeLayer02),
+                (Models.LayerRegistry.ShapeLayer03, ShapeLayer03),
+                (Models.LayerRegistry.ShapeLayer04, ShapeLayer04)
+            };
+
+            // Custom layers follow the same visibility rules
+            foreach (var custom in _customBoxes) shapes.Add((custom.Key, custom.Value.Box));
+
+            bool gameSelected = _viewModel.IsGameSelected;
+            foreach (var (id, box) in shapes)
+            {
+                string mode = _shapeVisibilityModes.TryGetValue(id, out var m) ? m : Models.LayerRegistry.DefaultVisibilityMode;
+                bool show = mode switch
+                {
+                    Models.LayerRegistry.VisibilityGameSelected => gameSelected,
+                    Models.LayerRegistry.VisibilityNoGameSelected => !gameSelected,
+                    Models.LayerRegistry.VisibilityNever => false,
+                    _ => true
+                };
+                box.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        // Builds (or rebuilds, only when the file changed) the image or video inside one shape's host Grid.
+        private void ApplyShapeFile(string id, Grid host, string storedPath)
+        {
+            string? fullPath = ResolveCustomImagePath(storedPath);
+
+            if (_shapeFileElements.TryGetValue(id, out var existing))
+            {
+                if (existing.Path == fullPath) return;
+                ReleaseShapeFile(id, host);
+            }
+
+            if (fullPath == null) return;
+
+            var element = CreateCustomLayerImage(fullPath);
+            if (element == null) return;
+
+            // Shape layers stretch to fill (custom layers crop to fill)
+            if (element is Image image) image.Stretch = Stretch.Fill;
+
+            host.Children.Add(element);
+            _shapeFileElements[id] = (element, fullPath);
+        }
+
+        private void ReleaseShapeFile(string id, Grid host)
+        {
+            if (!_shapeFileElements.TryGetValue(id, out var entry)) return;
+
+            if (entry.Element is MediaElement video)
+            {
+                video.Stop();
+                video.Source = null;
+                video.Close();
+            }
+            else if (entry.Element is Image image)
+            {
+                image.ClearValue(Image.SourceProperty);
+                image.Source = null;
+            }
+
+            host.Children.Remove(entry.Element);
+            _shapeFileElements.Remove(id);
+        }
+
+        // Releases every shape layer's file so nothing stays open (called just before a theme is re-extracted).
+        private void ReleaseAllShapeFiles()
+        {
+            ReleaseShapeFile(Models.LayerRegistry.ShapeLayer01, ShapeLayer01Host);
+            ReleaseShapeFile(Models.LayerRegistry.ShapeLayer02, ShapeLayer02Host);
+            ReleaseShapeFile(Models.LayerRegistry.ShapeLayer03, ShapeLayer03Host);
+            ReleaseShapeFile(Models.LayerRegistry.ShapeLayer04, ShapeLayer04Host);
+        }
+        // [END SECTION: Shape Layers]
+
+        // Custom layers: one bordered box (fill, border, corner radius) per layer with a host Grid for the
+        // image or video, created on demand and kept on LayoutCanvas. Same look and rules as the shape layers.
+        private readonly Dictionary<string, (Border Box, Grid Host)> _customBoxes = new();
 
         private void ApplyCustomLayers(Models.ThemeLayout layout)
         {
             var wanted = layout.Layers.Where(e => Models.LayerRegistry.IsCustomId(e.Id)).ToList();
 
-            // Drop elements for layers that no longer exist at this resolution
-            foreach (var staleId in _customLayerElements.Keys.Where(id => wanted.All(e => e.Id != id)).ToList())
+            // Drop boxes for layers that no longer exist at this resolution
+            foreach (var staleId in _customBoxes.Keys.Where(id => wanted.All(e => e.Id != id)).ToList())
             {
-                LayoutCanvas.Children.Remove(_customLayerElements[staleId].Element);
-                _customLayerElements.Remove(staleId);
+                var stale = _customBoxes[staleId];
+                ReleaseShapeFile(staleId, stale.Host);
+                LayoutCanvas.Children.Remove(stale.Box);
+                _customBoxes.Remove(staleId);
+                _shapeVisibilityModes.Remove(staleId);
             }
 
             foreach (var entry in wanted)
             {
-                string? fullPath = ResolveCustomImagePath(entry.ImagePath);
-
-                if (_customLayerElements.TryGetValue(entry.Id, out var existing) && existing.Path != fullPath)
+                // Custom layer box
+                if (!_customBoxes.TryGetValue(entry.Id, out var parts))
                 {
-                    LayoutCanvas.Children.Remove(existing.Element);
-                    _customLayerElements.Remove(entry.Id);
+                    var host = new Grid();
+                    var box = new Border { IsHitTestVisible = false, ClipToBounds = true, Child = host };
+                    LayoutCanvas.Children.Add(box);
+                    parts = (box, host);
+                    _customBoxes[entry.Id] = parts;
                 }
 
-                if (fullPath == null) continue;
+                var customBox = parts.Box;
+                Canvas.SetLeft(customBox, entry.X);
+                Canvas.SetTop(customBox, entry.Y);
+                customBox.Width = entry.Width;
+                customBox.Height = entry.Height;
+                Panel.SetZIndex(customBox, entry.Z);
 
-                if (!_customLayerElements.TryGetValue(entry.Id, out var current))
-                {
-                    var created = CreateCustomLayerImage(fullPath);
-                    if (created == null) continue;
+                customBox.Background = MainViewModel.SafeConvertToBrush(entry.BgColorHex ?? Models.LayerRegistry.DefaultShapeBgColorHex);
+                customBox.BorderBrush = MainViewModel.SafeConvertToBrush(entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex);
+                customBox.BorderThickness = new Thickness(entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize);
+                customBox.CornerRadius = new CornerRadius(entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
 
-                    LayoutCanvas.Children.Add(created);
-                    current = (created, fullPath);
-                    _customLayerElements[entry.Id] = current;
-                }
+                // Round clip for the image/video, matching the border's inner edge
+                double customBorder = entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize;
+                double customInnerWidth = Math.Max(0, entry.Width - (customBorder * 2));
+                double customInnerHeight = Math.Max(0, entry.Height - (customBorder * 2));
+                double customInnerRadius = Math.Max(0, (entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius) - customBorder);
+                var customClip = new RectangleGeometry(new Rect(0, 0, customInnerWidth, customInnerHeight), customInnerRadius, customInnerRadius);
+                customClip.Freeze();
+                parts.Host.Clip = customClip;
+                parts.Host.Opacity = (entry.FileOpacity ?? Models.LayerRegistry.DefaultFileOpacity) / 100.0; // file opacity
 
-                var element = current.Element;
-                Canvas.SetLeft(element, entry.X);
-                Canvas.SetTop(element, entry.Y);
-                element.Width = entry.Width;
-                element.Height = entry.Height;
-                Panel.SetZIndex(element, entry.Z);
-                element.Visibility = entry.Visible ? Visibility.Visible : Visibility.Collapsed;
+                ApplyShapeFile(entry.Id, parts.Host, entry.ImagePath);
+                _shapeVisibilityModes[entry.Id] = entry.VisibilityMode ?? Models.LayerRegistry.DefaultVisibilityMode;
             }
+
+            UpdateShapeVisibility();
         }
 
         // Stops and removes every custom layer element so no file stays open. Called just before LoadTheme
@@ -381,24 +552,18 @@ namespace ArcadeStick
             // The Random Game Display layer's file is held open the same way
             ReleaseRandomGameDisplayFile();
 
-            foreach (var entry in _customLayerElements.Values)
-            {
-                if (entry.Element is MediaElement video)
-                {
-                    video.Stop();
-                    video.Source = null;
-                    video.Close();
-                }
-                else if (entry.Element is Image image)
-                {
-                    // Clears the animated source (AnimatedImage.Wpf) and the static bitmap
-                    image.ClearValue(Image.SourceProperty);
-                    image.Source = null;
-                }
+            // ...and so are the shape layers' files
+            ReleaseAllShapeFiles();
 
-                LayoutCanvas.Children.Remove(entry.Element);
+            // Custom layers: release each box's file and remove the box. The next ApplyLayout recreates
+            // whatever the new theme needs.
+            foreach (var custom in _customBoxes.ToList())
+            {
+                ReleaseShapeFile(custom.Key, custom.Value.Host);
+                LayoutCanvas.Children.Remove(custom.Value.Box);
+                _shapeVisibilityModes.Remove(custom.Key);
             }
-            _customLayerElements.Clear();
+            _customBoxes.Clear();
         }
 
         // [SECTION: Random Game Display Rect]
@@ -757,6 +922,12 @@ namespace ArcadeStick
         // scrolling doesn't start a video load on every intermediate step, only the final selection.
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
+            // Shape layers set to "only when a game is selected / not selected" follow the selection
+            if (e.PropertyName == nameof(_viewModel.IsGameSelected))
+            {
+                UpdateShapeVisibility();
+            }
+
             if (e.PropertyName == nameof(_viewModel.VideoSourcePath))
             {
                 if (_viewModel.SelectedGame != null && !string.IsNullOrEmpty(_viewModel.VideoSourcePath))
@@ -891,7 +1062,11 @@ namespace ArcadeStick
 
             // The video slot sits inside the border ring, pulled in by (border thickness - 1) on each side
             // (same rule as VideoPreviewLayerControl.ApplyClip), so decode to that inner size.
-            double inset = Math.Max(0, _viewModel.ThemeVideoBorderSize - 1);
+            var config = _viewModel.Configuration;
+            var savedLayout = config.Layouts.FirstOrDefault(l => l.Width == config.ActiveResolutionWidth && l.Height == config.ActiveResolutionHeight);
+            var resolvedLayout = Models.LayerRegistry.ResolveLayout(savedLayout, config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+            double videoBorderSize = resolvedLayout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview)?.BorderSize ?? 0;
+            double inset = Math.Max(0, videoBorderSize - 1);
             double width = VideoPreviewLayer.Width - (inset * 2);
             double height = VideoPreviewLayer.Height - (inset * 2);
             if (double.IsNaN(width) || double.IsNaN(height) || width < 1 || height < 1) return;
@@ -1385,6 +1560,10 @@ namespace ArcadeStick
             {
                 Dispatcher.BeginInvoke(new Action(() => _viewModel.SetMostPlayedColor(hex)));
             }
+            else if (string.Equals(colorFolderName, "FAVORITES", StringComparison.OrdinalIgnoreCase))
+            {
+                Dispatcher.BeginInvoke(new Action(() => _viewModel.SetFavoritesColor(hex)));
+            }
             else
             {
                 Dispatcher.BeginInvoke(new Action(() => _viewModel.SetCustomFolderColor(colorFolderName, hex)));
@@ -1422,9 +1601,9 @@ namespace ArcadeStick
             }
         }
 
-        // "Rename folder", "Choose folder color", and "Delete folder" are enabled only for custom folders
-        // (playlist .cfg files) - Favorites, virtual/catver categories, and physical GAMES-bucket folders
-        // are never renamable/recolorable/deletable this way. The resolved on-disk folder name is stashed
+        // "Rename folder" and "Delete folder" are enabled only for custom folders (playlist .cfg files);
+        // "Choose folder color" is also enabled for Favorites, Recently Played and Most Played. Virtual/catver
+        // categories and physical GAMES-bucket folders are never renamable/recolorable/deletable this way. The resolved on-disk folder name is stashed
         // in each MenuItem's Tag, same pattern as RemoveFromFolderMenuItem. "Move" is separate - it's
         // available for any folder type except Favorites, gated only by nesting depth (capped at one
         // subfolder level), not by folder type.
@@ -1452,10 +1631,11 @@ namespace ArcadeStick
                 }
             }
 
-            // Choose Color is available for custom folders AND the two static play-history folders. The
-            // Tag becomes the node's own HeaderText for the static folders, since they have no separate
+            // Choose Color is available for custom folders AND the static folders (Favorites and the two
+            // play-history folders). The Tag becomes the node's own HeaderText for the static folders, since they have no separate
             // "on-disk name" the way a custom folder's filename does.
-            bool canRecolor = isCustomFolder || isRecentlyPlayed || isMostPlayed;
+            bool canRecolor = isCustomFolder || isRecentlyPlayed || isMostPlayed
+    || string.Equals(node.HeaderText, "FAVORITES", StringComparison.OrdinalIgnoreCase);
             if (menu.Items.OfType<MenuItem>().FirstOrDefault(mi => (string)mi.Header == "Choose folder color") is MenuItem colorItem)
             {
                 colorItem.IsEnabled = canRecolor;
@@ -2468,7 +2648,7 @@ namespace ArcadeStick
             if (_currentMainBgVideoPath != null) MainBgVideo.Pause();
 
             // Custom video layers pause too, so nothing keeps decoding behind MAME
-            foreach (var entry in _customLayerElements.Values)
+            foreach (var entry in _shapeFileElements.Values)
             {
                 if (entry.Element is MediaElement customVideo) customVideo.Pause();
             }
@@ -2478,7 +2658,7 @@ namespace ArcadeStick
         {
             if (_currentMainBgVideoPath != null) MainBgVideo.Play();
 
-            foreach (var entry in _customLayerElements.Values)
+            foreach (var entry in _shapeFileElements.Values)
             {
                 if (entry.Element is MediaElement customVideo && customVideo.Visibility == Visibility.Visible) customVideo.Play();
             }

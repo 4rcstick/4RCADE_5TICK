@@ -56,6 +56,6 @@
         </Border>
 
         <!-- Border ring on top, never hit-testable -->
-        <Border x:Name="MediaSlotRing" CornerRadius="{Binding ThemeVideoBorderRadius, FallbackValue=0}" BorderBrush="{Binding ThemeVideoBorderColor, FallbackValue=#FF3A3A3C}" BorderThickness="{Binding ThemeVideoBorderSize, FallbackValue=0}" Background="Transparent" IsHitTestVisible="False"/>
+        <Border x:Name="MediaSlotRing" Background="Transparent" IsHitTestVisible="False"/>
     </Grid>
 </UserControl>

@@ -7,8 +7,12 @@ namespace ArcadeStick.Views
 {
     // Video Preview layer: fallback image, static preview image and the MediaElement player, all fitting
     // inside this control's rect. MainWindow.xaml.cs reaches MediaElementPreview through the public field.
+    // The border (size, color, corner radius) comes from the layer's entry, pushed in by ApplyBorder.
     public partial class VideoPreviewLayerControl : UserControl
     {
+        private double _borderSize;
+        private double _borderRadius;
+
         public VideoPreviewLayerControl()
         {
             InitializeComponent();
@@ -18,11 +22,6 @@ namespace ArcadeStick.Views
         private void VideoPreviewLayerControl_Loaded(object sender, RoutedEventArgs e)
         {
             ApplyClip();
-
-            if (DataContext is System.ComponentModel.INotifyPropertyChanged vm)
-            {
-                vm.PropertyChanged += DataContext_PropertyChanged;
-            }
         }
 
         private void MediaSlotContent_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -30,14 +29,17 @@ namespace ArcadeStick.Views
             ApplyClip();
         }
 
-        // Border radius/size changes from the Theme Builder don't resize the slot, so SizeChanged alone
-        // wouldn't rebuild the rounded clip - redo it here.
-        private void DataContext_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        // Called from MainWindow.ApplyLayout with the layer entry's border values.
+        public void ApplyBorder(double size, string colorHex, double radius)
         {
-            if (e.PropertyName == "ThemeVideoBorderRadius" || e.PropertyName == "ThemeVideoBorderSize")
-            {
-                ApplyClip();
-            }
+            _borderSize = Math.Max(0, size);
+            _borderRadius = Math.Max(0, radius);
+
+            MediaSlotRing.BorderThickness = new Thickness(_borderSize);
+            MediaSlotRing.CornerRadius = new CornerRadius(_borderRadius);
+            MediaSlotRing.BorderBrush = ArcadeStick.ViewModels.MainViewModel.SafeConvertToBrush(colorHex);
+
+            ApplyClip();
         }
 
         // The border ring stays at the slot's outer edge; the video layer pulls in by the border thickness
@@ -49,16 +51,8 @@ namespace ArcadeStick.Views
             double availableHeight = MediaSlotContent.ActualHeight;
             if (availableWidth <= 0 || availableHeight <= 0) return;
 
-            double outerRadius = 0;
-            double thickness = 0;
-            if (DataContext is ArcadeStick.ViewModels.MainViewModel vm)
-            {
-                outerRadius = vm.ThemeVideoBorderRadius;
-                thickness = vm.ThemeVideoBorderSize;
-            }
-
-            double inset = Math.Max(0, thickness - 1);
-            double videoRadius = Math.Max(0, outerRadius - inset);
+            double inset = Math.Max(0, _borderSize - 1);
+            double videoRadius = Math.Max(0, _borderRadius - inset);
 
             MediaSlot.Margin = new Thickness(inset);
             MediaSlot.CornerRadius = new CornerRadius(videoRadius);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ArcadeStick.Models;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -6,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using ArcadeStick.Models;
 
 namespace ArcadeStick.Views
 {
@@ -319,8 +319,8 @@ namespace ArcadeStick.Views
 
             return width > 0 && height > 0;
         }
-        // Add Image Layer: asks for a file, then creates the layer at the CURRENT resolution only, sized to
-        // the image's native pixels (fill-crop means a matching size is never scaled or cropped). At most
+        // Add Layer: asks for a name, then creates a box layer at the CURRENT resolution only, with the shape
+        // layer defaults and no file yet (Browse on its Background tab sizes it to the file). At most
         // LayerRegistry.MaxCustomLayersPerResolution per resolution.
         private void BtnAddImageLayer_Click(object sender, RoutedEventArgs e)
         {
@@ -328,75 +328,73 @@ namespace ArcadeStick.Views
             if (existingCount >= LayerRegistry.MaxCustomLayersPerResolution)
             {
                 MessageBox.Show($"This resolution already has the maximum of {LayerRegistry.MaxCustomLayersPerResolution} custom layers. Remove one to add another.",
-                    "Add Image Layer", MessageBoxButton.OK, MessageBoxImage.Information);
+                    "Add Layer", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image and Video Files (*.png;*.jpg;*.jpeg;*.gif;*.mp4)|*.png;*.jpg;*.jpeg;*.gif;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.gif)|*.png;*.jpg;*.jpeg;*.gif|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*",
-                Title = "Select Image for New Layer",
-                RestoreDirectory = true
-            };
-            if (dialog.ShowDialog() != true) return;
-
-            string selectedPath = dialog.FileName;
-
-            double imageWidth;
-            double imageHeight;
-            try
-            {
-                if (System.IO.Path.GetExtension(selectedPath).Equals(".mp4", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!TryGetVideoSize(selectedPath, out imageWidth, out imageHeight))
-                    {
-                        MessageBox.Show("Could not read that video. It may use a codec this PC can't play (H.264, 8-bit yuv420p works on a stock Windows install).",
-                            "Add Image Layer", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-                }
-                else
-                {
-                    var decoder = System.Windows.Media.Imaging.BitmapDecoder.Create(
-                        new Uri(selectedPath, UriKind.Absolute),
-                        System.Windows.Media.Imaging.BitmapCreateOptions.DelayCreation | System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat,
-                        System.Windows.Media.Imaging.BitmapCacheOption.None);
-                    imageWidth = decoder.Frames[0].PixelWidth;
-                    imageHeight = decoder.Frames[0].PixelHeight;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Could not read that image: {ex.Message}", "Add Image Layer", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // Same convention as the other theme assets: relative to the app folder when inside it, else absolute
-            string storedPath = selectedPath;
-            try
-            {
-                string relative = System.IO.Path.GetRelativePath(_settings.BaseDirectory, selectedPath);
-                if (!relative.StartsWith("..") && !System.IO.Path.IsPathRooted(relative)) storedPath = relative;
-            }
-            catch { }
+            string? layerName = PromptForLayerName();
+            if (layerName == null) return;
 
             int topZ = _currentLayout.Layers.Max(l => l.Z);
             var entry = new LayerLayoutEntry
             {
                 Id = LayerRegistry.CustomIdPrefix + Guid.NewGuid().ToString("N"),
-                Name = System.IO.Path.GetFileNameWithoutExtension(selectedPath),
-                ImagePath = storedPath,
-                X = 0,
-                Y = 0,
-                Width = imageWidth,
-                Height = imageHeight,
+                Name = layerName,
+                ImagePath = "",
+                X = LayerRegistry.NewLayerX,
+                Y = LayerRegistry.NewLayerY,
+                Width = LayerRegistry.NewLayerWidth,
+                Height = LayerRegistry.NewLayerHeight,
                 Z = topZ + 1,
-                Visible = true
+                Visible = true,
+                VisibilityMode = LayerRegistry.DefaultVisibilityMode,
+                BgColorHex = LayerRegistry.DefaultShapeBgColorHex,
+                BorderSize = LayerRegistry.DefaultShapeBorderSize,
+                BorderColorHex = LayerRegistry.DefaultShapeBorderColorHex,
+                CornerRadius = LayerRegistry.DefaultShapeCornerRadius
             };
 
             _currentLayout.Layers.Add(entry);
             NormalizeZ(GetAscendingOrder());
             RebuildLayerList(entry.Id);
+        }
+
+        // Small name prompt built in code (OK / Cancel, Enter confirms, Esc cancels). Returns null if cancelled
+        // or left empty.
+        private string? PromptForLayerName()
+        {
+            var nameBox = new TextBox { Margin = new Thickness(0, 6, 0, 12), Padding = new Thickness(4), MaxLength = 40 };
+            var okButton = new Button { Content = "OK", Width = 70, IsDefault = true, Margin = new Thickness(0, 0, 8, 0), Padding = new Thickness(0, 3, 0, 3) };
+            var cancelButton = new Button { Content = "Cancel", Width = 70, IsCancel = true, Padding = new Thickness(0, 3, 0, 3) };
+
+            var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            buttons.Children.Add(okButton);
+            buttons.Children.Add(cancelButton);
+
+            var panel = new StackPanel { Margin = new Thickness(14) };
+            panel.Children.Add(new TextBlock { Text = "Name for the new layer:" });
+            panel.Children.Add(nameBox);
+            panel.Children.Add(buttons);
+
+            var prompt = new Window
+            {
+                Title = "Add Layer",
+                Content = panel,
+                Width = 320,
+                SizeToContent = SizeToContent.Height,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                ShowInTaskbar = false
+            };
+
+            okButton.Click += (s, args) => prompt.DialogResult = true;
+            prompt.Loaded += (s, args) => nameBox.Focus();
+
+            if (prompt.ShowDialog() != true) return null;
+
+            string name = nameBox.Text.Trim();
+            return string.IsNullOrEmpty(name) ? null : name;
         }
 
         // Remove: deletes the selected custom layer at this resolution only (other resolutions are untouched).
@@ -417,12 +415,69 @@ namespace ArcadeStick.Views
         // [END SECTION: Layer List]
 
         // [SECTION: Layer Fields]
+        // [SECTION: Layer Property Tabs]
+        // Position is always the first tab. Each layer type lists the other tabs it shows; every other tab is
+        // hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
+        // and list it for that layer in GetLayerTabs.
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabShapeBackground, TabShapeBorder, TabMarqueeLogo };
+
+        private TabItem[] GetLayerTabs(string? unitKey)
+        {
+            if (unitKey == LayerRegistry.GamesList) return new[] { TabGLFolders, TabGLGameTitles };
+
+            // Marquee gets the Logo tab (the logo shown when no game is selected)
+            if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo };
+
+            // Shape Layers 01 to 04 share one tab set
+            if (unitKey != null && LayerRegistry.IsBoxId(unitKey)) return new[] { TabShapeBackground, TabShapeBorder };
+
+            // Splash Image and Video Preview get the Border tab only
+            if (unitKey == LayerRegistry.SplashImage || unitKey == LayerRegistry.VideoPreview) return new[] { TabShapeBorder };
+
+            // Every other layer (custom image layers included) shows Position only for now.
+            return Array.Empty<TabItem>();
+        }
+
+        // The layer whose tabs are showing. The selection returns to Position only when this changes, not on
+        // every committed edit (edits reload the fields too).
+        private string? _tabsUnitKey;
+
+        private void ApplyLayerTabs(string? unitKey)
+        {
+            var wanted = GetLayerTabs(unitKey);
+            foreach (var tab in AllLayerTabs)
+            {
+                tab.Visibility = wanted.Contains(tab) ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            if (unitKey != _tabsUnitKey)
+            {
+                _tabsUnitKey = unitKey;
+                TabsLayer.SelectedItem = TabPosition;
+            }
+        }
+        // [END SECTION: Layer Property Tabs]
+
         private static string Fmt(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 
         private void LoadSelectedLayerIntoFields()
         {
-            // Games List styling section: shown or hidden for the current selection, filled from the entry
+            // Tabs for the selected layer: Position always, the others per layer type. Selecting a different
+            // layer returns to Position; edits to the same layer stay on the current tab.
+            ApplyLayerTabs((LstLayers.SelectedItem as LayerListItem)?.Id);
+
+            // Games List styling fields: filled from the entry when the Games List is selected
             LoadGamesListStyleFields();
+
+            // Shape layer fields (visibility, background, border): filled when a Shape Layer is selected
+            LoadShapeStyleFields();
+            LoadBorderOnlyFields();
+
+            // Marquee logo field: filled when the Marquee layer is selected
+            if (LstLayers.SelectedItem is LayerListItem marqueeSel && marqueeSel.Id == LayerRegistry.MarqueePanel)
+            {
+                TxtMarqueeLogoFile.Text = GetEntry(LayerRegistry.MarqueePanel)?.ImagePath ?? "";
+            }
 
             // A group row shows every part's fields at once on its own page
             if (LstLayers.SelectedItem is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition selectedGroup)
@@ -458,7 +513,9 @@ namespace ArcadeStick.Views
             BtnRemoveLayer.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
 
             PnlRectFields.Visibility = positionable ? Visibility.Visible : Visibility.Collapsed;
-            ChkLayerHidden.Visibility = (positionable && canHide) ? Visibility.Visible : Visibility.Collapsed;
+            bool isShape = LayerRegistry.IsBoxId(entry.Id);
+            ChkLayerHidden.Visibility = (positionable && canHide && !isShape) ? Visibility.Visible : Visibility.Collapsed;
+            PnlVisibilityMode.Visibility = isShape ? Visibility.Visible : Visibility.Collapsed;
             BtnResetLayer.Visibility = (positionable && !isCustom) ? Visibility.Visible : Visibility.Collapsed;
             ChkLayerHidden.IsEnabled = canHide;
 
@@ -489,6 +546,7 @@ namespace ArcadeStick.Views
             TxtLayerFile.Text = hasSharedFile ? (GetEntry(LayerRegistry.RandomGameDisplay)?.ImagePath ?? "") : "";
 
             ChkLayerHidden.Visibility = Visibility.Collapsed;
+            PnlVisibilityMode.Visibility = Visibility.Collapsed;
             BtnRemoveLayer.Visibility = Visibility.Collapsed;
             BtnResetLayer.Visibility = Visibility.Visible;
             PnlGroupParts.Visibility = Visibility.Visible;
@@ -660,10 +718,25 @@ namespace ArcadeStick.Views
 
             if (double.TryParse(box.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
             {
+                // Ratio lock: when on, a changed Width or Height resizes the other one to keep the layer's
+                // current proportions. The ratio is read from the stored size just before the edit, so
+                // there is nothing to remember between edits.
+                double oldWidth = entry.Width;
+                double oldHeight = entry.Height;
+                bool keepRatio = BtnRatioLock.IsChecked == true && oldWidth > 0 && oldHeight > 0;
+
                 if (box == TxtLayerX) entry.X = value;
                 else if (box == TxtLayerY) entry.Y = value;
-                else if (box == TxtLayerWidth && value > 0) entry.Width = value;
-                else if (box == TxtLayerHeight && value > 0) entry.Height = value;
+                else if (box == TxtLayerWidth && value > 0)
+                {
+                    entry.Width = value;
+                    if (keepRatio && value != oldWidth) entry.Height = value * oldHeight / oldWidth;
+                }
+                else if (box == TxtLayerHeight && value > 0)
+                {
+                    entry.Height = value;
+                    if (keepRatio && value != oldHeight) entry.Width = value * oldWidth / oldHeight;
+                }
             }
 
             // Re-display the stored value (normalizes formatting, and reverts invalid input)
@@ -727,16 +800,342 @@ namespace ArcadeStick.Views
             LayoutChanged?.Invoke();
         }
 
+        // [SECTION: Shape Layer Fields]
+        // Shown while Shape Layer 01 to 04 is selected. Values live on the layer entry (per resolution) and apply
+        // live; invalid input reverts to the stored value. Color pickers reuse _suppressGLColorSync.
+        private static readonly (string Mode, string Label)[] VisibilityChoices =
+        {
+            (LayerRegistry.VisibilityAlways, "Always"),
+            (LayerRegistry.VisibilityGameSelected, "Only when a game is selected"),
+            (LayerRegistry.VisibilityNoGameSelected, "Only when no game is selected"),
+            (LayerRegistry.VisibilityNever, "Never (hidden)")
+        };
+
+        private LayerLayoutEntry? GetSelectedShapeEntry()
+        {
+            if (LstLayers.SelectedItem is LayerListItem sel && LayerRegistry.IsBoxId(sel.Id)) return GetEntry(sel.Id);
+            return null;
+        }
+
+        // Any selected layer that has a Border tab (the shape layers, Splash Image and Video Preview)
+        private LayerLayoutEntry? GetSelectedBorderEntry()
+        {
+            if (LstLayers.SelectedItem is LayerListItem sel && LayerRegistry.HasBorderTab(sel.Id)) return GetEntry(sel.Id);
+            return null;
+        }
+
+        // Fills the Border tab for Splash Image and Video Preview (the shape layers are filled by LoadShapeStyleFields)
+        private void LoadBorderOnlyFields()
+        {
+            if (GetSelectedShapeEntry() != null) return;
+            var entry = GetSelectedBorderEntry();
+            if (entry == null) return;
+
+            _loading = true;
+
+            string borderHex = entry.BorderColorHex ?? LayerRegistry.DefaultShapeBorderColorHex;
+            TxtShapeBorderColorHex.Text = borderHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                ShapeBorderColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(borderHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            TxtShapeBorderSize.Text = (entry.BorderSize ?? 0).ToString(CultureInfo.InvariantCulture);
+            TxtShapeCornerRadius.Text = (entry.CornerRadius ?? LayerRegistry.DefaultShapeCornerRadius).ToString(CultureInfo.InvariantCulture);
+
+            _loading = false;
+        }
+
+        private void LoadShapeStyleFields()
+        {
+            var entry = GetSelectedShapeEntry();
+            if (entry == null) return;
+
+            _loading = true;
+
+            if (CboVisibilityMode.Items.Count == 0)
+            {
+                foreach (var choice in VisibilityChoices) CboVisibilityMode.Items.Add(choice.Label);
+            }
+            string mode = entry.VisibilityMode ?? LayerRegistry.DefaultVisibilityMode;
+            int index = Array.FindIndex(VisibilityChoices, c => c.Mode == mode);
+            CboVisibilityMode.SelectedIndex = index >= 0 ? index : 0;
+
+            TxtShapeFile.Text = entry.ImagePath;
+            TxtShapeOpacity.Text = (entry.FileOpacity ?? LayerRegistry.DefaultFileOpacity).ToString(CultureInfo.InvariantCulture);
+
+            string bgHex = entry.BgColorHex ?? LayerRegistry.DefaultShapeBgColorHex;
+            TxtShapeBgColorHex.Text = bgHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                ShapeBgColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(bgHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            string borderHex = entry.BorderColorHex ?? LayerRegistry.DefaultShapeBorderColorHex;
+            TxtShapeBorderColorHex.Text = borderHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                ShapeBorderColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(borderHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+
+            TxtShapeBorderSize.Text = (entry.BorderSize ?? LayerRegistry.DefaultShapeBorderSize).ToString(CultureInfo.InvariantCulture);
+            TxtShapeCornerRadius.Text = (entry.CornerRadius ?? LayerRegistry.DefaultShapeCornerRadius).ToString(CultureInfo.InvariantCulture);
+
+            _loading = false;
+        }
+
+        private void CboVisibilityMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading) return;
+            if (GetSelectedShapeEntry() is not LayerLayoutEntry entry) return;
+            int index = CboVisibilityMode.SelectedIndex;
+            if (index < 0 || index >= VisibilityChoices.Length) return;
+
+            entry.VisibilityMode = VisibilityChoices[index].Mode;
+            RaiseGuides();
+        }
+        // Browse stores the path in the layer's ImagePath, same convention as the other file fields.
+        // Reads an image's or video's native pixel size (custom layer auto-resize). False if it can't be read.
+        private static bool TryGetFileSize(string path, out double width, out double height)
+        {
+            width = 0;
+            height = 0;
+
+            try
+            {
+                if (System.IO.Path.GetExtension(path).Equals(".mp4", StringComparison.OrdinalIgnoreCase))
+                {
+                    return TryGetVideoSize(path, out width, out height);
+                }
+
+                var decoder = System.Windows.Media.Imaging.BitmapDecoder.Create(
+                    new Uri(path, UriKind.Absolute),
+                    System.Windows.Media.Imaging.BitmapCreateOptions.DelayCreation | System.Windows.Media.Imaging.BitmapCreateOptions.PreservePixelFormat,
+                    System.Windows.Media.Imaging.BitmapCacheOption.None);
+                width = decoder.Frames[0].PixelWidth;
+                height = decoder.Frames[0].PixelHeight;
+                return width > 0 && height > 0;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void BtnBrowseShapeFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetSelectedShapeEntry() is not LayerLayoutEntry entry) return;
+
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image and Video Files (*.png;*.jpg;*.jpeg;*.gif;*.mp4)|*.png;*.jpg;*.jpeg;*.gif;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.gif)|*.png;*.jpg;*.jpeg;*.gif|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*",
+                Title = "Select Image or Video for This Layer",
+                RestoreDirectory = true
+            };
+            if (dialog.ShowDialog() != true) return;
+
+            string storedPath = dialog.FileName;
+            try
+            {
+                string relative = System.IO.Path.GetRelativePath(_settings.BaseDirectory, dialog.FileName);
+                if (!relative.StartsWith("..") && !System.IO.Path.IsPathRooted(relative)) storedPath = relative;
+            }
+            catch { }
+
+            // Custom layers resize to the file's native size (position stays, ratio lock is ignored)
+            if (LayerRegistry.IsCustomId(entry.Id) && TryGetFileSize(dialog.FileName, out double fileWidth, out double fileHeight))
+            {
+                entry.Width = fileWidth;
+                entry.Height = fileHeight;
+            }
+
+            entry.ImagePath = storedPath;
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Marquee logo: Browse stores the path in the Marquee entry's ImagePath, same convention as the other file fields.
+        // The main window reads it from there (see the logo lookup in MainViewModel).
+        private void BtnBrowseMarqueeLogo_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetEntry(LayerRegistry.MarqueePanel) is not LayerLayoutEntry entry) return;
+
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All files (*.*)|*.*",
+                Title = "Select Logo Image",
+                RestoreDirectory = true
+            };
+            if (dialog.ShowDialog() != true) return;
+
+            string storedPath = dialog.FileName;
+            try
+            {
+                string relative = System.IO.Path.GetRelativePath(_settings.BaseDirectory, dialog.FileName);
+                if (!relative.StartsWith("..") && !System.IO.Path.IsPathRooted(relative)) storedPath = relative;
+            }
+            catch { }
+
+            entry.ImagePath = storedPath;
+            LoadSelectedLayerIntoFields();
+        }
+
+        private void BtnClearMarqueeLogo_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetEntry(LayerRegistry.MarqueePanel) is not LayerLayoutEntry entry) return;
+
+            entry.ImagePath = "";
+            LoadSelectedLayerIntoFields();
+        }
+
+        private void BtnClearShapeFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetSelectedShapeEntry() is not LayerLayoutEntry entry) return;
+
+            entry.ImagePath = "";
+            LoadSelectedLayerIntoFields();
+        }
+
+        private void ShapeBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetSelectedShapeEntry() is not LayerLayoutEntry entry) return;
+
+            var c = ShapeBgColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtShapeBgColorHex.Text = hex;
+            entry.BgColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtShapeBgColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetSelectedShapeEntry() is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtShapeBgColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                ShapeBgColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtShapeBgColorHex.Text = hex;
+                entry.BgColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtShapeBgColorHex.Text = entry.BgColorHex ?? LayerRegistry.DefaultShapeBgColorHex;
+            }
+        }
+
+        private void ShapeBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetSelectedBorderEntry() is not LayerLayoutEntry entry) return;
+
+            var c = ShapeBorderColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtShapeBorderColorHex.Text = hex;
+            entry.BorderColorHex = hex;
+            RaiseGuides();
+        }
+
+
+
+        private void TxtShapeBorderColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetSelectedBorderEntry() is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtShapeBorderColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                ShapeBorderColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtShapeBorderColorHex.Text = hex;
+                entry.BorderColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtShapeBorderColorHex.Text = entry.BorderColorHex ?? LayerRegistry.DefaultShapeBorderColorHex;
+            }
+        }
+
+        // File opacity (0 to 100 percent): Enter or focus loss, invalid input reverts.
+        private void ShapeOpacityField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyShapeOpacity();
+        }
+
+        private void ShapeOpacityField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyShapeOpacity();
+        }
+
+        private void ApplyShapeOpacity()
+        {
+            if (_loading || _settings == null) return;
+            if (GetSelectedShapeEntry() is not LayerLayoutEntry entry) return;
+
+            if (int.TryParse(TxtShapeOpacity.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int opacity) && opacity >= 0 && opacity <= 100)
+                entry.FileOpacity = opacity;
+
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Border size (0 to 50) and corner radius (0 to 200): Enter or focus loss, invalid input reverts.
+        private void ShapeBorderField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyShapeBorderFields();
+        }
+
+        private void ShapeBorderField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyShapeBorderFields();
+        }
+
+        private void ApplyShapeBorderFields()
+        {
+            if (_loading || _settings == null) return;
+            if (GetSelectedBorderEntry() is not LayerLayoutEntry entry) return;
+
+            if (int.TryParse(TxtShapeBorderSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int size) && size >= 0 && size <= 50)
+                entry.BorderSize = size;
+            if (int.TryParse(TxtShapeCornerRadius.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int radius) && radius >= 0 && radius <= 200)
+                entry.CornerRadius = radius;
+
+            LoadSelectedLayerIntoFields();
+        }
+        // [END SECTION: Shape Layer Fields]
+
         // [SECTION: Games List Styling Fields]
         // Shown only while the Games List layer is selected. Values live on the layer entry (per resolution)
         // and apply live on Enter or focus loss; invalid input reverts to the stored value.
         private bool _suppressGLColorSync;
 
-        // Shows or hides the section for the current selection and fills it from the entry.
+        // Fills the Folders and Game Titles tab fields from the Games List entry. Which tabs are visible is decided by ApplyLayerTabs.
         private void LoadGamesListStyleFields()
         {
             bool show = LstLayers.SelectedItem is LayerListItem sel && sel.Id == LayerRegistry.GamesList && GetEntry(LayerRegistry.GamesList) != null;
-            PnlGamesListStyle.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
             if (!show) return;
 
             var entry = GetEntry(LayerRegistry.GamesList)!;
@@ -871,19 +1270,32 @@ namespace ArcadeStick.Views
             TxtGLGameShadowBlur.Text = (entry.GameShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
             TxtGLGameShadowDepth.Text = (entry.GameShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
 
-            // Favorites folder color (theme-wide, read from the settings object). Older themes may store a
-            // name like "Transparent", so it is shown in the same #AARRGGBB form as the other colors.
-            string favoritesHex = _settings.FavoritesColorHex;
+            // Selected-row drop shadow controls
+            ChkGLFolderSelShadow.IsChecked = entry.FolderSelectedShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            string folderSelShadowHex = entry.FolderSelectedShadowColorHex ?? LayerRegistry.DefaultShadowColorHex;
+            TxtGLFolderSelShadowColorHex.Text = folderSelShadowHex;
             try
             {
-                var favoritesColor = (Color)ColorConverter.ConvertFromString(favoritesHex);
-                favoritesHex = $"#{favoritesColor.A:X2}{favoritesColor.R:X2}{favoritesColor.G:X2}{favoritesColor.B:X2}";
                 _suppressGLColorSync = true;
-                GLFavoritesColorPicker.SelectedColor = favoritesColor;
+                GLFolderSelShadowColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(folderSelShadowHex);
             }
             catch { }
             finally { _suppressGLColorSync = false; }
-            TxtGLFavoritesColorHex.Text = favoritesHex;
+            TxtGLFolderSelShadowBlur.Text = (entry.FolderSelectedShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtGLFolderSelShadowDepth.Text = (entry.FolderSelectedShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            ChkGLGameSelShadow.IsChecked = entry.GameSelectedShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            string gameSelShadowHex = entry.GameSelectedShadowColorHex ?? LayerRegistry.DefaultShadowColorHex;
+            TxtGLGameSelShadowColorHex.Text = gameSelShadowHex;
+            try
+            {
+                _suppressGLColorSync = true;
+                GLGameSelShadowColorPicker.SelectedColor = (Color)ColorConverter.ConvertFromString(gameSelShadowHex);
+            }
+            catch { }
+            finally { _suppressGLColorSync = false; }
+            TxtGLGameSelShadowBlur.Text = (entry.GameSelectedShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtGLGameSelShadowDepth.Text = (entry.GameSelectedShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
 
             _loading = false;
         }
@@ -1367,7 +1779,96 @@ namespace ArcadeStick.Views
             }
         }
 
-        // One shared handler pair for all four numeric shadow fields (folder blur/depth, game blur/depth).
+        // Selected-row drop shadow: checkbox and color apply immediately, same as the normal shadows above.
+        private void ChkGLFolderSelShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            entry.FolderSelectedShadowEnabled = ChkGLFolderSelShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void ChkGLGameSelShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            entry.GameSelectedShadowEnabled = ChkGLGameSelShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void GLFolderSelShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLFolderSelShadowColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLFolderSelShadowColorHex.Text = hex;
+            entry.FolderSelectedShadowColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLFolderSelShadowColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLFolderSelShadowColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLFolderSelShadowColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLFolderSelShadowColorHex.Text = hex;
+                entry.FolderSelectedShadowColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLFolderSelShadowColorHex.Text = entry.FolderSelectedShadowColorHex ?? LayerRegistry.DefaultShadowColorHex;
+            }
+        }
+
+        private void GLGameSelShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (_suppressGLColorSync || _loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            var c = GLGameSelShadowColorPicker.SelectedColor;
+            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+            TxtGLGameSelShadowColorHex.Text = hex;
+            entry.GameSelectedShadowColorHex = hex;
+            RaiseGuides();
+        }
+
+        private void TxtGLGameSelShadowColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            try
+            {
+                var c = (Color)ColorConverter.ConvertFromString(TxtGLGameSelShadowColorHex.Text.Trim());
+                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
+                _suppressGLColorSync = true;
+                GLGameSelShadowColorPicker.SelectedColor = c;
+                _suppressGLColorSync = false;
+                TxtGLGameSelShadowColorHex.Text = hex;
+                entry.GameSelectedShadowColorHex = hex;
+                RaiseGuides();
+            }
+            catch
+            {
+                _suppressGLColorSync = false;
+                TxtGLGameSelShadowColorHex.Text = entry.GameSelectedShadowColorHex ?? LayerRegistry.DefaultShadowColorHex;
+            }
+        }
+
+        // One shared handler pair for all eight numeric shadow fields (blur/depth for folder, game, and both selected states).
         private void GLShadowField_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
@@ -1394,44 +1895,19 @@ namespace ArcadeStick.Views
                 entry.GameShadowBlur = gBlur;
             if (int.TryParse(TxtGLGameShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int gDepth) && gDepth >= 0 && gDepth <= 20)
                 entry.GameShadowDepth = gDepth;
+            if (int.TryParse(TxtGLFolderSelShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int fsBlur) && fsBlur >= 0 && fsBlur <= 30)
+                entry.FolderSelectedShadowBlur = fsBlur;
+            if (int.TryParse(TxtGLFolderSelShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int fsDepth) && fsDepth >= 0 && fsDepth <= 20)
+                entry.FolderSelectedShadowDepth = fsDepth;
+            if (int.TryParse(TxtGLGameSelShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int gsBlur) && gsBlur >= 0 && gsBlur <= 30)
+                entry.GameSelectedShadowBlur = gsBlur;
+            if (int.TryParse(TxtGLGameSelShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int gsDepth) && gsDepth >= 0 && gsDepth <= 20)
+                entry.GameSelectedShadowDepth = gsDepth;
 
             // Re-display the stored values (reverts invalid input) and re-apply the layout
             LoadSelectedLayerIntoFields();
         }
-        // Favorites folder color: one theme-wide value (not per resolution). It lives on the settings object and
-        // Save Changes on the Basic tab writes it into the theme file. RaiseGuides re-applies the layout live.
-        private void GLFavoritesColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGLColorSync || _loading || _settings == null) return;
-
-            var c = GLFavoritesColorPicker.SelectedColor;
-            string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
-            TxtGLFavoritesColorHex.Text = hex;
-            _settings.FavoritesColorHex = hex;
-            RaiseGuides();
-        }
-
-        private void TxtGLFavoritesColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_loading || _settings == null) return;
-
-            try
-            {
-                var c = (Color)ColorConverter.ConvertFromString(TxtGLFavoritesColorHex.Text.Trim());
-                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
-                _suppressGLColorSync = true;
-                GLFavoritesColorPicker.SelectedColor = c;
-                _suppressGLColorSync = false;
-                TxtGLFavoritesColorHex.Text = hex;
-                _settings.FavoritesColorHex = hex;
-                RaiseGuides();
-            }
-            catch
-            {
-                _suppressGLColorSync = false;
-                TxtGLFavoritesColorHex.Text = _settings.FavoritesColorHex;
-            }
-        }
+        
         // [END SECTION: Games List Styling Fields]
         // [END SECTION: Layer Fields]
 
@@ -1545,7 +2021,21 @@ namespace ArcadeStick.Views
                         GameShadowEnabled = l.GameShadowEnabled,
                         GameShadowColorHex = l.GameShadowColorHex,
                         GameShadowBlur = l.GameShadowBlur,
-                        GameShadowDepth = l.GameShadowDepth
+                        GameShadowDepth = l.GameShadowDepth,
+                        FolderSelectedShadowEnabled = l.FolderSelectedShadowEnabled,
+                        FolderSelectedShadowColorHex = l.FolderSelectedShadowColorHex,
+                        FolderSelectedShadowBlur = l.FolderSelectedShadowBlur,
+                        FolderSelectedShadowDepth = l.FolderSelectedShadowDepth,
+                        GameSelectedShadowEnabled = l.GameSelectedShadowEnabled,
+                        GameSelectedShadowColorHex = l.GameSelectedShadowColorHex,
+                        GameSelectedShadowBlur = l.GameSelectedShadowBlur,
+                        GameSelectedShadowDepth = l.GameSelectedShadowDepth,
+                        VisibilityMode = l.VisibilityMode,
+                        BgColorHex = l.BgColorHex,
+                        BorderSize = l.BorderSize,
+                        BorderColorHex = l.BorderColorHex,
+                        CornerRadius = l.CornerRadius,
+                        FileOpacity = l.FileOpacity
                     }).ToList()
                 };
 
@@ -1869,6 +2359,20 @@ namespace ArcadeStick.Views
             entry.GameShadowColorHex = defEntry.GameShadowColorHex;
             entry.GameShadowBlur = defEntry.GameShadowBlur;
             entry.GameShadowDepth = defEntry.GameShadowDepth;
+            entry.FolderSelectedShadowEnabled = defEntry.FolderSelectedShadowEnabled;
+            entry.FolderSelectedShadowColorHex = defEntry.FolderSelectedShadowColorHex;
+            entry.FolderSelectedShadowBlur = defEntry.FolderSelectedShadowBlur;
+            entry.FolderSelectedShadowDepth = defEntry.FolderSelectedShadowDepth;
+            entry.GameSelectedShadowEnabled = defEntry.GameSelectedShadowEnabled;
+            entry.GameSelectedShadowColorHex = defEntry.GameSelectedShadowColorHex;
+            entry.GameSelectedShadowBlur = defEntry.GameSelectedShadowBlur;
+            entry.GameSelectedShadowDepth = defEntry.GameSelectedShadowDepth;
+            entry.VisibilityMode = defEntry.VisibilityMode;
+            entry.BgColorHex = defEntry.BgColorHex;
+            entry.BorderSize = defEntry.BorderSize;
+            entry.BorderColorHex = defEntry.BorderColorHex;
+            entry.CornerRadius = defEntry.CornerRadius;
+            entry.FileOpacity = defEntry.FileOpacity;
 
             NormalizeZ(GetAscendingOrder());
             RebuildLayerList(selected.Id);

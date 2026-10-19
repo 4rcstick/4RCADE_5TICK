@@ -26,16 +26,13 @@ namespace ArcadeStick.Views
         private bool _suppressTabBgColorSync;
         private bool _suppressMainColorSync;
         private bool _suppressSearchBoxColorSync;
-        private bool _suppressSearchBoxBgColorSync;
-        private bool _suppressGamesColorSync;
-        private bool _suppressMarqueeColorSync;
+        private bool _suppressSearchBoxBgColorSync; 
         private bool _suppressMediaColorSync;
         private bool _suppressOptionsColorSync;        
         private bool _suppressTabActiveColorSync;
         private bool _suppressTabActiveBgColorSync;
         private bool _suppressFrameworkBorderColorSync;
-        private bool _suppressSeparatorColorSync;
-        private bool _suppressMarqueeBorderColorSync;
+        private bool _suppressSeparatorColorSync;        
         private bool _suppressBtnTextColorNormalSync;
         private bool _suppressBtnBgColorSync;
         private bool _suppressBtnBorderColorSync;
@@ -67,8 +64,7 @@ namespace ArcadeStick.Views
         private bool _suppressMainWinBtnBgColorSync;
         private bool _suppressMainWinBtnColorHoverSync;
         private bool _suppressMainWinBtnBgColorHoverSync;
-        private bool _suppressMainWinBtnBorderColorSync;
-        private bool _suppressGamesBorderColorSync;
+        private bool _suppressMainWinBtnBorderColorSync;        
         private bool _suppressContextMenuFontColorSync;
         private bool _suppressContextMenuIconColorSync;
         private bool _suppressContextMenuBgColorSync;
@@ -586,26 +582,9 @@ namespace ArcadeStick.Views
             }
         }
 
-        private void GamesBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGamesBorderColorSync) return;
-            var newColor = GamesBorderColorPicker.SelectedColor;
-            _suppressGamesBorderColorSync = true;
-            TxtGamesBorderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressGamesBorderColorSync = false;
-        }
+        
 
-        private void TxtGamesBorderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGamesBorderColorSync) return;
-            var parsedColor = TryParseColor(TxtGamesBorderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressGamesBorderColorSync = true;
-                GamesBorderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressGamesBorderColorSync = false;
-            }
-        }
+        
 
         private void ContextMenuFontColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
@@ -857,50 +836,8 @@ namespace ArcadeStick.Views
                 MainColorPicker.SelectedColor = parsedColor.Value;
                 _suppressMainColorSync = false;
             }
-        }
-
-        private void GamesColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGamesColorSync) return;
-            var newColor = GamesColorPicker.SelectedColor;
-            _suppressGamesColorSync = true;
-            TxtGamesColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressGamesColorSync = false;
-        }
-
-        private void TxtGamesColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGamesColorSync) return;
-            var parsedColor = TryParseColor(TxtGamesColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressGamesColorSync = true;
-                GamesColorPicker.SelectedColor = parsedColor.Value;
-                _suppressGamesColorSync = false;
-            }
-        }
-
-        private void MarqueeColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMarqueeColorSync) return;
-            var newColor = MarqueeColorPicker.SelectedColor;
-            _suppressMarqueeColorSync = true;
-            TxtMarqueeColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMarqueeColorSync = false;
-        }
-
-        private void TxtMarqueeColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMarqueeColorSync) return;
-            var parsedColor = TryParseColor(TxtMarqueeColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMarqueeColorSync = true;
-                MarqueeColorPicker.SelectedColor = parsedColor.Value;
-                _suppressMarqueeColorSync = false;
-            }
-        }
-
+        }       
+        
         private void MediaColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
             if (_suppressMediaColorSync) return;
@@ -1010,28 +947,7 @@ namespace ArcadeStick.Views
                 SeparatorColorPicker.SelectedColor = parsedColor.Value;
                 _suppressSeparatorColorSync = false;
             }
-        }
-
-        private void MarqueeBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMarqueeBorderColorSync) return;
-            var newColor = MarqueeBorderColorPicker.SelectedColor;
-            _suppressMarqueeBorderColorSync = true;
-            TxtMarqueeBorderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMarqueeBorderColorSync = false;
-        }
-
-        private void TxtMarqueeBorderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMarqueeBorderColorSync) return;
-            var parsedColor = TryParseColor(TxtMarqueeBorderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMarqueeBorderColorSync = true;
-                MarqueeBorderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressMarqueeBorderColorSync = false;
-            }
-        }
+        }           
 
         private void BtnTextColorNormalPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
@@ -1416,11 +1332,8 @@ namespace ArcadeStick.Views
         {
             // Background Theme Wallpapers & Branding Assets
             TxtMainBgPath.Text = _settings.MainWindowWallpaper;
-            ChkDisableMainBgImage.IsChecked = _settings.DisableMainBgImage;
-            TxtGamesBgPath.Text = _settings.GamesListWallpaper;
-            TxtMarqueeBgPath.Text = _settings.MarqueeWindowWallpaper;
+            ChkDisableMainBgImage.IsChecked = _settings.DisableMainBgImage;   
             TxtMediaBgPath.Text = _settings.MediaWindowWallpaper;
-            TxtThemeLogoPath.Text = _settings.ThemeLogo;
             TxtThemeBootSplashPath.Text = _settings.ThemeBootSplash;
             TxtThemeMissingPreviewPath.Text = _settings.ThemeMissingPreview;
 
@@ -1435,26 +1348,7 @@ namespace ArcadeStick.Views
                     _suppressMainColorSync = false;
                 }
             }
-            TxtGamesColorHex.Text = FormatHexCode(_settings.FileListBg);
-            {
-                var parsedColor = TryParseColor(TxtGamesColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressGamesColorSync = true;
-                    GamesColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressGamesColorSync = false;
-                }
-            }
-            TxtMarqueeColorHex.Text = FormatHexCode(_settings.MarqueeBoxBg);
-            {
-                var parsedColor = TryParseColor(TxtMarqueeColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMarqueeColorSync = true;
-                    MarqueeColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressMarqueeColorSync = false;
-                }
-            }
+            
             TxtMediaColorHex.Text = FormatHexCode(_settings.VideoBoxBg);
             {
                 var parsedColor = TryParseColor(TxtMediaColorHex.Text);
@@ -1683,19 +1577,9 @@ namespace ArcadeStick.Views
                     _suppressMainWinBtnBorderColorSync = false;
                 }
             }
-            TxtMainWinBtnCornerRadius.Text = _settings.MainWinBtnCornerRadius.ToString();
-            TxtGamesBorderSize.Text = _settings.GamesBorderSize.ToString();
-            TxtGamesBorderColorHex.Text = FormatHexCode(_settings.GamesBorderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtGamesBorderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressGamesBorderColorSync = true;
-                    GamesBorderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressGamesBorderColorSync = false;
-                }
-            }
-            TxtGamesBorderCornerRadius.Text = _settings.GamesBorderCornerRadius.ToString();
+            TxtMainWinBtnCornerRadius.Text = _settings.MainWinBtnCornerRadius.ToString();            
+            
+                        
             TxtContextMenuFontColorHex.Text = FormatHexCode(_settings.ContextMenuFontColorHex);
             {
                 var parsedColor = TryParseColor(TxtContextMenuFontColorHex.Text);
@@ -1746,7 +1630,7 @@ namespace ArcadeStick.Views
                     _suppressContextMenuHoverBgColorSync = false;
                 }
             }
-            TxtMarqueeBorderCornerRadius.Text = _settings.MarqueeBorderRadius.ToString();
+            
             TxtSubTextFontSize.Text = _settings.SubTextFontSize.ToString();
             TxtSubTextColorHex.Text = FormatHexCode(_settings.SubTextColorHex);
             {
@@ -1876,18 +1760,7 @@ namespace ArcadeStick.Views
                     SeparatorColorPicker.SelectedColor = parsedColor.Value;
                     _suppressSeparatorColorSync = false;
                 }
-            }
-            TxtMarqueeBorderColorHex.Text = FormatHexCode(_settings.MarqueeBorderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtMarqueeBorderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMarqueeBorderColorSync = true;
-                    MarqueeBorderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressMarqueeBorderColorSync = false;
-                }
-            }
-            TxtMarqueeBorderWidthValue.Text = _settings.MarqueeBorderWidthValue.ToString();
+            }           
 
             // Typography & State Colors (Filtered through Gatekeeper)
             TxtFolderSelectedColorHex.Text = FormatHexCode(_settings.FolderSelectedColorHex);
@@ -2144,15 +2017,10 @@ namespace ArcadeStick.Views
                 {
                     MainWindowWallpaper = _settings.MainWindowWallpaper,
                     DisableMainBgImage = _settings.DisableMainBgImage,
-                    GamesListWallpaper = _settings.GamesListWallpaper,
-                    MarqueeWindowWallpaper = _settings.MarqueeWindowWallpaper,
                     MediaWindowWallpaper = _settings.MediaWindowWallpaper,
-                    ThemeLogo = _settings.ThemeLogo,
                     ThemeBootSplash = _settings.ThemeBootSplash,
                     ThemeMissingPreview = _settings.ThemeMissingPreview,
                     BackgroundColor = _settings.BackgroundColor,
-                    FileListBg = _settings.FileListBg,
-                    MarqueeBoxBg = _settings.MarqueeBoxBg,
                     VideoBoxBg = _settings.VideoBoxBg,
                     OptionsBg = _settings.OptionsBg,
                     BorderColorFramework = _settings.BorderColorFramework,
@@ -2164,11 +2032,8 @@ namespace ArcadeStick.Views
                     BorderWidthValue = _settings.BorderWidthValue,
                     BorderCurveValue = _settings.BorderCurveValue,
                     SeparatorColorHex = _settings.SeparatorColorHex,
-                    MarqueeBorderColorHex = _settings.MarqueeBorderColorHex,
-                    MarqueeBorderWidthValue = _settings.MarqueeBorderWidthValue,
                     FolderSelectedColorHex = _settings.FolderSelectedColorHex,
                     FolderSelectedBgColorHex = _settings.FolderSelectedBgColorHex,
-                    FavoritesColorHex = _settings.FavoritesColorHex,
                     TabFontSize = _settings.TabFontSize,
                     TabColorHex = _settings.TabColorHex,
                     TabBgColorHex = _settings.TabBgColorHex,
@@ -2217,15 +2082,11 @@ namespace ArcadeStick.Views
                     MainWinBtnBorderSize = _settings.MainWinBtnBorderSize,
                     MainWinBtnBorderColorHex = _settings.MainWinBtnBorderColorHex,
                     MainWinBtnCornerRadius = _settings.MainWinBtnCornerRadius,
-                    GamesBorderSize = _settings.GamesBorderSize,
-                    GamesBorderColorHex = _settings.GamesBorderColorHex,
-                    GamesBorderCornerRadius = _settings.GamesBorderCornerRadius,
                     ContextMenuFontColorHex = _settings.ContextMenuFontColorHex,
                     ContextMenuIconColorHex = _settings.ContextMenuIconColorHex,
                     ContextMenuBgColorHex = _settings.ContextMenuBgColorHex,
                     ContextMenuHoverColorHex = _settings.ContextMenuHoverColorHex,
                     ContextMenuHoverBgColorHex = _settings.ContextMenuHoverBgColorHex,
-                    MarqueeBorderRadius = _settings.MarqueeBorderRadius,
                     SubTextFontSize = _settings.SubTextFontSize,
                     SubTextColorHex = _settings.SubTextColorHex,
                     OptionsMenuBgColorHex = _settings.OptionsMenuBgColorHex,
@@ -2254,10 +2115,7 @@ namespace ArcadeStick.Views
                 var missingAssets = new List<string>();
 
                 themeDto.MainWindowWallpaper = BundleThemeAsset(themeDto.MainWindowWallpaper, stagingAssetsDir, missingAssets);
-                themeDto.GamesListWallpaper = BundleThemeAsset(themeDto.GamesListWallpaper, stagingAssetsDir, missingAssets);
-                themeDto.MarqueeWindowWallpaper = BundleThemeAsset(themeDto.MarqueeWindowWallpaper, stagingAssetsDir, missingAssets);
                 themeDto.MediaWindowWallpaper = BundleThemeAsset(themeDto.MediaWindowWallpaper, stagingAssetsDir, missingAssets);
-                themeDto.ThemeLogo = BundleThemeAsset(themeDto.ThemeLogo, stagingAssetsDir, missingAssets);
                 themeDto.ThemeBootSplash = BundleThemeAsset(themeDto.ThemeBootSplash, stagingAssetsDir, missingAssets);
                 themeDto.ThemeMissingPreview = BundleThemeAsset(themeDto.ThemeMissingPreview, stagingAssetsDir, missingAssets);
 
@@ -2406,16 +2264,14 @@ namespace ArcadeStick.Views
         {
             _settings.MainWindowWallpaper = TxtMainBgPath.Text;
             _settings.DisableMainBgImage = ChkDisableMainBgImage.IsChecked ?? false;
-            _settings.GamesListWallpaper = TxtGamesBgPath.Text;
-            _settings.MarqueeWindowWallpaper = TxtMarqueeBgPath.Text;
+            
             _settings.MediaWindowWallpaper = TxtMediaBgPath.Text;
-            _settings.ThemeLogo = TxtThemeLogoPath.Text;
+            
             _settings.ThemeBootSplash = TxtThemeBootSplashPath.Text;
             _settings.ThemeMissingPreview = TxtThemeMissingPreviewPath.Text;
 
             _settings.BackgroundColor = NormalizeHexInput(TxtMainColorHex.Text);
-            _settings.FileListBg = NormalizeHexInput(TxtGamesColorHex.Text);
-            _settings.MarqueeBoxBg = NormalizeHexInput(TxtMarqueeColorHex.Text);
+            
             _settings.VideoBoxBg = NormalizeHexInput(TxtMediaColorHex.Text);
             _settings.OptionsBg = NormalizeHexInput(TxtOptionsColorHex.Text);
             // BorderColorFramework sync removed (both occurrences) - no UI field exists yet.
@@ -2427,8 +2283,7 @@ namespace ArcadeStick.Views
             _settings.ScrollThumbDragColor = NormalizeHexInput(TxtScrollThumbDragColorHex.Text);
 
             _settings.SeparatorColorHex = NormalizeHexInput(TxtSeparatorColorHex.Text);
-            _settings.MarqueeBorderColorHex = NormalizeHexInput(TxtMarqueeBorderColorHex.Text);
-            if (double.TryParse(TxtMarqueeBorderWidthValue.Text, out double mbWidth)) _settings.MarqueeBorderWidthValue = mbWidth;
+            
 
             _settings.FolderSelectedColorHex = NormalizeHexInput(TxtFolderSelectedColorHex.Text);
             _settings.FolderSelectedBgColorHex = NormalizeHexInput(TxtFolderSelectedBgColorHex.Text);
@@ -2486,9 +2341,7 @@ namespace ArcadeStick.Views
             _settings.MainWinBtnBorderColorHex = NormalizeHexInput(TxtMainWinBtnBorderColorHex.Text);
             if (double.TryParse(TxtMainWinBtnCornerRadius.Text, out double mainWinBtnCornerRadius)) _settings.MainWinBtnCornerRadius = mainWinBtnCornerRadius;
 
-            if (double.TryParse(TxtGamesBorderSize.Text, out double gamesBorderSize)) _settings.GamesBorderSize = gamesBorderSize;
-            _settings.GamesBorderColorHex = NormalizeHexInput(TxtGamesBorderColorHex.Text);
-            if (double.TryParse(TxtGamesBorderCornerRadius.Text, out double gamesBorderCornerRadius)) _settings.GamesBorderCornerRadius = gamesBorderCornerRadius;
+            
 
             _settings.ContextMenuFontColorHex = NormalizeHexInput(TxtContextMenuFontColorHex.Text);
             _settings.ContextMenuIconColorHex = NormalizeHexInput(TxtContextMenuIconColorHex.Text);
@@ -2496,7 +2349,7 @@ namespace ArcadeStick.Views
             _settings.ContextMenuHoverColorHex = NormalizeHexInput(TxtContextMenuHoverColorHex.Text);
             _settings.ContextMenuHoverBgColorHex = NormalizeHexInput(TxtContextMenuHoverBgColorHex.Text);
 
-            if (double.TryParse(TxtMarqueeBorderCornerRadius.Text, out double marqueeBorderRadius)) _settings.MarqueeBorderRadius = marqueeBorderRadius;
+            
 
             if (int.TryParse(TxtSubTextFontSize.Text, out int subTextSize)) _settings.SubTextFontSize = subTextSize;
             _settings.SubTextColorHex = NormalizeHexInput(TxtSubTextColorHex.Text);
@@ -2556,10 +2409,7 @@ namespace ArcadeStick.Views
                 }
 
                 if (sender == BtnBrowseMainBg) TxtMainBgPath.Text = selectedPath;
-                else if (sender == BtnBrowseGamesBg) TxtGamesBgPath.Text = selectedPath;
-                else if (sender == BtnBrowseMarqueeBg) TxtMarqueeBgPath.Text = selectedPath;
                 else if (sender == BtnBrowseMediaBg) TxtMediaBgPath.Text = selectedPath;
-                else if (sender == BtnBrowseThemeLogo) TxtThemeLogoPath.Text = selectedPath;
                 else if (sender == BtnBrowseThemeBootSplash) TxtThemeBootSplashPath.Text = selectedPath;
                 else if (sender == BtnBrowseThemeMissingPreview) TxtThemeMissingPreviewPath.Text = selectedPath;
             }
