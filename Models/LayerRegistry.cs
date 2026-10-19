@@ -190,6 +190,11 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? TextNudgeY { get; set; }
 
+        // Main Window Background layer only: true = no image or video, the solid Background Color shows instead
+        // (ImagePath holds the wallpaper; empty means the built-in default image). Null on every other layer.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? ImageDisabled { get; set; }
+
         // [SECTION: Style Copy]
         // Copies every styling field (everything except Id, rect, Z, Visible, Name and ImagePath) from source.
         // The one place entry styling is copied: CloneLayouts, the resolution-switch copy and Reset Layer all
@@ -246,6 +251,7 @@ namespace ArcadeStick.Models
             TextShadowBlur = source.TextShadowBlur;
             TextShadowDepth = source.TextShadowDepth;
             TextNudgeY = source.TextNudgeY;
+            ImageDisabled = source.ImageDisabled;
         }
         // [END SECTION: Style Copy]
     }
@@ -361,6 +367,9 @@ namespace ArcadeStick.Models
         public const int DefaultShapeCornerRadius = 0;
         public const int DefaultFileOpacity = 100;
 
+        // Main Window Background: the image (or the built-in default) shows unless the user disables it
+        public const bool DefaultImageDisabled = false;
+
         // Group Ids (a group is one row in the Advanced tab's layer list - see AllGroups)
         public const string SearchAndButtonsGroup = "SearchAndButtons";
         public const string GameInfoGroup = "GameInfoGroup";
@@ -445,7 +454,8 @@ namespace ArcadeStick.Models
             {
                 if (!def.IsPositionable)
                 {
-                    layout.Layers.Add(new LayerLayoutEntry { Id = def.Id, X = 0, Y = 0, Width = width, Height = height, Z = def.Z, Visible = true });
+                    // Fill layers (the Main Window Background): image on by default, empty path = built-in image
+                    layout.Layers.Add(new LayerLayoutEntry { Id = def.Id, X = 0, Y = 0, Width = width, Height = height, Z = def.Z, Visible = true, ImageDisabled = DefaultImageDisabled });
                     continue;
                 }
 
@@ -637,6 +647,9 @@ namespace ArcadeStick.Models
 
                 // Search & Buttons: fill any missing label, box or shared button style value
                 FillSearchButtonsStyle(entry);
+
+                // Main Window Background: the Disable flag fills in when missing (saved value kept)
+                if (entry.Id == MainBackground) entry.ImageDisabled ??= DefaultImageDisabled;
 
                 result.Layers.Add(entry);
             }

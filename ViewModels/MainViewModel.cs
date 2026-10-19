@@ -799,22 +799,35 @@ namespace ArcadeStick.ViewModels
         // [SECTION: Theme Wallpaper & Asset Loading]
         // Resolves theme-configured image paths to ImageSource, falling back to bundled defaults in
         // 4rcade5tick_files/assets when a theme doesn't specify its own asset.
-        public ImageSource? ThemeMainWallpaper => (Configuration.DisableMainBgImage || IsMainWallpaperVideo)
+        // The main window wallpaper lives on the Main Window Background layer entry (per resolution): the file in
+        // ImagePath (empty = the built-in default image) and the Disable flag in ImageDisabled.
+        private string MainWallpaperPath => GetLayerEntry(LayerRegistry.MainBackground).ImagePath ?? "";
+        private bool MainWallpaperDisabled => GetLayerEntry(LayerRegistry.MainBackground).ImageDisabled ?? LayerRegistry.DefaultImageDisabled;
+
+        public ImageSource? ThemeMainWallpaper => (MainWallpaperDisabled || IsMainWallpaperVideo)
     ? null
     : LoadThemeImage(
-        !string.IsNullOrWhiteSpace(Configuration.MainWindowWallpaper)
-            ? Configuration.MainWindowWallpaper
+        !string.IsNullOrWhiteSpace(MainWallpaperPath)
+            ? MainWallpaperPath
             : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_background.png"));
 
         // True when the main window wallpaper is an mp4 - played by WPF's MediaElement, since
         // MediaElement renders as a normal WPF element that respects z-order and can sit behind every panel.
-        // Respects the "Disable Main Window Background Image" checkbox the same way the image wallpaper does.
-        public bool IsMainWallpaperVideo => !Configuration.DisableMainBgImage
-            && !string.IsNullOrWhiteSpace(Configuration.MainWindowWallpaper)
-            && Path.GetExtension(Configuration.MainWindowWallpaper).Equals(".mp4", StringComparison.OrdinalIgnoreCase);
+        // Respects the layer's Disable flag the same way the image wallpaper does.
+        public bool IsMainWallpaperVideo => !MainWallpaperDisabled
+            && !string.IsNullOrWhiteSpace(MainWallpaperPath)
+            && Path.GetExtension(MainWallpaperPath).Equals(".mp4", StringComparison.OrdinalIgnoreCase);
 
         // Full resolved path for the MediaElement wallpaper; null unless the wallpaper is an mp4 that exists on disk
-        public string? ThemeMainWallpaperVideoPath => IsMainWallpaperVideo ? ResolveThemeFilePath(Configuration.MainWindowWallpaper) : null;
+        public string? ThemeMainWallpaperVideoPath => IsMainWallpaperVideo ? ResolveThemeFilePath(MainWallpaperPath) : null;
+
+        // Re-raises the three wallpaper bindings after the Main Window Background entry changed (MainWindow.ApplyLayout's key)
+        public void RefreshMainWallpaper()
+        {
+            OnPropertyChanged(nameof(ThemeMainWallpaper));
+            OnPropertyChanged(nameof(IsMainWallpaperVideo));
+            OnPropertyChanged(nameof(ThemeMainWallpaperVideoPath));
+        }
         
         public ImageSource? ThemeMediaWallpaper => LoadThemeImage(Configuration.MediaWindowWallpaper);
 
@@ -1236,7 +1249,7 @@ namespace ArcadeStick.ViewModels
             var themeData = System.Text.Json.JsonSerializer.Deserialize<ThemeSettings>(jsonString);
             if (themeData == null) return false;
 
-            // Rewrite the 7 asset properties from archive-relative ("assets/x.png") to a path relative to
+            // Rewrite the flat asset properties from archive-relative ("assets/x.png") to a path relative to
             // Configuration.BaseDirectory (not absolute) so the theme survives a USB drive-letter change.
             // A rooted (already-absolute) stored value means that asset was missing at save time and was
             // never actually bundled - left untouched rather than mangled.
@@ -1248,14 +1261,11 @@ namespace ArcadeStick.ViewModels
                 return Path.GetRelativePath(Configuration.BaseDirectory, absolutePath);
             }
 
-            themeData.MainWindowWallpaper = RewriteAssetPath(themeData.MainWindowWallpaper);
             themeData.MediaWindowWallpaper = RewriteAssetPath(themeData.MediaWindowWallpaper);
             themeData.ThemeBootSplash = RewriteAssetPath(themeData.ThemeBootSplash);
             themeData.ThemeMissingPreview = RewriteAssetPath(themeData.ThemeMissingPreview);
 
             // Map ThemeSettings DTO properties back to the main ConfigurationSettings object
-            Configuration.MainWindowWallpaper = themeData.MainWindowWallpaper;
-            Configuration.DisableMainBgImage = themeData.DisableMainBgImage;
             Configuration.MediaWindowWallpaper = themeData.MediaWindowWallpaper;
             Configuration.ThemeBootSplash = themeData.ThemeBootSplash;
             Configuration.ThemeMissingPreview = themeData.ThemeMissingPreview;
@@ -1333,7 +1343,7 @@ namespace ArcadeStick.ViewModels
             // LayerRegistry defaults at resolve time. The active resolution (a user choice stored in
             // settings.json) is deliberately left alone.
             // Custom layer images are stored archive-relative in the theme file; point them at the extracted
-            // copy (same rewrite as the 7 asset properties above). A rooted path means the file was missing
+            // copy (same rewrite as the flat asset properties above). A rooted path means the file was missing
             // at save time and is left untouched.
             foreach (var customEntry in (themeData.Layouts ?? new List<ThemeLayout>()).SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
             {

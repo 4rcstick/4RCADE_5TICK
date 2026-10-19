@@ -170,6 +170,7 @@ namespace ArcadeStick
         private string? _lastGameTitleStyleKey;
         private string? _lastMarqueeLogoPath;
         private string? _lastSearchButtonsStyleKey;
+        private string? _lastMainBackgroundKey;
 
         // [SECTION: Theme Builder Alignment Guides]
         // Draws (or hides, when info is null) four 1px guide lines at the selected layer's pending rect.
@@ -252,6 +253,18 @@ namespace ArcadeStick
             {
                 _lastMarqueeLogoPath = marqueeLogoPath;
                 _viewModel.RefreshMarqueeLogo();
+            }
+
+            // Main window wallpaper: re-raise its bindings and reload the video layer only when the Main Window
+            // Background entry's file or Disable flag changed. Before the window has loaded, the Loaded handler's
+            // own first-frame startup call loads the video, so it is not started early from here.
+            var mainBackgroundEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.MainBackground);
+            string mainBackgroundKey = $"{mainBackgroundEntry?.ImagePath}|{mainBackgroundEntry?.ImageDisabled}";
+            if (mainBackgroundKey != _lastMainBackgroundKey)
+            {
+                _lastMainBackgroundKey = mainBackgroundKey;
+                _viewModel.RefreshMainWallpaper();
+                if (IsLoaded) RefreshMainBgVideo();
             }
 
             // Search & Buttons: re-raise the label, box and button bindings and repaint the buttons' resting

@@ -416,13 +416,17 @@ namespace ArcadeStick.Views
 
         // [SECTION: Layer Fields]
         // [SECTION: Layer Property Tabs]
-        // Position is always the first tab. Each layer type lists the other tabs it shows; every other tab is
-        // hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
+        // Position is the first tab, shown for every layer except the fill layers that cannot be positioned (the Main
+        // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
+        // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabShapeBackground, TabShapeBorder, TabMarqueeLogo };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabShapeBackground, TabShapeBorder, TabMarqueeLogo, TabMainBgImage };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
+            // Main Window Background gets the Image tab (wallpaper file and the Disable flag)
+            if (unitKey == LayerRegistry.MainBackground) return new[] { TabMainBgImage };
+
             if (unitKey == LayerRegistry.GamesList) return new[] { TabGLFolders, TabGLGameTitles };
 
             // Search & Buttons group: label/box, shared button style, and the shared Border tab (mapped to the
@@ -442,12 +446,15 @@ namespace ArcadeStick.Views
             return Array.Empty<TabItem>();
         }
 
-        // The layer whose tabs are showing. The selection returns to Position only when this changes, not on
-        // every committed edit (edits reload the fields too).
+        // The layer whose tabs are showing. The selection returns to the first visible tab (Position, or the first
+        // own tab when Position is hidden) only when this changes, not on every committed edit (edits reload the fields too).
         private string? _tabsUnitKey;
 
+        // Shows the selected layer's tabs and, when the layer changed, selects its first visible tab
         private void ApplyLayerTabs(string? unitKey)
         {
+            TabPosition.Visibility = unitKey != null && IsBackground(unitKey) ? Visibility.Collapsed : Visibility.Visible;
+
             var wanted = GetLayerTabs(unitKey);
             foreach (var tab in AllLayerTabs)
             {
@@ -457,7 +464,7 @@ namespace ArcadeStick.Views
             if (unitKey != _tabsUnitKey)
             {
                 _tabsUnitKey = unitKey;
-                TabsLayer.SelectedItem = TabPosition;
+                TabsLayer.SelectedItem = TabsLayer.Items.OfType<TabItem>().FirstOrDefault(t => t.Visibility == Visibility.Visible) ?? TabPosition;
             }
         }
         // [END SECTION: Layer Property Tabs]
@@ -484,6 +491,16 @@ namespace ArcadeStick.Views
             if (LstLayers.SelectedItem is LayerListItem marqueeSel && marqueeSel.Id == LayerRegistry.MarqueePanel)
             {
                 TxtMarqueeLogoFile.Text = GetEntry(LayerRegistry.MarqueePanel)?.ImagePath ?? "";
+            }
+
+            // Main Window Background image fields: filled when that layer is selected
+            if (LstLayers.SelectedItem is LayerListItem bgSel && bgSel.Id == LayerRegistry.MainBackground
+                && GetEntry(LayerRegistry.MainBackground) is LayerLayoutEntry bgEntry)
+            {
+                _loading = true;
+                TxtMainBgFile.Text = bgEntry.ImagePath ?? "";
+                ChkMainBgImageDisabled.IsChecked = bgEntry.ImageDisabled ?? LayerRegistry.DefaultImageDisabled;
+                _loading = false;
             }
 
             // A group row shows every part's fields at once on its own page
@@ -524,7 +541,8 @@ namespace ArcadeStick.Views
             bool isShape = LayerRegistry.IsBoxId(entry.Id);
             ChkLayerHidden.Visibility = (positionable && canHide && !isShape) ? Visibility.Visible : Visibility.Collapsed;
             PnlVisibilityMode.Visibility = isShape ? Visibility.Visible : Visibility.Collapsed;
-            BtnResetLayer.Visibility = (positionable && !isCustom) ? Visibility.Visible : Visibility.Collapsed;
+            // Reset Layer: every built-in layer, including the Main Window Background (it restores the wallpaper settings)
+            BtnResetLayer.Visibility = !isCustom ? Visibility.Visible : Visibility.Collapsed;
             ChkLayerHidden.IsEnabled = canHide;
 
             TxtLayerX.Text = Fmt(entry.X);
@@ -1021,6 +1039,55 @@ namespace ArcadeStick.Views
             entry.ImagePath = "";
             LoadSelectedLayerIntoFields();
         }
+
+        // [SECTION: Main Window Background Image]
+        // Browse stores the wallpaper in the Main Window Background entry's ImagePath (relative to the app folder when
+        // inside it, same convention as the other file fields); a cancelled dialog changes nothing. Clear empties it,
+        // which brings back the built-in default image. The main window picks both up through ApplyLayout's key.
+        private void BtnBrowseMainBgFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetEntry(LayerRegistry.MainBackground) is not LayerLayoutEntry entry) return;
+
+            // Images plus mp4 (played by the main window's MediaElement; needs H.264, 8-bit yuv420p on a stock Windows install)
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Background Files (*.png;*.jpg;*.jpeg;*.bmp;*.mp4)|*.png;*.jpg;*.jpeg;*.bmp;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*",
+                Title = "Select Main Window Background",
+                RestoreDirectory = true
+            };
+            if (dialog.ShowDialog() != true) return;
+
+            string storedPath = dialog.FileName;
+            try
+            {
+                string relative = System.IO.Path.GetRelativePath(_settings.BaseDirectory, dialog.FileName);
+                if (!relative.StartsWith("..") && !System.IO.Path.IsPathRooted(relative)) storedPath = relative;
+            }
+            catch { }
+
+            entry.ImagePath = storedPath;
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Empties the wallpaper path so the built-in default image shows
+        private void BtnClearMainBgFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetEntry(LayerRegistry.MainBackground) is not LayerLayoutEntry entry) return;
+
+            entry.ImagePath = "";
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Turns the wallpaper off (solid Background Color only) or back on
+        private void ChkMainBgImageDisabled_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (GetEntry(LayerRegistry.MainBackground) is not LayerLayoutEntry entry) return;
+
+            entry.ImageDisabled = ChkMainBgImageDisabled.IsChecked == true;
+            RaiseGuides();
+        }
+        // [END SECTION: Main Window Background Image]
 
         private void BtnClearShapeFile_Click(object sender, RoutedEventArgs e)
         {

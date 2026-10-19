@@ -1053,6 +1053,41 @@
                         </ScrollViewer>
                     </TabItem>
                     <!-- [END SECTION: Marquee - Logo Tab] -->
+
+                    <!-- [SECTION: Main Window Background - Image Tab] -->
+                    <!-- The Main Window Background layer's wallpaper (per resolution): an image or a looping mp4, stored in the
+                         entry's ImagePath, plus the Disable flag (solid Background Color only). Same layout as the Logo tab. -->
+                    <TabItem x:Name="TabMainBgImage" Header="IMAGE" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <TextBlock Text="Background image or video (png, jpg, bmp, mp4):" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" x:Name="TxtMainBgFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
+                                    <Button Grid.Column="1" x:Name="BtnBrowseMainBgFile" Content="Browse" Click="BtnBrowseMainBgFile_Click"
+                        Style="{StaticResource ThemedActionButtonStyle}"
+                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
+                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                    <Button Grid.Column="2" x:Name="BtnClearMainBgFile" Content="Clear" Click="BtnClearMainBgFile_Click"
+                        Style="{StaticResource ThemedActionButtonStyle}"
+                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
+                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                </Grid>
+                                <TextBlock Text="Leave empty to use the built-in background image." Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}" Margin="0,6,0,0"/>
+                                <CheckBox x:Name="ChkMainBgImageDisabled" Content="Disable Main Window Background Image (use solid Main Window Background Color only)"
+                                          HorizontalAlignment="Left" Margin="0,12,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="ChkMainBgImageDisabled_Click"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Main Window Background - Image Tab] -->
                 </TabControl>
 
                 <!-- Layer-wide buttons, pinned below the tab frame so they sit in the same place on every tab and layer -->

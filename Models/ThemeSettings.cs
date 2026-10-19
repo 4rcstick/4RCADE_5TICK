@@ -26,8 +26,6 @@ namespace ArcadeStick.Models
         public string ScrollThumbColor { get; set; } = "#FF2C2C2E";
         public string ScrollThumbHoverColor { get; set; } = "#FF3A3A3C";
         public string ScrollThumbDragColor { get; set; } = "#FF00D4FF";
-        public string MainWindowWallpaper { get; set; } = "";
-        public bool DisableMainBgImage { get; set; } = false;
         public string MediaWindowWallpaper { get; set; } = "";
         public string ThemeBootSplash { get; set; } = "";
         public string ThemeMissingPreview { get; set; } = "";

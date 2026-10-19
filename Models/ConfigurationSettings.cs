@@ -72,8 +72,6 @@ namespace ArcadeStick.Models
         // =========================================================================
         // 🏁 START: CUSTOM VISUAL ENVIRONMENT WALLPAPER REFERENCES
         // =========================================================================
-        public string MainWindowWallpaper { get; set; } = "";
-        public bool DisableMainBgImage { get; set; } = false;
         public string MediaWindowWallpaper { get; set; } = "";
         public string ThemeBootSplash { get; set; } = "";
         public string ThemeMissingPreview { get; set; } = "";
@@ -390,8 +388,6 @@ namespace ArcadeStick.Models
         {
             if (source == null) return;
 
-            this.MainWindowWallpaper = source.MainWindowWallpaper;
-            this.DisableMainBgImage = source.DisableMainBgImage;
             this.MediaWindowWallpaper = source.MediaWindowWallpaper;
             this.ThemeBootSplash = source.ThemeBootSplash;
             this.ThemeMissingPreview = source.ThemeMissingPreview;

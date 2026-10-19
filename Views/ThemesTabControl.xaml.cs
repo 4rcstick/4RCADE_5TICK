@@ -1133,8 +1133,6 @@ namespace ArcadeStick.Views
         private void LoadCurrentThemeValuesIntoUi()
         {
             // Background Theme Wallpapers & Branding Assets
-            TxtMainBgPath.Text = _settings.MainWindowWallpaper;
-            ChkDisableMainBgImage.IsChecked = _settings.DisableMainBgImage;   
             TxtMediaBgPath.Text = _settings.MediaWindowWallpaper;
             TxtThemeBootSplashPath.Text = _settings.ThemeBootSplash;
             TxtThemeMissingPreviewPath.Text = _settings.ThemeMissingPreview;
@@ -1722,8 +1720,6 @@ namespace ArcadeStick.Views
                 // Create and populate the DTO
                 var themeDto = new ArcadeStick.Models.ThemeSettings
                 {
-                    MainWindowWallpaper = _settings.MainWindowWallpaper,
-                    DisableMainBgImage = _settings.DisableMainBgImage,
                     MediaWindowWallpaper = _settings.MediaWindowWallpaper,
                     ThemeBootSplash = _settings.ThemeBootSplash,
                     ThemeMissingPreview = _settings.ThemeMissingPreview,
@@ -1807,7 +1803,6 @@ namespace ArcadeStick.Views
 
                 var missingAssets = new List<string>();
 
-                themeDto.MainWindowWallpaper = BundleThemeAsset(themeDto.MainWindowWallpaper, stagingAssetsDir, missingAssets);
                 themeDto.MediaWindowWallpaper = BundleThemeAsset(themeDto.MediaWindowWallpaper, stagingAssetsDir, missingAssets);
                 themeDto.ThemeBootSplash = BundleThemeAsset(themeDto.ThemeBootSplash, stagingAssetsDir, missingAssets);
                 themeDto.ThemeMissingPreview = BundleThemeAsset(themeDto.ThemeMissingPreview, stagingAssetsDir, missingAssets);
@@ -1955,9 +1950,6 @@ namespace ArcadeStick.Views
         // existing setting unchanged rather than throwing.
         private void SyncUiEntriesToSettingsLayer()
         {
-            _settings.MainWindowWallpaper = TxtMainBgPath.Text;
-            _settings.DisableMainBgImage = ChkDisableMainBgImage.IsChecked ?? false;
-            
             _settings.MediaWindowWallpaper = TxtMediaBgPath.Text;
             
             _settings.ThemeBootSplash = TxtThemeBootSplashPath.Text;
@@ -2049,20 +2041,17 @@ namespace ArcadeStick.Views
         // [END SECTION: Sync UI to Settings]
 
         // [SECTION: File Browse Handler]
-        // Shared handler for all seven image-asset browse buttons. Opens an image file picker, converts
-        // the selection to a path relative to the MAME root when on the same drive (portable-friendly),
-        // then routes the result to the correct TextBox based on which button raised the event.
+        // Shared handler for the Basic tab's asset browse buttons (media background, boot splash, missing
+        // preview). Opens a file picker, converts the selection to a path relative to the MAME root when on the
+        // same drive (portable-friendly), then routes the result to the correct TextBox based on which button
+        // raised the event. The main window background moved to the Advanced tab (Main Window Background layer).
         private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
         {
             // Boot splash is the only asset that accepts gif/mp4 alongside a static image, since it can resolve
             // to a static image, an animated gif, or a looping video (see IsBootSplashGif/IsBootSplashVideo) -
             // every other browse button stays image-only. First filter entry is the default: all splash types.
-            // Main window background also accepts mp4 - played by MediaElement so it stays a normal
-            // WPF layer behind the panels. Needs H.264, 8-bit yuv420p to play on a stock Windows install.
             string dialogFilter = sender == BtnBrowseThemeBootSplash
                 ? "Splash Files (*.png;*.jpg;*.jpeg;*.gif;*.mp4)|*.png;*.jpg;*.jpeg;*.gif;*.mp4|Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|Animated GIF (*.gif)|*.gif|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*"
-                : sender == BtnBrowseMainBg
-                ? "Background Files (*.png;*.jpg;*.jpeg;*.bmp;*.mp4)|*.png;*.jpg;*.jpeg;*.bmp;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*"
                 : "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All files (*.*)|*.*";
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -2085,8 +2074,7 @@ namespace ArcadeStick.Views
                     selectedPath = relativePath == "." ? "." : (!relativePath.StartsWith("..") ? relativePath : selectedPath);
                 }
 
-                if (sender == BtnBrowseMainBg) TxtMainBgPath.Text = selectedPath;
-                else if (sender == BtnBrowseMediaBg) TxtMediaBgPath.Text = selectedPath;
+                if (sender == BtnBrowseMediaBg) TxtMediaBgPath.Text = selectedPath;
                 else if (sender == BtnBrowseThemeBootSplash) TxtThemeBootSplashPath.Text = selectedPath;
                 else if (sender == BtnBrowseThemeMissingPreview) TxtThemeMissingPreviewPath.Text = selectedPath;
             }
