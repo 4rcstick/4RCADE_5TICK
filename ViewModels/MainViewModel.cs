@@ -1804,26 +1804,6 @@ namespace ArcadeStick.ViewModels
             };
         }
 
-        // TEMPORARY - Phase 1 smoke test only, delete once the real die button/overlay exists.
-        public void DebugTestRandomizerSpin()
-        {
-            var result = GenerateRandomizerSpin();
-
-            if (result == null)
-            {
-                MessageBox.Show("Pool too small - fewer than 10 eligible games.", "Randomizer Debug");
-                return;
-            }
-
-            string fillerNames = string.Join("\n", result.FillerFrames.Select(g => g.RomName));
-            MessageBox.Show(
-                $"Winner: {result.WinnerFrame.RomName} ({result.WinnerFrame.FullTitle})\n" +
-                $"Overshoot: {result.OvershootFrame.RomName}\n" +
-                $"Filler frame count: {result.FillerFrames.Count}\n\n" +
-                $"Filler frames:\n{fillerNames}",
-                "Randomizer Debug");
-        }
-
         // Lightweight pool-size check only - used at die-click time, before the confirm popup even
         // opens. Deliberately does NOT pick a winner or touch _lastRandomizerWinnerRomName - that only
         // happens once the user actually confirms via GenerateRandomizerSpin, so a cancelled die click
@@ -1854,28 +1834,9 @@ namespace ArcadeStick.ViewModels
             }
         }
 
-        // True from the moment a spin lands until the user resolves the reveal popup (Launch/Respin/
-        // Cancel) - keeps the spin overlays locked on the winner instead of instantly reverting the
-        // instant the timer stops, which is what IsRandomizerSpinning alone would do.
-        private bool _isRandomizerResultShowing;
-        public bool IsRandomizerResultShowing
-        {
-            get => _isRandomizerResultShowing;
-            set
-            {
-                if (_isRandomizerResultShowing != value)
-                {
-                    _isRandomizerResultShowing = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsRandomizerOverlayActive));
-                }
-            }
-        }
-
-        // Single umbrella flag the overlays actually bind to - true while spinning OR while the reveal
-        // popup is showing, so the marquee/media overlays stay locked on the winner through the whole
-        // reveal instead of collapsing the instant the swap-loop timer finishes.
-        public bool IsRandomizerOverlayActive => IsRandomizerSpinning || IsRandomizerResultShowing;
+        // The flag the spin overlays bind to (MainWindow.xaml triggers). True while a spin runs; the reveal
+        // popup that used to keep it on after the spin is gone, so it now simply follows IsRandomizerSpinning.
+        public bool IsRandomizerOverlayActive => IsRandomizerSpinning;
 
         private BitmapImage? _randomizerFrameMarqueeImage;
         public BitmapImage? RandomizerFrameMarqueeImage

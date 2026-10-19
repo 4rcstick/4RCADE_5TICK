@@ -2049,14 +2049,6 @@ namespace ArcadeStick
                 return;
             }
 
-            // TEMPORARY - Phase 1 randomizer smoke test only, delete once the real die button exists.
-            if (isCtrl && e.Key == Key.R)
-            {
-                e.Handled = true;
-                _viewModel.DebugTestRandomizerSpin();
-                return;
-            }
-
             if (isCtrl && e.Key == Key.M)
             {
                 e.Handled = true;
@@ -2471,8 +2463,8 @@ namespace ArcadeStick
         // runs.
         private void BtnPlayRandom_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            // Ignore clicks mid-spin or while the reveal popup is up, so rapid clicks can't stack spins.
-            if (_viewModel.IsRandomizerSpinning || _viewModel.IsRandomizerResultShowing) return;
+            // Ignore clicks mid-spin, so rapid clicks can't stack spins.
+            if (_viewModel.IsRandomizerSpinning) return;
             // Pool-size guard fires here, at die-click time, before the confirm popup even opens -
             // per the agreed design, rather than letting the user confirm first and find out after.
             if (!_viewModel.IsRandomizerPoolEligible())
