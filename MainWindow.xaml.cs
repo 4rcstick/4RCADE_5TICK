@@ -2423,9 +2423,12 @@ namespace ArcadeStick
         {
             if (sender is Border button)
             {
+                // The button Border carries the fill. Once a button has its inner border ring (the corner fix),
+                // the ring is the child Border and holds the border color and the icon; until then the button itself does.
                 button.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
-                button.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColorHover);
-                if (button.Child is TextBlock icon) icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
+                var ring = button.Child as Border ?? button;
+                ring.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColorHover);
+                if (ring.Child is TextBlock icon) icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
             }
             DelayedTooltip_MouseEnter(sender, e);
         }
@@ -2451,9 +2454,12 @@ namespace ArcadeStick
         // Applies the resting background, border and icon color to one button
         private void ApplyMainButtonRestingColors(Border button)
         {
+            // Same rule as the hover handler: the fill is on the button, the border color and icon are on the
+            // inner border ring when the button has one, otherwise on the button itself.
             button.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
-            button.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColor);
-            if (button.Child is TextBlock icon) icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
+            var ring = button.Child as Border ?? button;
+            ring.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColor);
+            if (ring.Child is TextBlock icon) icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
         }
         // [END SECTION: Main Window Buttons Hover]
 

@@ -199,40 +199,53 @@
                 </TextBox>
                 <!-- Play Random Game trigger - opens a small confirm flyout anchored here before spinning -->
             <Border x:Name="BtnPlayRandom" Canvas.Left="235" Canvas.Top="20" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=0}"
-                        BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnPlayRandom_MouseLeftButtonUp"
+                        Cursor="Hand" MouseLeftButtonUp="BtnPlayRandom_MouseLeftButtonUp"
                         ToolTipService.IsEnabled="False" MouseEnter="MainButton_MouseEnter" MouseLeave="MainButton_MouseLeave">
-                    <Border.ToolTip>
-                        <ToolTip Content="Random Game"/>
-                    </Border.ToolTip>
+                <Border.ToolTip>
+                    <ToolTip Content="Random Game"/>
+                </Border.ToolTip>
+                <!-- Border ring: the outer Border above holds the fill out to the full rounded edge, this inner one draws the border on top, so no sliver of the background behind shows at the corners. -->
+                <Border CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=0}" IsHitTestVisible="False"
+                            BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}">
                     <TextBlock x:Name="PlayRandomIcon" Text="&#x1F3B2;" FontFamily="Segoe UI Emoji" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=13}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
-                <!-- Opens the Sorting window (structure mode + region/revision/player-count/rating filters) -->
+            </Border>
+            <!-- Opens the Sorting window (structure mode + region/revision/player-count/rating filters) -->
             <Border x:Name="BtnOpenSortingGear" Canvas.Left="271" Canvas.Top="20" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=0}"
-                        BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenSortingGear_MouseLeftButtonUp"
+                        Cursor="Hand" MouseLeftButtonUp="BtnOpenSortingGear_MouseLeftButtonUp"
                         ToolTipService.IsEnabled="False" MouseEnter="MainButton_MouseEnter" MouseLeave="MainButton_MouseLeave">
-                    <Border.ToolTip>
-                        <ToolTip Content="Sorting Options"/>
-                    </Border.ToolTip>
+                <Border.ToolTip>
+                    <ToolTip Content="Sorting Options"/>
+                </Border.ToolTip>
+                <Border CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=0}" IsHitTestVisible="False"
+                            BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}">
                     <TextBlock x:Name="SortGearIcon" Text="&#xEADF;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=13}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
-                <!-- Gear icon that opens the Options window, isolated in its own circular badge -->
+            </Border>
+            <!-- Gear icon that opens the Options window, isolated in its own circular badge -->
             <Border x:Name="BtnOpenOptionsGear" Canvas.Left="307" Canvas.Top="20" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=0}"
-                        BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenOptionsGear_MouseLeftButtonUp"
+                        Cursor="Hand" MouseLeftButtonUp="BtnOpenOptionsGear_MouseLeftButtonUp"
                         ToolTipService.IsEnabled="False" MouseEnter="MainButton_MouseEnter" MouseLeave="MainButton_MouseLeave">
-                    <Border.ToolTip>
-                        <ToolTip Content="Options Menu"/>
-                    </Border.ToolTip>
+                <Border.ToolTip>
+                    <ToolTip Content="Options Menu"/>
+                </Border.ToolTip>
+                <Border CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=0}" IsHitTestVisible="False"
+                            BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}">
                     <TextBlock x:Name="OptionsGearIcon" Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=13}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
-                <!-- Hamburger icon that opens the main menu popup (Sorting Options, Options Menu, Toggle Fullscreen) -->
+            </Border>
+            <!-- Hamburger icon that opens the main menu popup (Sorting Options, Options Menu, Toggle Fullscreen) -->
             <Border x:Name="BtnOpenMenuHamburger" Canvas.Left="343" Canvas.Top="20" Width="30" Height="30" CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=0}"
-                        BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}" Cursor="Hand" MouseLeftButtonUp="BtnOpenMenuHamburger_MouseLeftButtonUp"
+                        Cursor="Hand" MouseLeftButtonUp="BtnOpenMenuHamburger_MouseLeftButtonUp"
                         ToolTipService.IsEnabled="False" MouseEnter="MainButton_MouseEnter" MouseLeave="MainButton_MouseLeave">
-                    <Border.ToolTip>
-                        <ToolTip Content="Menu"/>
-                    </Border.ToolTip>
+                <Border.ToolTip>
+                    <ToolTip Content="Menu"/>
+                </Border.ToolTip>
+                <Border CornerRadius="{Binding ThemeMainWinBtnCornerRadius, FallbackValue=0}" IsHitTestVisible="False"
+                            BorderBrush="{Binding ThemeMainWinBtnBorderColor, FallbackValue=Black}" BorderThickness="{Binding ThemeMainWinBtnBorderSize, FallbackValue=1}">
                     <TextBlock x:Name="HamburgerIcon" Text="&#xE700;" FontFamily="Segoe MDL2 Assets" FontSize="{Binding ThemeMainWinBtnFontSize, FallbackValue=13}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 </Border>
+            </Border>
 
 
             <!-- Shape layers 01 to 04: background/border layers. Fill, border, corner radius, visibility and the image or
