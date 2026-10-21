@@ -272,112 +272,6 @@
                     <TextBox Grid.Column="5" x:Name="TxtMediaColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtMediaColorHex_LostFocus"/>
                 </Grid>
 
-                <!-- Splash Image or Video (CARRIED OVER) -->
-                <TextBlock Text="Splash Image or Video (Replaces Default):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="50"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtThemeBootSplashPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Button Grid.Column="1" x:Name="BtnBrowseThemeBootSplash" Click="BtnBrowseFile_Click" Content="..." 
-                        Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
-                        Margin="5,0,0,0"/>
-                </Grid>
-
-                <!-- Video BG Color / Video Border Size / Video Border Color / Video Border Radius (NEW - placeholder) -->
-                <Grid Margin="0,0,0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Video BG Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="2" Text="Video Border Size:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="4" Text="Video Border Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="6" Text="Video Border Radius:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                </Grid>
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <Grid Grid.Column="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="26"/>
-                            <ColumnDefinition Width="5"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
-                            <colorpicker:PortableColorPicker x:Name="VideoBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="VideoBgColorPicker_ColorChanged">
-                                <colorpicker:PortableColorPicker.Resources>
-                                    <Style TargetType="Grid">
-                                        <Style.Triggers>
-                                            <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                    <Style TargetType="colorpicker:HexColorTextBox">
-                                        <Style.Resources>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                            </Style>
-                                        </Style.Resources>
-                                    </Style>
-                                </colorpicker:PortableColorPicker.Resources>
-                            </colorpicker:PortableColorPicker>
-                        </Border>
-                        <TextBox Grid.Column="2" x:Name="TxtVideoBgColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtVideoBgColorHex_LostFocus"/>
-                    </Grid>
-
-                    <TextBox Grid.Column="2" x:Name="TxtVideoBorderSize" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" HorizontalContentAlignment="Center"/>
-
-                    <Grid Grid.Column="4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="26"/>
-                            <ColumnDefinition Width="5"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
-                            <colorpicker:PortableColorPicker x:Name="VideoBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="VideoBorderColorPicker_ColorChanged">
-                                <colorpicker:PortableColorPicker.Resources>
-                                    <Style TargetType="Grid">
-                                        <Style.Triggers>
-                                            <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                    <Style TargetType="colorpicker:HexColorTextBox">
-                                        <Style.Resources>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                            </Style>
-                                        </Style.Resources>
-                                    </Style>
-                                </colorpicker:PortableColorPicker.Resources>
-                            </colorpicker:PortableColorPicker>
-                        </Border>
-                        <TextBox Grid.Column="2" x:Name="TxtVideoBorderColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtVideoBorderColorHex_LostFocus"/>
-                    </Grid>
-
-                    <TextBox Grid.Column="6" x:Name="TxtVideoBorderRadius" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" HorizontalContentAlignment="Center"/>
-                </Grid>
-
                 <!-- Border Size / Border Color / Border Corner Radius (NEW - placeholder) -->
                 <Grid Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
@@ -429,22 +323,6 @@
                         <TextBox Grid.Column="2" x:Name="TxtPreviewBorderColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtPreviewBorderColorHex_LostFocus"/>
                     </Grid>
                     <TextBox Grid.Column="4" x:Name="TxtPreviewBorderRadius" HorizontalContentAlignment="Center" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                </Grid>
-
-                <!-- No Preview Available Image (CARRIED OVER) -->
-                <TextBlock Text="No Preview Available Image (Replaces Default):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
-                <Grid Margin="0,0,0,15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="50"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtThemeMissingPreviewPath" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Button Grid.Column="1" x:Name="BtnBrowseThemeMissingPreview" Click="BtnBrowseFile_Click" Content="..." 
-                        Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
-                        Margin="5,0,0,0"/>
                 </Grid>
                 <!-- [END SECTION: Preview Panel] -->
 

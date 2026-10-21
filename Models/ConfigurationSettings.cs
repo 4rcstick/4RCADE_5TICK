@@ -72,8 +72,6 @@ namespace ArcadeStick.Models
         // 🏁 START: CUSTOM VISUAL ENVIRONMENT WALLPAPER REFERENCES
         // =========================================================================
         public string MediaWindowWallpaper { get; set; } = "";
-        public string ThemeBootSplash { get; set; } = "";
-        public string ThemeMissingPreview { get; set; } = "";
         public string ActiveThemeName { get; set; } = "";
 
         // Resolution the active theme's layout is currently shown at (last one chosen in the Advanced tab).
@@ -154,10 +152,6 @@ namespace ArcadeStick.Models
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;
 
-        public string VideoBgColorHex { get; set; } = "#FF000000";
-        public double VideoBorderSize { get; set; } = 0;
-        public string VideoBorderColorHex { get; set; } = "#FF3A3A3C";
-        public double VideoBorderRadius { get; set; } = 0;
         public double PreviewBorderSize { get; set; } = 1;
         public string PreviewBorderColorHex { get; set; } = "#FF3A3A3C";
         public double PreviewBorderRadius { get; set; } = 0;
@@ -374,8 +368,6 @@ namespace ArcadeStick.Models
             if (source == null) return;
 
             this.MediaWindowWallpaper = source.MediaWindowWallpaper;
-            this.ThemeBootSplash = source.ThemeBootSplash;
-            this.ThemeMissingPreview = source.ThemeMissingPreview;
             this.ActiveThemeName = source.ActiveThemeName;
             this.ActiveResolutionWidth = source.ActiveResolutionWidth;
             this.ActiveResolutionHeight = source.ActiveResolutionHeight;
@@ -411,10 +403,6 @@ namespace ArcadeStick.Models
             this.SeparatorColorHex = source.SeparatorColorHex;
             this.BorderWidthValue = source.BorderWidthValue;
             this.BorderCurveValue = source.BorderCurveValue;
-            this.VideoBgColorHex = source.VideoBgColorHex;
-            this.VideoBorderSize = source.VideoBorderSize;
-            this.VideoBorderColorHex = source.VideoBorderColorHex;
-            this.VideoBorderRadius = source.VideoBorderRadius;
             this.PreviewBorderSize = source.PreviewBorderSize;
             this.PreviewBorderColorHex = source.PreviewBorderColorHex;
             this.PreviewBorderRadius = source.PreviewBorderRadius;

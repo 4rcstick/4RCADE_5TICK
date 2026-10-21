@@ -7,8 +7,8 @@
 
     <!-- Video Preview layer: fallback image, static preview image and the MediaElement video player,
          all fitting (Uniform) inside this control's rect, with the border ring drawn on top. Bars from
-         Uniform fitting show ThemeVideoBgColor. No aspect-ratio lock - the layer's rect is the only
-         size that matters. -->
+         Uniform fitting show the layer's background color (pushed in by ApplyBackground). No aspect-ratio
+         lock - the layer's rect is the only size that matters. -->
     <Grid>
         <Grid.Style>
             <Style TargetType="Grid">
@@ -19,7 +19,7 @@
                 </Style.Triggers>
             </Style>
         </Grid.Style>
-        <Border x:Name="MediaSlot" Background="{Binding ThemeVideoBgColor, FallbackValue=#FF000000}">
+        <Border x:Name="MediaSlot" Background="#FF000000">
             <Grid x:Name="MediaSlotContent" SizeChanged="MediaSlotContent_SizeChanged">
 
                 <!-- Fallback: shown when the selected game has no video/screenshot/titlescreen asset -->

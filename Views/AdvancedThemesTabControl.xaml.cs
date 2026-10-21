@@ -420,7 +420,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabShapeBackground, TabShapeBorder, TabMarqueeLogo, TabMainBgImage };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMainBgImage };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -442,8 +442,11 @@ namespace ArcadeStick.Views
             // Shape Layers 01 to 04 share one tab set
             if (unitKey != null && LayerRegistry.IsBoxId(unitKey)) return new[] { TabShapeBackground, TabShapeBorder };
 
-            // Splash Image and Video Preview get the Border tab only
-            if (unitKey == LayerRegistry.SplashImage || unitKey == LayerRegistry.VideoPreview) return new[] { TabShapeBorder };
+            // Splash Image: the splash file, then the shared Border tab
+            if (unitKey == LayerRegistry.SplashImage) return new[] { TabSplashImage, TabShapeBorder };
+
+            // Video Preview: the shared Border tab, the letterbox background color and the fallback image
+            if (unitKey == LayerRegistry.VideoPreview) return new[] { TabShapeBorder, TabVideoBackground, TabVideoFallback };
 
             // Every other layer (custom image layers included) shows Position only for now.
             return Array.Empty<TabItem>();
@@ -497,6 +500,22 @@ namespace ArcadeStick.Views
             if (LstLayers.SelectedItem is LayerListItem marqueeSel && marqueeSel.Id == LayerRegistry.MarqueePanel)
             {
                 TxtMarqueeLogoFile.Text = GetEntry(LayerRegistry.MarqueePanel)?.ImagePath ?? "";
+            }
+
+            // Splash Image file field: filled when the Splash Image layer is selected
+            if (LstLayers.SelectedItem is LayerListItem splashSel && splashSel.Id == LayerRegistry.SplashImage)
+            {
+                TxtSplashFile.Text = GetEntry(LayerRegistry.SplashImage)?.ImagePath ?? "";
+            }
+
+            // Video Preview background color and fallback image: filled when the Video Preview layer is selected
+            if (LstLayers.SelectedItem is LayerListItem videoSel && videoSel.Id == LayerRegistry.VideoPreview
+                && GetEntry(LayerRegistry.VideoPreview) is LayerLayoutEntry videoEntry)
+            {
+                _loading = true;
+                ShowColor(VPBgColorPicker, TxtVPBgColorHex, videoEntry.BgColorHex ?? LayerRegistry.DefaultVideoBgColorHex);
+                TxtVPFallbackFile.Text = videoEntry.ImagePath ?? "";
+                _loading = false;
             }
 
             // Main Window Background image fields: filled when that layer is selected
@@ -1046,6 +1065,86 @@ namespace ArcadeStick.Views
             entry.ImagePath = "";
             LoadSelectedLayerIntoFields();
         }
+
+        // [SECTION: Splash Image and Video Preview Files]
+        // Splash Image's Image tab and Video Preview's Background and Fallback Image tabs. Browse stores the file in
+        // the layer entry's ImagePath (relative to the app folder when inside it); a cancelled dialog changes nothing.
+        // Clear empties it, which brings back the built-in file. The main window picks both up through ApplyLayout's
+        // _lastSplashPath / _lastVideoFallbackPath keys; the background color is pushed on every ApplyLayout.
+
+        // Opens a file dialog and returns the chosen path in the stored convention, or null when cancelled
+        private string? BrowseLayerFile(string filter, string title)
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = filter,
+                Title = title,
+                RestoreDirectory = true
+            };
+            if (dialog.ShowDialog() != true) return null;
+
+            string storedPath = dialog.FileName;
+            try
+            {
+                string relative = System.IO.Path.GetRelativePath(_settings.BaseDirectory, dialog.FileName);
+                if (!relative.StartsWith("..") && !System.IO.Path.IsPathRooted(relative)) storedPath = relative;
+            }
+            catch { }
+            return storedPath;
+        }
+
+        // Picks the splash file: images, gif (animated) or mp4
+        private void BtnBrowseSplashFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetEntry(LayerRegistry.SplashImage) is not LayerLayoutEntry entry) return;
+
+            string? storedPath = BrowseLayerFile(
+                "Splash Files (*.png;*.jpg;*.jpeg;*.gif;*.mp4)|*.png;*.jpg;*.jpeg;*.gif;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.gif)|*.png;*.jpg;*.jpeg;*.gif|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*",
+                "Select Splash Image or Video");
+            if (storedPath == null) return;
+
+            entry.ImagePath = storedPath;
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Empties the splash path so the built-in splash shows
+        private void BtnClearSplashFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetEntry(LayerRegistry.SplashImage) is not LayerLayoutEntry entry) return;
+
+            entry.ImagePath = "";
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Picks the Video Preview fallback image (images only)
+        private void BtnBrowseVPFallback_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetEntry(LayerRegistry.VideoPreview) is not LayerLayoutEntry entry) return;
+
+            string? storedPath = BrowseLayerFile(
+                "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All files (*.*)|*.*",
+                "Select No Preview Available Image");
+            if (storedPath == null) return;
+
+            entry.ImagePath = storedPath;
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Empties the fallback path so the built-in no_preview.png shows
+        private void BtnClearVPFallback_Click(object sender, RoutedEventArgs e)
+        {
+            if (GetEntry(LayerRegistry.VideoPreview) is not LayerLayoutEntry entry) return;
+
+            entry.ImagePath = "";
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Video Preview background color picker and hex box (same helpers and revert rules as the other colors)
+        private void VPBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(VPBgColorPicker, TxtVPBgColorHex, GetEntry(LayerRegistry.VideoPreview), (en, hex) => en.BgColorHex = hex);
+        private void TxtVPBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(VPBgColorPicker, TxtVPBgColorHex, GetEntry(LayerRegistry.VideoPreview), en => en.BgColorHex ?? LayerRegistry.DefaultVideoBgColorHex, (en, hex) => en.BgColorHex = hex);
+        // [END SECTION: Splash Image and Video Preview Files]
 
         // [SECTION: Main Window Background Image]
         // Browse stores the wallpaper in the Main Window Background entry's ImagePath (relative to the app folder when

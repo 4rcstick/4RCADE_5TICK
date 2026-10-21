@@ -850,10 +850,6 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Game Info Forwarders]
 
-        public string ThemeVideoBgColor => Configuration.VideoBgColorHex;
-        public double ThemeVideoBorderSize => Configuration.VideoBorderSize;
-        public string ThemeVideoBorderColor => Configuration.VideoBorderColorHex;
-        public double ThemeVideoBorderRadius => Configuration.VideoBorderRadius;
         public double ThemePreviewBorderSize => Configuration.PreviewBorderSize;
         public string ThemePreviewBorderColor => Configuration.PreviewBorderColorHex;
         public double ThemePreviewBorderRadius => Configuration.PreviewBorderRadius;
@@ -939,13 +935,27 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeLogoAsset));
         }
 
-        // Resolves the boot splash to the custom theme path if set, else the bundled default - preferring
+        // The splash file set on the Splash Image layer for the active resolution (empty = the built-in splash).
+        // MainWindow compares this between ApplyLayout runs to know when the splash needs refreshing.
+        public string SplashImagePath => GetLayerEntry(LayerRegistry.SplashImage).ImagePath ?? "";
+
+        // Re-raises every boot splash binding after the Splash Image layer's file changed
+        public void RefreshBootSplash()
+        {
+            OnPropertyChanged(nameof(ThemeBootSplashAsset));
+            OnPropertyChanged(nameof(IsBootSplashVideo));
+            OnPropertyChanged(nameof(ThemeBootSplashVideoPath));
+            OnPropertyChanged(nameof(IsBootSplashAnimated));
+            OnPropertyChanged(nameof(ThemeBootSplashAnimatedAsset));
+        }
+
+        // Resolves the boot splash to the Splash Image layer's file if set, else the bundled default - preferring
         // an mp4 companion file over the png when falling back to the default asset
         private string ResolveBootSplashPath()
         {
-            if (!string.IsNullOrWhiteSpace(Configuration.ThemeBootSplash))
+            if (!string.IsNullOrWhiteSpace(SplashImagePath))
             {
-                string splashPath = Configuration.ThemeBootSplash;
+                string splashPath = SplashImagePath;
                 if (!Path.IsPathRooted(splashPath))
                 {
                     splashPath = Path.GetFullPath(Path.Combine(Configuration.BaseDirectory, splashPath));
@@ -1056,10 +1066,21 @@ namespace ArcadeStick.ViewModels
             catch { }
             return false;
         }
+
+        // The "no preview available" image set on the Video Preview layer's Fallback Image tab (empty = built-in).
+        // MainWindow compares this between ApplyLayout runs to know when the fallback needs refreshing.
+        public string VideoFallbackPath => GetLayerEntry(LayerRegistry.VideoPreview).ImagePath ?? "";
+
         public ImageSource? ThemeMissingPreviewAsset => LoadThemeImage(
-            !string.IsNullOrWhiteSpace(Configuration.ThemeMissingPreview)
-                ? Configuration.ThemeMissingPreview
+            !string.IsNullOrWhiteSpace(VideoFallbackPath)
+                ? VideoFallbackPath
                 : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "no_preview.png"));
+
+        // Re-raises the fallback image binding after the Video Preview layer's fallback file changed
+        public void RefreshMissingPreview()
+        {
+            OnPropertyChanged(nameof(ThemeMissingPreviewAsset));
+        }
 
         // Resolves a possibly-relative theme asset path to an absolute path and loads it as a frozen BitmapImage
         private ImageSource? LoadThemeImage(string path)
@@ -1123,10 +1144,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeScrollThumbHoverColor));
             OnPropertyChanged(nameof(ThemeScrollThumbDragColor));
             RefreshGameInfoBindings();
-            OnPropertyChanged(nameof(ThemeVideoBgColor));
-            OnPropertyChanged(nameof(ThemeVideoBorderSize));
-            OnPropertyChanged(nameof(ThemeVideoBorderColor));
-            OnPropertyChanged(nameof(ThemeVideoBorderRadius));
             OnPropertyChanged(nameof(ThemePreviewBorderSize));
             OnPropertyChanged(nameof(ThemePreviewBorderColor));
             OnPropertyChanged(nameof(ThemePreviewBorderRadius));
@@ -1165,12 +1182,8 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMainWallpaperVideoPath));
             OnPropertyChanged(nameof(ThemeMediaWallpaper));
             OnPropertyChanged(nameof(ThemeLogoAsset));
-            OnPropertyChanged(nameof(ThemeBootSplashAsset));
-            OnPropertyChanged(nameof(IsBootSplashVideo));
-            OnPropertyChanged(nameof(ThemeBootSplashVideoPath));
-            OnPropertyChanged(nameof(IsBootSplashAnimated));
-            OnPropertyChanged(nameof(ThemeBootSplashAnimatedAsset));
-            OnPropertyChanged(nameof(ThemeMissingPreviewAsset));
+            RefreshBootSplash();
+            RefreshMissingPreview();
 
             RefreshFolderColorsLive();
             ThemeBindingsRefreshed?.Invoke();
@@ -1342,13 +1355,9 @@ namespace ArcadeStick.ViewModels
             }
 
             themeData.MediaWindowWallpaper = RewriteAssetPath(themeData.MediaWindowWallpaper);
-            themeData.ThemeBootSplash = RewriteAssetPath(themeData.ThemeBootSplash);
-            themeData.ThemeMissingPreview = RewriteAssetPath(themeData.ThemeMissingPreview);
 
             // Map ThemeSettings DTO properties back to the main ConfigurationSettings object
             Configuration.MediaWindowWallpaper = themeData.MediaWindowWallpaper;
-            Configuration.ThemeBootSplash = themeData.ThemeBootSplash;
-            Configuration.ThemeMissingPreview = themeData.ThemeMissingPreview;
             Configuration.VideoBoxBg = themeData.VideoBoxBg;
             Configuration.OptionsBg = themeData.OptionsBg;
             Configuration.BorderColorFramework = themeData.BorderColorFramework;
@@ -1375,10 +1384,6 @@ namespace ArcadeStick.ViewModels
             Configuration.StandardColorHex = themeData.StandardColorHex;
             Configuration.InputFontSize = themeData.InputFontSize;
             Configuration.InputColorHex = themeData.InputColorHex;
-            Configuration.VideoBgColorHex = themeData.VideoBgColorHex;
-            Configuration.VideoBorderSize = themeData.VideoBorderSize;
-            Configuration.VideoBorderColorHex = themeData.VideoBorderColorHex;
-            Configuration.VideoBorderRadius = themeData.VideoBorderRadius;
             Configuration.PreviewBorderSize = themeData.PreviewBorderSize;
             Configuration.PreviewBorderColorHex = themeData.PreviewBorderColorHex;
             Configuration.PreviewBorderRadius = themeData.PreviewBorderRadius;

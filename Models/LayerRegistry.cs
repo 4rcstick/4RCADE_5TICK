@@ -411,6 +411,9 @@ namespace ArcadeStick.Models
         // the no-art banner all follow it.
         public const string DefaultMainBackgroundColorHex = "#FF1C1C1E";
 
+        // Video Preview background (the former flat VideoBgColorHex default): the fill behind and around the video
+        public const string DefaultVideoBgColorHex = "#FF000000";
+
         // Group Ids (a group is one row in the Advanced tab's layer list - see AllGroups)
         public const string SearchAndButtonsGroup = "SearchAndButtons";
         public const string GameInfoGroup = "GameInfoGroup";
@@ -560,12 +563,14 @@ namespace ArcadeStick.Models
                     entry.CornerRadius = DefaultShapeCornerRadius;
                 }
 
-                // Splash Image and Video Preview have a Border tab too: size 0 (no border) with the gray color ready
+                // Splash Image and Video Preview have a Border tab too: size 0 (no border) with the gray color ready.
+                // Video Preview also has a Background tab: the fill behind and around the video (letterbox bars).
                 if (def.Id == SplashImage || def.Id == VideoPreview)
                 {
                     entry.BorderSize = 0;
                     entry.BorderColorHex = DefaultShapeBorderColorHex;
                     entry.CornerRadius = DefaultShapeCornerRadius;
+                    if (def.Id == VideoPreview) entry.BgColorHex = DefaultVideoBgColorHex;
                 }
 
                 // Search & Buttons styling: label, box and the shared button style (on the Random Game Button)
@@ -729,12 +734,13 @@ namespace ArcadeStick.Models
                     entry.GameSelectedShadowDepth ??= DefaultShadowDepth;
                 }
 
-                // Splash Image and Video Preview: border values fill in from defaults when missing
+                // Splash Image and Video Preview: border values (and the Video Preview background) fill in from defaults when missing
                 if (entry.Id == SplashImage || entry.Id == VideoPreview)
                 {
                     entry.BorderSize ??= 0;
                     if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = DefaultShapeBorderColorHex;
                     entry.CornerRadius ??= DefaultShapeCornerRadius;
+                    if (entry.Id == VideoPreview && string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultVideoBgColorHex;
                 }
 
                 // Shape layers: fill any missing value from the matching default entry

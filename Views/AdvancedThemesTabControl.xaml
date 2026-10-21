@@ -1455,6 +1455,39 @@
                     </TabItem>
                     <!-- [END SECTION: Shape Layer - Background Tab] -->
 
+                    <!-- [SECTION: Splash Image - Image Tab] -->
+                    <!-- The splash file shown while no game is selected, stored in the Splash Image entry's ImagePath
+                         (empty = the built-in splash). Sits before the Border tab so the order is Position, Image, Border. -->
+                    <TabItem x:Name="TabSplashImage" Header="IMAGE" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <TextBlock Text="Splash image or video (png, jpg, gif, mp4), shown when no game is selected:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" x:Name="TxtSplashFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
+                                    <Button Grid.Column="1" x:Name="BtnBrowseSplashFile" Content="Browse" Click="BtnBrowseSplashFile_Click"
+                        Style="{StaticResource ThemedActionButtonStyle}"
+                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
+                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                    <Button Grid.Column="2" x:Name="BtnClearSplashFile" Content="Clear" Click="BtnClearSplashFile_Click"
+                        Style="{StaticResource ThemedActionButtonStyle}"
+                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
+                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                </Grid>
+                                <TextBlock Text="Leave empty to use the built-in splash." Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Splash Image - Image Tab] -->
+
                     <!-- [SECTION: Shape Layer - Border Tab] -->
                     <TabItem x:Name="TabShapeBorder" Header="BORDER" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
@@ -1508,6 +1541,61 @@
                         </ScrollViewer>
                     </TabItem>
                     <!-- [END SECTION: Shape Layer - Border Tab] -->
+
+                    <!-- [SECTION: Video Preview - Background Tab] -->
+                    <!-- The fill behind and around the video (the letterbox bars), stored in the Video Preview entry's
+                         BgColorHex. Not the shape layers' TabShapeBackground. -->
+                    <TabItem x:Name="TabVideoBackground" Header="BACKGROUND" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="VPBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="VPBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtVPBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtVPBgColorHex_LostFocus"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Video Preview - Background Tab] -->
+
+                    <!-- [SECTION: Video Preview - Fallback Image Tab] -->
+                    <!-- The "no preview available" image shown for a game with no media, stored in the Video Preview
+                         entry's ImagePath (empty = the built-in no_preview.png). -->
+                    <TabItem x:Name="TabVideoFallback" Header="FALLBACK IMAGE" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <TextBlock Text="Image (png, jpg, bmp), shown when the selected game has no preview:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" x:Name="TxtVPFallbackFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
+                                    <Button Grid.Column="1" x:Name="BtnBrowseVPFallback" Content="Browse" Click="BtnBrowseVPFallback_Click"
+                        Style="{StaticResource ThemedActionButtonStyle}"
+                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
+                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                    <Button Grid.Column="2" x:Name="BtnClearVPFallback" Content="Clear" Click="BtnClearVPFallback_Click"
+                        Style="{StaticResource ThemedActionButtonStyle}"
+                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
+                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
+                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                </Grid>
+                                <TextBlock Text="Leave empty to use the built-in image." Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Video Preview - Fallback Image Tab] -->
 
                     <!-- [SECTION: Marquee - Logo Tab] -->
                     <TabItem x:Name="TabMarqueeLogo" Header="LOGO" Visibility="Collapsed">

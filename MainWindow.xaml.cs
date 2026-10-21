@@ -169,6 +169,8 @@ namespace ArcadeStick
         private string? _lastGamesListStyleKey;
         private string? _lastGameTitleStyleKey;
         private string? _lastMarqueeLogoPath;
+        private string? _lastSplashPath;
+        private string? _lastVideoFallbackPath;
         private string? _lastSearchButtonsStyleKey;
         private string? _lastGameInfoStyleKey;
         private string? _lastMainBackgroundKey;
@@ -268,6 +270,23 @@ namespace ArcadeStick
             {
                 _lastMarqueeLogoPath = marqueeLogoPath;
                 _viewModel.RefreshMarqueeLogo();
+            }
+
+            // Boot splash: re-raise the splash bindings only when the Splash Image layer's file changed. Raising
+            // IsBootSplashVideo makes ViewModel_PropertyChanged reload the splash video (it skips an unchanged path).
+            string splashPath = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SplashImage)?.ImagePath ?? "";
+            if (splashPath != _lastSplashPath)
+            {
+                _lastSplashPath = splashPath;
+                _viewModel.RefreshBootSplash();
+            }
+
+            // Video Preview fallback ("no preview available") image: re-raise only when the layer's file changed
+            string videoFallbackPath = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview)?.ImagePath ?? "";
+            if (videoFallbackPath != _lastVideoFallbackPath)
+            {
+                _lastVideoFallbackPath = videoFallbackPath;
+                _viewModel.RefreshMissingPreview();
             }
 
             // Main window wallpaper: re-raise its bindings and reload the video layer only when the Main Window
@@ -370,7 +389,7 @@ namespace ArcadeStick
 
             ApplyShapeLayers(layout);
 
-            // Splash Image and Video Preview draw their own border from their entries
+            // Splash Image and Video Preview draw their own border from their entries (Video Preview also its background)
             var splashEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SplashImage);
             if (splashEntry != null)
             {
@@ -380,6 +399,7 @@ namespace ArcadeStick
             if (videoEntry != null)
             {
                 VideoPreviewLayer.ApplyBorder(videoEntry.BorderSize ?? 0, videoEntry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, videoEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
+                VideoPreviewLayer.ApplyBackground(videoEntry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
             }
 
             ApplyCustomLayers(layout);

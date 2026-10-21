@@ -26,8 +26,6 @@ namespace ArcadeStick.Models
         public string ScrollThumbHoverColor { get; set; } = "#FF3A3A3C";
         public string ScrollThumbDragColor { get; set; } = "#FF00D4FF";
         public string MediaWindowWallpaper { get; set; } = "";
-        public string ThemeBootSplash { get; set; } = "";
-        public string ThemeMissingPreview { get; set; } = "";
         public string FolderSelectedColorHex { get; set; } = "#FF00D4FF";
         public string FolderSelectedBgColorHex { get; set; } = "#FF2C2C2E";
         public int TabFontSize { get; set; } = 12;
@@ -48,10 +46,6 @@ namespace ArcadeStick.Models
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;
 
-        public string VideoBgColorHex { get; set; } = "#FF000000";
-        public double VideoBorderSize { get; set; } = 0;
-        public string VideoBorderColorHex { get; set; } = "#FF3A3A3C";
-        public double VideoBorderRadius { get; set; } = 0;
         public double PreviewBorderSize { get; set; } = 1;
         public string PreviewBorderColorHex { get; set; } = "#FF3A3A3C";
         public double PreviewBorderRadius { get; set; } = 0;

@@ -7,7 +7,8 @@ namespace ArcadeStick.Views
 {
     // Video Preview layer: fallback image, static preview image and the MediaElement player, all fitting
     // inside this control's rect. MainWindow.xaml.cs reaches MediaElementPreview through the public field.
-    // The border (size, color, corner radius) comes from the layer's entry, pushed in by ApplyBorder.
+    // The border (size, color, corner radius) and the background color come from the layer's entry, pushed in
+    // by ApplyBorder and ApplyBackground.
     public partial class VideoPreviewLayerControl : UserControl
     {
         private double _borderSize;
@@ -40,6 +41,12 @@ namespace ArcadeStick.Views
             MediaSlotRing.BorderBrush = ArcadeStick.ViewModels.MainViewModel.SafeConvertToBrush(colorHex);
 
             ApplyClip();
+        }
+
+        // Called from MainWindow.ApplyLayout with the layer entry's background color (the letterbox bars)
+        public void ApplyBackground(string colorHex)
+        {
+            MediaSlot.Background = ArcadeStick.ViewModels.MainViewModel.SafeConvertToBrush(colorHex);
         }
 
         // The border ring stays at the slot's outer edge; the video layer pulls in by the border thickness
