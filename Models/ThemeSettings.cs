@@ -17,7 +17,6 @@ namespace ArcadeStick.Models
         // 0 means "not saved" (older themes), in which case the current resolution is kept.
         public int ActiveWidth { get; set; } = 0;
         public int ActiveHeight { get; set; } = 0;
-        public string VideoBoxBg { get; set; } = "#FF000000";
         public string OptionsBg { get; set; } = "";
         public string BorderColorFramework { get; set; } = "#FF3A3A3C";
         public string ScrollTrackColor { get; set; } = "#FF000000";
@@ -25,7 +24,6 @@ namespace ArcadeStick.Models
         public string ScrollThumbColor { get; set; } = "#FF2C2C2E";
         public string ScrollThumbHoverColor { get; set; } = "#FF3A3A3C";
         public string ScrollThumbDragColor { get; set; } = "#FF00D4FF";
-        public string MediaWindowWallpaper { get; set; } = "";
         public string FolderSelectedColorHex { get; set; } = "#FF00D4FF";
         public string FolderSelectedBgColorHex { get; set; } = "#FF2C2C2E";
         public int TabFontSize { get; set; } = 12;
@@ -46,9 +44,6 @@ namespace ArcadeStick.Models
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;
 
-        public double PreviewBorderSize { get; set; } = 1;
-        public string PreviewBorderColorHex { get; set; } = "#FF3A3A3C";
-        public double PreviewBorderRadius { get; set; } = 0;
         public string ContextMenuFontColorHex { get; set; } = "#FFF2F2F7";
         public string ContextMenuIconColorHex { get; set; } = "#FF00D4FF";
         public string ContextMenuBgColorHex { get; set; } = "#FF1C1C1E";

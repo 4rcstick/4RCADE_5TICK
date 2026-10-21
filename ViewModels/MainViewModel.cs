@@ -649,7 +649,6 @@ namespace ArcadeStick.ViewModels
         // under the wallpaper (and alone when the wallpaper is disabled), and is also the app's popup and dialog
         // background (see MainWindow.UpdateMainBackgroundBrush for the windows that cannot bind here).
         public string ThemeMainColor => GetLayerEntry(LayerRegistry.MainBackground).BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex;
-        public string ThemeMediaColor => Configuration.VideoBoxBg;
         public string ThemeBorderColor => Configuration.BorderColorFramework;
         public double ThemeBorderWidth => Configuration.BorderWidthValue;
         public double ThemeBorderCurve => Configuration.BorderCurveValue;
@@ -850,9 +849,6 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Game Info Forwarders]
 
-        public double ThemePreviewBorderSize => Configuration.PreviewBorderSize;
-        public string ThemePreviewBorderColor => Configuration.PreviewBorderColorHex;
-        public double ThemePreviewBorderRadius => Configuration.PreviewBorderRadius;
         public string ThemeContextMenuFontColor => Configuration.ContextMenuFontColorHex;
         public string ThemeContextMenuIconColor => Configuration.ContextMenuIconColorHex;
         public string ThemeContextMenuBgColor => Configuration.ContextMenuBgColorHex;
@@ -918,7 +914,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMainWallpaperVideoPath));
         }
         
-        public ImageSource? ThemeMediaWallpaper => LoadThemeImage(Configuration.MediaWindowWallpaper);
 
         // The logo path currently set on the Marquee layer (empty = use the built-in logo). MainWindow compares
         // this between ApplyLayout runs to know when the logo needs refreshing.
@@ -1133,7 +1128,6 @@ namespace ArcadeStick.ViewModels
             ResolveMarqueeImage();
 
             OnPropertyChanged(nameof(ThemeMainColor));
-            OnPropertyChanged(nameof(ThemeMediaColor));
             OnPropertyChanged(nameof(ThemeBorderColor));
             OnPropertyChanged(nameof(ThemeBorderWidth));
             OnPropertyChanged(nameof(ThemeBorderCurve));
@@ -1144,9 +1138,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeScrollThumbHoverColor));
             OnPropertyChanged(nameof(ThemeScrollThumbDragColor));
             RefreshGameInfoBindings();
-            OnPropertyChanged(nameof(ThemePreviewBorderSize));
-            OnPropertyChanged(nameof(ThemePreviewBorderColor));
-            OnPropertyChanged(nameof(ThemePreviewBorderRadius));
             RefreshSearchButtonBindings();
             OnPropertyChanged(nameof(ThemeContextMenuFontColor));
             OnPropertyChanged(nameof(ThemeContextMenuIconColor));
@@ -1180,7 +1171,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMainWallpaper));
             OnPropertyChanged(nameof(IsMainWallpaperVideo));
             OnPropertyChanged(nameof(ThemeMainWallpaperVideoPath));
-            OnPropertyChanged(nameof(ThemeMediaWallpaper));
             OnPropertyChanged(nameof(ThemeLogoAsset));
             RefreshBootSplash();
             RefreshMissingPreview();
@@ -1342,10 +1332,10 @@ namespace ArcadeStick.ViewModels
             var themeData = System.Text.Json.JsonSerializer.Deserialize<ThemeSettings>(jsonString);
             if (themeData == null) return false;
 
-            // Rewrite the flat asset properties from archive-relative ("assets/x.png") to a path relative to
-            // Configuration.BaseDirectory (not absolute) so the theme survives a USB drive-letter change.
-            // A rooted (already-absolute) stored value means that asset was missing at save time and was
-            // never actually bundled - left untouched rather than mangled.
+            // Rewrites a layout entry's asset path (used for every entry's ImagePath below) from archive-relative
+            // ("assets/x.png") to a path relative to Configuration.BaseDirectory (not absolute) so the theme
+            // survives a USB drive-letter change. A rooted (already-absolute) stored value means that asset was
+            // missing at save time and was never actually bundled - left untouched rather than mangled.
             string RewriteAssetPath(string storedValue)
             {
                 if (string.IsNullOrWhiteSpace(storedValue)) return storedValue;
@@ -1354,11 +1344,7 @@ namespace ArcadeStick.ViewModels
                 return Path.GetRelativePath(Configuration.BaseDirectory, absolutePath);
             }
 
-            themeData.MediaWindowWallpaper = RewriteAssetPath(themeData.MediaWindowWallpaper);
-
             // Map ThemeSettings DTO properties back to the main ConfigurationSettings object
-            Configuration.MediaWindowWallpaper = themeData.MediaWindowWallpaper;
-            Configuration.VideoBoxBg = themeData.VideoBoxBg;
             Configuration.OptionsBg = themeData.OptionsBg;
             Configuration.BorderColorFramework = themeData.BorderColorFramework;
             Configuration.ScrollTrackColor = themeData.ScrollTrackColor;
@@ -1384,9 +1370,6 @@ namespace ArcadeStick.ViewModels
             Configuration.StandardColorHex = themeData.StandardColorHex;
             Configuration.InputFontSize = themeData.InputFontSize;
             Configuration.InputColorHex = themeData.InputColorHex;
-            Configuration.PreviewBorderSize = themeData.PreviewBorderSize;
-            Configuration.PreviewBorderColorHex = themeData.PreviewBorderColorHex;
-            Configuration.PreviewBorderRadius = themeData.PreviewBorderRadius;
             Configuration.ContextMenuFontColorHex = themeData.ContextMenuFontColorHex;
             Configuration.ContextMenuIconColorHex = themeData.ContextMenuIconColorHex;
             Configuration.ContextMenuBgColorHex = themeData.ContextMenuBgColorHex;

@@ -24,7 +24,6 @@ namespace ArcadeStick.Views
         // per Theme*ColorHex field (rename to match, e.g. _suppressGameColorSync). Prevents the picker's
         // ColorChanged and the hex textbox's LostFocus from re-triggering each other.
         private bool _suppressTabBgColorSync;
-        private bool _suppressMediaColorSync;
         private bool _suppressOptionsColorSync;        
         private bool _suppressTabActiveColorSync;
         private bool _suppressTabActiveBgColorSync;
@@ -45,7 +44,6 @@ namespace ArcadeStick.Views
         private bool _suppressTabColorSync;
         private bool _suppressFolderSelectedColorSync;
         private bool _suppressFolderSelectedBgColorSync;
-        private bool _suppressPreviewBorderColorSync;
         private bool _suppressContextMenuFontColorSync;
         private bool _suppressContextMenuIconColorSync;
         private bool _suppressContextMenuBgColorSync;
@@ -161,27 +159,6 @@ namespace ArcadeStick.Views
                 _suppressTabBgColorSync = true;
                 TabBgColorPicker.SelectedColor = parsedColor.Value;
                 _suppressTabBgColorSync = false;
-            }
-        }
-
-        private void PreviewBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressPreviewBorderColorSync) return;
-            var newColor = PreviewBorderColorPicker.SelectedColor;
-            _suppressPreviewBorderColorSync = true;
-            TxtPreviewBorderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressPreviewBorderColorSync = false;
-        }
-
-        private void TxtPreviewBorderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressPreviewBorderColorSync) return;
-            var parsedColor = TryParseColor(TxtPreviewBorderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressPreviewBorderColorSync = true;
-                PreviewBorderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressPreviewBorderColorSync = false;
             }
         }
 
@@ -417,27 +394,6 @@ namespace ArcadeStick.Views
                 _suppressOptionsBtnColorHoverSync = true;
                 OptionsBtnColorHoverPicker.SelectedColor = parsedColor.Value;
                 _suppressOptionsBtnColorHoverSync = false;
-            }
-        }
-
-        private void MediaColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMediaColorSync) return;
-            var newColor = MediaColorPicker.SelectedColor;
-            _suppressMediaColorSync = true;
-            TxtMediaColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressMediaColorSync = false;
-        }
-
-        private void TxtMediaColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressMediaColorSync) return;
-            var parsedColor = TryParseColor(TxtMediaColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressMediaColorSync = true;
-                MediaColorPicker.SelectedColor = parsedColor.Value;
-                _suppressMediaColorSync = false;
             }
         }
 
@@ -912,21 +868,9 @@ namespace ArcadeStick.Views
         // sync points (this method, the themeDto builder in BtnSaveTheme_Click, and BtnLoadTheme_Click).
         private void LoadCurrentThemeValuesIntoUi()
         {
-            // Background Theme Wallpapers & Branding Assets
-            TxtMediaBgPath.Text = _settings.MediaWindowWallpaper;
 
             // Color System Enforcements (Filtered through Gatekeeper)
             
-            TxtMediaColorHex.Text = FormatHexCode(_settings.VideoBoxBg);
-            {
-                var parsedColor = TryParseColor(TxtMediaColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressMediaColorSync = true;
-                    MediaColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressMediaColorSync = false;
-                }
-            }
             TxtOptionsColorHex.Text = FormatHexCode(_settings.OptionsBg);
             {
                 var parsedColor = TryParseColor(TxtOptionsColorHex.Text);
@@ -940,18 +884,6 @@ namespace ArcadeStick.Views
             // Framework Border Color sync removed - no UI field currently exists (see note near
             // SeparatorColorPicker_ColorChanged). _settings.BorderColorFramework is untouched here,
             // so it still loads correctly for runtime use, it just isn't reflected in any control.
-            TxtPreviewBorderSize.Text = _settings.PreviewBorderSize.ToString();
-            TxtPreviewBorderColorHex.Text = FormatHexCode(_settings.PreviewBorderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtPreviewBorderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressPreviewBorderColorSync = true;
-                    PreviewBorderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressPreviewBorderColorSync = false;
-                }
-            }
-            TxtPreviewBorderRadius.Text = _settings.PreviewBorderRadius.ToString();
             
                         
             TxtContextMenuFontColorHex.Text = FormatHexCode(_settings.ContextMenuFontColorHex);
@@ -1316,9 +1248,9 @@ namespace ArcadeStick.Views
         // [END SUB-SECTION: Load Theme - SYNC POINT 1 of 3]
 
         // [SECTION: Theme Archive Asset Bundling]
-        // Resolves a theme asset property's stored value to a real absolute path. Stored values follow
-        // BtnBrowseFile_Click's portable-friendly convention: relative to the MAME root when the file was
-        // on the same drive and inside that folder tree, absolute otherwise.
+        // Resolves a theme asset's stored value to a real absolute path: a relative value is resolved against
+        // the MAME root (the portable-friendly convention the old Basic tab browse buttons used), an absolute
+        // value is returned as is.
         private string ResolveAssetAbsolutePath(string storedPath)
         {
             if (string.IsNullOrWhiteSpace(storedPath)) return string.Empty;
@@ -1360,10 +1292,8 @@ namespace ArcadeStick.Views
 
         // [SUB-SECTION: Save Theme - SYNC POINT 2 of 3]
         // Validates the theme name (prompting for one if "[New Theme...]" is selected), syncs the UI into
-        // _settings, builds a ThemeSettings DTO, bundles its referenced asset files (the flat Preview Panel
-        // background plus every layout entry's ImagePath) into a staging assets/ folder (rewriting the DTO's
-        // copies of those paths to archive-relative paths), then
-        // zips the result to the theme's .zip file. DANGER: any new theme property must be added to this
+        // _settings, builds a ThemeSettings DTO, bundles every layout entry's ImagePath into a staging assets/
+        // folder (rewriting the DTO's copies of those paths to archive-relative paths), then zips the result to the theme's .zip file. DANGER: any new theme property must be added to this
         // DTO too - see the sync point warning above.
         private void BtnSaveTheme_Click(object sender, RoutedEventArgs e)
         {
@@ -1390,8 +1320,6 @@ namespace ArcadeStick.Views
                 // Create and populate the DTO
                 var themeDto = new ArcadeStick.Models.ThemeSettings
                 {
-                    MediaWindowWallpaper = _settings.MediaWindowWallpaper,
-                    VideoBoxBg = _settings.VideoBoxBg,
                     OptionsBg = _settings.OptionsBg,
                     BorderColorFramework = _settings.BorderColorFramework,
                     ScrollTrackColor = _settings.ScrollTrackColor,
@@ -1417,9 +1345,6 @@ namespace ArcadeStick.Views
                     StandardColorHex = _settings.StandardColorHex,
                     InputFontSize = _settings.InputFontSize,
                     InputColorHex = _settings.InputColorHex,
-                    PreviewBorderSize = _settings.PreviewBorderSize,
-                    PreviewBorderColorHex = _settings.PreviewBorderColorHex,
-                    PreviewBorderRadius = _settings.PreviewBorderRadius,
                     ContextMenuFontColorHex = _settings.ContextMenuFontColorHex,
                     ContextMenuIconColorHex = _settings.ContextMenuIconColorHex,
                     ContextMenuBgColorHex = _settings.ContextMenuBgColorHex,
@@ -1443,9 +1368,9 @@ namespace ArcadeStick.Views
                     BtnBgColorHoverHex = _settings.BtnBgColorHoverHex
                 };
 
-                // Bundle the referenced asset files (the flat Preview Panel background here, every layout entry's
-                // ImagePath below - splash and fallback images included) into a staging assets/ folder, rewriting the DTO's
-                // copies of those properties to archive-relative paths - the original absolute/relative
+                // Bundle every layout entry's ImagePath (below - wallpaper, logo, splash, fallback, shape and custom
+                // layer files) into a staging assets/ folder, rewriting the DTO's copies of those paths to
+                // archive-relative paths - the original absolute/relative
                 // paths on THIS machine are meaningless to whoever imports the theme elsewhere.
                 string stagingDir = Path.Combine(Path.GetTempPath(), $"4rcstick_theme_{Guid.NewGuid():N}");
                 string stagingAssetsDir = Path.Combine(stagingDir, "assets");
@@ -1453,7 +1378,6 @@ namespace ArcadeStick.Views
 
                 var missingAssets = new List<string>();
 
-                themeDto.MediaWindowWallpaper = BundleThemeAsset(themeDto.MediaWindowWallpaper, stagingAssetsDir, missingAssets);
 
                 // Layouts: keep every saved resolution, and make sure the active resolution has an entry
                 // (registry defaults fill in anything not customized yet) so a save always records it.
@@ -1598,11 +1522,9 @@ namespace ArcadeStick.Views
         // existing setting unchanged rather than throwing.
         private void SyncUiEntriesToSettingsLayer()
         {
-            _settings.MediaWindowWallpaper = TxtMediaBgPath.Text;
             
 
             
-            _settings.VideoBoxBg = NormalizeHexInput(TxtMediaColorHex.Text);
             _settings.OptionsBg = NormalizeHexInput(TxtOptionsColorHex.Text);
             // BorderColorFramework sync removed (both occurrences) - no UI field exists yet.
             // BorderWidthValue/BorderCurveValue sync removed - properties retired entirely.
@@ -1633,9 +1555,6 @@ namespace ArcadeStick.Views
             // if (int.TryParse(TxtInputFontSize.Text, out int iSize)) _settings.InputFontSize = iSize;
             // _settings.InputColorHex = TxtInputColorHex.Text;
 
-            if (double.TryParse(TxtPreviewBorderSize.Text, out double previewBorderSize)) _settings.PreviewBorderSize = previewBorderSize;
-            _settings.PreviewBorderColorHex = NormalizeHexInput(TxtPreviewBorderColorHex.Text);
-            if (double.TryParse(TxtPreviewBorderRadius.Text, out double previewBorderRadius)) _settings.PreviewBorderRadius = previewBorderRadius;
 
             
 
@@ -1666,38 +1585,5 @@ namespace ArcadeStick.Views
             _settings.BtnBgColorHoverHex = NormalizeHexInput(TxtBtnBgColorHoverHex.Text);
         }
         // [END SECTION: Sync UI to Settings]
-
-        // [SECTION: File Browse Handler]
-        // Browse handler for the Basic tab's remaining asset button (the Preview Panel background image). Opens an
-        // image picker, converts the selection to a path relative to the MAME root when on the same drive
-        // (portable-friendly), and writes it to the matching TextBox. The main window background, boot splash and
-        // missing-preview image moved to the Advanced tab (their layers' Image / Fallback Image tabs).
-        private void BtnBrowseFile_Click(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image Files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All files (*.*)|*.*",
-                Title = "Select Theme Background Asset",
-                RestoreDirectory = true
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                string selectedPath = openFileDialog.FileName;
-                string mameRoot = _settings.GetMamePath();
-
-                string appDrive = System.IO.Path.GetPathRoot(mameRoot) ?? "";
-                string selectedDrive = System.IO.Path.GetPathRoot(selectedPath) ?? "";
-
-                if (!string.IsNullOrEmpty(appDrive) && appDrive.Equals(selectedDrive, System.StringComparison.OrdinalIgnoreCase))
-                {
-                    string relativePath = System.IO.Path.GetRelativePath(mameRoot, selectedPath);
-                    selectedPath = relativePath == "." ? "." : (!relativePath.StartsWith("..") ? relativePath : selectedPath);
-                }
-
-                if (sender == BtnBrowseMediaBg) TxtMediaBgPath.Text = selectedPath;
-            }
-        }
-        // [END SECTION: File Browse Handler]
     }
 }

@@ -49,7 +49,6 @@ namespace ArcadeStick.Models
         // =========================================================================
         // 🏁 START: THEME PALETTE HEX BRUSH PROPERTIES
         // =========================================================================
-        public string VideoBoxBg { get; set; } = "#FF000000";
         public string VideoBoxRecordBg { get; set; } = "#4A0000";
         public string TextColor { get; set; } = "#F2F2F7";
         public string MainFoldersColor { get; set; } = "#00D4FF";
@@ -71,7 +70,6 @@ namespace ArcadeStick.Models
         // =========================================================================
         // 🏁 START: CUSTOM VISUAL ENVIRONMENT WALLPAPER REFERENCES
         // =========================================================================
-        public string MediaWindowWallpaper { get; set; } = "";
         public string ActiveThemeName { get; set; } = "";
 
         // Resolution the active theme's layout is currently shown at (last one chosen in the Advanced tab).
@@ -152,9 +150,6 @@ namespace ArcadeStick.Models
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;
 
-        public double PreviewBorderSize { get; set; } = 1;
-        public string PreviewBorderColorHex { get; set; } = "#FF3A3A3C";
-        public double PreviewBorderRadius { get; set; } = 0;
         public string ContextMenuFontColorHex { get; set; } = "#FFF2F2F7";
         public string ContextMenuIconColorHex { get; set; } = "#FF00D4FF";
         public string ContextMenuBgColorHex { get; set; } = "#FF1C1C1E";
@@ -367,12 +362,10 @@ namespace ArcadeStick.Models
         {
             if (source == null) return;
 
-            this.MediaWindowWallpaper = source.MediaWindowWallpaper;
             this.ActiveThemeName = source.ActiveThemeName;
             this.ActiveResolutionWidth = source.ActiveResolutionWidth;
             this.ActiveResolutionHeight = source.ActiveResolutionHeight;
             this.Layouts = source.Layouts ?? new List<ThemeLayout>();
-            this.VideoBoxBg = source.VideoBoxBg;
             this.OptionsBg = source.OptionsBg;
             this.BorderColorFramework = source.BorderColorFramework;
             this.ScrollTrackColor = source.ScrollTrackColor;
@@ -403,9 +396,6 @@ namespace ArcadeStick.Models
             this.SeparatorColorHex = source.SeparatorColorHex;
             this.BorderWidthValue = source.BorderWidthValue;
             this.BorderCurveValue = source.BorderCurveValue;
-            this.PreviewBorderSize = source.PreviewBorderSize;
-            this.PreviewBorderColorHex = source.PreviewBorderColorHex;
-            this.PreviewBorderRadius = source.PreviewBorderRadius;
             this.ContextMenuFontColorHex = source.ContextMenuFontColorHex;
             this.ContextMenuIconColorHex = source.ContextMenuIconColorHex;
             this.ContextMenuBgColorHex = source.ContextMenuBgColorHex;

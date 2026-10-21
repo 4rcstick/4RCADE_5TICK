@@ -693,7 +693,9 @@
                             </Style.Triggers>
                         </Style>
                     </Grid.Style>
-                    <Border x:Name="RandomSpinFallback" CornerRadius="{Binding ThemePreviewBorderRadius, FallbackValue=4}" Background="{Binding ThemeMediaColor, FallbackValue=#000000}">
+                    <!-- Fill and corners hard-coded (black, square) since the Preview Panel flat settings were removed;
+                         revisit with the Random Game Display pass (font/color settings for this card). -->
+                    <Border x:Name="RandomSpinFallback" CornerRadius="0" Background="#FF000000">
                         <Viewbox Stretch="Uniform" Margin="10">
                             <TextBlock Text="Rolling the Dice!" FontSize="100" FontWeight="Bold" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Viewbox>
