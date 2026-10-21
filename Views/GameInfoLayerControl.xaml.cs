@@ -43,12 +43,17 @@ namespace ArcadeStick.Views
         // game's info, not a viewing preference), and scrolls every body back to the top, since ScrollViewers
         // keep their own offset independent of the bound text. Flyer/Title/Snap resolve after the preview
         // debounce, not at selection time - rebuild the available image states whenever any of them lands.
-        // Nav color changes repaint both dot rows.
+        // Each nav's color change repaints its own dot row (the active dot's fill is set in code).
         private void DataContext_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "ThemeNavIconsColor")
+            if (e.PropertyName == "ThemeGameInfoNavColor")
             {
                 UpdateColumn2Visibility();
+                return;
+            }
+
+            if (e.PropertyName == "ThemePreviewsNavColor")
+            {
                 UpdatePreviewVisibility();
                 return;
             }
@@ -93,17 +98,22 @@ namespace ArcadeStick.Views
             }
         }
 
-        // Resolves the nav icon color hex into a real Brush for the dot fills, falling back to white.
-        private Brush ResolveThemeNavIconsBrush()
+        // Resolves the Game Info Nav color into a Brush for its active dot fill (white fallback)
+        private Brush ResolveGameInfoNavBrush() =>
+            DataContext is ArcadeStick.ViewModels.MainViewModel vm ? ResolveNavBrush(vm.ThemeGameInfoNavColor) : Brushes.White;
+
+        // Resolves the Image Previews Nav color into a Brush for its active dot fill (white fallback)
+        private Brush ResolvePreviewsNavBrush() =>
+            DataContext is ArcadeStick.ViewModels.MainViewModel vm ? ResolveNavBrush(vm.ThemePreviewsNavColor) : Brushes.White;
+
+        // Converts a nav color hex into a Brush, falling back to white when it can't be parsed
+        private static Brush ResolveNavBrush(string colorHex)
         {
-            if (DataContext is ArcadeStick.ViewModels.MainViewModel vm)
+            try
             {
-                try
-                {
-                    return (Brush)new BrushConverter().ConvertFromString(vm.ThemeNavIconsColor);
-                }
-                catch { }
+                if (new BrushConverter().ConvertFromString(colorHex) is Brush brush) return brush;
             }
+            catch { }
             return Brushes.White;
         }
 
@@ -119,7 +129,7 @@ namespace ArcadeStick.Views
             Column2BodyTipsScroll.Visibility = _column2StateIndex == 2 ? Visibility.Visible : Visibility.Collapsed;
             Column2BodySpecsCredits.Visibility = _column2StateIndex == 3 ? Visibility.Visible : Visibility.Collapsed;
 
-            var navColor = ResolveThemeNavIconsBrush();
+            var navColor = ResolveGameInfoNavBrush();
             Column2Dot0.Fill = _column2StateIndex == 0 ? navColor : Brushes.Transparent;
             Column2Dot1.Fill = _column2StateIndex == 1 ? navColor : Brushes.Transparent;
             Column2Dot2.Fill = _column2StateIndex == 2 ? navColor : Brushes.Transparent;
@@ -190,7 +200,7 @@ namespace ArcadeStick.Views
             Row3Dot1.Visibility = Array.IndexOf(available, 1) >= 0 ? Visibility.Visible : Visibility.Collapsed;
             Row3Dot2.Visibility = Array.IndexOf(available, 2) >= 0 ? Visibility.Visible : Visibility.Collapsed;
 
-            var navColor = ResolveThemeNavIconsBrush();
+            var navColor = ResolvePreviewsNavBrush();
             Row3Dot0.Fill = active == 0 ? navColor : Brushes.Transparent;
             Row3Dot1.Fill = active == 1 ? navColor : Brushes.Transparent;
             Row3Dot2.Fill = active == 2 ? navColor : Brushes.Transparent;

@@ -22,20 +22,24 @@
             </Style>
         </Canvas.Style>
 
-        <!-- PART: Game Title -->
+        <!-- PART: Game Title (font, weight, size, color and drop shadow come from the GameTitle entry; the
+             shadow defaults to the old built-in look: black at 60%, blur 4, depth 2) -->
         <TextBlock x:Name="PartTitle" Canvas.Left="765" Canvas.Top="198" Width="490" Height="45"
-                   Text="{Binding SelectedGame.DisplayTitle}" FontSize="{Binding ThemeGameNameHeaderFontSize, FallbackValue=32}" FontWeight="Bold"
-                   Foreground="{Binding ThemeGameNameHeaderColor, FallbackValue=White}" TextTrimming="CharacterEllipsis">
-            <TextBlock.Effect>
-                <DropShadowEffect Color="Black" BlurRadius="4" ShadowDepth="2" Direction="315" Opacity="0.6"/>
-            </TextBlock.Effect>
-        </TextBlock>
+                   Text="{Binding SelectedGame.DisplayTitle}"
+                   FontFamily="{Binding ThemeGameNameHeaderFontFamily}" FontWeight="{Binding ThemeGameNameHeaderFontWeight, FallbackValue=Bold}"
+                   FontSize="{Binding ThemeGameNameHeaderFontSize, FallbackValue=32}"
+                   Foreground="{Binding ThemeGameNameHeaderColor, FallbackValue=White}" Effect="{Binding ThemeGameNameHeaderEffect}"
+                   TextTrimming="CharacterEllipsis"/>
 
-        <!-- PART: Publisher Block (publisher / year / clone of / rating / play stats) -->
-        <StackPanel x:Name="PartPublisher" Canvas.Left="765" Canvas.Top="248" Width="490" Height="90">
-            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.Manufacturer, StringFormat='Published by: {0}'}"/>
-            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.Year, StringFormat='Year: {0}'}"/>
-            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGame.CloneOf, StringFormat='Clone of: {0}'}">
+        <!-- PART: Publisher Block (publisher / year / clone of / rating / play stats). Text style is set once on
+             the panel (TextElement attached properties inherit into the TextBlocks) along with the shadow. -->
+        <StackPanel x:Name="PartPublisher" Canvas.Left="765" Canvas.Top="248" Width="490" Height="90"
+                    TextElement.FontFamily="{Binding ThemePubYearRatingFontFamily}" TextElement.FontWeight="{Binding ThemePubYearRatingFontWeight, FallbackValue=Normal}"
+                    TextElement.FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextElement.Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}"
+                    Effect="{Binding ThemePubYearRatingEffect}">
+            <TextBlock TextAlignment="Right" Text="{Binding SelectedGame.Manufacturer, StringFormat='Published by: {0}'}"/>
+            <TextBlock TextAlignment="Right" Text="{Binding SelectedGame.Year, StringFormat='Year: {0}'}"/>
+            <TextBlock TextAlignment="Right" Text="{Binding SelectedGame.CloneOf, StringFormat='Clone of: {0}'}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Visible"/>
@@ -47,8 +51,8 @@
                     </Style>
                 </TextBlock.Style>
             </TextBlock>
-            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding DisplayRating, StringFormat='Rating: {0}/10', TargetNullValue='Rating: N/A'}"/>
-            <TextBlock Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}" FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextAlignment="Right" Text="{Binding SelectedGamePlayStatsText}">
+            <TextBlock TextAlignment="Right" Text="{Binding DisplayRating, StringFormat='Rating: {0}/10', TargetNullValue='Rating: N/A'}"/>
+            <TextBlock TextAlignment="Right" Text="{Binding SelectedGamePlayStatsText}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Visible"/>
@@ -62,15 +66,16 @@
             </TextBlock>
         </StackPanel>
 
-        <!-- PART: Game Info Nav (arrow + dot row for the 4 pages: Game Info / Trivia / Tips & Tricks / Specs & Credits) -->
+        <!-- PART: Game Info Nav (arrow + dot row for the 4 pages: Game Info / Trivia / Tips & Tricks / Specs & Credits).
+             Size, color and shadow come from the GameInfoNav entry (separate from the Image Previews Nav). -->
         <Border x:Name="PartInfoNav" Canvas.Left="765" Canvas.Top="348" Width="490" Height="40">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Polygon x:Name="Column2ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2ArrowLeft_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Column2Dot0" Tag="0" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Column2Dot1" Tag="1" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Column2Dot2" Tag="2" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Column2Dot3" Tag="3" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
-                <Polygon x:Name="Column2ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="Column2ArrowRight_MouseLeftButtonUp"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{Binding ThemeGameInfoNavEffect}">
+                <Polygon x:Name="Column2ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Height="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Fill="{Binding ThemeGameInfoNavColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2ArrowLeft_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Column2Dot0" Tag="0" Width="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Height="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Fill="{Binding ThemeGameInfoNavColor, FallbackValue=White}" Stroke="{Binding ThemeGameInfoNavColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Column2Dot1" Tag="1" Width="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Height="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeGameInfoNavColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Column2Dot2" Tag="2" Width="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Height="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeGameInfoNavColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Column2Dot3" Tag="3" Width="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Height="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeGameInfoNavColor, FallbackValue=White}" StrokeThickness="2" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2Dot_MouseLeftButtonUp"/>
+                <Polygon x:Name="Column2ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Height="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Fill="{Binding ThemeGameInfoNavColor, FallbackValue=White}" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="Column2ArrowRight_MouseLeftButtonUp"/>
             </StackPanel>
         </Border>
 
@@ -81,12 +86,12 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Page header, one visible at a time -->
+            <!-- Page header, one visible at a time (Info Headers style from the GameInfoBody entry's SectionHeader* fields) -->
             <Grid Grid.Row="0" Margin="0,0,0,10">
-                <TextBlock x:Name="Column2HeaderGameInfo" Text="GAME INFO" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Visible"/>
-                <TextBlock x:Name="Column2HeaderTrivia" Text="TRIVIA" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
-                <TextBlock x:Name="Column2HeaderTips" Text="TIPS &amp; TRICKS" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
-                <TextBlock x:Name="Column2HeaderSpecsCredits" Text="SPECS &amp; CREDITS" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Visibility="Collapsed"/>
+                <TextBlock x:Name="Column2HeaderGameInfo" Text="GAME INFO" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Visibility="Visible"/>
+                <TextBlock x:Name="Column2HeaderTrivia" Text="TRIVIA" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Visibility="Collapsed"/>
+                <TextBlock x:Name="Column2HeaderTips" Text="TIPS &amp; TRICKS" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Visibility="Collapsed"/>
+                <TextBlock x:Name="Column2HeaderSpecsCredits" Text="SPECS &amp; CREDITS" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Visibility="Collapsed"/>
             </Grid>
 
             <!-- Scrollable bodies, one visible at a time. RelativeSource AncestorType=UserControl inside the
@@ -102,7 +107,13 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Header}" FontSize="{Binding DataContext.ThemeInfoHeaderFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=20}" FontWeight="Bold" Foreground="{Binding DataContext.ThemeInfoHeaderColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}" Margin="0,10,0,5">
+                                    <TextBlock Text="{Binding Header}"
+                                               FontFamily="{Binding DataContext.ThemeInfoHeaderFontFamily, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               FontWeight="{Binding DataContext.ThemeInfoHeaderFontWeight, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=Bold}"
+                                               FontSize="{Binding DataContext.ThemeInfoHeaderFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=20}"
+                                               Foreground="{Binding DataContext.ThemeInfoHeaderColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}"
+                                               Effect="{Binding DataContext.ThemeInfoHeaderEffect, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               Margin="0,10,0,5">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -114,17 +125,23 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
-                                    <TextBlock Text="{Binding Body}" FontFamily="Georgia" FontSize="{Binding DataContext.ThemeInfoBodyFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=16}" Foreground="{Binding DataContext.ThemeInfoBodyColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,5"/>
+                                    <TextBlock Text="{Binding Body}"
+                                               FontFamily="{Binding DataContext.ThemeInfoBodyFontFamily, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               FontWeight="{Binding DataContext.ThemeInfoBodyFontWeight, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=Normal}"
+                                               FontSize="{Binding DataContext.ThemeInfoBodyFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=16}"
+                                               Foreground="{Binding DataContext.ThemeInfoBodyColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}"
+                                               Effect="{Binding DataContext.ThemeInfoBodyEffect, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,5"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
                 <ScrollViewer x:Name="Column2BodyTriviaScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
-                    <TextBlock FontFamily="Georgia" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTrivia}"/>
+                    <TextBlock FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTrivia}"/>
                 </ScrollViewer>
                 <ScrollViewer x:Name="Column2BodyTipsScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
-                    <TextBlock FontFamily="Georgia" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTipsAndTricks}"/>
+                    <TextBlock FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTipsAndTricks}"/>
                 </ScrollViewer>
 
                 <!-- Specs & Credits: cabinet image in an Auto column (collapses when null), text scrolls beside it -->
@@ -148,11 +165,12 @@
                     </Image>
 
                     <ScrollViewer x:Name="Column2BodySpecsCreditsScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <!-- Specs / Credits use the Info Headers and Info Body styles (no styles of their own) -->
                         <StackPanel Margin="0,0,20,20">
-                            <TextBlock Text="SPECS" FontWeight="Bold" FontSize="{Binding ThemeCreditsHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeCreditsHeaderColor, FallbackValue=White}" Margin="0,0,0,10"/>
-                            <TextBlock Text="{Binding HistoryTechnical}" FontSize="{Binding ThemeCreditsBodyFontSize, FallbackValue=13}" Foreground="{Binding ThemeCreditsBodyColor, FallbackValue=White}" TextWrapping="Wrap"/>
-                            <TextBlock Text="CREDITS" FontWeight="Bold" FontSize="{Binding ThemeCreditsHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeCreditsHeaderColor, FallbackValue=White}" Margin="0,20,0,10"/>
-                            <TextBlock Text="{Binding HistoryStaff}" FontSize="{Binding ThemeCreditsBodyFontSize, FallbackValue=13}" Foreground="{Binding ThemeCreditsBodyColor, FallbackValue=White}" TextWrapping="Wrap"/>
+                            <TextBlock Text="SPECS" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Margin="0,0,0,10"/>
+                            <TextBlock Text="{Binding HistoryTechnical}" FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap"/>
+                            <TextBlock Text="CREDITS" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Margin="0,20,0,10"/>
+                            <TextBlock Text="{Binding HistoryStaff}" FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
@@ -161,14 +179,15 @@
 
         <!-- PART: Image Previews Nav (arrow + dot row for Flyer / Title Screen / Snap). The inner StackPanel
              (Row3NavContent) is what code-behind collapses when fewer than two images exist - the part itself
-             is left alone, since ApplyLayout owns its visibility (the layer's Hide setting). -->
+             is left alone, since ApplyLayout owns its visibility (the layer's Hide setting). Size, color and
+             shadow come from the ImagePreviewsNav entry (separate from the Game Info Nav). -->
         <Border x:Name="PartPreviewsNav" Canvas.Left="414" Canvas.Top="456" Width="328" Height="20">
-            <StackPanel x:Name="Row3NavContent" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Polygon x:Name="Row3ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowLeft_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Row3Dot0" Tag="0" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Row3Dot1" Tag="1" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Row3Dot2" Tag="2" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemeNavIconsColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
-                <Polygon x:Name="Row3ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemeNavIconsSize, FallbackValue=9}" Height="{Binding ThemeNavIconsSize, FallbackValue=9}" Fill="{Binding ThemeNavIconsColor, FallbackValue=White}" VerticalAlignment="Center" Margin="4,0,0,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowRight_MouseLeftButtonUp"/>
+            <StackPanel x:Name="Row3NavContent" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{Binding ThemePreviewsNavEffect}">
+                <Polygon x:Name="Row3ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="{Binding ThemePreviewsNavColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowLeft_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Row3Dot0" Tag="0" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="{Binding ThemePreviewsNavColor, FallbackValue=White}" Stroke="{Binding ThemePreviewsNavColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Row3Dot1" Tag="1" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemePreviewsNavColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                <Ellipse x:Name="Row3Dot2" Tag="2" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemePreviewsNavColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
+                <Polygon x:Name="Row3ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="{Binding ThemePreviewsNavColor, FallbackValue=White}" VerticalAlignment="Center" Margin="4,0,0,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowRight_MouseLeftButtonUp"/>
             </StackPanel>
         </Border>
 

@@ -48,24 +48,10 @@ namespace ArcadeStick.Models
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;
 
-        public int GameNameHeaderFontSize { get; set; } = 32;
-        public string GameNameHeaderColorHex { get; set; } = "#FFFFFFFF";
-        public int PubYearRatingFontSize { get; set; } = 13;
-        public string PubYearRatingColorHex { get; set; } = "#FFFFFFFF";
-        public int InfoHeaderFontSize { get; set; } = 20;
-        public string InfoHeaderColorHex { get; set; } = "#FFFFFFFF";
-        public int InfoBodyFontSize { get; set; } = 16;
-        public string InfoBodyColorHex { get; set; } = "#FFFFFFFF";
-        public int CreditsHeaderFontSize { get; set; } = 20;
-        public string CreditsHeaderColorHex { get; set; } = "#FFFFFFFF";
-        public int CreditsBodyFontSize { get; set; } = 16;
-        public string CreditsBodyColorHex { get; set; } = "#FFFFFFFF";
         public string VideoBgColorHex { get; set; } = "#FF000000";
         public double VideoBorderSize { get; set; } = 0;
         public string VideoBorderColorHex { get; set; } = "#FF3A3A3C";
         public double VideoBorderRadius { get; set; } = 0;
-        public string NavIconsColorHex { get; set; } = "#FFFFFFFF";
-        public double NavIconsSize { get; set; } = 9;
         public double PreviewBorderSize { get; set; } = 1;
         public string PreviewBorderColorHex { get; set; } = "#FF3A3A3C";
         public double PreviewBorderRadius { get; set; } = 0;

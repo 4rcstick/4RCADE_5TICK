@@ -170,6 +170,7 @@ namespace ArcadeStick
         private string? _lastGameTitleStyleKey;
         private string? _lastMarqueeLogoPath;
         private string? _lastSearchButtonsStyleKey;
+        private string? _lastGameInfoStyleKey;
         private string? _lastMainBackgroundKey;
         private string? _lastMainBackgroundColor;
 
@@ -305,6 +306,19 @@ namespace ArcadeStick
                 _lastSearchButtonsStyleKey = searchButtonsStyleKey;
                 _viewModel.RefreshSearchButtonBindings();
                 RefreshMainButtonsRestingColors();
+            }
+
+            // Game Info: re-raise the title, publisher, header, body and nav bindings only when one of their style
+            // values changed (the nav color forwarders also repaint the active dots in GameInfoLayerControl)
+            string gameInfoStyleKey = string.Join("#",
+                new[] { Models.LayerRegistry.GameTitle, Models.LayerRegistry.PublisherBlock, Models.LayerRegistry.GameInfoBody, Models.LayerRegistry.GameInfoNav, Models.LayerRegistry.ImagePreviewsNav }
+                    .Select(id => layout.Layers.FirstOrDefault(e => e.Id == id))
+                    .Select(e => $"{e?.TextFontFamily}|{e?.TextBold}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}"
+                        + $"|{e?.SectionHeaderFontFamily}|{e?.SectionHeaderBold}|{e?.SectionHeaderFontSize}|{e?.SectionHeaderColorHex}|{e?.SectionHeaderShadowEnabled}|{e?.SectionHeaderShadowColorHex}|{e?.SectionHeaderShadowBlur}|{e?.SectionHeaderShadowDepth}"));
+            if (gameInfoStyleKey != _lastGameInfoStyleKey)
+            {
+                _lastGameInfoStyleKey = gameInfoStyleKey;
+                _viewModel.RefreshGameInfoBindings();
             }
 
             LayoutCanvas.Width = width;

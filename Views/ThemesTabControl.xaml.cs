@@ -45,15 +45,8 @@ namespace ArcadeStick.Views
         private bool _suppressTabColorSync;
         private bool _suppressFolderSelectedColorSync;
         private bool _suppressFolderSelectedBgColorSync;
-        private bool _suppressGameNameHeaderColorSync;
-        private bool _suppressPubYearRatingColorSync;
-        private bool _suppressInfoHeaderColorSync;
-        private bool _suppressInfoBodyColorSync;
-        private bool _suppressCreditsHeaderColorSync;
-        private bool _suppressCreditsBodyColorSync;
         private bool _suppressVideoBgColorSync;
         private bool _suppressVideoBorderColorSync;
-        private bool _suppressNavIconsColorSync;
         private bool _suppressPreviewBorderColorSync;
         private bool _suppressContextMenuFontColorSync;
         private bool _suppressContextMenuIconColorSync;
@@ -173,132 +166,6 @@ namespace ArcadeStick.Views
             }
         }
 
-        private void GameNameHeaderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameNameHeaderColorSync) return;
-            var newColor = GameNameHeaderColorPicker.SelectedColor;
-            _suppressGameNameHeaderColorSync = true;
-            TxtGameNameHeaderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressGameNameHeaderColorSync = false;
-        }
-
-        private void TxtGameNameHeaderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGameNameHeaderColorSync) return;
-            var parsedColor = TryParseColor(TxtGameNameHeaderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressGameNameHeaderColorSync = true;
-                GameNameHeaderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressGameNameHeaderColorSync = false;
-            }
-        }
-
-        private void PubYearRatingColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressPubYearRatingColorSync) return;
-            var newColor = PubYearRatingColorPicker.SelectedColor;
-            _suppressPubYearRatingColorSync = true;
-            TxtPubYearRatingColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressPubYearRatingColorSync = false;
-        }
-
-        private void TxtPubYearRatingColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressPubYearRatingColorSync) return;
-            var parsedColor = TryParseColor(TxtPubYearRatingColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressPubYearRatingColorSync = true;
-                PubYearRatingColorPicker.SelectedColor = parsedColor.Value;
-                _suppressPubYearRatingColorSync = false;
-            }
-        }
-
-        private void InfoHeaderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressInfoHeaderColorSync) return;
-            var newColor = InfoHeaderColorPicker.SelectedColor;
-            _suppressInfoHeaderColorSync = true;
-            TxtInfoHeaderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressInfoHeaderColorSync = false;
-        }
-
-        private void TxtInfoHeaderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressInfoHeaderColorSync) return;
-            var parsedColor = TryParseColor(TxtInfoHeaderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressInfoHeaderColorSync = true;
-                InfoHeaderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressInfoHeaderColorSync = false;
-            }
-        }
-
-        private void InfoBodyColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressInfoBodyColorSync) return;
-            var newColor = InfoBodyColorPicker.SelectedColor;
-            _suppressInfoBodyColorSync = true;
-            TxtInfoBodyColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressInfoBodyColorSync = false;
-        }
-
-        private void TxtInfoBodyColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressInfoBodyColorSync) return;
-            var parsedColor = TryParseColor(TxtInfoBodyColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressInfoBodyColorSync = true;
-                InfoBodyColorPicker.SelectedColor = parsedColor.Value;
-                _suppressInfoBodyColorSync = false;
-            }
-        }
-
-        private void CreditsHeaderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressCreditsHeaderColorSync) return;
-            var newColor = CreditsHeaderColorPicker.SelectedColor;
-            _suppressCreditsHeaderColorSync = true;
-            TxtCreditsHeaderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressCreditsHeaderColorSync = false;
-        }
-
-        private void TxtCreditsHeaderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressCreditsHeaderColorSync) return;
-            var parsedColor = TryParseColor(TxtCreditsHeaderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressCreditsHeaderColorSync = true;
-                CreditsHeaderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressCreditsHeaderColorSync = false;
-            }
-        }
-
-        private void CreditsBodyColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressCreditsBodyColorSync) return;
-            var newColor = CreditsBodyColorPicker.SelectedColor;
-            _suppressCreditsBodyColorSync = true;
-            TxtCreditsBodyColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressCreditsBodyColorSync = false;
-        }
-
-        private void TxtCreditsBodyColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressCreditsBodyColorSync) return;
-            var parsedColor = TryParseColor(TxtCreditsBodyColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressCreditsBodyColorSync = true;
-                CreditsBodyColorPicker.SelectedColor = parsedColor.Value;
-                _suppressCreditsBodyColorSync = false;
-            }
-        }
-
         private void VideoBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
             if (_suppressVideoBgColorSync) return;
@@ -338,27 +205,6 @@ namespace ArcadeStick.Views
                 _suppressVideoBorderColorSync = true;
                 VideoBorderColorPicker.SelectedColor = parsedColor.Value;
                 _suppressVideoBorderColorSync = false;
-            }
-        }
-
-        private void NavIconsColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressNavIconsColorSync) return;
-            var newColor = NavIconsColorPicker.SelectedColor;
-            _suppressNavIconsColorSync = true;
-            TxtNavIconsColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressNavIconsColorSync = false;
-        }
-
-        private void TxtNavIconsColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressNavIconsColorSync) return;
-            var parsedColor = TryParseColor(TxtNavIconsColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressNavIconsColorSync = true;
-                NavIconsColorPicker.SelectedColor = parsedColor.Value;
-                _suppressNavIconsColorSync = false;
             }
         }
 
@@ -1140,72 +986,6 @@ namespace ArcadeStick.Views
             // Framework Border Color sync removed - no UI field currently exists (see note near
             // SeparatorColorPicker_ColorChanged). _settings.BorderColorFramework is untouched here,
             // so it still loads correctly for runtime use, it just isn't reflected in any control.
-            TxtGameNameHeaderFontSize.Text = _settings.GameNameHeaderFontSize.ToString();
-            TxtGameNameHeaderColorHex.Text = FormatHexCode(_settings.GameNameHeaderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtGameNameHeaderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressGameNameHeaderColorSync = true;
-                    GameNameHeaderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressGameNameHeaderColorSync = false;
-                }
-            }
-            TxtPubYearRatingFontSize.Text = _settings.PubYearRatingFontSize.ToString();
-            TxtPubYearRatingColorHex.Text = FormatHexCode(_settings.PubYearRatingColorHex);
-            {
-                var parsedColor = TryParseColor(TxtPubYearRatingColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressPubYearRatingColorSync = true;
-                    PubYearRatingColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressPubYearRatingColorSync = false;
-                }
-            }
-            TxtInfoHeaderFontSize.Text = _settings.InfoHeaderFontSize.ToString();
-            TxtInfoHeaderColorHex.Text = FormatHexCode(_settings.InfoHeaderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtInfoHeaderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressInfoHeaderColorSync = true;
-                    InfoHeaderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressInfoHeaderColorSync = false;
-                }
-            }
-            TxtInfoBodyFontSize.Text = _settings.InfoBodyFontSize.ToString();
-            TxtInfoBodyColorHex.Text = FormatHexCode(_settings.InfoBodyColorHex);
-            {
-                var parsedColor = TryParseColor(TxtInfoBodyColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressInfoBodyColorSync = true;
-                    InfoBodyColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressInfoBodyColorSync = false;
-                }
-            }
-            TxtCreditsHeaderFontSize.Text = _settings.CreditsHeaderFontSize.ToString();
-            TxtCreditsHeaderColorHex.Text = FormatHexCode(_settings.CreditsHeaderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtCreditsHeaderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressCreditsHeaderColorSync = true;
-                    CreditsHeaderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressCreditsHeaderColorSync = false;
-                }
-            }
-            TxtCreditsBodyFontSize.Text = _settings.CreditsBodyFontSize.ToString();
-            TxtCreditsBodyColorHex.Text = FormatHexCode(_settings.CreditsBodyColorHex);
-            {
-                var parsedColor = TryParseColor(TxtCreditsBodyColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressCreditsBodyColorSync = true;
-                    CreditsBodyColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressCreditsBodyColorSync = false;
-                }
-            }
             TxtVideoBgColorHex.Text = FormatHexCode(_settings.VideoBgColorHex);
             {
                 var parsedColor = TryParseColor(TxtVideoBgColorHex.Text);
@@ -1228,17 +1008,6 @@ namespace ArcadeStick.Views
                 }
             }
             TxtVideoBorderRadius.Text = _settings.VideoBorderRadius.ToString();
-            TxtNavIconsColorHex.Text = FormatHexCode(_settings.NavIconsColorHex);
-            {
-                var parsedColor = TryParseColor(TxtNavIconsColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressNavIconsColorSync = true;
-                    NavIconsColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressNavIconsColorSync = false;
-                }
-            }
-            TxtNavIconsSize.Text = _settings.NavIconsSize.ToString();
             TxtPreviewBorderSize.Text = _settings.PreviewBorderSize.ToString();
             TxtPreviewBorderColorHex.Text = FormatHexCode(_settings.PreviewBorderColorHex);
             {
@@ -1717,24 +1486,10 @@ namespace ArcadeStick.Views
                     StandardColorHex = _settings.StandardColorHex,
                     InputFontSize = _settings.InputFontSize,
                     InputColorHex = _settings.InputColorHex,
-                    GameNameHeaderFontSize = _settings.GameNameHeaderFontSize,
-                    GameNameHeaderColorHex = _settings.GameNameHeaderColorHex,
-                    PubYearRatingFontSize = _settings.PubYearRatingFontSize,
-                    PubYearRatingColorHex = _settings.PubYearRatingColorHex,
-                    InfoHeaderFontSize = _settings.InfoHeaderFontSize,
-                    InfoHeaderColorHex = _settings.InfoHeaderColorHex,
-                    InfoBodyFontSize = _settings.InfoBodyFontSize,
-                    InfoBodyColorHex = _settings.InfoBodyColorHex,
-                    CreditsHeaderFontSize = _settings.CreditsHeaderFontSize,
-                    CreditsHeaderColorHex = _settings.CreditsHeaderColorHex,
-                    CreditsBodyFontSize = _settings.CreditsBodyFontSize,
-                    CreditsBodyColorHex = _settings.CreditsBodyColorHex,
                     VideoBgColorHex = _settings.VideoBgColorHex,
                     VideoBorderSize = _settings.VideoBorderSize,
                     VideoBorderColorHex = _settings.VideoBorderColorHex,
                     VideoBorderRadius = _settings.VideoBorderRadius,
-                    NavIconsColorHex = _settings.NavIconsColorHex,
-                    NavIconsSize = _settings.NavIconsSize,
                     PreviewBorderSize = _settings.PreviewBorderSize,
                     PreviewBorderColorHex = _settings.PreviewBorderColorHex,
                     PreviewBorderRadius = _settings.PreviewBorderRadius,
@@ -1954,24 +1709,10 @@ namespace ArcadeStick.Views
             // if (int.TryParse(TxtInputFontSize.Text, out int iSize)) _settings.InputFontSize = iSize;
             // _settings.InputColorHex = TxtInputColorHex.Text;
 
-            if (int.TryParse(TxtGameNameHeaderFontSize.Text, out int gameNameHeaderSize)) _settings.GameNameHeaderFontSize = gameNameHeaderSize;
-            _settings.GameNameHeaderColorHex = NormalizeHexInput(TxtGameNameHeaderColorHex.Text);
-            if (int.TryParse(TxtPubYearRatingFontSize.Text, out int pubYearRatingSize)) _settings.PubYearRatingFontSize = pubYearRatingSize;
-            _settings.PubYearRatingColorHex = NormalizeHexInput(TxtPubYearRatingColorHex.Text);
-            if (int.TryParse(TxtInfoHeaderFontSize.Text, out int infoHeaderSize)) _settings.InfoHeaderFontSize = infoHeaderSize;
-            _settings.InfoHeaderColorHex = NormalizeHexInput(TxtInfoHeaderColorHex.Text);
-            if (int.TryParse(TxtInfoBodyFontSize.Text, out int infoBodySize)) _settings.InfoBodyFontSize = infoBodySize;
-            _settings.InfoBodyColorHex = NormalizeHexInput(TxtInfoBodyColorHex.Text);
-            if (int.TryParse(TxtCreditsHeaderFontSize.Text, out int creditsHeaderSize)) _settings.CreditsHeaderFontSize = creditsHeaderSize;
-            _settings.CreditsHeaderColorHex = NormalizeHexInput(TxtCreditsHeaderColorHex.Text);
-            if (int.TryParse(TxtCreditsBodyFontSize.Text, out int creditsBodySize)) _settings.CreditsBodyFontSize = creditsBodySize;
-            _settings.CreditsBodyColorHex = NormalizeHexInput(TxtCreditsBodyColorHex.Text);
             _settings.VideoBgColorHex = NormalizeHexInput(TxtVideoBgColorHex.Text);
             if (double.TryParse(TxtVideoBorderSize.Text, out double videoBorderSize)) _settings.VideoBorderSize = videoBorderSize;
             _settings.VideoBorderColorHex = NormalizeHexInput(TxtVideoBorderColorHex.Text);
             if (double.TryParse(TxtVideoBorderRadius.Text, out double videoBorderRadius)) _settings.VideoBorderRadius = videoBorderRadius;
-            _settings.NavIconsColorHex = NormalizeHexInput(TxtNavIconsColorHex.Text);
-            if (double.TryParse(TxtNavIconsSize.Text, out double navIconsSize)) _settings.NavIconsSize = navIconsSize;
             if (double.TryParse(TxtPreviewBorderSize.Text, out double previewBorderSize)) _settings.PreviewBorderSize = previewBorderSize;
             _settings.PreviewBorderColorHex = NormalizeHexInput(TxtPreviewBorderColorHex.Text);
             if (double.TryParse(TxtPreviewBorderRadius.Text, out double previewBorderRadius)) _settings.PreviewBorderRadius = previewBorderRadius;

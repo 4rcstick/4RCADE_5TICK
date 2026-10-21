@@ -752,24 +752,108 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Search & Buttons Forwarders]
 
-        public int ThemeGameNameHeaderFontSize => Configuration.GameNameHeaderFontSize;
-        public string ThemeGameNameHeaderColor => Configuration.GameNameHeaderColorHex;
-        public int ThemePubYearRatingFontSize => Configuration.PubYearRatingFontSize;
-        public string ThemePubYearRatingColor => Configuration.PubYearRatingColorHex;
-        public int ThemeInfoHeaderFontSize => Configuration.InfoHeaderFontSize;
-        public string ThemeInfoHeaderColor => Configuration.InfoHeaderColorHex;
-        public int ThemeInfoBodyFontSize => Configuration.InfoBodyFontSize;
-        public string ThemeInfoBodyColor => Configuration.InfoBodyColorHex;
-        public int ThemeCreditsHeaderFontSize => Configuration.CreditsHeaderFontSize;
-        public string ThemeCreditsHeaderColor => Configuration.CreditsHeaderColorHex;
-        public int ThemeCreditsBodyFontSize => Configuration.CreditsBodyFontSize;
-        public string ThemeCreditsBodyColor => Configuration.CreditsBodyColorHex;
+        // [SECTION: Game Info Forwarders]
+        // Game Info text and nav styling, read from the active resolution's entries: title on GameTitle, publisher
+        // block on PublisherBlock, section headers (SectionHeader*) and body text (Text*) on GameInfoBody, and the
+        // two navs on GameInfoNav and ImagePreviewsNav. The Specs/Credits panes use the header and body styles.
+        public int ThemeGameNameHeaderFontSize => GetLayerEntry(LayerRegistry.GameTitle).TextFontSize ?? LayerRegistry.DefaultTitleFontSize;
+        public string ThemeGameNameHeaderColor => GetLayerEntry(LayerRegistry.GameTitle).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
+        public FontFamily ThemeGameNameHeaderFontFamily => ToFontFamily(GetLayerEntry(LayerRegistry.GameTitle).TextFontFamily);
+        public FontWeight ThemeGameNameHeaderFontWeight => (GetLayerEntry(LayerRegistry.GameTitle).TextBold ?? LayerRegistry.DefaultTitleBold) ? FontWeights.Bold : FontWeights.Normal;
+        public System.Windows.Media.Effects.Effect? ThemeGameNameHeaderEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.GameTitle));
+
+        public int ThemePubYearRatingFontSize => GetLayerEntry(LayerRegistry.PublisherBlock).TextFontSize ?? LayerRegistry.DefaultPublisherFontSize;
+        public string ThemePubYearRatingColor => GetLayerEntry(LayerRegistry.PublisherBlock).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
+        public FontFamily ThemePubYearRatingFontFamily => ToFontFamily(GetLayerEntry(LayerRegistry.PublisherBlock).TextFontFamily);
+        public FontWeight ThemePubYearRatingFontWeight => (GetLayerEntry(LayerRegistry.PublisherBlock).TextBold ?? LayerRegistry.DefaultPublisherBold) ? FontWeights.Bold : FontWeights.Normal;
+        public System.Windows.Media.Effects.Effect? ThemePubYearRatingEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.PublisherBlock));
+
+        public int ThemeInfoHeaderFontSize => GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderFontSize ?? LayerRegistry.DefaultInfoHeaderFontSize;
+        public string ThemeInfoHeaderColor => GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
+        public FontFamily ThemeInfoHeaderFontFamily => ToFontFamily(GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderFontFamily);
+        public FontWeight ThemeInfoHeaderFontWeight => (GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderBold ?? LayerRegistry.DefaultInfoHeaderBold) ? FontWeights.Bold : FontWeights.Normal;
+        public System.Windows.Media.Effects.Effect? ThemeInfoHeaderEffect
+        {
+            get
+            {
+                var entry = GetLayerEntry(LayerRegistry.GameInfoBody);
+                return BuildShadowEffect(
+                    entry.SectionHeaderShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                    entry.SectionHeaderShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                    entry.SectionHeaderShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                    entry.SectionHeaderShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+            }
+        }
+
+        public int ThemeInfoBodyFontSize => GetLayerEntry(LayerRegistry.GameInfoBody).TextFontSize ?? LayerRegistry.DefaultInfoBodyFontSize;
+        public string ThemeInfoBodyColor => GetLayerEntry(LayerRegistry.GameInfoBody).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
+        public FontFamily ThemeInfoBodyFontFamily
+        {
+            get
+            {
+                string? family = GetLayerEntry(LayerRegistry.GameInfoBody).TextFontFamily;
+                return new FontFamily(string.IsNullOrWhiteSpace(family) ? LayerRegistry.DefaultInfoBodyFontFamily : family);
+            }
+        }
+        public FontWeight ThemeInfoBodyFontWeight => (GetLayerEntry(LayerRegistry.GameInfoBody).TextBold ?? LayerRegistry.DefaultInfoBodyBold) ? FontWeights.Bold : FontWeights.Normal;
+        public System.Windows.Media.Effects.Effect? ThemeInfoBodyEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.GameInfoBody));
+
+        public string ThemeGameInfoNavColor => GetLayerEntry(LayerRegistry.GameInfoNav).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
+        public double ThemeGameInfoNavSize => GetLayerEntry(LayerRegistry.GameInfoNav).TextFontSize ?? LayerRegistry.DefaultNavSize;
+        public System.Windows.Media.Effects.Effect? ThemeGameInfoNavEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.GameInfoNav));
+        public string ThemePreviewsNavColor => GetLayerEntry(LayerRegistry.ImagePreviewsNav).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
+        public double ThemePreviewsNavSize => GetLayerEntry(LayerRegistry.ImagePreviewsNav).TextFontSize ?? LayerRegistry.DefaultNavSize;
+        public System.Windows.Media.Effects.Effect? ThemePreviewsNavEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.ImagePreviewsNav));
+
+        // Turns a saved font family name into a FontFamily (Segoe UI when empty)
+        private static FontFamily ToFontFamily(string? family) =>
+            new FontFamily(string.IsNullOrWhiteSpace(family) ? LayerRegistry.DefaultFontFamily : family);
+
+        // Builds the drop shadow from an entry's generic TextShadow* fields (null when off)
+        private static System.Windows.Media.Effects.Effect? BuildTextShadowEffect(LayerLayoutEntry entry) =>
+            BuildShadowEffect(
+                entry.TextShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                entry.TextShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                entry.TextShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                entry.TextShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+
+        // Re-raises the Game Info forwarders after their entry values changed (used by RefreshThemeBindings and
+        // MainWindow.ApplyLayout's Game Info style key).
+        public void RefreshGameInfoBindings()
+        {
+            OnPropertyChanged(nameof(ThemeGameNameHeaderFontSize));
+            OnPropertyChanged(nameof(ThemeGameNameHeaderColor));
+            OnPropertyChanged(nameof(ThemeGameNameHeaderFontFamily));
+            OnPropertyChanged(nameof(ThemeGameNameHeaderFontWeight));
+            OnPropertyChanged(nameof(ThemeGameNameHeaderEffect));
+            OnPropertyChanged(nameof(ThemePubYearRatingFontSize));
+            OnPropertyChanged(nameof(ThemePubYearRatingColor));
+            OnPropertyChanged(nameof(ThemePubYearRatingFontFamily));
+            OnPropertyChanged(nameof(ThemePubYearRatingFontWeight));
+            OnPropertyChanged(nameof(ThemePubYearRatingEffect));
+            OnPropertyChanged(nameof(ThemeInfoHeaderFontSize));
+            OnPropertyChanged(nameof(ThemeInfoHeaderColor));
+            OnPropertyChanged(nameof(ThemeInfoHeaderFontFamily));
+            OnPropertyChanged(nameof(ThemeInfoHeaderFontWeight));
+            OnPropertyChanged(nameof(ThemeInfoHeaderEffect));
+            OnPropertyChanged(nameof(ThemeInfoBodyFontSize));
+            OnPropertyChanged(nameof(ThemeInfoBodyColor));
+            OnPropertyChanged(nameof(ThemeInfoBodyFontFamily));
+            OnPropertyChanged(nameof(ThemeInfoBodyFontWeight));
+            OnPropertyChanged(nameof(ThemeInfoBodyEffect));
+            OnPropertyChanged(nameof(ThemeGameInfoNavColor));
+            OnPropertyChanged(nameof(ThemeGameInfoNavSize));
+            OnPropertyChanged(nameof(ThemeGameInfoNavEffect));
+            OnPropertyChanged(nameof(ThemePreviewsNavColor));
+            OnPropertyChanged(nameof(ThemePreviewsNavSize));
+            OnPropertyChanged(nameof(ThemePreviewsNavEffect));
+        }
+        // [END SECTION: Game Info Forwarders]
+
         public string ThemeVideoBgColor => Configuration.VideoBgColorHex;
         public double ThemeVideoBorderSize => Configuration.VideoBorderSize;
         public string ThemeVideoBorderColor => Configuration.VideoBorderColorHex;
         public double ThemeVideoBorderRadius => Configuration.VideoBorderRadius;
-        public string ThemeNavIconsColor => Configuration.NavIconsColorHex;
-        public double ThemeNavIconsSize => Configuration.NavIconsSize;
         public double ThemePreviewBorderSize => Configuration.PreviewBorderSize;
         public string ThemePreviewBorderColor => Configuration.PreviewBorderColorHex;
         public double ThemePreviewBorderRadius => Configuration.PreviewBorderRadius;
@@ -1038,24 +1122,11 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeScrollThumbColor));
             OnPropertyChanged(nameof(ThemeScrollThumbHoverColor));
             OnPropertyChanged(nameof(ThemeScrollThumbDragColor));
-            OnPropertyChanged(nameof(ThemeGameNameHeaderFontSize));
-            OnPropertyChanged(nameof(ThemeGameNameHeaderColor));
-            OnPropertyChanged(nameof(ThemePubYearRatingFontSize));
-            OnPropertyChanged(nameof(ThemePubYearRatingColor));
-            OnPropertyChanged(nameof(ThemeInfoHeaderFontSize));
-            OnPropertyChanged(nameof(ThemeInfoHeaderColor));
-            OnPropertyChanged(nameof(ThemeInfoBodyFontSize));
-            OnPropertyChanged(nameof(ThemeInfoBodyColor));
-            OnPropertyChanged(nameof(ThemeCreditsHeaderFontSize));
-            OnPropertyChanged(nameof(ThemeCreditsHeaderColor));
-            OnPropertyChanged(nameof(ThemeCreditsBodyFontSize));
-            OnPropertyChanged(nameof(ThemeCreditsBodyColor));
+            RefreshGameInfoBindings();
             OnPropertyChanged(nameof(ThemeVideoBgColor));
             OnPropertyChanged(nameof(ThemeVideoBorderSize));
             OnPropertyChanged(nameof(ThemeVideoBorderColor));
             OnPropertyChanged(nameof(ThemeVideoBorderRadius));
-            OnPropertyChanged(nameof(ThemeNavIconsColor));
-            OnPropertyChanged(nameof(ThemeNavIconsSize));
             OnPropertyChanged(nameof(ThemePreviewBorderSize));
             OnPropertyChanged(nameof(ThemePreviewBorderColor));
             OnPropertyChanged(nameof(ThemePreviewBorderRadius));
@@ -1304,24 +1375,10 @@ namespace ArcadeStick.ViewModels
             Configuration.StandardColorHex = themeData.StandardColorHex;
             Configuration.InputFontSize = themeData.InputFontSize;
             Configuration.InputColorHex = themeData.InputColorHex;
-            Configuration.GameNameHeaderFontSize = themeData.GameNameHeaderFontSize;
-            Configuration.GameNameHeaderColorHex = themeData.GameNameHeaderColorHex;
-            Configuration.PubYearRatingFontSize = themeData.PubYearRatingFontSize;
-            Configuration.PubYearRatingColorHex = themeData.PubYearRatingColorHex;
-            Configuration.InfoHeaderFontSize = themeData.InfoHeaderFontSize;
-            Configuration.InfoHeaderColorHex = themeData.InfoHeaderColorHex;
-            Configuration.InfoBodyFontSize = themeData.InfoBodyFontSize;
-            Configuration.InfoBodyColorHex = themeData.InfoBodyColorHex;
-            Configuration.CreditsHeaderFontSize = themeData.CreditsHeaderFontSize;
-            Configuration.CreditsHeaderColorHex = themeData.CreditsHeaderColorHex;
-            Configuration.CreditsBodyFontSize = themeData.CreditsBodyFontSize;
-            Configuration.CreditsBodyColorHex = themeData.CreditsBodyColorHex;
             Configuration.VideoBgColorHex = themeData.VideoBgColorHex;
             Configuration.VideoBorderSize = themeData.VideoBorderSize;
             Configuration.VideoBorderColorHex = themeData.VideoBorderColorHex;
             Configuration.VideoBorderRadius = themeData.VideoBorderRadius;
-            Configuration.NavIconsColorHex = themeData.NavIconsColorHex;
-            Configuration.NavIconsSize = themeData.NavIconsSize;
             Configuration.PreviewBorderSize = themeData.PreviewBorderSize;
             Configuration.PreviewBorderColorHex = themeData.PreviewBorderColorHex;
             Configuration.PreviewBorderRadius = themeData.PreviewBorderRadius;

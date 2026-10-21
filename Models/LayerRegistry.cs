@@ -146,7 +146,8 @@ namespace ArcadeStick.Models
         public int? FileOpacity { get; set; }
 
         // Generic text styling for layers that show one block of text (Search Label, Search Box, the shared
-        // main window button style on the Random Game Button entry; later Game Info). Same rules as above:
+        // main window button style on the Random Game Button entry; the Game Info title, publisher, body and nav
+        // entries). Same rules as above:
         // null on every other layer, left out of the theme file when null, filled from defaults where used.
         // TextAlign: "Left", "Center" or "Right".
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -189,6 +190,33 @@ namespace ArcadeStick.Models
         // size and position stay put. Lets the user re-center text when a font's ascent/descent shifts it.
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? TextNudgeY { get; set; }
+
+        // Game Info section headers (the Game Info Body entry only; its body text uses the generic Text* fields
+        // above). A second block of text styling because the generic fields only fit one block per entry.
+        // Same rules: null on every other layer, left out of the theme file when null, filled from defaults.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? SectionHeaderFontSize { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? SectionHeaderColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? SectionHeaderFontFamily { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? SectionHeaderBold { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? SectionHeaderShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? SectionHeaderShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? SectionHeaderShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? SectionHeaderShadowDepth { get; set; }
 
         // Main Window Background layer only: true = no image or video, the solid Background Color shows instead
         // (ImagePath holds the wallpaper; empty means the built-in default image). Null on every other layer.
@@ -251,6 +279,14 @@ namespace ArcadeStick.Models
             TextShadowBlur = source.TextShadowBlur;
             TextShadowDepth = source.TextShadowDepth;
             TextNudgeY = source.TextNudgeY;
+            SectionHeaderFontSize = source.SectionHeaderFontSize;
+            SectionHeaderColorHex = source.SectionHeaderColorHex;
+            SectionHeaderFontFamily = source.SectionHeaderFontFamily;
+            SectionHeaderBold = source.SectionHeaderBold;
+            SectionHeaderShadowEnabled = source.SectionHeaderShadowEnabled;
+            SectionHeaderShadowColorHex = source.SectionHeaderShadowColorHex;
+            SectionHeaderShadowBlur = source.SectionHeaderShadowBlur;
+            SectionHeaderShadowDepth = source.SectionHeaderShadowDepth;
             ImageDisabled = source.ImageDisabled;
         }
         // [END SECTION: Style Copy]
@@ -535,6 +571,9 @@ namespace ArcadeStick.Models
                 // Search & Buttons styling: label, box and the shared button style (on the Random Game Button)
                 FillSearchButtonsStyle(entry);
 
+                // Game Info styling: title, publisher block, headers + body, and the two navs
+                FillGameInfoStyle(entry);
+
                 layout.Layers.Add(entry);
             }
             return layout;
@@ -577,6 +616,64 @@ namespace ArcadeStick.Models
                 entry.CornerRadius ??= DefaultButtonCornerRadius;
                 if (string.IsNullOrWhiteSpace(entry.HoverBorderColorHex)) entry.HoverBorderColorHex = DefaultButtonHoverBorderColorHex;
             }
+        }
+
+        // Fills any missing Game Info style value from defaults. Title text on GameTitle, publisher text on
+        // PublisherBlock, body text (Text*) and section headers (SectionHeader*) on GameInfoBody, and each nav's
+        // size/color/shadow on its own nav entry. Other entries are left untouched; saved values are kept.
+        private static void FillGameInfoStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id == GameTitle)
+            {
+                if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
+                entry.TextBold ??= DefaultTitleBold;
+                entry.TextFontSize ??= DefaultTitleFontSize;
+                if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
+                entry.TextShadowEnabled ??= DefaultTitleShadowEnabled;
+                if (string.IsNullOrWhiteSpace(entry.TextShadowColorHex)) entry.TextShadowColorHex = DefaultTitleShadowColorHex;
+                entry.TextShadowBlur ??= DefaultTitleShadowBlur;
+                entry.TextShadowDepth ??= DefaultTitleShadowDepth;
+            }
+            else if (entry.Id == PublisherBlock)
+            {
+                if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
+                entry.TextBold ??= DefaultPublisherBold;
+                entry.TextFontSize ??= DefaultPublisherFontSize;
+                if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
+                FillTextShadowDefaults(entry);
+            }
+            else if (entry.Id == GameInfoBody)
+            {
+                if (string.IsNullOrWhiteSpace(entry.SectionHeaderFontFamily)) entry.SectionHeaderFontFamily = DefaultFontFamily;
+                entry.SectionHeaderBold ??= DefaultInfoHeaderBold;
+                entry.SectionHeaderFontSize ??= DefaultInfoHeaderFontSize;
+                if (string.IsNullOrWhiteSpace(entry.SectionHeaderColorHex)) entry.SectionHeaderColorHex = DefaultGameInfoTextColorHex;
+                entry.SectionHeaderShadowEnabled ??= DefaultShadowEnabled;
+                if (string.IsNullOrWhiteSpace(entry.SectionHeaderShadowColorHex)) entry.SectionHeaderShadowColorHex = DefaultShadowColorHex;
+                entry.SectionHeaderShadowBlur ??= DefaultShadowBlur;
+                entry.SectionHeaderShadowDepth ??= DefaultShadowDepth;
+
+                if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultInfoBodyFontFamily;
+                entry.TextBold ??= DefaultInfoBodyBold;
+                entry.TextFontSize ??= DefaultInfoBodyFontSize;
+                if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
+                FillTextShadowDefaults(entry);
+            }
+            else if (entry.Id == GameInfoNav || entry.Id == ImagePreviewsNav)
+            {
+                entry.TextFontSize ??= DefaultNavSize;
+                if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
+                FillTextShadowDefaults(entry);
+            }
+        }
+
+        // Fills the generic TextShadow* fields with the standard off-by-default shadow (saved values kept)
+        private static void FillTextShadowDefaults(LayerLayoutEntry entry)
+        {
+            entry.TextShadowEnabled ??= DefaultShadowEnabled;
+            if (string.IsNullOrWhiteSpace(entry.TextShadowColorHex)) entry.TextShadowColorHex = DefaultShadowColorHex;
+            entry.TextShadowBlur ??= DefaultShadowBlur;
+            entry.TextShadowDepth ??= DefaultShadowDepth;
         }
 
         // Returns a complete layout for the resolution: uses the saved layout's entries where present and
@@ -654,6 +751,9 @@ namespace ArcadeStick.Models
                 // Search & Buttons: fill any missing label, box or shared button style value
                 FillSearchButtonsStyle(entry);
 
+                // Game Info: fill any missing title, publisher, header, body or nav style value
+                FillGameInfoStyle(entry);
+
                 // Main Window Background: the Disable flag and the background color fill in when missing (saved values kept)
                 if (entry.Id == MainBackground)
                 {
@@ -724,6 +824,26 @@ namespace ArcadeStick.Models
         public const string DefaultButtonBorderColorHex = "#FF00D4FF";
         public const int DefaultButtonCornerRadius = 0;
         public const string DefaultButtonHoverBorderColorHex = "#FF00D4FF";
+
+        // Game Info styling defaults (the former flat GameNameHeader*, PubYearRating*, InfoHeader*, InfoBody* and
+        // NavIcons* defaults). The title keeps its old built-in shadow (black at 60% alpha, blur 4, depth 2) on.
+        public const string DefaultGameInfoTextColorHex = "#FFFFFFFF";
+        public const int DefaultTitleFontSize = 32;
+        public const bool DefaultTitleBold = true;
+        public const bool DefaultTitleShadowEnabled = true;
+        public const string DefaultTitleShadowColorHex = "#99000000";
+        public const int DefaultTitleShadowBlur = 4;
+        public const int DefaultTitleShadowDepth = 2;
+        public const int DefaultPublisherFontSize = 13;
+        public const bool DefaultPublisherBold = false;
+        public const int DefaultInfoHeaderFontSize = 20;
+        public const bool DefaultInfoHeaderBold = true;
+        public const string DefaultInfoBodyFontFamily = "Georgia";
+        public const int DefaultInfoBodyFontSize = 16;
+        public const bool DefaultInfoBodyBold = false;
+        public const int DefaultNavSize = 9;
+        public const int MinNavSize = 4;
+        public const int MaxNavSize = 40;
 
         // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
         // Segoe UI is also the fallback when a theme has no saved family.
