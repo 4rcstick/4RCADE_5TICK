@@ -4,129 +4,113 @@
 
 4RCADE 5TICK is a portable, highly customizable MAME frontend launcher built in C#/WPF (.NET 10.0). It targets arcade cabinet builders and MAME enthusiasts who want a polished, config-friendly frontend without manual ini editing.
 
+Current version: **1.0.0-beta.4** (in progress). Repo: `4rcstick/4RCADE_5TICK` (MIT license).
+
 Key features:
-- TreeView-based game browser
-- LibVLCSharp video previews (FMV snaps)
+- TreeView-based game browser (custom folders, Favorites, Recently/Most Played, virtual catver categories, filters)
+- Video previews through an FFmpeg-based player, plus flyer / title / snap / cabinet images and history.xml / Wikipedia game info
 - Windows.Gaming.Input (WGI) gamepad navigation
-- Full Theme Builder system for UI customization
-- MAME.ini integration (reads/writes settings without manual editing)
+- A layered Theme Builder: every visual element is a layer with per-resolution position, size, order and styling, edited live from the UI (no file editing)
+- MAME.ini integration (reads/writes settings without manual ini editing)
 
-This is a solo-developer project, converted from a ~1600-line PowerShell prototype. It is deliberately architected — not vibe-coded. Scope and design decisions are made carefully; do not make architectural or scope decisions unilaterally. When a change has design implications beyond the immediate fix, flag it and ask rather than assuming.
+This is a solo-developer project, converted from a ~1600-line PowerShell prototype. It is deliberately architected, not vibe-coded. Scope and design decisions are made carefully; do not make architectural or scope decisions unilaterally. When a change has design implications beyond the immediate fix, flag it and ask rather than assuming.
 
-Repo: `4rcstick/4RCADE_5TICK` (MIT license)
+## Source of Truth
 
-## Known Gotchas — Read Before Editing
+- **`themes.md` is the living spec for the Theme Builder** (layer model, storage, tabs, decisions, traps, file map, change log). Read it before touching anything theme related.
+- **Trust order: the code first, themes.md second.** If they disagree, the code wins: report the mismatch and correct themes.md at the end of the pass. Never assume a feature is built or unbuilt without checking the files.
+- When the user hands over a spec `.md` (a migration or tweak batch), follow its pass structure: read it fully, run its Step 0 checks and report mismatches, do one pass at a time, **stop after each pass** for the user to build, test and commit, and update `themes.md` at the end of each pass.
 
-These are recurring bug sources. Check against these before considering a change complete.
+## Environment and Editing Rules (read first)
 
-### `ApplyThemeSettings()` trap
-Any new property added to `ConfigurationSettings` must also be explicitly copied in `ApplyThemeSettings()`, or it will silently revert to compiled defaults on every launch. This has caused multiple bugs. **Always check this method when adding or modifying a theme-related property.**
-
-### Three Theme Builder sync points
-When adding or modifying ANY theme property, all three of these must be updated together:
-1. `LoadCurrentThemeValuesIntoUi`
-2. The `themeDto` builder in `BtnSaveTheme_Click`
-3. `BtnLoadTheme_Click`
-
-Missing any one of these causes inconsistent behavior between loading, saving, and displaying theme values.
-
-### Three-property forwarder pattern (MainViewModel)
-Theme-related properties follow this pattern: `Theme*` properties → `RefreshThemeBindings()` → XAML bindings. New theme properties should follow this same forwarding pattern for consistency.
-
-### Rompath safety rule
-Boot-time sync (`SyncMameRomPathsAsync`) and user-triggered save (`MAMEiniTabControl.UpdateMameIniSettings`) are two separate writers **by design**. `BtnSaveOptions_Click` must never call the MAME.ini tab's rompath sync. Do not consolidate these without explicit approval — they're separate for a reason.
-
-### `StopPollingLoopAsync` deadlock
-The WGI polling loop fix uses `await` instead of `.Wait()`. **Do not revert to the synchronous variant** — it causes a silent UI thread deadlock in the game launch path.
-
-### WPF `CornerRadius` on nested Grids
-Nested Grids with negative margins don't respect a parent `Border`'s corner radius. Fix pattern: convert background layers to `Border` elements with matching `CornerRadius`, and set wallpaper as `ImageBrush` on `Background` rather than a separate layered element.
-
-### `ClipToBounds` limitation
-`ClipToBounds` clips to rectangular bounds only, not rounded geometry. The scrollbar corner-clip cosmetic quirk is an accepted limitation, not a bug to fix.
-
-### `mame_cache.txt`
-Not a native MAME file — it's a `-listfull` output artifact. `GenerateCacheFileAsync()` runs `mame.exe -listfull` and writes stdout to regenerate it. ROM-set drift detection triggers regeneration when ZIP names diverge from cached entries.
-
-### Flat ROM folder fallback
-Most casual users store ROMs flat (not in category subfolders). The fallback "GAMES" node for ungrouped games is essential — never silently discard ungrouped games.
-
-### LibVLCSharp over MediaElement
-`MediaElement` silently fails on non-standard codecs mid-session — this is why LibVLCSharp is used instead. `PruneLibVlcPlugins` MSBuild target removes unused plugin subfolders to reduce distribution size. Don't suggest reverting to `MediaElement`.
-
-### Splash window video wall
-The grid of "monitors" playing FMVs on the splash screen is a single composited 720p video (made in After Effects), not individual LibVLCSharp instances per tile. Keep this in mind when debugging splash panel playback issues — there's only one video stream to manage, not several.
-
-### Known issue - RTSS/MSI Afterburner overlay conflict
-Some users running MSI Afterburner / RivaTuner Statistics Server (RTSS) with "Show On-Screen Display" /
-DXGI hooking enabled have experienced random crashes, particularly during video preview playback.
-Root cause: RTSSHooks64.dll injects into DXGI's Present pipeline and can collide with LibVLC's D3D11
-video output plugin when it creates/tears down swap chains (e.g. on preview video swap or loop).
-Confirmed via crash dump: unhandled access violation in dxgi.dll with RTSSHooks64.dll present in the
-call stack, immediately above libdirect3d11_plugin.dll / libvlccore.dll.
-This is a native access violation (0xC0000005) - it cannot be caught with a normal try/catch, since
-.NET does not allow catching AVs by design (the runtime treats the process state as unsafe to continue).
-Current mitigation (beta): documented as a known issue, no code changes yet. If it recurs, workaround is
-RTSS Setup -> General properties -> Application detection level -> None.
-Possible future code-level mitigations (not yet implemented): detect known overlay-hook DLLs (e.g.
-RTSSHooks64.dll) via Process.GetCurrentProcess().Modules on startup and warn the user; add
-AppDomain.CurrentDomain.UnhandledException / Dispatcher.UnhandledException logging (still can't catch
-the AV itself, but improves diagnosis of other unhandled exceptions); reduce D3D11 swap chain
-create/destroy churn in the video preview pipeline to reduce the odds of hitting the race window.
-
-### LibVLC EndReached loop race (fixed)
-Both video players (VlcMediaPlayer preview + BootSplashMediaPlayer splash) had EndReached handlers that
-manually seek-to-0 and replay on loop, WHILE ALSO having :input-repeat=65535 set as a media option. Two
-competing loop mechanisms fighting over the same stream's end-of-playback state caused a race with the
-D3D11 vout's teardown/re-init, producing an access violation in dxgi.dll (confirmed via crash dump/call
-stack, separate incident from the RTSS one above). Fix: removed the manual EndReached restart logic
-entirely and let :input-repeat handle looping natively at the demux level. Do not re-add manual
-Stop()/Time=0/Play() restart logic in EndReached handlers if input-repeat is already set on the Media.
-
-### HasActiveMedia staleness bug (fixed)
-SelectedGame's setter updates IsGameSelected immediately (synchronous), but previously only updated
-HasActiveMedia via the debounced UpdateActiveMediaPreviews() (~600ms later). Selecting a folder sets
-SelectedGame = null, which (once the debounce fired) set HasActiveMedia = false. Quickly selecting a
-game after a folder meant the preview panel became visible immediately (IsGameSelected = true) while
-HasActiveMedia was still stale at false, flashing the "no preview" placeholder before the real video/
-image loaded. Fix: HasActiveMedia is now decided in the SelectedGame setter itself, from a fast
-File.Exists-only check, so it is never stale.
-Current design (2026-10-21, themes.md decision 42): UpdateActiveMediaPreviews() and
-ResolveHasActiveMediaImmediate() are gone. The setter runs an instant part (ApplyInstantMedia: marquee,
-MarqueeMissing, flyer/title/snap/cabinet, the video slot's static image and HasActiveMedia) with file
-checks on the UI thread and decoding on a background task guarded by _mediaSelectionVersion, plus a
-30-entry decoded-image cache. Only VideoSourcePath stays behind the 600 ms debounce (ApplyPreviewVideo).
-ResolvePreviewMedia() is the single two-pass preview resolver for HasActiveMedia, the static image and the
-video, so the immediate and delayed checks can no longer disagree. Do not move HasActiveMedia or
-MarqueeMissing back behind the debounce.
-
-## Conventions
-
-### Code editing / commenting
-- Use sandwiched code blocks with section fencing as anchors:
+- Windows, Visual Studio, PowerShell. Python 3.12 is installed: call it as `python` (not `py`, because a 3.13 is also installed and the py launcher may pick it). Use it for large scripted or generated edits instead of sed.
+- **Source files (`.cs`, `.xaml`, `.md`) use CRLF line endings.** Use the Edit tool for normal changes. When a Python script reads or writes a source file, open it with `newline=''` and `encoding='utf-8'` so line endings pass through unchanged, and make any inserted multi-line text CRLF. Do not use `sed -i` or other whole-file rewrites that normalize line endings. After edits run `git diff --stat` and check that no file shows a whole-file change.
+- **Never commit.** The user commits after testing each pass.
+- After every pass the project must build with **0 errors** (the existing ~50 warnings are known). If a multi-file edit will have transient errors, order the edits so the end state is clean, and say so.
+- Keep comment fencing and style:
   - C#: `// [SECTION: ...]` / `// [END SECTION: ...]`
   - XAML: `<!-- [SECTION: ...] -->` / `<!-- [END SECTION: ...] -->`
-- Every method gets a one-line `// Does X` summary comment.
-- Replace existing comments when updating a method; don't stack redundant comments.
+  - Every method gets a one-line `// Does X` summary comment. Replace stale comments when changing a method; do not stack redundant ones.
+- XAML: every `x:Name` and handler is referenced from code-behind. A control with a wrong name builds fine and fails at runtime, so verify names after adding controls (especially the Advanced tab's name-keyed Game Info handlers).
+- Confirm scope before non-trivial changes, one logical change at a time, and no unrelated fixes bundled into an edit pass. Report in this form after a pass: files changed, anything that did not match the instructions, anything changed beyond them, and the test checklist.
+- Grammar: "MAME®" is capitalized with the registered trademark symbol in user-facing text. Literal filenames stay lowercase in prose: `roms`, `mame.ini`.
 
-### Grammar / naming standards
-- "MAME®" is capitalized with the registered trademark symbol in user-facing text.
-- Literal filenames stay lowercase even in prose: `roms`, `mame.ini`.
+## Architecture in Brief
 
-### Workflow expectations
-- Confirm scope/intent before making non-trivial changes — don't assume the fix approach without a quick gut-check if there's ambiguity.
-- One logical change at a time; avoid bundling unrelated fixes into a single edit pass.
-- After any change, the project should still build cleanly — flag any change that's expected to produce transient errors in a multi-file edit.
+Settings and themes
+- `ConfigurationSettings` holds live settings (loaded from `4rcade5tick_files/settings.json`) and the per-resolution `Layouts`. It has **no change notification**; XAML binds to `MainViewModel` `Theme*` forwarders.
+- A theme is a **zip** (`4rcade5tick_files/Themes/<name>.zip`) containing `theme.json` plus bundled `assets/`; loading extracts to `Themes/Extracted/<name>/`. `LoadTheme` deletes and re-extracts that folder (`ThemeExtractionStarting` releases open files first).
+- `LayerRegistry` is the single source of truth for layers, groups, defaults and fonts. Each resolution has a `ThemeLayout` of `LayerLayoutEntry` items (rect, Z, visibility, ImagePath and styling fields).
+- **New styling goes on layer entries, per resolution**, not on `ConfigurationSettings`. Old keys in saved files are ignored; there is no legacy migration (the user rebuilds themes).
+
+Windows and views
+- `MainWindow` (layout canvas, `ApplyLayout` and its style keys, TreeView templates, hamburger menu), `ThemeBuilderWindow` (hosts the Basic and Advanced tabs), `AdvancedThemesTabControl` (layer list, tabbed property pages), `ThemesTabControl` (Basic tab: theme load/save/delete, Menu Selected, Options Menu, scrollbars, context menus), the layer controls (`SplashLayerControl`, `VideoPreviewLayerControl`, `GameInfoLayerControl`).
+- `MainViewModel` holds the forwarders, `GetLayerEntry`, the `Refresh...Bindings` methods, theme load, tree building, and media loading.
+
+Media
+- Game-preview video plays through the FFmpeg player (`PreviewPlayerHost`, native FFmpeg DLLs in `4rcade5tick_files/ffmpeg`) drawing into an `Image` in `VideoPreviewLayer`. Wallpaper video, boot splash video and shape/custom layer videos use WPF `MediaElement`. Animated gif/APNG use AnimatedImage.Wpf.
+- Do not reopen: the single-`MediaElement` wallpaper loop (a two-player swap was tried and rejected for a visible flash).
+
+## Known Gotchas (check before considering a change complete)
+
+### Flat theme properties (`ConfigurationSettings`)
+Remaining flat properties (Options window, buttons, tabs, scrollbars, context menus, Menu Selected pair, separator, `BorderColorFramework`) still need all of these wired or they silently revert:
+1. The property in `ConfigurationSettings` **and its line in `ApplyThemeSettings()`** (also applied at settings.json load in the `MainViewModel` constructor)
+2. The `ThemeSettings` DTO
+3. The `LoadTheme` mapping in `MainViewModel`
+4. The DTO builder in `BtnSaveTheme_Click`, `LoadCurrentThemeValuesIntoUi`, and `SyncUiEntriesToSettingsLayer` in `ThemesTabControl`
+Prefer layer-entry storage for anything new; it avoids most of this.
+
+### Layer entry styling (the usual silent failures)
+A new field on `LayerLayoutEntry` needs all of: the property (`JsonIgnore(WhenWritingNull)` like its neighbors), a line in **`CopyStyleFrom`**, defaults in `BuildDefaultLayout` / the `Fill...` helper called from **both** `BuildDefaultLayout` and `ResolveLayout`, and a mention in the matching **style key in `ApplyLayout`**, or it will not survive resolution switches or Reset Layer, or will not repaint live. Forwarders must be re-raised from a `Refresh...Bindings()` method **and** from `RefreshThemeBindings()` (`Theme*` forwarder pattern: `Theme*` property, then `RefreshThemeBindings()`, then XAML binding).
+
+### Row templates and ancestor bindings
+Do not use `RelativeSource AncestorType` bindings in TreeView row templates for values; row styling is **pushed** from the view model onto `TreeCategoryNode` / `GameItem` (ancestor walks froze the UI on 30k+ row folders). The folder and game row templates each have their own selected-row trigger; keep them in their own template. Shadow effects are built once per refresh, frozen and shared; never mutate them.
+
+### Main window buttons
+Each of the four buttons is two layers: the outer Border holds the fill, the inner ring holds the border color and icon. Hover and resting colors are set from code; a new button style value must be applied to the correct layer in both `MainButton_MouseEnter` and `ApplyMainButtonRestingColors`.
+
+### Game Info and other name-keyed handlers
+The Advanced tab's Game Info (and Marquee shadow) controls are found **by name** (`GI{Block}{Control}`) with a Tag-keyed shared handler table, gated per block. Follow the existing naming exactly.
+
+### Theme Builder window behavior
+Closing without saving restores layouts to the last saved snapshot; anything stored outside layouts is not covered. Advanced-tab edits are in memory only until Save Adjustments / Save Changes. Layer files (images, video) are bundled into the theme zip through each entry's `ImagePath`.
+
+### Media loading (decision 42, 2026-10-21)
+The `SelectedGame` setter runs the instant part (marquee, `MarqueeMissing`, flyer/title/snap/cabinet, the video slot's static image, `HasActiveMedia`): file checks on the UI thread, decoding on a background task guarded by `_mediaSelectionVersion`, plus a 30-entry decoded-image cache. **Only `VideoSourcePath` stays behind the 600 ms debounce.** `ResolvePreviewMedia()` is the single two-pass preview resolver. Do not move `HasActiveMedia` or `MarqueeMissing` back behind the debounce (that was the original "no preview flash" bug). Anything that sets `MarqueeImage` to null for "nothing selected" must also clear `MarqueeMissing`; use `MarqueeMissing`, never `HasMarqueeImage`, for the no-art banner.
+
+### Rompath safety rule
+Boot-time sync (`SyncMameRomPathsAsync`) and user-triggered save (`MAMEiniTabControl.UpdateMameIniSettings`) are two separate writers **by design**. `BtnSaveOptions_Click` must never call the MAME.ini tab's rompath sync. Do not consolidate these without explicit approval.
+
+### `StopPollingLoopAsync` deadlock
+The WGI polling loop fix uses `await` instead of `.Wait()`. **Do not revert to the synchronous variant**; it causes a silent UI thread deadlock in the game launch path.
+
+### WPF rendering notes
+- Nested Grids with negative margins don't respect a parent `Border`'s corner radius. Pattern: background layers as `Border` elements with matching `CornerRadius`, wallpaper as `ImageBrush` on `Background`.
+- `ClipToBounds` clips to rectangular bounds only. The scrollbar corner-clip quirk is an accepted limitation, not a bug to fix. Rounded clips use a `RectangleGeometry` (see the Splash and Video Preview layer controls).
+
+### ROM list and cache
+- `mame_cache.json` (config/database) is derived from `mame.exe -listfull` output via `CacheScannerService`; ROM-set drift detection regenerates it when ZIP names diverge from cached entries.
+- Most casual users keep ROMs flat. The fallback "GAMES" node for ungrouped games is essential; never silently discard ungrouped games.
+
+### Historical notes: LibVLC era (status to confirm with the user before relying on or deleting)
+Earlier betas used LibVLCSharp for previews. Two incidents from that era: an RTSS / MSI Afterburner overlay hook (`RTSSHooks64.dll`) colliding with LibVLC's D3D11 output (native access violation in `dxgi.dll`; workaround RTSS application detection level None), and a loop race from combining a manual `EndReached` restart with `:input-repeat`. If LibVLC is fully gone, these no longer apply; do not add LibVLC back or re-add manual loop restarts without asking.
+
+## Theme Builder Status (beta.4)
+
+Built: Main Window Background (color, wallpaper), Games List (folders, game titles), Shape Layers 01 to 04 and custom layers, Marquee (logo, shadow), Splash Image, Video Preview (border, background, fallback image), Search & Buttons, Game Info (title, publisher, info headers and body, navs, previews shadow). Also: layer rename, multi-select nudge, group move, alignment guides.
+
+Remaining: Footer, Random Game Display (fonts and colors for the spin fallback), a Global tab (Options window, buttons, context menus, scrollbars, Theme Builder chrome colors, `BorderColorFramework`), shrinking the Basic tab to load/save/delete plus the theme browser, then replacing registry defaults with the finished default theme. A WYSIWYG edit mode is planned for beta.5 (no drag handles in beta.4).
 
 ## Current Scope Boundaries
 
 **In scope for v1.0-final:**
 - Subfolder packaging refactor (moving launcher and dependencies into a MAME subdirectory)
-- ROM-path rescan button in Options that syncs `mame.ini` rompath without requiring a restart
+- ROM-path rescan so `mame.ini` rompath syncs without a restart
 
-**Scoped for v2.0 — do not implement early without explicit request:**
-- `.4rctheme` self-contained theme package format (zip with custom extension) for community theme sharing
-- `catver.ini`-based virtual auto-sort of flat romsets into category folders (Fighters, Shooters, etc.) — virtual only, does not move files on disk. `catver.ini` bundled with attribution to progetto-SNAPS/AntoPISA.
+**Scoped for v2.0: do not implement early without explicit request:**
+- `.4rctheme` community theme package format (themes are already zip bundles as of beta.4; the dedicated extension and sharing flow is the v2.0 piece)
+- `catver.ini`-based virtual auto-sort of flat romsets into category folders (virtual only, does not move files on disk). `catver.ini` bundled with attribution to progetto-SNAPS/AntoPISA.
 - Folder-level inherited mouse/lightgun support with visual indicator after folder name
 
 **Deferred / not currently planned:**
@@ -135,7 +119,8 @@ MarqueeMissing back behind the debounce.
 
 ## Key Libraries & Tools
 
-- LibVLCSharp + VideoLAN.LibVLC.Windows (video preview engine)
+- FFmpeg native DLLs (preview player), loaded from `4rcade5tick_files/ffmpeg`
+- AnimatedImage.Wpf (gif / APNG), PortableColorPicker (`ColorPicker` assembly)
 - Windows.Gaming.Input (gamepad support)
 - System.Text.Json
-- Target distribution size: ~250MB uncompressed (self-contained .NET 10 + WPF runtime — framework-dependent deployment is explicitly ruled out in favor of faster boot time)
+- Target distribution: self-contained .NET 10 + WPF runtime (about 250MB uncompressed); framework-dependent deployment is explicitly ruled out in favor of faster boot time
