@@ -2445,11 +2445,13 @@ namespace ArcadeStick.Views
 
         // One block's storage: the entry it lives on, whether it uses the SectionHeader* fields, and its defaults.
         // SelectUnit is the list row that shows the block's tab; ShadowOnly blocks have no size or color controls.
+        // DefaultAlign set = the block has a GI{Block}Align combo (Left / Center / Right, stored in Text* TextAlign).
         private sealed record GIBlockDef(string EntryId, bool UsesSectionHeader, bool HasFont, string DefaultFamily, bool DefaultBold,
             int DefaultSize, int MinSize, int MaxSize, bool DefaultShadowEnabled, string DefaultShadowColorHex, int DefaultShadowBlur, int DefaultShadowDepth)
         {
             public string SelectUnit { get; init; } = LayerRegistry.GameInfoGroup;
             public bool ShadowOnly { get; init; }
+            public string? DefaultAlign { get; init; }
         }
 
         private static readonly Dictionary<string, GIBlockDef> GIBlocks = new()
@@ -2457,7 +2459,7 @@ namespace ArcadeStick.Views
             ["Title"] = new(LayerRegistry.GameTitle, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultTitleBold,
                 LayerRegistry.DefaultTitleFontSize, 6, 72, LayerRegistry.DefaultTitleShadowEnabled, LayerRegistry.DefaultTitleShadowColorHex, LayerRegistry.DefaultTitleShadowBlur, LayerRegistry.DefaultTitleShadowDepth),
             ["Publisher"] = new(LayerRegistry.PublisherBlock, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultPublisherBold,
-                LayerRegistry.DefaultPublisherFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
+                LayerRegistry.DefaultPublisherFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { DefaultAlign = LayerRegistry.DefaultPublisherAlign },
             ["InfoHeader"] = new(LayerRegistry.GameInfoBody, true, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultInfoHeaderBold,
                 LayerRegistry.DefaultInfoHeaderFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             ["InfoBody"] = new(LayerRegistry.GameInfoBody, false, true, LayerRegistry.DefaultInfoBodyFontFamily, LayerRegistry.DefaultInfoBodyBold,
@@ -2488,6 +2490,8 @@ namespace ArcadeStick.Views
             public string? ShadowColorHex { get => _h ? _e.SectionHeaderShadowColorHex : _e.TextShadowColorHex; set { if (_h) _e.SectionHeaderShadowColorHex = value; else _e.TextShadowColorHex = value; } }
             public int? ShadowBlur { get => _h ? _e.SectionHeaderShadowBlur : _e.TextShadowBlur; set { if (_h) _e.SectionHeaderShadowBlur = value; else _e.TextShadowBlur = value; } }
             public int? ShadowDepth { get => _h ? _e.SectionHeaderShadowDepth : _e.TextShadowDepth; set { if (_h) _e.SectionHeaderShadowDepth = value; else _e.TextShadowDepth = value; } }
+            // Text* only: there is no SectionHeader alignment field yet (add one before giving the headers an Align combo)
+            public string? TextAlign { get => _e.TextAlign; set => _e.TextAlign = value; }
         }
 
         // Does the gating check: true while the block's list row (Game Info group or Marquee layer) is selected
@@ -2529,6 +2533,16 @@ namespace ArcadeStick.Views
                     boldCheck.IsChecked = style.Bold ?? def.DefaultBold;
                 }
 
+                if (def.DefaultAlign != null && GIControl<ComboBox>(block, "Align") is ComboBox alignCombo)
+                {
+                    if (alignCombo.Items.Count == 0)
+                    {
+                        foreach (string align in TextAlignChoices) alignCombo.Items.Add(align);
+                    }
+                    string alignment = style.TextAlign ?? def.DefaultAlign;
+                    alignCombo.SelectedItem = TextAlignChoices.Contains(alignment) ? alignment : def.DefaultAlign;
+                }
+
                 if (!def.ShadowOnly)
                 {
                     GIControl<TextBox>(block, "Size")!.Text = (style.FontSize ?? def.DefaultSize).ToString(CultureInfo.InvariantCulture);
@@ -2551,6 +2565,16 @@ namespace ArcadeStick.Views
             if ((sender as ComboBox)?.SelectedItem is not string family || GetGIStyle(GIBlockKey(sender)) is not GIStyle style) return;
 
             style.FontFamily = family;
+            RaiseGuides();
+        }
+
+        // Does the text alignment combo (any block with DefaultAlign, resolved from the sender's Tag)
+        private void GIAlign_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if ((sender as ComboBox)?.SelectedItem is not string align || GetGIStyle(GIBlockKey(sender)) is not GIStyle style) return;
+
+            style.TextAlign = align;
             RaiseGuides();
         }
 

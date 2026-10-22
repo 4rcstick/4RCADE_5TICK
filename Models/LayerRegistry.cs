@@ -647,6 +647,7 @@ namespace ArcadeStick.Models
                 if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
                 entry.TextBold ??= DefaultPublisherBold;
                 entry.TextFontSize ??= DefaultPublisherFontSize;
+                if (string.IsNullOrWhiteSpace(entry.TextAlign)) entry.TextAlign = DefaultPublisherAlign;
                 if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
                 FillTextShadowDefaults(entry);
             }
@@ -855,6 +856,7 @@ namespace ArcadeStick.Models
         public const int DefaultTitleShadowDepth = 2;
         public const int DefaultPublisherFontSize = 13;
         public const bool DefaultPublisherBold = false;
+        public const string DefaultPublisherAlign = "Right"; // the old hard-coded look
         public const int DefaultInfoHeaderFontSize = 20;
         public const bool DefaultInfoHeaderBold = true;
         public const string DefaultInfoBodyFontFamily = "Georgia";

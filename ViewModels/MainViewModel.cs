@@ -766,6 +766,12 @@ namespace ArcadeStick.ViewModels
         public FontFamily ThemePubYearRatingFontFamily => ToFontFamily(GetLayerEntry(LayerRegistry.PublisherBlock).TextFontFamily);
         public FontWeight ThemePubYearRatingFontWeight => (GetLayerEntry(LayerRegistry.PublisherBlock).TextBold ?? LayerRegistry.DefaultPublisherBold) ? FontWeights.Bold : FontWeights.Normal;
         public System.Windows.Media.Effects.Effect? ThemePubYearRatingEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.PublisherBlock));
+        public TextAlignment ThemePubYearRatingTextAlignment => GetLayerEntry(LayerRegistry.PublisherBlock).TextAlign switch
+        {
+            "Left" => TextAlignment.Left,
+            "Center" => TextAlignment.Center,
+            _ => TextAlignment.Right
+        };
 
         public int ThemeInfoHeaderFontSize => GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderFontSize ?? LayerRegistry.DefaultInfoHeaderFontSize;
         public string ThemeInfoHeaderColor => GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
@@ -833,6 +839,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemePubYearRatingFontFamily));
             OnPropertyChanged(nameof(ThemePubYearRatingFontWeight));
             OnPropertyChanged(nameof(ThemePubYearRatingEffect));
+            OnPropertyChanged(nameof(ThemePubYearRatingTextAlignment));
             OnPropertyChanged(nameof(ThemeInfoHeaderFontSize));
             OnPropertyChanged(nameof(ThemeInfoHeaderColor));
             OnPropertyChanged(nameof(ThemeInfoHeaderFontFamily));

@@ -342,7 +342,7 @@ namespace ArcadeStick
             string gameInfoStyleKey = string.Join("#",
                 new[] { Models.LayerRegistry.GameTitle, Models.LayerRegistry.PublisherBlock, Models.LayerRegistry.GameInfoBody, Models.LayerRegistry.GameInfoNav, Models.LayerRegistry.ImagePreviewsNav, Models.LayerRegistry.ImagePreviewsBody }
                     .Select(id => layout.Layers.FirstOrDefault(e => e.Id == id))
-                    .Select(e => $"{e?.TextFontFamily}|{e?.TextBold}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}"
+                    .Select(e => $"{e?.TextFontFamily}|{e?.TextBold}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextAlign}|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}"
                         + $"|{e?.SectionHeaderFontFamily}|{e?.SectionHeaderBold}|{e?.SectionHeaderFontSize}|{e?.SectionHeaderColorHex}|{e?.SectionHeaderShadowEnabled}|{e?.SectionHeaderShadowColorHex}|{e?.SectionHeaderShadowBlur}|{e?.SectionHeaderShadowDepth}"));
             if (gameInfoStyleKey != _lastGameInfoStyleKey)
             {

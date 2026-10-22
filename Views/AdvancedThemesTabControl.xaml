@@ -1044,7 +1044,7 @@
                                         <CheckBox x:Name="GIPublisherBold" Tag="Publisher" Content="Bold" Margin="12,0,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
 
-                                    <!-- Size, color (side by side) -->
+                                    <!-- Size, color (side by side), then alignment -->
                                     <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="48"/>
@@ -1054,9 +1054,15 @@
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}"/>
                                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
+                                        <!-- Alignment of all five publisher lines (Left / Center / Right) -->
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Text="Alignment:" Style="{StaticResource GLLabelStyle}"/>
+                                        <ComboBox x:Name="GIPublisherAlign" Tag="Publisher" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Width="110" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ThemedComboBoxStyle}" SelectionChanged="GIAlign_SelectionChanged"/>
                                         <TextBox x:Name="GIPublisherSize" Tag="Publisher" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">

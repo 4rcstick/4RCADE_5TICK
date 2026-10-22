@@ -37,9 +37,10 @@
                     TextElement.FontFamily="{Binding ThemePubYearRatingFontFamily}" TextElement.FontWeight="{Binding ThemePubYearRatingFontWeight, FallbackValue=Normal}"
                     TextElement.FontSize="{Binding ThemePubYearRatingFontSize, FallbackValue=13}" TextElement.Foreground="{Binding ThemePubYearRatingColor, FallbackValue=White}"
                     Effect="{Binding ThemePubYearRatingEffect}">
-            <TextBlock TextAlignment="Right" Text="{Binding SelectedGame.Manufacturer, StringFormat='Published by: {0}'}"/>
-            <TextBlock TextAlignment="Right" Text="{Binding SelectedGame.Year, StringFormat='Year: {0}'}"/>
-            <TextBlock TextAlignment="Right" Text="{Binding SelectedGame.CloneOf, StringFormat='Clone of: {0}'}">
+            <!-- Each line binds the alignment itself (TextAlignment is not inherited from the StackPanel) -->
+            <TextBlock TextAlignment="{Binding ThemePubYearRatingTextAlignment, FallbackValue=Right}" Text="{Binding SelectedGame.Manufacturer, StringFormat='Published by: {0}'}"/>
+            <TextBlock TextAlignment="{Binding ThemePubYearRatingTextAlignment, FallbackValue=Right}" Text="{Binding SelectedGame.Year, StringFormat='Year: {0}'}"/>
+            <TextBlock TextAlignment="{Binding ThemePubYearRatingTextAlignment, FallbackValue=Right}" Text="{Binding SelectedGame.CloneOf, StringFormat='Clone of: {0}'}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Visible"/>
@@ -51,8 +52,8 @@
                     </Style>
                 </TextBlock.Style>
             </TextBlock>
-            <TextBlock TextAlignment="Right" Text="{Binding DisplayRating, StringFormat='Rating: {0}/10', TargetNullValue='Rating: N/A'}"/>
-            <TextBlock TextAlignment="Right" Text="{Binding SelectedGamePlayStatsText}">
+            <TextBlock TextAlignment="{Binding ThemePubYearRatingTextAlignment, FallbackValue=Right}" Text="{Binding DisplayRating, StringFormat='Rating: {0}/10', TargetNullValue='Rating: N/A'}"/>
+            <TextBlock TextAlignment="{Binding ThemePubYearRatingTextAlignment, FallbackValue=Right}" Text="{Binding SelectedGamePlayStatsText}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Visible"/>
