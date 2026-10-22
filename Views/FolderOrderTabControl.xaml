@@ -54,24 +54,10 @@
 
             <!-- Displays the current root folder order; selection drives BtnFolderUp/Down and also
                  determines which root's subfolders populate the list on the right. -->
-            <ListBox x:Name="LstFolderOrder" Grid.Column="0" 
-                     Background="#000000" Foreground="#F2F2F7" 
-                     BorderBrush="#3A3A3C" BorderThickness="1" 
-                     FontSize="14" FontWeight="Bold" Padding="5"
-                     SelectionChanged="LstFolderOrder_SelectionChanged">
-                <!-- Default ListBox template's internal scrollbar isn't themed on its own - this override
-                     wraps ItemsPresenter in a ScrollViewer using the same ArcadeDarkScrollViewer style
-                     applied elsewhere, rather than the unthemed default. -->
-                <ListBox.Template>
-                    <ControlTemplate TargetType="ListBox">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                            <ScrollViewer Style="{StaticResource ArcadeDarkScrollViewer}" Padding="{TemplateBinding Padding}">
-                                <ItemsPresenter/>
-                            </ScrollViewer>
-                        </Border>
-                    </ControlTemplate>
-                </ListBox.Template>
-            </ListBox>
+            <!-- Chrome Palette list (its template already scrolls through ArcadeDarkScrollViewer) -->
+            <ListBox x:Name="LstFolderOrder" Grid.Column="0"
+                     Style="{StaticResource ChromeListBoxStyle}" FontWeight="Bold" Padding="5"
+                     SelectionChanged="LstFolderOrder_SelectionChanged"/>
 
             <!-- Center column: 3 rows - top (root/subfolder button pairs, side by side), middle (save
                  reminder text), bottom (Save Folders, centered). -->
@@ -147,21 +133,8 @@
 
             <!-- Displays the selected root folder's subfolders (capped at one level). Greyed-out/disabled
                  treatment when empty is a follow-up tweak, not yet applied here. -->
-            <ListBox x:Name="LstSubfolderOrder" Grid.Column="2" 
-                     Background="#000000" Foreground="#F2F2F7" 
-                     BorderBrush="#3A3A3C" BorderThickness="1" 
-                     FontSize="14" FontWeight="Bold" Padding="5">
-                <!-- Same themed-scrollbar template override as LstFolderOrder above. -->
-                <ListBox.Template>
-                    <ControlTemplate TargetType="ListBox">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                            <ScrollViewer Style="{StaticResource ArcadeDarkScrollViewer}" Padding="{TemplateBinding Padding}">
-                                <ItemsPresenter/>
-                            </ScrollViewer>
-                        </Border>
-                    </ControlTemplate>
-                </ListBox.Template>
-            </ListBox>
+            <ListBox x:Name="LstSubfolderOrder" Grid.Column="2"
+                     Style="{StaticResource ChromeListBoxStyle}" FontWeight="Bold" Padding="5"/>
         </Grid>
         <!-- [END SECTION: Folder Order List + Controls] -->
     </Grid>

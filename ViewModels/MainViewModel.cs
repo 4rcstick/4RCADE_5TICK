@@ -597,8 +597,8 @@ namespace ArcadeStick.ViewModels
         // referencing "Theme*" names will silently fail. This list must also be raised in RefreshThemeBindings()
         // below (sync point 2) - a property added here but missing there won't update live after Theme Builder saves.
         // The Main Window Background layer's color for the active resolution (its BgColorHex). Fills the main window
-        // under the wallpaper (and alone when the wallpaper is disabled), and is also the app's popup and dialog
-        // background (see MainWindow.UpdateMainBackgroundBrush for the windows that cannot bind here).
+        // under the wallpaper (and alone when the wallpaper is disabled), and also its own popups, the no-art banner
+        // and the spin card.
         public string ThemeMainColor => GetLayerEntry(LayerRegistry.MainBackground).BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex;
         public string ThemeBorderColor => Configuration.BorderColorFramework;
         public double ThemeBorderWidth => Configuration.BorderWidthValue;
@@ -621,8 +621,6 @@ namespace ArcadeStick.ViewModels
         }
 
         public int ThemeFolderFontSize => GetLayerEntry(LayerRegistry.GamesList).FolderFontSize ?? LayerRegistry.DefaultFolderFontSize;
-        public string ThemeFolderSelectedColor => Configuration.FolderSelectedColorHex;
-        public string ThemeFolderSelectedBgColor => Configuration.FolderSelectedBgColorHex;
         public string ThemeArrowColor => GetLayerEntry(LayerRegistry.GamesList).ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex;
         public string ThemeFolderColor => GetLayerEntry(LayerRegistry.GamesList).FolderColorHex ?? LayerRegistry.DefaultFolderColorHex;
 
@@ -1147,8 +1145,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeOptionsBtnBorderSize));
             OnPropertyChanged(nameof(ThemeOptionsBtnBorderRadius));            
             OnPropertyChanged(nameof(ThemeFolderFontSize));
-            OnPropertyChanged(nameof(ThemeFolderSelectedColor));
-            OnPropertyChanged(nameof(ThemeFolderSelectedBgColor));
             OnPropertyChanged(nameof(ThemeArrowColor));
             OnPropertyChanged(nameof(ThemeFolderColor));
             OnPropertyChanged(nameof(ThemeTabColor));
@@ -1345,8 +1341,6 @@ namespace ArcadeStick.ViewModels
             Configuration.BorderWidthValue = themeData.BorderWidthValue;
             Configuration.BorderCurveValue = themeData.BorderCurveValue;
             Configuration.SeparatorColorHex = themeData.SeparatorColorHex;
-            Configuration.FolderSelectedColorHex = themeData.FolderSelectedColorHex; 
-            Configuration.FolderSelectedBgColorHex = themeData.FolderSelectedBgColorHex;
             Configuration.TabFontSize = themeData.TabFontSize;
             Configuration.TabColorHex = themeData.TabColorHex;
             Configuration.TabBgColorHex = themeData.TabBgColorHex;
@@ -1358,8 +1352,6 @@ namespace ArcadeStick.ViewModels
             Configuration.SubHeaderColorHex = themeData.SubHeaderColorHex;
             Configuration.StandardFontSize = themeData.StandardFontSize;
             Configuration.StandardColorHex = themeData.StandardColorHex;
-            Configuration.InputFontSize = themeData.InputFontSize;
-            Configuration.InputColorHex = themeData.InputColorHex;
             Configuration.ContextMenuFontColorHex = themeData.ContextMenuFontColorHex;
             Configuration.ContextMenuIconColorHex = themeData.ContextMenuIconColorHex;
             Configuration.ContextMenuBgColorHex = themeData.ContextMenuBgColorHex;

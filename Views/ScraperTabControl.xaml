@@ -20,7 +20,7 @@
             <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
 
             <!-- [SECTION: Master Enable] -->
-            <CheckBox x:Name="ChkScraperEnabled" Content="Enable Artwork Scraper" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkScraperEnabled" Content="Enable Artwork Scraper" 
                       Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" 
                       FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
                       FontWeight="Bold"
@@ -29,11 +29,11 @@
 
             <!-- [SECTION: Trigger Toggles] -->
             <TextBlock Text="Triggers:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
-            <CheckBox x:Name="ChkFetchOnLaunch" Content="Fetch missing artwork in the background after launching a game" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchOnLaunch" Content="Fetch missing artwork in the background after launching a game" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,5"/>
-            <CheckBox x:Name="ChkFetchOnContextMenu" Content="Enable &quot;Get Artwork&quot; option in the game right-click menu" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchOnContextMenu" Content="Enable &quot;Get Artwork&quot; option in the game right-click menu" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,15"/>
@@ -43,27 +43,27 @@
 
             <!-- [SECTION: Category Checkboxes] -->
             <TextBlock Text="Asset Types to Fetch:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
-            <CheckBox x:Name="ChkFetchMarquees" Content="Marquees" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchMarquees" Content="Marquees" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,5"/>
-            <CheckBox x:Name="ChkFetchFlyers" Content="Flyers" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchFlyers" Content="Flyers" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,5"/>
-            <CheckBox x:Name="ChkFetchTitlescreens" Content="Title Screens" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchTitlescreens" Content="Title Screens" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,5"/>
-            <CheckBox x:Name="ChkFetchSnaps" Content="Gameplay Snaps" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchSnaps" Content="Gameplay Snaps" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,5"/>
-            <CheckBox x:Name="ChkFetchCabinets" Content="Cabinets" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchCabinets" Content="Cabinets" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,5"/>
-            <CheckBox x:Name="ChkFetchVideos" Content="Videos (larger downloads)" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchVideos" Content="Videos (larger downloads)" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,15"/>
@@ -72,7 +72,7 @@
             <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
 
             <!-- [SECTION: Behavior Options] -->
-            <CheckBox x:Name="ChkOverwriteExisting" Content="Overwrite existing local files (unchecked = skip files you already have)" 
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkOverwriteExisting" Content="Overwrite existing local files (unchecked = skip files you already have)" 
                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
                       Margin="0,0,0,15"/>

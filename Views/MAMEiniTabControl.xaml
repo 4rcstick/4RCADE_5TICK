@@ -32,7 +32,7 @@
 
                     <Label Content="Video OSD Renderer:" Grid.Column="0" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center"/>
 
-                    <ComboBox x:Name="CboVideoMode" 
+                    <ComboBox Style="{StaticResource ChromeComboBoxStyle}" x:Name="CboVideoMode" 
                               Grid.Column="1" 
                               Width="60" 
                               HorizontalAlignment="Left"
@@ -47,7 +47,7 @@
 
                     <Label Content="Frame Skipping:" Grid.Column="2" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center"/>
 
-                    <ComboBox x:Name="CboFrameSkip" 
+                    <ComboBox Style="{StaticResource ChromeComboBoxStyle}" x:Name="CboFrameSkip" 
                               Grid.Column="3" 
                               Width="60" 
                               HorizontalAlignment="Left"
@@ -86,31 +86,31 @@
                     </Grid.RowDefinitions>
 
                     <!-- Row 0: windowed mode / auto frame skip (sits under the Frame Skipping combo above) -->
-                    <CheckBox x:Name="ChkWindow" Grid.Row="0" Grid.Column="0" Content="Run in Windowed Mode" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox x:Name="ChkAutoFrameSkip" Grid.Row="0" Grid.Column="1" Content="Enable Auto Frame Skip" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkWindow" Grid.Row="0" Grid.Column="0" Content="Run in Windowed Mode" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkAutoFrameSkip" Grid.Row="0" Grid.Column="1" Content="Enable Auto Frame Skip" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 1: CRT/shader matrix / strict pixel aspect ratio -->
-                    <CheckBox x:Name="ChkHlslEnable" Grid.Row="1" Grid.Column="0" Content="Enable CRT Scanline / Shaders Matrix" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox x:Name="ChkKeepAspect" Grid.Row="1" Grid.Column="1" Content="Enforce Strict Pixel Aspect Ratios" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkHlslEnable" Grid.Row="1" Grid.Column="0" Content="Enable CRT Scanline / Shaders Matrix" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkKeepAspect" Grid.Row="1" Grid.Column="1" Content="Enforce Strict Pixel Aspect Ratios" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 2: skip info screen / disable throttling -->
-                    <CheckBox x:Name="ChkSkipGameInfo" Grid.Row="2" Grid.Column="0" Content="Skip Mandatory System Information Screen" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox x:Name="ChkDisableThrottle" Grid.Row="2" Grid.Column="1" Content="Disable Throttling" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSkipGameInfo" Grid.Row="2" Grid.Column="0" Content="Skip Mandatory System Information Screen" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkDisableThrottle" Grid.Row="2" Grid.Column="1" Content="Disable Throttling" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 3: bilinear filter / vsync -->
-                    <CheckBox x:Name="ChkFilter" Grid.Row="3" Grid.Column="0" Content="Enable Bilinear Filtering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox x:Name="ChkVsync" Grid.Row="3" Grid.Column="1" Content="Enable Vertical Sync" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFilter" Grid.Row="3" Grid.Column="0" Content="Enable Bilinear Filtering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkVsync" Grid.Row="3" Grid.Column="1" Content="Enable Vertical Sync" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 4: triple buffering / sync refresh rate -->
-                    <CheckBox x:Name="ChkTripleBuffer" Grid.Row="4" Grid.Column="0" Content="Enable Triple Buffering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox x:Name="ChkSyncRefresh" Grid.Row="4" Grid.Column="1" Content="Synchronize Refresh Rate" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkTripleBuffer" Grid.Row="4" Grid.Column="0" Content="Enable Triple Buffering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSyncRefresh" Grid.Row="4" Grid.Column="1" Content="Synchronize Refresh Rate" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 5: cheat engine / skip warning screens -->
-                    <CheckBox x:Name="ChkCheat" Grid.Row="5" Grid.Column="0" Content="Enable Core Diagnostic Cheat Engines" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox x:Name="ChkSkipWarnings" Grid.Row="5" Grid.Column="1" Content="Skip Warning Screens" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkCheat" Grid.Row="5" Grid.Column="0" Content="Enable Core Diagnostic Cheat Engines" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSkipWarnings" Grid.Row="5" Grid.Column="1" Content="Skip Warning Screens" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 6: bezel artwork toggle - writes a dummy artpath in mame.ini when unchecked -->
-                    <CheckBox x:Name="ChkEnableBezels" Grid.Row="6" Grid.Column="0" Content="Enable Bezels" IsChecked="True" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkEnableBezels" Grid.Row="6" Grid.Column="0" Content="Enable Bezels" IsChecked="True" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                 </Grid>
                 <!-- [END SECTION: MAME.ini Feature Checkboxes] -->
             </StackPanel>

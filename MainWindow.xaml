@@ -746,15 +746,16 @@
              filled, anchored under the folder row) - code-behind tracks whether a target folder name is
              set to route Enter to the right action. StaysOpen="False" gives click-away-cancels for free. -->
         <Popup x:Name="FolderNameInputPopup" StaysOpen="False" AllowsTransparency="True" Closed="FolderNameInputPopup_Closed">
-            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1" Padding="8,6">
+            <!-- Fill follows the Main Window Background layer; border, text and placeholder are Chrome Palette with a fixed size. -->
+            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="8,6">
                 <Grid>
-                    <TextBox x:Name="FolderNameInputTextBox" Width="220" Height="20" VerticalContentAlignment="Center" FontSize="{Binding Configuration.InputFontSize, FallbackValue=14}" Foreground="{Binding Configuration.InputColorHex, FallbackValue=#F2F2F7}" Background="Transparent" BorderThickness="0" PreviewKeyDown="FolderNameInputTextBox_PreviewKeyDown" TextChanged="FolderNameInputTextBox_TextChanged"/>
+                    <TextBox x:Name="FolderNameInputTextBox" Width="220" Height="20" VerticalContentAlignment="Center" FontSize="13" Foreground="{StaticResource ChromeText}" CaretBrush="{StaticResource ChromeText}" Background="Transparent" BorderThickness="0" PreviewKeyDown="FolderNameInputTextBox_PreviewKeyDown" TextChanged="FolderNameInputTextBox_TextChanged"/>
                     <!-- Placeholder text - visibility is driven explicitly from code-behind (Create/Rename
                          Click handlers) rather than a DataTrigger, since the trigger could lag a frame
                          behind this Popup's content refresh and render on top of real pre-filled text. -->
                     <TextBlock x:Name="FolderNameInputPlaceholder" Text="Enter folder name" IsHitTestVisible="False" Margin="2,0,0,0"
-                               VerticalAlignment="Center" FontSize="{Binding Configuration.InputFontSize, FallbackValue=14}"
-                               Foreground="#808080" Visibility="Collapsed"/>
+                               VerticalAlignment="Center" FontSize="13"
+                               Foreground="{StaticResource ChromeTextMuted}" Visibility="Collapsed"/>
                 </Grid>
             </Border>
         </Popup>
@@ -766,34 +767,17 @@
              the next rebuild. Anchored under the folder row. Live-updates the node's FolderColor as you
              pick; click-away commits to disk, Escape reverts and discards (handled in code-behind). -->
         <Popup x:Name="FolderColorPickerPopup" StaysOpen="False" AllowsTransparency="True" Closed="FolderColorPickerPopup_Closed">
-            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1" Padding="6">
+            <!-- Fill follows the Main Window Background layer; the borders, hex box and the picker's own popup are Chrome Palette. -->
+            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="6">
                 <StackPanel Orientation="Horizontal">
-                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="FolderColorPickerControl" Width="26" Height="26" ShowAlpha="False" ColorChanged="FolderColorPickerControl_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <!-- Themes the picker's OWN internal popup (the part that opens on click) to
-                                     match the rest of the app - AncestorType=Window here resolves to MainWindow
-                                     (this flyout's host), so it binds MainViewModel's ThemeMainColor (the Main
-                                     Window Background layer's color) and ThemeBorderColor directly. The Theme
-                                     Builder's pickers use the shared MainBackgroundBrush resource instead. -->
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{Binding DataContext.ThemeMainColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox x:Name="FolderColorHexTextBox" Width="90" Margin="6,0,0,0" VerticalContentAlignment="Center" FontSize="{Binding Configuration.InputFontSize, FallbackValue=14}" Foreground="{Binding Configuration.InputColorHex, FallbackValue=#F2F2F7}" Background="Transparent" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" PreviewKeyDown="FolderColorHexTextBox_PreviewKeyDown" LostFocus="FolderColorHexTextBox_LostFocus"/>
+                    <TextBox x:Name="FolderColorHexTextBox" Width="90" Margin="6,0,0,0" VerticalContentAlignment="Center" FontSize="13" Foreground="{StaticResource ChromeText}" CaretBrush="{StaticResource ChromeText}" Background="Transparent" BorderBrush="{StaticResource ChromeBorder}" PreviewKeyDown="FolderColorHexTextBox_PreviewKeyDown" LostFocus="FolderColorHexTextBox_LostFocus"/>
                 </StackPanel>
             </Border>
         </Popup>

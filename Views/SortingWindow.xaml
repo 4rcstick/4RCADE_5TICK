@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:ArcadeStick"
         Title="4RCADE 5TICK Sorting and Filter Options" Height="610" Width="500"
         WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource MainBackgroundBrush}"
-        BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}"
+        Background="{Binding OptionsMenuBgColorHex, FallbackValue=#1C1C1E}"
+        BorderBrush="{StaticResource ChromeBorder}"
         BorderThickness="1">
 
     <Grid Margin="15">
@@ -18,7 +18,7 @@
 
         <TabControl Grid.Row="0"
                     Background="{Binding OptionsBg, FallbackValue=#000000}" 
-                    BorderBrush="{Binding BorderColorFramework, FallbackValue=#2C2C2E}" 
+                    BorderBrush="{StaticResource ChromeBorder}" 
                     BorderThickness="1" 
                     Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}">
 
@@ -63,7 +63,7 @@
                             <ControlTemplate TargetType="TabItem">
                                 <Border x:Name="TabBorder" 
                                         Background="{Binding DataContext.OptionsBg, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
-                                        BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}" 
+                                        BorderBrush="{StaticResource ChromeBorder}" 
                                         BorderThickness="1,1,1,0" 
                                         Padding="{TemplateBinding Padding}">
                                     <ContentPresenter x:Name="ContentSite"
@@ -102,7 +102,7 @@
                     <StackPanel Margin="15">
 
                         <!-- [SECTION: Structure Mode] -->
-                        <CheckBox x:Name="EnableAutoSortCheckBox" Content="Enable Auto Sorting (Built-in Categories)"
+                        <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="EnableAutoSortCheckBox" Content="Enable Auto Sorting (Built-in Categories)"
                                   IsChecked="{Binding IsCategorySortEnabled, Mode=TwoWay}"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
                                   FontSize="{Binding StandardFontSize, FallbackValue=13}"
@@ -115,7 +115,7 @@
                         <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
 
                         <!-- [SECTION: Filtering Toggle] -->
-                        <CheckBox x:Name="EnableFiltersCheckBox" Content="Enable Base Filter"
+                        <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="EnableFiltersCheckBox" Content="Enable Base Filter"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
                                   FontSize="{Binding StandardFontSize, FallbackValue=13}"
                                   Margin="0,0,0,4"/>
@@ -130,19 +130,19 @@
                                    FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
                                    IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"/>
                         <WrapPanel IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}" Margin="0,0,0,15">
-                            <CheckBox x:Name="ChkRegionWorld" Content="World" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionWorld" Content="World" Margin="0,0,15,6"
                                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox x:Name="ChkRegionUS" Content="US" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionUS" Content="US" Margin="0,0,15,6"
                                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox x:Name="ChkRegionJapan" Content="Japan" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionJapan" Content="Japan" Margin="0,0,15,6"
                                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox x:Name="ChkRegionAsia" Content="Asia" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionAsia" Content="Asia" Margin="0,0,15,6"
                                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox x:Name="ChkRegionEurope" Content="Europe" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionEurope" Content="Europe" Margin="0,0,15,6"
                                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox x:Name="ChkRegionOther" Content="Other" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionOther" Content="Other" Margin="0,0,15,6"
                                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox x:Name="ChkRegionUnspecified" Content="Unspecified" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionUnspecified" Content="Unspecified" Margin="0,0,15,6"
                                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
                         </WrapPanel>
                         <!-- [END SECTION: Region Row] -->
@@ -164,22 +164,22 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <CheckBox Grid.Row="0" Grid.Column="0" x:Name="ChkGenreShooter" Content="Shooter" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="0" Grid.Column="0" x:Name="ChkGenreShooter" Content="Shooter" Margin="0,0,15,6"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox Grid.Row="0" Grid.Column="1" x:Name="ChkGenreFighter" Content="Fighter" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="0" Grid.Column="1" x:Name="ChkGenreFighter" Content="Fighter" Margin="0,0,15,6"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox Grid.Row="0" Grid.Column="2" x:Name="ChkGenrePlatform" Content="Platform" Margin="0,0,15,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="0" Grid.Column="2" x:Name="ChkGenrePlatform" Content="Platform" Margin="0,0,15,6"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox Grid.Row="0" Grid.Column="3" x:Name="ChkGenrePuzzle" Content="Puzzle" Margin="0,0,0,6"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="0" Grid.Column="3" x:Name="ChkGenrePuzzle" Content="Puzzle" Margin="0,0,0,6"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
 
-                            <CheckBox Grid.Row="1" Grid.Column="0" x:Name="ChkGenreSports" Content="Sports" Margin="0,0,15,0"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="1" Grid.Column="0" x:Name="ChkGenreSports" Content="Sports" Margin="0,0,15,0"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox Grid.Row="1" Grid.Column="1" x:Name="ChkGenreBallPaddle" Content="Ball &amp; Paddle" Margin="0,0,15,0"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="1" Grid.Column="1" x:Name="ChkGenreBallPaddle" Content="Ball &amp; Paddle" Margin="0,0,15,0"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox Grid.Row="1" Grid.Column="2" x:Name="ChkGenreMaze" Content="Maze" Margin="0,0,15,0"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="1" Grid.Column="2" x:Name="ChkGenreMaze" Content="Maze" Margin="0,0,15,0"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                            <CheckBox Grid.Row="1" Grid.Column="3" x:Name="ChkGenreDriving" Content="Driving"
+                            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="1" Grid.Column="3" x:Name="ChkGenreDriving" Content="Driving"
                                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
                         </Grid>
                         <!-- [END SECTION: Genre Row] -->
@@ -195,7 +195,7 @@
                                 <TextBlock Text="VARIANT TYPE" FontWeight="Bold" Margin="0,0,0,6"
                                            Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
                                            FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                                <CheckBox x:Name="IncludeRevisionsCheckBox" Content="Include Revisions"
+                                <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="IncludeRevisionsCheckBox" Content="Include Revisions"
                                           IsChecked="{Binding SortIncludeRevisions, Mode=TwoWay}"
                                           IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                           Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
@@ -207,9 +207,9 @@
                                            Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
                                            FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
                                 <WrapPanel IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}">
-                                    <CheckBox x:Name="ChkPlayers2" Content="2 Player" Margin="0,0,15,6"
+                                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkPlayers2" Content="2 Player" Margin="0,0,15,6"
                                               Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
-                                    <CheckBox x:Name="ChkPlayers4" Content="4 Player" Margin="0,0,15,6"
+                                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkPlayers4" Content="4 Player" Margin="0,0,15,6"
                                               Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
                                 </WrapPanel>
                             </StackPanel>
@@ -223,55 +223,7 @@
                                IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"/>
                         <ComboBox x:Name="CmbManufacturer" Height="25" HorizontalAlignment="Left" Width="220" Margin="0,0,0,15"
                               IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
-                              Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}">
-                            <ComboBox.Template>
-                                <ControlTemplate TargetType="ComboBox">
-                                    <Grid>
-                                        <ToggleButton x:Name="ToggleButton" Focusable="false"
-                                        IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press">
-                                            <ToggleButton.Template>
-                                                <ControlTemplate TargetType="ToggleButton">
-                                                    <Border Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
-                                                        BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"
-                                                        BorderThickness="1">
-                                                        <Path x:Name="Arrow"
-                                                          Fill="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"
-                                                          HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Data="M 0 0 L 4 4 L 8 0 Z"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </ToggleButton.Template>
-                                        </ToggleButton>
-                                        <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False"
-                                        Content="{TemplateBinding SelectionBoxItem}" Margin="8,0,25,0"
-                                        VerticalAlignment="Center" HorizontalAlignment="Left" />
-                                        <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
-                                            <Grid x:Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                                <Border x:Name="DropDownBorder"
-                                                    Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
-                                                    BorderThickness="1"
-                                                    BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                                <ScrollViewer Margin="1" SnapsToDevicePixels="True">
-                                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
-                                                </ScrollViewer>
-                                            </Grid>
-                                        </Popup>
-                                    </Grid>
-                                </ControlTemplate>
-                            </ComboBox.Template>
-                            <ComboBox.ItemContainerStyle>
-                                <Style TargetType="ComboBoxItem">
-                                    <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
-                                    <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
-                                    <Setter Property="Padding" Value="8,4"/>
-                                    <Setter Property="BorderThickness" Value="1"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsHighlighted" Value="True">
-                                            <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
-                                            <Setter Property="Foreground" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ComboBox.ItemContainerStyle>
+                              Style="{StaticResource ChromeComboBoxStyle}">
                             <ComboBoxItem Content="Any" IsSelected="True"/>
                             <ComboBoxItem Content="Atari"/>
                             <ComboBoxItem Content="Bally"/>
@@ -307,7 +259,7 @@
                             <Run Text="MINIMUM RATING: "/>
                             <Run Text="{Binding Value, ElementName=RatingSlider, Mode=OneWay}"/>
                         </TextBlock>
-                        <Slider x:Name="RatingSlider" Minimum="0" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
+                        <Slider Style="{StaticResource ChromeSliderStyle}" x:Name="RatingSlider" Minimum="0" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
                                 IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                 Margin="0,0,0,4"/>
                         <TextBlock Text="Sets the Lower Limit"
@@ -320,7 +272,7 @@
                             <Run Text="MAXIMUM RATING: "/>
                             <Run Text="{Binding Value, ElementName=RatingMaxSlider, Mode=OneWay}"/>
                         </TextBlock>
-                        <Slider x:Name="RatingMaxSlider" Minimum="0" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
+                        <Slider Style="{StaticResource ChromeSliderStyle}" x:Name="RatingMaxSlider" Minimum="0" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
                                 IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                 Margin="0,0,0,4"/>
                         <TextBlock Text="Sets the Upper Limit"
@@ -337,7 +289,7 @@
                             <Run Text="MINIMUM YEAR: "/>
                             <Run Text="{Binding Value, ElementName=YearMinSlider, Mode=OneWay}"/>
                         </TextBlock>
-                        <Slider x:Name="YearMinSlider" Minimum="1970" Maximum="2026" TickFrequency="1" IsSnapToTickEnabled="True"
+                        <Slider Style="{StaticResource ChromeSliderStyle}" x:Name="YearMinSlider" Minimum="1970" Maximum="2026" TickFrequency="1" IsSnapToTickEnabled="True"
                                 IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                 Margin="0,0,0,4"/>
                         <TextBlock Text="Sets the Lower Limit"
@@ -350,7 +302,7 @@
                             <Run Text="MAXIMUM YEAR: "/>
                             <Run Text="{Binding Value, ElementName=YearMaxSlider, Mode=OneWay}"/>
                         </TextBlock>
-                        <Slider x:Name="YearMaxSlider" Minimum="1970" Maximum="2026" TickFrequency="1" IsSnapToTickEnabled="True"
+                        <Slider Style="{StaticResource ChromeSliderStyle}" x:Name="YearMaxSlider" Minimum="1970" Maximum="2026" TickFrequency="1" IsSnapToTickEnabled="True"
                                 IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                 Margin="0,0,0,4"/>
                         <TextBlock Text="Sets the Upper Limit"

@@ -19,18 +19,15 @@ namespace ArcadeStick.Models
         public int ActiveHeight { get; set; } = 0;
 
         // Flat theme values. Defaults must equal the ConfigurationSettings initializers (the one source of defaults),
-        // so a theme saved without a key loads the same value Restore Defaults gives. OptionsBg is the known
-        // exception ("" here, "#FF000000" in ConfigurationSettings) until Manage Playlists stops using the blank value.
+        // so a theme saved without a key loads the same value Restore Defaults gives.
         // GlobalThemeResources also reuses this class as the Theme Builder's close-revert snapshot of the Global values.
-        public string OptionsBg { get; set; } = "";
+        public string OptionsBg { get; set; } = "#FF000000";
         public string BorderColorFramework { get; set; } = "#FF3A3A3C";
         public string ScrollTrackColor { get; set; } = "#FF000000";
         public string ScrollTrackHoverColor { get; set; } = "#FF1C1C1E";
         public string ScrollThumbColor { get; set; } = "#FF2C2C2E";
         public string ScrollThumbHoverColor { get; set; } = "#FF3A3A3C";
         public string ScrollThumbDragColor { get; set; } = "#FF00D4FF";
-        public string FolderSelectedColorHex { get; set; } = "#FF00D4FF";
-        public string FolderSelectedBgColorHex { get; set; } = "#FF2C2C2E";
         public int TabFontSize { get; set; } = 12;
         public string TabColorHex { get; set; } = "#FFA0A0A2";
         public string TabBgColorHex { get; set; } = "Transparent";
@@ -43,8 +40,6 @@ namespace ArcadeStick.Models
         public string SubHeaderColorHex { get; set; } = "#FF00D4FF";
         public int StandardFontSize { get; set; } = 13;
         public string StandardColorHex { get; set; } = "#FFF2F2F7";
-        public int InputFontSize { get; set; } = 13;
-        public string InputColorHex { get; set; } = "#FFFFFFFF";
         public string SeparatorColorHex { get; set; } = "#FF2C2C2E";
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;

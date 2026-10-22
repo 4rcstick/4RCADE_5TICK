@@ -42,8 +42,6 @@ namespace ArcadeStick.Views
         private bool _suppressSubHeaderColorSync;
         private bool _suppressStandardColorSync;
         private bool _suppressTabColorSync;
-        private bool _suppressFolderSelectedColorSync;
-        private bool _suppressFolderSelectedBgColorSync;
         private bool _suppressContextMenuFontColorSync;
         private bool _suppressContextMenuIconColorSync;
         private bool _suppressContextMenuBgColorSync;
@@ -460,11 +458,9 @@ namespace ArcadeStick.Views
             }
         }
 
-        // FrameworkBorderColorPicker_ColorChanged/TxtFrameworkBorderColorHex_LostFocus removed - no UI
-        // field for BorderColorFramework currently exists (removed from Border and Line Options during
-        // the Theme Builder rework). BorderColorFramework still works everywhere at runtime; it just
-        // can't be edited from the Theme Builder until a new field is added. See _suppressFrameworkBorderColorSync
-        // declaration too if it's otherwise unused after this.
+        // BorderColorFramework has no field: the chrome borders it drove now use the fixed ChromeBorder palette
+        // color. Only the main window's context menu border still reads it (through ThemeBorderColor) until the
+        // Global tab's Context Menus pass gives the menus their own border color.
 
         private void SeparatorColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
@@ -760,48 +756,6 @@ namespace ArcadeStick.Views
             }
         }
 
-        private void FolderSelectedColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressFolderSelectedColorSync) return;
-            var newColor = FolderSelectedColorPicker.SelectedColor;
-            _suppressFolderSelectedColorSync = true;
-            TxtFolderSelectedColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressFolderSelectedColorSync = false;
-        }
-
-        private void TxtFolderSelectedColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressFolderSelectedColorSync) return;
-            var parsedColor = TryParseColor(TxtFolderSelectedColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressFolderSelectedColorSync = true;
-                FolderSelectedColorPicker.SelectedColor = parsedColor.Value;
-                _suppressFolderSelectedColorSync = false;
-            }
-        }
-
-        private void FolderSelectedBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressFolderSelectedBgColorSync) return;
-            var newColor = FolderSelectedBgColorPicker.SelectedColor;
-            _suppressFolderSelectedBgColorSync = true;
-            TxtFolderSelectedBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressFolderSelectedBgColorSync = false;
-        }
-
-        private void TxtFolderSelectedBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressFolderSelectedBgColorSync) return;
-            var parsedColor = TryParseColor(TxtFolderSelectedBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressFolderSelectedBgColorSync = true;
-                FolderSelectedBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressFolderSelectedBgColorSync = false;
-            }
-        }
-
         // Normalizes a hex color string to #RRGGBB (uppercase, # prefix, stripping alpha if present).
         // Any recognized WPF named color (Transparent, Red, DodgerBlue, etc.) passes through as its proper
         // canonical name instead of getting a "#" incorrectly prepended - mirrors SafeConvertToBrush's
@@ -881,9 +835,7 @@ namespace ArcadeStick.Views
                     _suppressOptionsColorSync = false;
                 }
             }
-            // Framework Border Color sync removed - no UI field currently exists (see note near
-            // SeparatorColorPicker_ColorChanged). _settings.BorderColorFramework is untouched here,
-            // so it still loads correctly for runtime use, it just isn't reflected in any control.
+            // BorderColorFramework has no field (see the note near SeparatorColorPicker_ColorChanged).
             
                         
             TxtContextMenuFontColorHex.Text = FormatHexCode(_settings.ContextMenuFontColorHex);
@@ -1056,7 +1008,7 @@ namespace ArcadeStick.Views
 
             // Framework Border Color / Border Width / Border Curve sync removed - no UI fields exist for
             // any of these anymore (BorderWidthValue/BorderCurveValue retired entirely; BorderColorFramework
-            // has no field yet, see earlier note).
+            // has no field, see the earlier note).
             TxtSeparatorColorHex.Text = FormatHexCode(_settings.SeparatorColorHex);
             {
                 var parsedColor = TryParseColor(TxtSeparatorColorHex.Text);
@@ -1069,26 +1021,6 @@ namespace ArcadeStick.Views
             }           
 
             // Typography & State Colors (Filtered through Gatekeeper)
-            TxtFolderSelectedColorHex.Text = FormatHexCode(_settings.FolderSelectedColorHex);
-            {
-                var parsedColor = TryParseColor(TxtFolderSelectedColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressFolderSelectedColorSync = true;
-                    FolderSelectedColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressFolderSelectedColorSync = false;
-                }
-            }
-            TxtFolderSelectedBgColorHex.Text = FormatHexCode(_settings.FolderSelectedBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtFolderSelectedBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressFolderSelectedBgColorSync = true;
-                    FolderSelectedBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressFolderSelectedBgColorSync = false;
-                }
-            }
             
             TxtTabFontSize.Text = _settings.TabFontSize.ToString();
             TxtTabColorHex.Text = FormatHexCode(_settings.TabColorHex);
@@ -1164,8 +1096,6 @@ namespace ArcadeStick.Views
                     _suppressStandardColorSync = false;
                 }
             }
-            // TxtInputFontSize.Text = _settings.InputFontSize.ToString();
-            // TxtInputColorHex.Text = FormatHexCode(_settings.InputColorHex);
 
             // Button Configs (Filtered through Gatekeeper)
             TxtBtnBgColorHex.Text = FormatHexCode(_settings.BtnBgColorHex);
@@ -1330,8 +1260,6 @@ namespace ArcadeStick.Views
                     BorderWidthValue = _settings.BorderWidthValue,
                     BorderCurveValue = _settings.BorderCurveValue,
                     SeparatorColorHex = _settings.SeparatorColorHex,
-                    FolderSelectedColorHex = _settings.FolderSelectedColorHex,
-                    FolderSelectedBgColorHex = _settings.FolderSelectedBgColorHex,
                     TabFontSize = _settings.TabFontSize,
                     TabColorHex = _settings.TabColorHex,
                     TabBgColorHex = _settings.TabBgColorHex,
@@ -1343,8 +1271,6 @@ namespace ArcadeStick.Views
                     SubHeaderColorHex = _settings.SubHeaderColorHex,
                     StandardFontSize = _settings.StandardFontSize,
                     StandardColorHex = _settings.StandardColorHex,
-                    InputFontSize = _settings.InputFontSize,
-                    InputColorHex = _settings.InputColorHex,
                     ContextMenuFontColorHex = _settings.ContextMenuFontColorHex,
                     ContextMenuIconColorHex = _settings.ContextMenuIconColorHex,
                     ContextMenuBgColorHex = _settings.ContextMenuBgColorHex,
@@ -1537,8 +1463,6 @@ namespace ArcadeStick.Views
             _settings.SeparatorColorHex = NormalizeHexInput(TxtSeparatorColorHex.Text);
             
 
-            _settings.FolderSelectedColorHex = NormalizeHexInput(TxtFolderSelectedColorHex.Text);
-            _settings.FolderSelectedBgColorHex = NormalizeHexInput(TxtFolderSelectedBgColorHex.Text);
             
 
             if (int.TryParse(TxtTabFontSize.Text, out int tSize)) _settings.TabFontSize = tSize;
@@ -1552,8 +1476,6 @@ namespace ArcadeStick.Views
             _settings.SubHeaderColorHex = NormalizeHexInput(TxtSubHeaderColorHex.Text);
             if (int.TryParse(TxtStandardFontSize.Text, out int sSize)) _settings.StandardFontSize = sSize;
             _settings.StandardColorHex = NormalizeHexInput(TxtStandardColorHex.Text);
-            // if (int.TryParse(TxtInputFontSize.Text, out int iSize)) _settings.InputFontSize = iSize;
-            // _settings.InputColorHex = TxtInputColorHex.Text;
 
 
             

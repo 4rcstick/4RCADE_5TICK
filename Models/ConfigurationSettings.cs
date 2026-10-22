@@ -130,8 +130,6 @@ namespace ArcadeStick.Models
         // =========================================================================
         // 🏁 START: SECTION 4 TYPOGRAPHY AND SUB-INTERFACE SPECIFICATION RULES
         // =========================================================================
-        public string FolderSelectedColorHex { get; set; } = "#FF000000";
-        public string FolderSelectedBgColorHex { get; set; } = "#FF00D4FF";
         public int TabFontSize { get; set; } = 12;
         public string TabColorHex { get; set; } = "#FFA0A0A2";
         public string TabBgColorHex { get; set; } = "Transparent";
@@ -144,8 +142,6 @@ namespace ArcadeStick.Models
         public string SubHeaderColorHex { get; set; } = "#FF00D4FF";
         public int StandardFontSize { get; set; } = 13;
         public string StandardColorHex { get; set; } = "#FFF2F2F7";
-        public int InputFontSize { get; set; } = 13;
-        public string InputColorHex { get; set; } = "#FFFFFFFF";
         public string SeparatorColorHex { get; set; } = "#FF2C2C2E";
         public double BorderWidthValue { get; set; } = 1;
         public double BorderCurveValue { get; set; } = 0;
@@ -373,8 +369,6 @@ namespace ArcadeStick.Models
             this.ScrollThumbColor = source.ScrollThumbColor;
             this.ScrollThumbHoverColor = source.ScrollThumbHoverColor;
             this.ScrollThumbDragColor = source.ScrollThumbDragColor;
-            this.FolderSelectedColorHex = source.FolderSelectedColorHex;
-            this.FolderSelectedBgColorHex = source.FolderSelectedBgColorHex;
             this.FavoritesColorFile = source.FavoritesColorFile;
             this.RecentlyPlayedColorFile = source.RecentlyPlayedColorFile;
             this.MostPlayedColorFile = source.MostPlayedColorFile;
@@ -391,8 +385,6 @@ namespace ArcadeStick.Models
             this.SubHeaderColorHex = source.SubHeaderColorHex;
             this.StandardFontSize = source.StandardFontSize;
             this.StandardColorHex = source.StandardColorHex;
-            this.InputFontSize = source.InputFontSize;
-            this.InputColorHex = source.InputColorHex;
             this.SeparatorColorHex = source.SeparatorColorHex;
             this.BorderWidthValue = source.BorderWidthValue;
             this.BorderCurveValue = source.BorderCurveValue;

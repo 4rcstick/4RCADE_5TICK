@@ -34,9 +34,7 @@
             <!-- Displays the current preview-type priority order; selection drives BtnMediaUp/Down -->
             <ListBox x:Name="LstMediaOrder" Grid.Column="0" 
                      Height="220" VerticalAlignment="Top"
-                     Background="#000000" Foreground="#F2F2F7" 
-                     BorderBrush="#3A3A3C" BorderThickness="1" 
-                     FontSize="14" FontWeight="Bold" Padding="5"/>
+                     Style="{StaticResource ChromeListBoxStyle}" FontWeight="Bold" Padding="5"/>
 
             <StackPanel Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Left">
                 <!-- Reorder buttons: move the selected list item up/down -->

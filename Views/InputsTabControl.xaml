@@ -12,7 +12,7 @@
             <!-- Gamepad polling toggle + WGIService tuning values (device ID, deadzone, repeat timing, nav mode) -->
             <TextBlock Text="SUBSYSTEM CONFIGURATION" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,12"/>
 
-            <CheckBox x:Name="ChkGamepad" Content="Enable Gamepad Polling Subsystem" Foreground="#F2F2F7" FontSize="13" IsChecked="True" Margin="0,0,0,8"/>
+            <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkGamepad" Content="Enable Gamepad Polling Subsystem" Foreground="#F2F2F7" FontSize="13" IsChecked="True" Margin="0,0,0,8"/>
 
             <!-- Which physical gamepad index to track (see WGIService.AssignTrackedGamepad) -->
             <Grid Margin="0,0,0,10">
@@ -21,7 +21,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="DirectInput Device ID:" Foreground="{Binding StandardColorHex, FallbackValue=#00D4FF}" VerticalAlignment="Center" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
-                <TextBox Grid.Column="1" x:Name="TxtDeviceID" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Width="60" HorizontalAlignment="Left"/>
+                <TextBox Grid.Column="1" x:Name="TxtDeviceID" Text="0" Style="{StaticResource ChromeTextBoxStyle}" Padding="4" Width="60" HorizontalAlignment="Left"/>
             </Grid>
 
             <!-- Analog stick deadzone threshold, as a percentage -->
@@ -31,7 +31,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Joystick Deadzone (%):" Foreground="{Binding StandardColorHex, FallbackValue=#00D4FF}" VerticalAlignment="Center" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
-                <TextBox Grid.Column="1" x:Name="TxtJoystickDeadzone" Text="15" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Width="60" HorizontalAlignment="Left"/>
+                <TextBox Grid.Column="1" x:Name="TxtJoystickDeadzone" Text="15" Style="{StaticResource ChromeTextBoxStyle}" Padding="4" Width="60" HorizontalAlignment="Left"/>
             </Grid>
 
             <!-- Delay before held-direction repeat navigation kicks in -->
@@ -41,7 +41,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Joystick Initial Delay (ms):" Foreground="{Binding StandardColorHex, FallbackValue=#00D4FF}" VerticalAlignment="Center" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
-                <TextBox Grid.Column="1" x:Name="TxtJoystickInitialDelay" Text="500" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Width="60" HorizontalAlignment="Left"/>
+                <TextBox Grid.Column="1" x:Name="TxtJoystickInitialDelay" Text="500" Style="{StaticResource ChromeTextBoxStyle}" Padding="4" Width="60" HorizontalAlignment="Left"/>
             </Grid>
 
             <!-- Interval between repeat-navigation ticks once held-direction repeat is active -->
@@ -51,7 +51,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Joystick Repeat Delay (ms):" Foreground="{Binding StandardColorHex, FallbackValue=#00D4FF}" VerticalAlignment="Center" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
-                <TextBox Grid.Column="1" x:Name="TxtJoystickDelay" Text="150" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" Width="60" HorizontalAlignment="Left"/>
+                <TextBox Grid.Column="1" x:Name="TxtJoystickDelay" Text="150" Style="{StaticResource ChromeTextBoxStyle}" Padding="4" Width="60" HorizontalAlignment="Left"/>
             </Grid>
 
             <!-- D-Pad / Analog / Both, controls which inputs ParseNavigation listens to -->
@@ -61,7 +61,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Navigation Mode:" Foreground="{Binding StandardColorHex, FallbackValue=#00D4FF}" VerticalAlignment="Center" FontSize="{Binding StandardFontSize, FallbackValue=12}"/>
-                <ComboBox Grid.Column="1" x:Name="CboNavigationMode" Width="150" Height="25" HorizontalAlignment="Left">
+                <ComboBox Style="{StaticResource ChromeComboBoxStyle}" Grid.Column="1" x:Name="CboNavigationMode" Width="150" Height="25" HorizontalAlignment="Left">
                     <ComboBoxItem Content="D-Pad &amp; Analog" IsSelected="True"/>
                     <ComboBoxItem Content="D-Pad Only"/>
                     <ComboBoxItem Content="Analog Only"/>

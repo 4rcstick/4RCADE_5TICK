@@ -185,19 +185,6 @@ namespace ArcadeStick
         private string? _lastMainBackgroundKey;
         private string? _lastMainBackgroundColor;
 
-        // App-wide resource key for the Main Window Background color, for windows whose DataContext is
-        // ConfigurationSettings (no change notification) and so cannot bind to ThemeMainColor. They use
-        // {DynamicResource MainBackgroundBrush}, which follows every replacement of the resource live.
-        public const string MainBackgroundBrushKey = "MainBackgroundBrush";
-
-        // Replaces the shared MainBackgroundBrush resource with the given color (frozen; invalid hex falls back to gray)
-        private static void UpdateMainBackgroundBrush(string colorHex)
-        {
-            var brush = MainViewModel.SafeConvertToBrush(colorHex);
-            if (!brush.IsFrozen) brush.Freeze();
-            Application.Current.Resources[MainBackgroundBrushKey] = brush;
-        }
-
         // [SECTION: Theme Builder Alignment Guides]
         // Draws (or hides, when info is null) four 1px guide lines at the selected layer's pending rect.
         // Vertical lines span the full canvas height, horizontal lines the full canvas width. Right and
@@ -320,14 +307,12 @@ namespace ArcadeStick
             }
 
             // Main window background color: kept apart from the wallpaper key so a color change never touches the video.
-            // Re-raises ThemeMainColor (main window fill, its popups, the no-art banner and spin card) and updates the
-            // shared app brush the other windows use (Theme Builder picker popups, Sorting and Manage Playlists windows).
+            // Re-raises ThemeMainColor (main window fill, its popups, the no-art banner and spin card).
             string mainBackgroundColor = mainBackgroundEntry?.BgColorHex ?? Models.LayerRegistry.DefaultMainBackgroundColorHex;
             if (mainBackgroundColor != _lastMainBackgroundColor)
             {
                 _lastMainBackgroundColor = mainBackgroundColor;
                 _viewModel.RefreshMainBackgroundColor();
-                UpdateMainBackgroundBrush(mainBackgroundColor);
             }
 
             // Search & Buttons: re-raise the label, box and button bindings and repaint the buttons' resting

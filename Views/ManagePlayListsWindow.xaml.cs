@@ -17,7 +17,7 @@ namespace ArcadeStick.Views
         private bool _suppressPlaylistColorSync;
 
         // [SECTION: Constructor & Playlist Context Setup]
-        // Ensures the playlists config folder exists, applies theme colors/fonts, populates the folder
+        // Ensures the playlists config folder exists (colors come from the Chrome Palette in XAML), populates the folder
         // dropdown, wires event handlers, and - if opened with a game selected that already belongs to a
         // visible custom folder - pre-selects that folder so the dialog opens in edit mode for it.
         public ManagePlayListsWindow(MainViewModel viewModel)
@@ -34,7 +34,6 @@ namespace ArcadeStick.Views
                 Directory.CreateDirectory(_playlistsDir);
             }
 
-            ApplyThemeConfigurations();
             InitializeDropdown();
             HookEventHandlers();
 
@@ -60,43 +59,6 @@ namespace ArcadeStick.Views
             Loaded += (s, e) => FolderNameTextBox.Focus();
         }
         // [END SECTION: Constructor & Playlist Context Setup]
-
-        // [SECTION: Theme Application]
-        // Applies the current theme's background color (OptionsBg, or the Main Window Background layer's color
-        // when OptionsBg is unset) and input font size/color to this dialog's text fields.
-        private void ApplyThemeConfigurations()
-        {
-            // Fallback rule mapping: inherit the Main Window Background layer's color (the shared MainBackgroundBrush
-            // resource, which follows it live) when OptionsBg is blank
-            if (string.IsNullOrWhiteSpace(_viewModel.Configuration.OptionsBg))
-            {
-                SetResourceReference(BackgroundProperty, MainWindow.MainBackgroundBrushKey);
-            }
-            else
-            {
-                try
-                {
-                    this.Background = (SolidColorBrush)new BrushConverter().ConvertFromString(_viewModel.Configuration.OptionsBg)!;
-                }
-                catch
-                {
-                    this.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E1E24"));
-                }
-            }
-
-            // Apply global user typography size definitions
-            FolderNameTextBox.FontSize = _viewModel.Configuration.InputFontSize;
-            HexColorTextBox.FontSize = _viewModel.Configuration.InputFontSize;
-
-            try
-            {
-                var fontBrush = (SolidColorBrush)new BrushConverter().ConvertFromString(_viewModel.Configuration.InputColorHex)!;
-                FolderNameTextBox.Foreground = fontBrush;
-                HexColorTextBox.Foreground = fontBrush;
-            }
-            catch { }
-        }
-        // [END SECTION: Theme Application]
 
         // [SECTION: Dropdown Initialization]
         // Resets FolderComboBox to "-- Create New Custom Folder --" plus every *.cfg playlist on disk,

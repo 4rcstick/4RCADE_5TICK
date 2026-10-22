@@ -6,7 +6,7 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         WindowStyle="ToolWindow"
-        Background="#FF000000">
+        Background="{StaticResource ChromeWindowBg}">
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -15,8 +15,8 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="ROM Copy Destination Folder" FontSize="14" FontWeight="Bold"
-                   Foreground="#FFFFFFFF" Margin="0,0,0,10"/>
+        <TextBlock Grid.Row="0" Text="ROM Copy Destination Folder" FontWeight="Bold" Margin="0,0,0,10"
+                   Foreground="{DynamicResource Global.Font.Header.Color}" FontSize="{DynamicResource Global.Font.Header.Size}"/>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -24,25 +24,26 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBox x:Name="DestinationPathTextBox" Grid.Column="0"
-                     Background="#FF1C1C1E" Foreground="#FFFFFFFF"
-                     BorderBrush="#FF3A3A3C" BorderThickness="1"
-                     Padding="6,4" VerticalContentAlignment="Center"
-                     FontSize="13" Margin="0,0,8,0"/>
+                     Style="{StaticResource ChromeTextBoxStyle}"
+                     Padding="6,4" VerticalContentAlignment="Center" Margin="0,0,8,0"/>
             <Button x:Name="BrowseButton" Grid.Column="1" Content="Browse..." Padding="12,4"
                     Click="BrowseButton_Click"
-                    Background="#FF1C1C1E" Foreground="#FFFFFFFF"
-                    BorderBrush="#FF3A3A3C" BorderThickness="1"/>
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{DynamicResource Global.Button.Bg}" Foreground="{DynamicResource Global.Button.Text}"
+                    BorderBrush="{DynamicResource Global.Button.BorderColor}" BorderThickness="{DynamicResource Global.Button.BorderSize}"/>
         </Grid>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button x:Name="CancelButton" Content="Cancel" Width="80" Padding="0,4" Margin="0,0,8,0"
                     Click="CancelButton_Click"
-                    Background="#FF1C1C1E" Foreground="#FFFFFFFF"
-                    BorderBrush="#FF3A3A3C" BorderThickness="1"/>
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{DynamicResource Global.Button.Bg}" Foreground="{DynamicResource Global.Button.Text}"
+                    BorderBrush="{DynamicResource Global.Button.BorderColor}" BorderThickness="{DynamicResource Global.Button.BorderSize}"/>
             <Button x:Name="SaveButton" Content="Save" Width="80" Padding="0,4"
                     Click="SaveButton_Click"
-                    Background="#FF1C1C1E" Foreground="#FFFFFFFF"
-                    BorderBrush="#FF3A3A3C" BorderThickness="1"/>
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{DynamicResource Global.Button.Bg}" Foreground="{DynamicResource Global.Button.Text}"
+                    BorderBrush="{DynamicResource Global.Button.BorderColor}" BorderThickness="{DynamicResource Global.Button.BorderSize}"/>
         </StackPanel>
     </Grid>
 </Window>

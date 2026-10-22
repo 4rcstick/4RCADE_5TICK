@@ -8,7 +8,7 @@
         Title="4RCADE 5TICK Options" Height="700" Width="680"
         WindowStartupLocation="CenterOwner" 
         Background="{Binding OptionsMenuBgColorHex, FallbackValue=#1C1C1E}" 
-        BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" 
+        BorderBrush="{StaticResource ChromeBorder}"
         BorderThickness="1">
 
     <Grid Margin="15">

@@ -10,45 +10,14 @@
         Width="500" 
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        Background="#1E1E24"
-        BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}"
+        Background="{StaticResource ChromeWindowBg}"
+        BorderBrush="{StaticResource ChromeBorder}"
         BorderThickness="1"
-        Foreground="White">
+        Foreground="{StaticResource ChromeText}">
 
     <!-- This window handles both creating a new custom folder (playlist) and editing/deleting an
          existing one - which mode is active is driven by FolderComboBox selection in code-behind. -->
     <Window.Resources>
-        <!-- [SECTION: Custom ComboBoxItem Style] -->
-        <!-- Themed dropdown item style used by FolderComboBox below -->
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Padding" Value="8,5"/>
-            <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2D2D35}"/>
-            <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=White}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBoxItem">
-                        <Border x:Name="ItemBorder" 
-                                Background="{TemplateBinding Background}" 
-                                BorderThickness="0" 
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
-                                <Setter Property="Foreground" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
-                                <Setter Property="Foreground" Value="{Binding DataContext.TabActiveColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#000000}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <!-- [END SECTION: Custom ComboBoxItem Style] -->
-
         <!-- [SECTION: Standard Button Style] -->
         <!-- Shared button style for this window's action buttons (Confirm/Cancel/Delete/Remove) -->
         <Style x:Key="StandardButtonStyle" TargetType="Button">
@@ -96,7 +65,7 @@
     </Window.Resources>
 
     <Border Margin="20" 
-            BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" 
+            BorderBrush="{StaticResource ChromeBorder}" 
             BorderThickness="1" 
             Padding="20">
         <Grid>
@@ -110,74 +79,13 @@
             </Grid.RowDefinitions>
 
             <!-- [SECTION: Folder Picker ComboBox] -->
-            <!-- Custom-templated dropdown: "Create New Folder..." plus existing custom folders.
+            <!-- Chrome Palette dropdown: "Create New Folder..." plus existing custom folders.
                  Selection here drives whether the window is in create-new vs edit-existing mode. -->
             <ComboBox x:Name="FolderComboBox" 
                   Grid.Row="0" 
                   Height="35" 
                   Margin="0,0,0,20"
-                  Background="{Binding BtnBgColorHex, FallbackValue=#2D2D35}" 
-                  Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}">
-                <ComboBox.Template>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid>
-                            <ToggleButton x:Name="ToggleButton" 
-                                      Focusable="false"
-                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" 
-                                      ClickMode="Press">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border x:Name="Border" 
-                                            Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2D2D35}" 
-                                            BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" 
-                                            BorderThickness="1">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition />
-                                                    <ColumnDefinition Width="30" />
-                                                </Grid.ColumnDefinitions>
-                                                <Path x:Name="Arrow" 
-                                                  Grid.Column="1" 
-                                                  Fill="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}" 
-                                                  HorizontalAlignment="Center" 
-                                                  VerticalAlignment="Center" 
-                                                  Data="M 0 0 L 4 4 L 8 0 Z" />
-                                            </Grid>
-                                        </Border>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-                            <ContentPresenter x:Name="ContentSite" 
-                                          IsHitTestVisible="False" 
-                                          Content="{TemplateBinding SelectionBoxItem}"
-                                          ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                          ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                                          Margin="10,0,30,0" 
-                                          VerticalAlignment="Center" 
-                                          HorizontalAlignment="Left" />
-                            <Popup x:Name="Popup" 
-                               Placement="Bottom" 
-                               IsOpen="{TemplateBinding IsDropDownOpen}" 
-                               AllowsTransparency="True" 
-                               Focusable="False" 
-                               PopupAnimation="Slide">
-                                <Grid x:Name="DropDown" 
-                                  SnapsToDevicePixels="True" 
-                                  MinWidth="{TemplateBinding ActualWidth}" 
-                                  MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                    <Border x:Name="DropDownBorder" 
-                                        Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2D2D35}" 
-                                        BorderThickness="1" 
-                                        BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" />
-                                    <ScrollViewer Margin="4" SnapsToDevicePixels="True">
-                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
-                                    </ScrollViewer>
-                                </Grid>
-                            </Popup>
-                        </Grid>
-                    </ControlTemplate>
-                </ComboBox.Template>
-            </ComboBox>
+                  Style="{StaticResource ChromeComboBoxStyle}"/>
             <!-- [END SECTION: Folder Picker ComboBox] -->
 
             <!-- [SECTION: Folder Name Input] -->
@@ -191,8 +99,7 @@
                        Visibility="{Binding Visibility, ElementName=FolderNameTextBox}"/>
                 <TextBox x:Name="FolderNameTextBox" 
                      Height="35" 
-                     Background="Black" 
-                     Foreground="White" 
+                     Style="{StaticResource ChromeTextBoxStyle}" 
                      VerticalContentAlignment="Center"
                      Padding="5,0"/>
             </StackPanel>
@@ -208,13 +115,16 @@
                         <ColumnDefinition Width="2"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="35" Height="35" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1" Margin="0">
-                        <colorpicker:PortableColorPicker x:Name="PlaylistColorPicker" Width="35" Height="35" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlaylistColorPicker_ColorChanged"/>
+                    <Border Grid.Column="0" Width="35" Height="35" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Margin="0">
+                        <colorpicker:PortableColorPicker x:Name="PlaylistColorPicker" Width="35" Height="35" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlaylistColorPicker_ColorChanged">
+                            <colorpicker:PortableColorPicker.Resources>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                            </colorpicker:PortableColorPicker.Resources>
+                        </colorpicker:PortableColorPicker>
                     </Border>
                     <TextBox Grid.Column="2" x:Name="HexColorTextBox" 
                          Height="35" 
-                         Background="#2D2D35" 
-                         Foreground="White" 
+                         Style="{StaticResource ChromeTextBoxStyle}" 
                          VerticalContentAlignment="Center"
                          Margin="5,0,0,0"/>
                 </Grid>

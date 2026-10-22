@@ -9,11 +9,13 @@ namespace ArcadeStick.Views
         private readonly ViewModels.MainViewModel _viewModel;
 
         // [SECTION: Lifecycle & Dependency Injection]
-        // Pre-fills the text field with whatever destination is currently saved (empty on first use).
+        // Pre-fills the text field with whatever destination is currently saved (empty on first use). The DataContext
+        // is the settings so ThemedActionButtonStyle's hover, radius and font size bindings resolve.
         public RomCopyPathWindow(ViewModels.MainViewModel viewModel)
         {
             InitializeComponent();
             _viewModel = viewModel;
+            DataContext = _viewModel.Configuration;
             DestinationPathTextBox.Text = _viewModel.Configuration.RomCopyDestinationPath;
         }
         // [END SECTION: Lifecycle & Dependency Injection]
