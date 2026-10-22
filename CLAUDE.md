@@ -89,9 +89,16 @@ HasActiveMedia via the debounced UpdateActiveMediaPreviews() (~600ms later). Sel
 SelectedGame = null, which (once the debounce fired) set HasActiveMedia = false. Quickly selecting a
 game after a folder meant the preview panel became visible immediately (IsGameSelected = true) while
 HasActiveMedia was still stale at false, flashing the "no preview" placeholder before the real video/
-image loaded. Fix: added ResolveHasActiveMediaImmediate(), a fast synchronous File.Exists-only check
-that runs immediately in the SelectedGame setter, so HasActiveMedia is never stale. The expensive part
-(marquee bitmap load, video/image loading) stays debounced in UpdateActiveMediaPreviews() as before.
+image loaded. Fix: HasActiveMedia is now decided in the SelectedGame setter itself, from a fast
+File.Exists-only check, so it is never stale.
+Current design (2026-10-21, themes.md decision 42): UpdateActiveMediaPreviews() and
+ResolveHasActiveMediaImmediate() are gone. The setter runs an instant part (ApplyInstantMedia: marquee,
+MarqueeMissing, flyer/title/snap/cabinet, the video slot's static image and HasActiveMedia) with file
+checks on the UI thread and decoding on a background task guarded by _mediaSelectionVersion, plus a
+30-entry decoded-image cache. Only VideoSourcePath stays behind the 600 ms debounce (ApplyPreviewVideo).
+ResolvePreviewMedia() is the single two-pass preview resolver for HasActiveMedia, the static image and the
+video, so the immediate and delayed checks can no longer disagree. Do not move HasActiveMedia or
+MarqueeMissing back behind the debounce.
 
 ## Conventions
 

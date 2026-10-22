@@ -24,7 +24,7 @@
 
         <!-- [SECTION: Preview Priority List + Controls] -->
         <!-- This order corresponds to PreviewPriorityOrder in MainViewModel, consumed by
-             UpdateActiveMediaPreviews to decide which media type to show first for the selected game. -->
+             ResolvePreviewMedia to decide which media type to show first for the selected game. -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="240"/>

@@ -257,7 +257,7 @@ namespace ArcadeStick.ViewModels
 
         // [SECTION: Preview Order Config]
         // Loads (or creates with defaults) preview_order.cfg, which controls the priority order media
-        // types are checked in when resolving what to show in the main media panel (see UpdateActiveMediaPreviews).
+        // types are checked in when resolving what to show in the main media panel (see ResolvePreviewMedia).
         private void LoadPreviewOrderConfig()
         {
             string configDir = Configuration.GetConfigPath();
@@ -416,14 +416,11 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Search & Dev Mode]
 
-        // SelectedGame drives the whole media preview pipeline. HasActiveMedia is resolved immediately
-        // (cheap File.Exists check) so the placeholder-vs-content decision is never stale - this fixes a
-        // bug where selecting a folder (SelectedGame = null) then quickly selecting a game briefly showed
-        // the "no preview" placeholder before the debounced video load caught up. UpdateActiveMediaPreviews
-        // itself is still debounced (~150ms) since it does the expensive work (marquee bitmap read + video/
-        // image load), and rapid gamepad scrolling through titles was triggering that on every single
-        // intermediate step, causing navigation to stutter. Only the final selection once scrolling
-        // pauses actually loads media.
+        // SelectedGame drives the whole media preview pipeline in two parts. The instant part (ApplyInstantMedia)
+        // runs right here: file existence decides HasActiveMedia and MarqueeMissing at once, cached art applies
+        // synchronously, and anything not cached is decoded on a background task (see Instant Media Loading).
+        // Only the video path waits for the 600 ms debounce, so rapid gamepad scrolling never starts a video on
+        // every intermediate step. The previous video stops immediately (VideoSourcePath cleared).
         public GameItem? SelectedGame
         {
             get => _selectedGame;
@@ -435,13 +432,14 @@ namespace ArcadeStick.ViewModels
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(IsGameSelected));
 
-                    // Nothing selected (e.g. a folder was clicked): drop the marquee and the no-art banner
-                    // right away instead of waiting for the preview debounce, so they don't linger over the logo.
-                    if (value == null)
-                    {
-                        MarqueeImage = null;
-                        MarqueeMissing = false;
-                    }
+                    // Every selection gets a new version; background loads for an older one are discarded
+                    int mediaVersion = System.Threading.Interlocked.Increment(ref _mediaSelectionVersion);
+                    VideoSourcePath = string.Empty;
+
+                    // Instant part: marquee, banner flag, flyer/title/snap/cabinet, the video slot's static
+                    // image and HasActiveMedia. Nothing selected (a folder was clicked) clears them all at once.
+                    if (value == null) ClearInstantMedia();
+                    else ApplyInstantMedia(value, mediaVersion);
 
                     // Play-stats footer text - a plain synchronous string lookup, completely independent
                     // of the video/preview pipeline below. Deliberately its own separate line, not folded
@@ -458,28 +456,26 @@ namespace ArcadeStick.ViewModels
                     // so ReloadHistoryOverrides can re-run the same lookup on-demand (hotkey-triggered)
                     // without duplicating this logic.
                     RefreshHistoryPanelsForSelectedGame(value);
-                    HasActiveMedia = ResolveHasActiveMediaImmediate();
-                    PreviewImage = null;
-                    VideoSourcePath = string.Empty;
 
+                    // Video part: only the video path waits for the debounce
                     _previewDebounceTimer?.Stop();
-                    _previewDebounceTimer = new DispatcherTimer
+                    if (value != null)
                     {
-                        Interval = TimeSpan.FromMilliseconds(600)
-                    };
-                    _previewDebounceTimer.Tick += (s, e) =>
-                    {
-                        _previewDebounceTimer.Stop();
-                        UpdateActiveMediaPreviews();
-                    };
-                    _previewDebounceTimer.Start();
+                        _previewDebounceTimer = new DispatcherTimer
+                        {
+                            Interval = TimeSpan.FromMilliseconds(600)
+                        };
+                        _previewDebounceTimer.Tick += (s, e) =>
+                        {
+                            _previewDebounceTimer.Stop();
+                            ApplyPreviewVideo();
+                        };
+                        _previewDebounceTimer.Start();
+                    }
                 }
             }
         }
 
-        // Fast, synchronous existence check only - mirrors the folder-walking logic in UpdateActiveMediaPreviews
-        // but skips the expensive bitmap/video loading. Keeps HasActiveMedia accurate immediately on selection
-        // change instead of waiting on the debounce timer, so the placeholder never flashes based on stale state.
         private string _selectedGamePlayStatsText = string.Empty;
         // Drives the footer play-stats pill. Empty string collapses the pill entirely (bound via a
         // DataTrigger in XAML) - populated whenever the selected game has recorded play history.
@@ -529,51 +525,6 @@ namespace ArcadeStick.ViewModels
                 : $"{totalTime.Minutes}m";
             // Play count - Play time text
             return $"Play Count: {match.PlayCount} \u00b7 Play Time: {timeText}";
-        }
-
-        private bool ResolveHasActiveMediaImmediate()
-        {
-            if (SelectedGame == null) return false;
-
-            foreach (var category in PreviewPriorityOrder)
-            {
-                string targetFolder = string.Empty;
-                string[] extensions = { ".png", ".jpg" };
-
-                switch (category)
-                {
-                    case "videos":
-                        targetFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.VideosPath) ? "videos" : Configuration.VideosPath);
-                        extensions = new[] { ".mp4", ".avi" };
-                        break;
-                    case "flyers":
-                        targetFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath);
-                        break;
-                    case "screenshots":
-                    case "snapshots":
-                    case "gameplay":
-                        targetFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.ScreenshotsPath) ? "snap" : Configuration.ScreenshotsPath);
-                        break;
-                    case "titlescreens":
-                        targetFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.TitlescreensPath) ? "titles" : Configuration.TitlescreensPath);
-                        break;
-                    case "cabinets":
-                        targetFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.CabinetsPath) ? "cabinets" : Configuration.CabinetsPath);
-                        break;
-                    case "marquees":
-                        targetFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "marquees" : Configuration.MarqueesPath);
-                        break;
-                    default:
-                        continue;
-                }
-
-                if (TryResolveMediaFileChecked(targetFolder, SelectedGame.RomName, SelectedGame.CloneOf, extensions) != null)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public BitmapImage? MarqueeImage
@@ -2036,12 +1987,12 @@ namespace ArcadeStick.ViewModels
             var winner = _randomizerCurrentFrameGame;
             if (winner != null)
             {
-                // Set the real selection and resolve its media immediately, bypassing the normal
-                // 600ms preview debounce (which exists to avoid reloading media on every rapid
-                // arrow-key press while browsing - not applicable to a single deterministic landing
-                // event).
+                // Set the real selection (its setter already ran the instant art part), then start the video
+                // part now instead of after the 600ms debounce (which exists for rapid arrow-key browsing -
+                // not applicable to a single deterministic landing event).
                 SelectedGame = winner;
-                UpdateActiveMediaPreviews();
+                _previewDebounceTimer?.Stop();
+                ApplyPreviewVideo();
 
                 RandomizerSpinCompleted?.Invoke(winner);
             }
@@ -2111,27 +2062,10 @@ namespace ArcadeStick.ViewModels
             string marqueeDir = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "marquees" : Configuration.MarqueesPath);
             string? targetMarqueeFile = TryResolveMediaFile(marqueeDir, game.RomName, game.CloneOf, new[] { ".png" });
 
-            if (targetMarqueeFile == null)
-            {
-                RandomizerFrameMarqueeImage = null;
-                return;
-            }
-
-            try
-            {
-                var bitmap = new BitmapImage();
-                byte[] fileBytes = File.ReadAllBytes(targetMarqueeFile);
-                bitmap.BeginInit();
-                bitmap.StreamSource = new MemoryStream(fileBytes);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                bitmap.Freeze();
-                RandomizerFrameMarqueeImage = bitmap;
-            }
-            catch
-            {
-                RandomizerFrameMarqueeImage = null;
-            }
+            // Loaded synchronously as before (the spin timing is unchanged), but through the decoded-image cache,
+            // so repeat frames and the winner's marquee are reused. Null still means "no real marquee file".
+            var request = MakeImageRequest(targetMarqueeFile, isFlyer: false);
+            RandomizerFrameMarqueeImage = request != null ? LoadCachedImage(request) : null;
         }
 
         // Decelerating interval curve - fast at the start, slowing toward the landing frame. Simple
@@ -2884,6 +2818,8 @@ namespace ArcadeStick.ViewModels
             }
         }
 
+        // Does the marquee re-resolve for the current game (RefreshThemeBindings): the same instant logic as a
+        // selection, under the current selection version so the game's other pending loads are kept.
         private void ResolveMarqueeImage()
         {
             if (SelectedGame == null)
@@ -2893,44 +2829,7 @@ namespace ArcadeStick.ViewModels
                 return;
             }
 
-            string marqueeDir = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "marquees" : Configuration.MarqueesPath);
-            // Regional variants (US/UK/Europe/etc.) sharing a parent's marquee is the common, desirable
-            // case - a differently-branded bootleg/hack borrowing the wrong marquee name is a rarer
-            // trade-off accepted in exchange for this.
-            string? targetMarqueeFile = TryResolveMediaFile(marqueeDir, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png" });
-            // No marquee file for this game (or its parent): leave MarqueeImage empty. HasMarqueeImage then
-            // turns false, and the no-art banner shows instead of the logo.
-            if (targetMarqueeFile == null)
-            {
-                MarqueeImage = null;
-                MarqueeMissing = true;
-                return;
-            }
-
-            MarqueeMissing = false;
-
-            try
-            {
-                if (File.Exists(targetMarqueeFile))
-                {
-                    var bitmap = new BitmapImage();
-                    byte[] fileBytes = File.ReadAllBytes(targetMarqueeFile);
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = new MemoryStream(fileBytes);
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
-                    MarqueeImage = bitmap;
-                }
-                else
-                {
-                    MarqueeImage = null;
-                }
-            }
-            catch
-            {
-                MarqueeImage = null;
-            }
+            ApplyInstantMarquee(SelectedGame, System.Threading.Volatile.Read(ref _mediaSelectionVersion));
         }
 
         // Checks a target folder for a media file matching the primary ROM name, falling back to the
@@ -3070,8 +2969,8 @@ namespace ArcadeStick.ViewModels
         }
 
         // Column One's lower content slot cycles Flyer > Title Screen > Snap. Title/Snap resolve with the
-        // same primary+clone fallback as Flyer. MediaPanelControl listens for these property changes to
-        // rebuild its dot row, since they only resolve after the preview debounce fires.
+        // same primary+clone fallback as Flyer. GameInfoLayerControl listens for these property changes to
+        // rebuild its dot row; they are set together at selection time (SetRow3Images).
         private BitmapImage? _titleImage;
         public BitmapImage? TitleImage
         {
@@ -3094,7 +2993,9 @@ namespace ArcadeStick.ViewModels
             }
         }
 
-        private BitmapImage? LoadBitmapFromFile(string path)
+        // Does a full-size decode into a frozen BitmapImage (null on failure). Static and touches no view model
+        // state, so the background loader can call it.
+        private static BitmapImage? LoadBitmapFromFile(string path)
         {
             try
             {
@@ -3125,7 +3026,8 @@ namespace ArcadeStick.ViewModels
         // Loads a flyer, decoding it near the size it will be shown at (Uniform fit inside the slot).
         // Portrait flyers are limited by the slot's height and wide ones by its width. Never decodes
         // larger than the source, and falls back to a normal full-size load if anything goes wrong.
-        private BitmapImage? LoadFlyerBitmap(string path)
+        // The slot size is passed in (snapshotted on the UI thread) so this can run on a background task.
+        private static BitmapImage? LoadFlyerBitmap(string path, int slotWidth, int slotHeight)
         {
             try
             {
@@ -3133,7 +3035,7 @@ namespace ArcadeStick.ViewModels
                 int decodeWidth = 0;
                 int decodeHeight = 0;
 
-                if (_flyerSlotWidth > 0 && _flyerSlotHeight > 0)
+                if (slotWidth > 0 && slotHeight > 0)
                 {
                     using var probeStream = new MemoryStream(fileBytes);
                     var decoder = BitmapDecoder.Create(probeStream, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None);
@@ -3142,8 +3044,8 @@ namespace ArcadeStick.ViewModels
 
                     if (sourceWidth > 0 && sourceHeight > 0)
                     {
-                        double widthFit = (double)_flyerSlotWidth / sourceWidth;
-                        double heightFit = (double)_flyerSlotHeight / sourceHeight;
+                        double widthFit = (double)slotWidth / sourceWidth;
+                        double heightFit = (double)slotHeight / sourceHeight;
                         double scale = Math.Min(widthFit, heightFit) * FlyerDecodeOversample;
 
                         if (scale < 1.0)
@@ -3172,9 +3074,9 @@ namespace ArcadeStick.ViewModels
         }
 
         // Called by MainWindow.ApplyLayout with the Image Previews part's size in device pixels. When the
-        // size actually changes, the selected game's flyer is reloaded so it is decoded for the new size
-        // (a theme or layout switch would otherwise leave it soft or oversized). Unchanged sizes do nothing,
-        // so the frequent ApplyLayout calls cost nothing.
+        // size actually changes, the selected game's flyer is re-requested through the instant loader; the
+        // size is part of the flyer's cache key, so a new size decodes fresh (no manual invalidation). The old
+        // flyer stays up until the new decode lands. Unchanged sizes do nothing, so ApplyLayout costs nothing.
         public void SetFlyerSlotSize(int width, int height)
         {
             if (width < 1 || height < 1) return;
@@ -3185,37 +3087,18 @@ namespace ArcadeStick.ViewModels
 
             if (SelectedGame == null) return;
 
-            string flyerFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath);
-            string? flyerPath = TryResolveMediaFile(flyerFolder, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png", ".jpg" });
-            FlyerImage = flyerPath != null ? LoadFlyerBitmap(flyerPath) : null;
-        }
-
-        private void UpdateRow3FlyerAndCabinet()
-        {
-            if (SelectedGame == null)
+            var request = MakeImageRequest(ResolveArtPath(Configuration.FlyersPath, "flyers", SelectedGame, ArtImageExtensions), isFlyer: true);
+            if (request == null)
             {
                 FlyerImage = null;
-                TitleImage = null;
-                SnapImage = null;
-                CabinetImage = null;
                 return;
             }
-
-            string flyerFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath);
-            string? flyerPath = TryResolveMediaFile(flyerFolder, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png", ".jpg" });
-            FlyerImage = flyerPath != null ? LoadFlyerBitmap(flyerPath) : null;
-
-            string titleFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.TitlescreensPath) ? "titles" : Configuration.TitlescreensPath);
-            string? titlePath = TryResolveMediaFile(titleFolder, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png", ".jpg" });
-            TitleImage = titlePath != null ? LoadBitmapFromFile(titlePath) : null;
-
-            string snapFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.ScreenshotsPath) ? "snap" : Configuration.ScreenshotsPath);
-            string? snapPath = TryResolveMediaFile(snapFolder, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png", ".jpg" });
-            SnapImage = snapPath != null ? LoadBitmapFromFile(snapPath) : null;
-
-            string cabinetFolder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.CabinetsPath) ? "cabinets" : Configuration.CabinetsPath);
-            string? cabinetPath = TryResolveMediaFile(cabinetFolder, SelectedGame.RomName, SelectedGame.CloneOf, new[] { ".png", ".jpg" });
-            CabinetImage = cabinetPath != null ? LoadBitmapFromFile(cabinetPath) : null;
+            if (GetCachedImage(request.Key) is BitmapImage cachedFlyer)
+            {
+                FlyerImage = cachedFlyer;
+                return;
+            }
+            LoadImagesInBackground(System.Threading.Volatile.Read(ref _mediaSelectionVersion), new[] { request }, images => FlyerImage = images[0]);
         }
 
         // [SECTION: Media File Resolution]
@@ -3259,127 +3142,284 @@ namespace ArcadeStick.ViewModels
             return null;
         }
 
-        private void UpdateActiveMediaPreviews()
+        // [SECTION: Instant Media Loading]
+        // Selection-time art loading. File existence is checked on the UI thread (cheap) so HasActiveMedia and
+        // MarqueeMissing are right at once; art already in the decoded-image cache applies synchronously; the rest
+        // is read and decoded on a background task (frozen BitmapImages) and applied on the UI thread. Every
+        // selection increments _mediaSelectionVersion: background work checks it before each file read and again
+        // before applying, so a stale game's art is discarded. Order: marquee first (applied as soon as it is
+        // ready), then the video slot's static image, then flyer/title/snap/cabinet together in one callback so
+        // GameInfoLayerControl rebuilds the preview nav dots once. Only the video path waits for the debounce.
+        private int _mediaSelectionVersion;
+
+        private static readonly string[] ArtImageExtensions = { ".png", ".jpg" };
+
+        // One image to show: the full path, its cache key (path + last-write time + length, plus the slot size
+        // for flyers) and, for flyers, the slot size it decodes for (snapshotted on the UI thread)
+        private sealed record ImageRequest(string Path, string Key, bool IsFlyer, int SlotWidth, int SlotHeight);
+
+        // Does the request build on the UI thread: null when there is no path or the file is gone ("missing" is
+        // always re-checked from disk, never cached)
+        private ImageRequest? MakeImageRequest(string? path, bool isFlyer)
         {
-            if (SelectedGame == null)
+            if (string.IsNullOrEmpty(path)) return null;
+            try
             {
-                MarqueeImage = null;
-                MarqueeMissing = false;
-                PreviewImage = null;
-                VideoSourcePath = string.Empty;
-                HasActiveMedia = false;
-                FlyerImage = null;
-                TitleImage = null;
-                SnapImage = null;
-                CabinetImage = null;
+                var info = new FileInfo(path);
+                if (!info.Exists) return null;
+
+                int slotWidth = isFlyer ? _flyerSlotWidth : 0;
+                int slotHeight = isFlyer ? _flyerSlotHeight : 0;
+                string key = $"{info.FullName}|{info.LastWriteTimeUtc.Ticks}|{info.Length}|{slotWidth}x{slotHeight}";
+                return new ImageRequest(info.FullName, key, isFlyer, slotWidth, slotHeight);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Does one art lookup with the primary-then-parent rule (marquee, flyer, title, snap, cabinet)
+        private string? ResolveArtPath(string? configuredFolder, string defaultFolder, GameItem game, string[] extensions) =>
+            TryResolveMediaFile(Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(configuredFolder) ? defaultFolder : configuredFolder),
+                game.RomName, game.CloneOf, extensions);
+
+        // [SECTION: Decoded Image Cache]
+        // Small LRU cache of decoded, frozen images, shared by the UI thread and the background loader (locked).
+        // Only successful decodes are stored. The key includes the file's last-write time and length, so art
+        // replaced by the Get Artwork scraper decodes fresh without a restart.
+        private const int DecodedImageCacheSize = 30;
+        private readonly object _imageCacheLock = new object();
+        private readonly LinkedList<(string Key, BitmapImage Image)> _imageCacheOrder = new LinkedList<(string Key, BitmapImage Image)>();
+        private readonly Dictionary<string, LinkedListNode<(string Key, BitmapImage Image)>> _imageCacheIndex = new Dictionary<string, LinkedListNode<(string Key, BitmapImage Image)>>();
+
+        // Does a cache lookup (marks the entry most recently used); null on a miss
+        private BitmapImage? GetCachedImage(string key)
+        {
+            lock (_imageCacheLock)
+            {
+                if (!_imageCacheIndex.TryGetValue(key, out var node)) return null;
+                _imageCacheOrder.Remove(node);
+                _imageCacheOrder.AddFirst(node);
+                return node.Value.Image;
+            }
+        }
+
+        // Does a cache insert, evicting the least recently used entry past the size limit
+        private void AddCachedImage(string key, BitmapImage image)
+        {
+            lock (_imageCacheLock)
+            {
+                if (_imageCacheIndex.TryGetValue(key, out var existing)) _imageCacheOrder.Remove(existing);
+                var node = _imageCacheOrder.AddFirst((key, image));
+                _imageCacheIndex[key] = node;
+
+                while (_imageCacheOrder.Count > DecodedImageCacheSize && _imageCacheOrder.Last is LinkedListNode<(string Key, BitmapImage Image)> oldest)
+                {
+                    _imageCacheOrder.RemoveLast();
+                    _imageCacheIndex.Remove(oldest.Value.Key);
+                }
+            }
+        }
+
+        // Does a cached load: the cached image, or a fresh decode that is then cached. Safe on any thread.
+        private BitmapImage? LoadCachedImage(ImageRequest request)
+        {
+            if (GetCachedImage(request.Key) is BitmapImage cached) return cached;
+
+            var image = request.IsFlyer
+                ? LoadFlyerBitmap(request.Path, request.SlotWidth, request.SlotHeight)
+                : LoadBitmapFromFile(request.Path);
+            if (image != null) AddCachedImage(request.Key, image);
+            return image;
+        }
+        // [END SECTION: Decoded Image Cache]
+
+        // Does the synchronous path: true when every request is either absent (no file) or already cached
+        private bool TryGetAllCached(ImageRequest?[] requests, out BitmapImage?[] images)
+        {
+            images = new BitmapImage?[requests.Length];
+            for (int i = 0; i < requests.Length; i++)
+            {
+                if (requests[i] is not ImageRequest request) continue;
+                if (GetCachedImage(request.Key) is not BitmapImage cached) return false;
+                images[i] = cached;
+            }
+            return true;
+        }
+
+        // Does the background decode for one selection version, then applies the results on the UI thread only
+        // if that version is still current. Touches no UI-thread-only state (the requests carry what it needs).
+        private void LoadImagesInBackground(int version, ImageRequest?[] requests, Action<BitmapImage?[]> apply)
+        {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null) return;
+
+            _ = Task.Run(() =>
+            {
+                var images = new BitmapImage?[requests.Length];
+                for (int i = 0; i < requests.Length; i++)
+                {
+                    if (System.Threading.Volatile.Read(ref _mediaSelectionVersion) != version) return;
+                    if (requests[i] is ImageRequest request) images[i] = LoadCachedImage(request);
+                }
+
+                dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_mediaSelectionVersion == version) apply(images);
+                }));
+            });
+        }
+
+        // Does the instant part for a newly selected game (marquee first, then the static preview, then Row 3)
+        private void ApplyInstantMedia(GameItem game, int version)
+        {
+            ApplyInstantMarquee(game, version);
+            ApplyInstantPreview(game, version);
+            ApplyInstantRow3(game, version);
+        }
+
+        // Does the clear when nothing is selected: marquee, banner flag, flyer/title/snap/cabinet and the static
+        // preview, all at once
+        private void ClearInstantMedia()
+        {
+            MarqueeImage = null;
+            MarqueeMissing = false;
+            PreviewImage = null;
+            HasActiveMedia = false;
+            SetRow3Images(new BitmapImage?[4]);
+        }
+
+        // Does the marquee: the banner flag comes from the file check right away (a game with a marquee file never
+        // shows the banner), the image from the cache or a background decode. Regional variants sharing a parent's
+        // marquee is the common, desirable case, so the parent fallback stays.
+        private void ApplyInstantMarquee(GameItem game, int version)
+        {
+            string? marqueePath = ResolveArtPath(Configuration.MarqueesPath, "marquees", game, new[] { ".png" });
+            MarqueeMissing = marqueePath == null;
+
+            var requests = new[] { MakeImageRequest(marqueePath, isFlyer: false) };
+            if (TryGetAllCached(requests, out var cached))
+            {
+                MarqueeImage = cached[0];
                 return;
             }
 
-            ResolveMarqueeImage();
-            UpdateRow3FlyerAndCabinet();
+            MarqueeImage = null; // never leave the previous game's marquee under the new title
+            LoadImagesInBackground(version, requests, images => MarqueeImage = images[0]);
+        }
 
-            string foundMediaFile = string.Empty;
-            bool gameHasMedia = false;
+        // Does the video slot's static part: HasActiveMedia from the shared resolver, and the static image when the
+        // resolved media is an image (a video leaves PreviewImage null; its path is set by ApplyPreviewVideo)
+        private void ApplyInstantPreview(GameItem game, int version)
+        {
+            var media = ResolvePreviewMedia(game);
+            HasActiveMedia = media != null;
 
-            // Resolves a PreviewPriorityOrder category name to its folder + expected extensions - shared
-            // by both passes below. Returns null for an unrecognized category (skip it).
-            (string folder, string[] extensions)? ResolveCategoryTarget(string category)
+            var requests = new[] { media is { IsVideo: false } image ? MakeImageRequest(image.Path, isFlyer: false) : null };
+            if (TryGetAllCached(requests, out var cached))
             {
-                switch (category)
-                {
-                    case "videos":
-                        return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.VideosPath) ? "videos" : Configuration.VideosPath), new[] { ".mp4", ".avi" });
-                    case "flyers":
-                        return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath), new[] { ".png", ".jpg" });
-                    case "screenshots":
-                    case "snapshots":
-                    case "gameplay":
-                        return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.ScreenshotsPath) ? "snap" : Configuration.ScreenshotsPath), new[] { ".png", ".jpg" });
-                    case "titlescreens":
-                        return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.TitlescreensPath) ? "titles" : Configuration.TitlescreensPath), new[] { ".png", ".jpg" });
-                    case "cabinets":
-                        return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.CabinetsPath) ? "cabinets" : Configuration.CabinetsPath), new[] { ".png", ".jpg" });
-                    case "marquees":
-                        return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "marquees" : Configuration.MarqueesPath), new[] { ".png", ".jpg" });
-                    default:
-                        return null;
-                }
+                PreviewImage = cached[0];
+                return;
             }
 
-            // Pass 1: walk every category using ONLY the game's own ROM name. A title with even one asset
-            // of its own should never blend in a differently-named clone parent's media for a category
-            // it's still missing - see project notes on the marquee/media clone-fallback fix.
+            PreviewImage = null;
+            LoadImagesInBackground(version, requests, images => PreviewImage = images[0]);
+        }
+
+        // Does Row 3 (flyer, title, snap) and the cabinet: applied together, so the preview nav dots update once
+        private void ApplyInstantRow3(GameItem game, int version)
+        {
+            var requests = new[]
+            {
+                MakeImageRequest(ResolveArtPath(Configuration.FlyersPath, "flyers", game, ArtImageExtensions), isFlyer: true),
+                MakeImageRequest(ResolveArtPath(Configuration.TitlescreensPath, "titles", game, ArtImageExtensions), isFlyer: false),
+                MakeImageRequest(ResolveArtPath(Configuration.ScreenshotsPath, "snap", game, ArtImageExtensions), isFlyer: false),
+                MakeImageRequest(ResolveArtPath(Configuration.CabinetsPath, "cabinets", game, ArtImageExtensions), isFlyer: false)
+            };
+            if (TryGetAllCached(requests, out var cached))
+            {
+                SetRow3Images(cached);
+                return;
+            }
+
+            SetRow3Images(new BitmapImage?[4]); // never leave the previous game's art under the new title
+            LoadImagesInBackground(version, requests, SetRow3Images);
+        }
+
+        // Does the Row 3 apply in one go: flyer, title, snap, cabinet
+        private void SetRow3Images(BitmapImage?[] images)
+        {
+            FlyerImage = images[0];
+            TitleImage = images[1];
+            SnapImage = images[2];
+            CabinetImage = images[3];
+        }
+
+        // Does the video part (after the debounce, or at once after a spin): the video path when the preview
+        // slot's media is a video, otherwise empty
+        private void ApplyPreviewVideo()
+        {
+            var media = SelectedGame != null ? ResolvePreviewMedia(SelectedGame) : null;
+            VideoSourcePath = media is { IsVideo: true } video ? video.Path : string.Empty;
+        }
+
+        // Does the shared preview-slot resolve (HasActiveMedia, the static image and the video all use it).
+        // Pass 1 walks every PreviewPriorityOrder category with ONLY the game's own ROM name: a title with even one
+        // asset of its own never blends in a differently-named clone parent's media. Pass 2, only when the game has
+        // nothing of its own, walks them again with the clone parent's name. Null when nothing is found.
+        private (string Path, bool IsVideo)? ResolvePreviewMedia(GameItem game)
+        {
+            string? found = FindPreviewMedia(game.RomName);
+            if (found == null && !string.IsNullOrEmpty(game.CloneOf)) found = FindPreviewMedia(game.CloneOf);
+            if (found == null) return null;
+
+            bool isVideo = found.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || found.EndsWith(".avi", StringComparison.OrdinalIgnoreCase);
+            return (found, isVideo);
+        }
+
+        // Does one pass of ResolvePreviewMedia: the first file for this ROM name in PreviewPriorityOrder
+        private string? FindPreviewMedia(string romName)
+        {
             foreach (var category in PreviewPriorityOrder)
             {
                 var target = ResolveCategoryTarget(category);
                 if (target == null) continue;
 
-                string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, SelectedGame.RomName, null, target.Value.extensions);
-                if (matchedPath != null)
-                {
-                    foundMediaFile = matchedPath;
-                    gameHasMedia = true;
-                    break;
-                }
+                string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, romName, null, target.Value.extensions);
+                if (matchedPath != null) return matchedPath;
             }
-
-            // Pass 2: only if the game has ZERO assets of its own in any category, fall back to the clone
-            // parent's assets (still walked in PreviewPriorityOrder).
-            if (!gameHasMedia && !string.IsNullOrEmpty(SelectedGame.CloneOf))
-            {
-                foreach (var category in PreviewPriorityOrder)
-                {
-                    var target = ResolveCategoryTarget(category);
-                    if (target == null) continue;
-
-                    string? matchedPath = TryResolveMediaFileChecked(target.Value.folder, SelectedGame.CloneOf, null, target.Value.extensions);
-                    if (matchedPath != null)
-                    {
-                        foundMediaFile = matchedPath;
-                        gameHasMedia = true;
-                        break;
-                    }
-                }
-            }
-
-            HasActiveMedia = gameHasMedia;
-
-            if (gameHasMedia && !string.IsNullOrEmpty(foundMediaFile))
-            {
-                if (foundMediaFile.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || foundMediaFile.EndsWith(".avi", StringComparison.OrdinalIgnoreCase))
-                {
-                    PreviewImage = null;
-                    VideoSourcePath = foundMediaFile;
-                }
-                else
-                {
-                    VideoSourcePath = string.Empty;
-                    try
-                    {
-                        var bitmap = new BitmapImage();
-                        byte[] fileBytes = File.ReadAllBytes(foundMediaFile);
-                        bitmap.BeginInit();
-                        bitmap.StreamSource = new MemoryStream(fileBytes);
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.EndInit();
-                        bitmap.Freeze();
-                        PreviewImage = bitmap;
-                    }
-                    catch
-                    {
-                        PreviewImage = null;
-                    }
-                }
-            }
-            else
-            {
-                PreviewImage = null;
-                VideoSourcePath = string.Empty;
-            }
+            return null;
         }
 
+        // Resolves a PreviewPriorityOrder category name to its folder + expected extensions. Returns null for an
+        // unrecognized category (skip it).
+        private (string folder, string[] extensions)? ResolveCategoryTarget(string category)
+        {
+            switch (category)
+            {
+                case "videos":
+                    return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.VideosPath) ? "videos" : Configuration.VideosPath), new[] { ".mp4", ".avi" });
+                case "flyers":
+                    return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath), new[] { ".png", ".jpg" });
+                case "screenshots":
+                case "snapshots":
+                case "gameplay":
+                    return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.ScreenshotsPath) ? "snap" : Configuration.ScreenshotsPath), new[] { ".png", ".jpg" });
+                case "titlescreens":
+                    return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.TitlescreensPath) ? "titles" : Configuration.TitlescreensPath), new[] { ".png", ".jpg" });
+                case "cabinets":
+                    return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.CabinetsPath) ? "cabinets" : Configuration.CabinetsPath), new[] { ".png", ".jpg" });
+                case "marquees":
+                    return (Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "marquees" : Configuration.MarqueesPath), new[] { ".png", ".jpg" });
+                default:
+                    return null;
+            }
+        }
+        // [END SECTION: Instant Media Loading]
+
         // Resolves a static fallback image for the options-open state, walking the same PreviewPriorityOrder
-        // as UpdateActiveMediaPreviews but skipping "videos" - falls back to the missing-preview asset if nothing matches
+        // as ResolvePreviewMedia but skipping "videos" - falls back to the missing-preview asset if nothing matches
         private ImageSource? ResolveOptionsFallbackImage()
         {
             if (SelectedGame == null) return null;

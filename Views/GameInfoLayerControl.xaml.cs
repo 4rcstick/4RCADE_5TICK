@@ -41,8 +41,9 @@ namespace ArcadeStick.Views
 
         // Resets the Game Info pages to the first one on every game switch (the 4 pages are tabs on THIS
         // game's info, not a viewing preference), and scrolls every body back to the top, since ScrollViewers
-        // keep their own offset independent of the bound text. Flyer/Title/Snap resolve after the preview
-        // debounce, not at selection time - rebuild the available image states whenever any of them lands.
+        // keep their own offset independent of the bound text. Flyer/Title/Snap are set at selection time
+        // (instantly from the view model's cache, or together in one callback once a background decode lands)
+        // - rebuild the available image states whenever any of them changes.
         // Each nav's color change repaints its own dot row (the active dot's fill is set in code).
         private void DataContext_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {

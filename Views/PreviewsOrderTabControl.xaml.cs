@@ -97,7 +97,8 @@ namespace ArcadeStick.Views
         // [SECTION: Save Preview Order]
         // Persists the current order to preview_order.cfg and pushes it live into
         // MainViewModel.PreviewPriorityOrder. The SelectedGame null-then-restore toggle below is a
-        // deliberate trick to force UpdateActiveMediaPreviews to re-run immediately with the new order -
+        // deliberate trick to force the selected game's media to re-resolve with the new order (the instant
+        // part runs at once, the video after the usual debounce) -
         // don't remove it as unnecessary, it's what makes the change visible without reselecting the game.
         private void BtnSaveMediaOrder_Click(object sender, RoutedEventArgs e)
         {
