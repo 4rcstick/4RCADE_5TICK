@@ -1238,6 +1238,15 @@ namespace ArcadeStick.ViewModels
             string themeFile = Configuration.GetThemePath(themeName);
             if (!File.Exists(themeFile)) return false;
 
+            // Use the zip's real file name from disk (e.g. "Default" for a "default" request), so ActiveThemeName and
+            // the Extracted folder match the name the theme list shows.
+            var realFile = new DirectoryInfo(Path.GetDirectoryName(themeFile)!).GetFiles(Path.GetFileName(themeFile)).FirstOrDefault();
+            if (realFile != null)
+            {
+                themeName = Path.GetFileNameWithoutExtension(realFile.Name);
+                themeFile = realFile.FullName;
+            }
+
             string extractDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes", "Extracted", themeName);
             if (Directory.Exists(extractDir))
             {

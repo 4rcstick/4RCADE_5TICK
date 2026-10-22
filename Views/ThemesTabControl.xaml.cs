@@ -53,8 +53,9 @@ namespace ArcadeStick.Views
         // [END SECTION: Constructor & Initialization]
 
         // [SECTION: Theme List Management]
-        // Rebuilds the theme dropdown from *.cfg files in the Themes folder, plus a "[New Theme...]"
-        // entry, and re-selects the currently active theme if it still exists.
+        // Rebuilds the theme dropdown from *.zip files in the Themes folder, plus a "[New Theme...]"
+        // entry, and re-selects the currently active theme if it still exists (matched case-insensitively,
+        // selecting the listed file name).
         private void RefreshThemeList()
         {
             CboThemePresets.Items.Clear();
@@ -70,9 +71,11 @@ namespace ArcadeStick.Views
             }
             CboThemePresets.Items.Add("[New Theme...]");
 
-            if (!string.IsNullOrWhiteSpace(_settings.ActiveThemeName) && CboThemePresets.Items.Contains(_settings.ActiveThemeName))
+            string? listedActiveTheme = string.IsNullOrWhiteSpace(_settings.ActiveThemeName) ? null
+                : CboThemePresets.Items.OfType<string>().FirstOrDefault(name => name != "[New Theme...]" && string.Equals(name, _settings.ActiveThemeName, StringComparison.OrdinalIgnoreCase));
+            if (listedActiveTheme != null)
             {
-                CboThemePresets.SelectedItem = _settings.ActiveThemeName;
+                CboThemePresets.SelectedItem = listedActiveTheme;
             }
             else
             {
