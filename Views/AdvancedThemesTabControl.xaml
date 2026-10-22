@@ -1409,6 +1409,57 @@
                     </TabItem>
                     <!-- [END SECTION: Game Info - Nav Tab] -->
 
+                    <!-- [SECTION: Game Info - Previews Tab] -->
+                    <TabItem x:Name="TabGIPreviews" Header="PREVIEWS" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <!-- Image previews shadow: drop shadow (a glow is a shadow with depth 0 and a bright color) -->
+                                <Grid Margin="0,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Image previews shadow" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Glow: set Depth to 0 and pick a bright color." TextWrapping="Wrap"
+                                               Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}"/>
+
+                                    <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
+                                    <CheckBox x:Name="GIPreviewsShadow" Tag="Previews" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
+                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIPreviewsShadow}">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="GIPreviewsShadowColorPicker" Tag="Previews" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="GIPreviewsShadowColorHex" Tag="Previews" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="GIPreviewsShadowBlur" Tag="Previews" Grid.Row="4" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIPreviewsShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                    <TextBox x:Name="GIPreviewsShadowDepth" Tag="Previews" Grid.Row="4" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIPreviewsShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Game Info - Previews Tab] -->
+
                     <!-- [SECTION: Shape Layer - Background Tab] -->
                     <TabItem x:Name="TabShapeBackground" Header="BACKGROUND" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
@@ -1627,6 +1678,57 @@
                         </ScrollViewer>
                     </TabItem>
                     <!-- [END SECTION: Marquee - Logo Tab] -->
+
+                    <!-- [SECTION: Marquee - Shadow Tab] -->
+                    <TabItem x:Name="TabMarqueeShadow" Header="SHADOW" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <!-- Logo and marquee image shadow: drop shadow (a glow is a shadow with depth 0 and a bright color) -->
+                                <Grid Margin="0,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Logo and marquee image shadow" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Glow: set Depth to 0 and pick a bright color." TextWrapping="Wrap"
+                                               Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}"/>
+
+                                    <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
+                                    <CheckBox x:Name="GIMarqueeShadow" Tag="Marquee" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
+                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="GIMarqueeShadowColorPicker" Tag="Marquee" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="GIMarqueeShadowColorHex" Tag="Marquee" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="GIMarqueeShadowBlur" Tag="Marquee" Grid.Row="4" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                    <TextBox x:Name="GIMarqueeShadowDepth" Tag="Marquee" Grid.Row="4" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Marquee - Shadow Tab] -->
 
                     <!-- [SECTION: Main Window Background - Image Tab] -->
                     <!-- The Main Window Background layer (per resolution): the background color (BgColorHex), then the wallpaper,

@@ -551,7 +551,8 @@
             <Border x:Name="MarqueePanelBorder" Canvas.Left="393" Canvas.Top="20" Width="867" Height="137">
                 <Grid>
                     <!-- Default logo, hidden once a game is selected -->
-                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
+                    <!-- The logo, MarqueeDisplay and the spin frames share the Marquee layer's shadow (ThemeMarqueeEffect) -->
+                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Effect="{Binding ThemeMarqueeEffect}">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -567,7 +568,7 @@
                         </Image.Style>
                     </Image>
                     <!-- Selected game's marquee image -->
-                    <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
+                    <Image x:Name="MarqueeDisplay" Source="{Binding MarqueeImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Effect="{Binding ThemeMarqueeEffect}">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -630,7 +631,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Grid.Style>
-                            <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Effect="{Binding ThemeMarqueeEffect}"/>
 
                             <!-- No-marquee fallback - shown whenever the current frame's game has no real marquee file.
                      A fixed-aspect card (~4:1) inside a Viewbox, so it letterboxes like a real marquee image.

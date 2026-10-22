@@ -579,6 +579,9 @@ namespace ArcadeStick.Models
                 // Game Info styling: title, publisher block, headers + body, and the two navs
                 FillGameInfoStyle(entry);
 
+                // Image shadow: the Marquee layer and the Image Previews
+                FillImageShadowStyle(entry);
+
                 layout.Layers.Add(entry);
             }
             return layout;
@@ -672,6 +675,13 @@ namespace ArcadeStick.Models
             }
         }
 
+        // Fills the image shadow (generic TextShadow* fields, off by default) on the Marquee layer (logo, marquee
+        // image and spin frames) and the Image Previews. Other entries are left untouched; saved values are kept.
+        private static void FillImageShadowStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id == MarqueePanel || entry.Id == ImagePreviewsBody) FillTextShadowDefaults(entry);
+        }
+
         // Fills the generic TextShadow* fields with the standard off-by-default shadow (saved values kept)
         private static void FillTextShadowDefaults(LayerLayoutEntry entry)
         {
@@ -759,6 +769,9 @@ namespace ArcadeStick.Models
 
                 // Game Info: fill any missing title, publisher, header, body or nav style value
                 FillGameInfoStyle(entry);
+
+                // Image shadow: fill any missing Marquee layer or Image Previews shadow value
+                FillImageShadowStyle(entry);
 
                 // Main Window Background: the Disable flag and the background color fill in when missing (saved values kept)
                 if (entry.Id == MainBackground)

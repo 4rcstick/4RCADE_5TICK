@@ -804,6 +804,9 @@ namespace ArcadeStick.ViewModels
         public double ThemePreviewsNavSize => GetLayerEntry(LayerRegistry.ImagePreviewsNav).TextFontSize ?? LayerRegistry.DefaultNavSize;
         public System.Windows.Media.Effects.Effect? ThemePreviewsNavEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.ImagePreviewsNav));
 
+        // Image Previews shadow/glow (flyer, title screen and snap; the cabinet image is not part of it)
+        public System.Windows.Media.Effects.Effect? ThemePreviewsEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.ImagePreviewsBody));
+
         // Turns a saved font family name into a FontFamily (Segoe UI when empty)
         private static FontFamily ToFontFamily(string? family) =>
             new FontFamily(string.IsNullOrWhiteSpace(family) ? LayerRegistry.DefaultFontFamily : family);
@@ -846,6 +849,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemePreviewsNavColor));
             OnPropertyChanged(nameof(ThemePreviewsNavSize));
             OnPropertyChanged(nameof(ThemePreviewsNavEffect));
+            OnPropertyChanged(nameof(ThemePreviewsEffect));
         }
         // [END SECTION: Game Info Forwarders]
 
@@ -928,6 +932,17 @@ namespace ArcadeStick.ViewModels
         public void RefreshMarqueeLogo()
         {
             OnPropertyChanged(nameof(ThemeLogoAsset));
+        }
+
+        // Shadow/glow shared by the logo, the game's marquee image and the spin frames (the no-art banner and
+        // the spin's no-marquee card have none). Built from the Marquee layer's TextShadow* fields.
+        public System.Windows.Media.Effects.Effect? ThemeMarqueeEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.MarqueePanel));
+
+        // Does the marquee shadow re-raise after the Marquee layer's shadow values changed (RefreshThemeBindings and
+        // MainWindow.ApplyLayout's marquee shadow key)
+        public void RefreshMarqueeBindings()
+        {
+            OnPropertyChanged(nameof(ThemeMarqueeEffect));
         }
 
         // The splash file set on the Splash Image layer for the active resolution (empty = the built-in splash).
@@ -1138,6 +1153,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeScrollThumbHoverColor));
             OnPropertyChanged(nameof(ThemeScrollThumbDragColor));
             RefreshGameInfoBindings();
+            RefreshMarqueeBindings();
             RefreshSearchButtonBindings();
             OnPropertyChanged(nameof(ThemeContextMenuFontColor));
             OnPropertyChanged(nameof(ThemeContextMenuIconColor));

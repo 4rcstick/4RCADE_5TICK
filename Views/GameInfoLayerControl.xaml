@@ -191,8 +191,9 @@
             </StackPanel>
         </Border>
 
-        <!-- PART: Image Previews (only the active image is visible, set in code-behind; missing images are skipped) -->
-        <Grid x:Name="PartPreviewsBody" Canvas.Left="414" Canvas.Top="486" Width="328" Height="198">
+        <!-- PART: Image Previews (only the active image is visible, set in code-behind; missing images are skipped).
+             The shadow/glow is set once here and follows the visible image's alpha. -->
+        <Grid x:Name="PartPreviewsBody" Canvas.Left="414" Canvas.Top="486" Width="328" Height="198" Effect="{Binding ThemePreviewsEffect}">
             <Image x:Name="Row3FlyerImage" Source="{Binding FlyerImage}" Stretch="Uniform" Visibility="Collapsed" RenderOptions.BitmapScalingMode="HighQuality"/>
             <Image x:Name="Row3TitleImage" Source="{Binding TitleImage}" Stretch="Uniform" Visibility="Collapsed"/>
             <Image x:Name="Row3SnapImage" Source="{Binding SnapImage}" Stretch="Uniform" Visibility="Collapsed"/>

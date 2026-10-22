@@ -169,6 +169,7 @@ namespace ArcadeStick
         private string? _lastGamesListStyleKey;
         private string? _lastGameTitleStyleKey;
         private string? _lastMarqueeLogoPath;
+        private string? _lastMarqueeShadowKey;
         private string? _lastSplashPath;
         private string? _lastVideoFallbackPath;
         private string? _lastSearchButtonsStyleKey;
@@ -272,6 +273,15 @@ namespace ArcadeStick
                 _viewModel.RefreshMarqueeLogo();
             }
 
+            // Marquee shadow: re-raise the shared logo / marquee / spin frame shadow only when one of its values changed
+            var marqueeEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.MarqueePanel);
+            string marqueeShadowKey = $"{marqueeEntry?.TextShadowEnabled}|{marqueeEntry?.TextShadowColorHex}|{marqueeEntry?.TextShadowBlur}|{marqueeEntry?.TextShadowDepth}";
+            if (marqueeShadowKey != _lastMarqueeShadowKey)
+            {
+                _lastMarqueeShadowKey = marqueeShadowKey;
+                _viewModel.RefreshMarqueeBindings();
+            }
+
             // Boot splash: re-raise the splash bindings only when the Splash Image layer's file changed. Raising
             // IsBootSplashVideo makes ViewModel_PropertyChanged reload the splash video (it skips an unchanged path).
             string splashPath = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SplashImage)?.ImagePath ?? "";
@@ -330,7 +340,7 @@ namespace ArcadeStick
             // Game Info: re-raise the title, publisher, header, body and nav bindings only when one of their style
             // values changed (the nav color forwarders also repaint the active dots in GameInfoLayerControl)
             string gameInfoStyleKey = string.Join("#",
-                new[] { Models.LayerRegistry.GameTitle, Models.LayerRegistry.PublisherBlock, Models.LayerRegistry.GameInfoBody, Models.LayerRegistry.GameInfoNav, Models.LayerRegistry.ImagePreviewsNav }
+                new[] { Models.LayerRegistry.GameTitle, Models.LayerRegistry.PublisherBlock, Models.LayerRegistry.GameInfoBody, Models.LayerRegistry.GameInfoNav, Models.LayerRegistry.ImagePreviewsNav, Models.LayerRegistry.ImagePreviewsBody }
                     .Select(id => layout.Layers.FirstOrDefault(e => e.Id == id))
                     .Select(e => $"{e?.TextFontFamily}|{e?.TextBold}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}"
                         + $"|{e?.SectionHeaderFontFamily}|{e?.SectionHeaderBold}|{e?.SectionHeaderFontSize}|{e?.SectionHeaderColorHex}|{e?.SectionHeaderShadowEnabled}|{e?.SectionHeaderShadowColorHex}|{e?.SectionHeaderShadowBlur}|{e?.SectionHeaderShadowDepth}"));

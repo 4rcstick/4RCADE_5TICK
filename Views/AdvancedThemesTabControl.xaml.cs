@@ -502,7 +502,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMainBgImage };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -515,11 +515,11 @@ namespace ArcadeStick.Views
             // Random Game Button entry by GetSelectedBorderEntry)
             if (unitKey == LayerRegistry.SearchAndButtonsGroup) return new[] { TabSBSearch, TabSBButtons, TabShapeBorder };
 
-            // Game Info group: title, publisher block, headers + body, and the two navs
-            if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGINav };
+            // Game Info group: title, publisher block, headers + body, the two navs, and the image previews shadow
+            if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews };
 
-            // Marquee gets the Logo tab (the logo shown when no game is selected)
-            if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo };
+            // Marquee gets the Logo tab (the logo shown when no game is selected) and the shared image shadow
+            if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo, TabMarqueeShadow };
 
             // Shape Layers 01 to 04 share one tab set
             if (unitKey != null && LayerRegistry.IsBoxId(unitKey)) return new[] { TabShapeBackground, TabShapeBorder };
@@ -583,6 +583,9 @@ namespace ArcadeStick.Views
             {
                 TxtMarqueeLogoFile.Text = GetEntry(LayerRegistry.MarqueePanel)?.ImagePath ?? "";
             }
+
+            // Marquee image shadow (SHADOW tab): filled when the Marquee layer is selected
+            LoadMarqueeShadowFields();
 
             // Splash Image file field: filled when the Splash Image layer is selected
             if (LstLayers.SelectedItem is LayerListItem splashSel && splashSel.Id == LayerRegistry.SplashImage)
@@ -2432,15 +2435,22 @@ namespace ArcadeStick.Views
         // [END SECTION: Search & Buttons Styling Fields]
 
         // [SECTION: Game Info Styling Fields]
-        // Shown while the Game Info group is selected. Six text blocks share one set of handlers: each control is
-        // named GI{Block}{Control} and carries its block key in Tag, and GIBlocks maps the key to the entry, which
-        // field set it uses (generic Text* or the body entry's SectionHeader*) and its defaults and size range.
+        // Six Game Info text blocks and two image-shadow blocks share one set of handlers: each control is named
+        // GI{Block}{Control} and carries its block key in Tag, and GIBlocks maps the key to the entry, which field
+        // set it uses (generic Text* or the body entry's SectionHeader*), its defaults and size range, and the list
+        // row that must be selected for it (the Game Info group, or the Marquee layer for the Marquee block).
         // Colors, checkboxes and combos apply immediately; number fields apply on Enter or focus loss and revert
-        // invalid input. The two navs have no font or bold controls (they are shapes).
+        // invalid input. The two navs have no font or bold controls (they are shapes); the image-shadow blocks
+        // (Previews, Marquee) have only the shadow controls.
 
-        // One block's storage: the entry it lives on, whether it uses the SectionHeader* fields, and its defaults
+        // One block's storage: the entry it lives on, whether it uses the SectionHeader* fields, and its defaults.
+        // SelectUnit is the list row that shows the block's tab; ShadowOnly blocks have no size or color controls.
         private sealed record GIBlockDef(string EntryId, bool UsesSectionHeader, bool HasFont, string DefaultFamily, bool DefaultBold,
-            int DefaultSize, int MinSize, int MaxSize, bool DefaultShadowEnabled, string DefaultShadowColorHex, int DefaultShadowBlur, int DefaultShadowDepth);
+            int DefaultSize, int MinSize, int MaxSize, bool DefaultShadowEnabled, string DefaultShadowColorHex, int DefaultShadowBlur, int DefaultShadowDepth)
+        {
+            public string SelectUnit { get; init; } = LayerRegistry.GameInfoGroup;
+            public bool ShadowOnly { get; init; }
+        }
 
         private static readonly Dictionary<string, GIBlockDef> GIBlocks = new()
         {
@@ -2456,6 +2466,11 @@ namespace ArcadeStick.Views
                 LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             ["PreviewsNav"] = new(LayerRegistry.ImagePreviewsNav, false, false, LayerRegistry.DefaultFontFamily, false,
                 LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
+            // Image shadows: the Image Previews (Game Info group, PREVIEWS tab) and the Marquee layer (its own SHADOW tab)
+            ["Previews"] = new(LayerRegistry.ImagePreviewsBody, false, false, LayerRegistry.DefaultFontFamily, false,
+                0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true },
+            ["Marquee"] = new(LayerRegistry.MarqueePanel, false, false, LayerRegistry.DefaultFontFamily, false,
+                0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true, SelectUnit = LayerRegistry.MarqueePanel },
         };
 
         // Reads and writes one block's style on its entry, picking the Text* or SectionHeader* fields
@@ -2475,11 +2490,12 @@ namespace ArcadeStick.Views
             public int? ShadowDepth { get => _h ? _e.SectionHeaderShadowDepth : _e.TextShadowDepth; set { if (_h) _e.SectionHeaderShadowDepth = value; else _e.TextShadowDepth = value; } }
         }
 
-        private bool IsGameInfoSelected => LstLayers.SelectedItem is LayerListItem sel && sel.Id == LayerRegistry.GameInfoGroup;
+        // Does the gating check: true while the block's list row (Game Info group or Marquee layer) is selected
+        private bool IsBlockSelected(GIBlockDef def) => LstLayers.SelectedItem is LayerListItem sel && sel.Id == def.SelectUnit;
 
-        // Returns the block's style accessor for the current layout (null when Game Info isn't selected)
+        // Returns the block's style accessor for the current layout (null when the block's row isn't selected)
         private GIStyle? GetGIStyle(string? block) =>
-            IsGameInfoSelected && block != null && GIBlocks.TryGetValue(block, out var def) && GetEntry(def.EntryId) is LayerLayoutEntry entry
+            block != null && GIBlocks.TryGetValue(block, out var def) && IsBlockSelected(def) && GetEntry(def.EntryId) is LayerLayoutEntry entry
                 ? new GIStyle(entry, def.UsesSectionHeader)
                 : null;
 
@@ -2488,15 +2504,19 @@ namespace ArcadeStick.Views
 
         private static string? GIBlockKey(object sender) => (sender as FrameworkElement)?.Tag as string;
 
-        // Fills the Title, Publisher, Info and Nav tabs from the five Game Info entries
-        private void LoadGameInfoStyleFields()
-        {
-            if (!IsGameInfoSelected) return;
+        // Fills the Title, Publisher, Info, Nav and Previews tabs from the Game Info entries (group selected)
+        private void LoadGameInfoStyleFields() => LoadGIBlockFields(LayerRegistry.GameInfoGroup);
 
+        // Fills the Marquee layer's SHADOW tab (Marquee layer selected)
+        private void LoadMarqueeShadowFields() => LoadGIBlockFields(LayerRegistry.MarqueePanel);
+
+        // Does the fill for every block shown by one list row; does nothing unless that row is selected
+        private void LoadGIBlockFields(string selectUnit)
+        {
             _loading = true;
             foreach (var (block, def) in GIBlocks)
             {
-                if (GetGIStyle(block) is not GIStyle style) continue;
+                if (def.SelectUnit != selectUnit || GetGIStyle(block) is not GIStyle style) continue;
 
                 if (def.HasFont && GIControl<ComboBox>(block, "Font") is ComboBox fontCombo && GIControl<CheckBox>(block, "Bold") is CheckBox boldCheck)
                 {
@@ -2509,9 +2529,12 @@ namespace ArcadeStick.Views
                     boldCheck.IsChecked = style.Bold ?? def.DefaultBold;
                 }
 
-                GIControl<TextBox>(block, "Size")!.Text = (style.FontSize ?? def.DefaultSize).ToString(CultureInfo.InvariantCulture);
-                ShowColor(GIControl<ColorPicker.PortableColorPicker>(block, "ColorPicker")!, GIControl<TextBox>(block, "ColorHex")!,
-                    style.ColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex);
+                if (!def.ShadowOnly)
+                {
+                    GIControl<TextBox>(block, "Size")!.Text = (style.FontSize ?? def.DefaultSize).ToString(CultureInfo.InvariantCulture);
+                    ShowColor(GIControl<ColorPicker.PortableColorPicker>(block, "ColorPicker")!, GIControl<TextBox>(block, "ColorHex")!,
+                        style.ColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex);
+                }
                 GIControl<CheckBox>(block, "Shadow")!.IsChecked = style.ShadowEnabled ?? def.DefaultShadowEnabled;
                 ShowColor(GIControl<ColorPicker.PortableColorPicker>(block, "ShadowColorPicker")!, GIControl<TextBox>(block, "ShadowColorHex")!,
                     style.ShadowColorHex ?? def.DefaultShadowColorHex);
@@ -2561,7 +2584,7 @@ namespace ArcadeStick.Views
             if (GIControl<ColorPicker.PortableColorPicker>(block, prefix + "ColorPicker") is not ColorPicker.PortableColorPicker picker
                 || GIControl<TextBox>(block, prefix + "ColorHex") is not TextBox hexBox) return;
 
-            LayerLayoutEntry? entry = IsGameInfoSelected ? GetEntry(def.EntryId) : null;
+            LayerLayoutEntry? entry = IsBlockSelected(def) ? GetEntry(def.EntryId) : null;
             bool shadow = prefix == "Shadow";
             void Store(LayerLayoutEntry en, string hex)
             {
@@ -2592,16 +2615,17 @@ namespace ArcadeStick.Views
             ApplyGameInfoFields();
         }
 
-        // Stores each valid number field of every block on its entry; an invalid one keeps its stored value
+        // Stores each valid number field of every block shown by the selected row on its entry; an invalid one keeps
+        // its stored value
         private void ApplyGameInfoFields()
         {
-            if (_loading || _settings == null || !IsGameInfoSelected) return;
+            if (_loading || _settings == null || !GIBlocks.Values.Any(IsBlockSelected)) return;
 
             foreach (var (block, def) in GIBlocks)
             {
                 if (GetGIStyle(block) is not GIStyle style) continue;
 
-                if (int.TryParse(GIControl<TextBox>(block, "Size")!.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int size) && size >= def.MinSize && size <= def.MaxSize)
+                if (!def.ShadowOnly && int.TryParse(GIControl<TextBox>(block, "Size")!.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int size) && size >= def.MinSize && size <= def.MaxSize)
                     style.FontSize = size;
                 if (int.TryParse(GIControl<TextBox>(block, "ShadowBlur")!.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int blur) && blur >= 0 && blur <= 30)
                     style.ShadowBlur = blur;
