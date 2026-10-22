@@ -5,7 +5,7 @@ namespace ArcadeStick.Views
 {
     public partial class AssetPathsTabControl : UserControl
     {
-        private ArcadeStick.Models.ConfigurationSettings _settings;
+        private ArcadeStick.Models.ConfigurationSettings _settings = null!;
 
         public AssetPathsTabControl()
         {

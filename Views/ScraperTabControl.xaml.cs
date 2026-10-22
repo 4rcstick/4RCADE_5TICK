@@ -6,7 +6,7 @@ namespace ArcadeStick.Views
 {
     public partial class ScraperTabControl : UserControl
     {
-        private ArcadeStick.Models.ConfigurationSettings _settings;
+        private ArcadeStick.Models.ConfigurationSettings _settings = null!;
         private ArcadeStick.Services.ArtworkScraperService? _scraperService;
 
         public ScraperTabControl()

@@ -1299,6 +1299,7 @@ namespace ArcadeStick
                 _romCopyStatusTooltip = null;
             }
 
+            if (_viewModel.SelectedGame == null) return;
             var targetContainer = FindTreeViewItemContainer(GameTree, _viewModel.SelectedGame);
             if (targetContainer == null) return;
 
@@ -1660,8 +1661,7 @@ namespace ArcadeStick
         {
             try
             {
-                var brush = (SolidColorBrush)new BrushConverter().ConvertFromString(hexText);
-                return brush.Color;
+                return new BrushConverter().ConvertFromString(hexText) is SolidColorBrush brush ? brush.Color : null;
             }
             catch
             {

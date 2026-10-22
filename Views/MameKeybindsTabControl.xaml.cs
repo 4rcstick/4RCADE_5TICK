@@ -9,7 +9,7 @@ namespace ArcadeStick.Views
 {
     public partial class MameKeybindsTabControl : UserControl
     {
-        private ArcadeStick.Models.ConfigurationSettings _settings;
+        private ArcadeStick.Models.ConfigurationSettings _settings = null!;
 
         // [SECTION: TEMP Keybind Test State]
         // Temporary state for the Phase 1 multi-slot proof-of-concept. Not the final architecture -

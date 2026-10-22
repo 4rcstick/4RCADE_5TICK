@@ -9,16 +9,16 @@ namespace ArcadeStick.Views
 {
     public partial class ThemesTabControl : UserControl
     {
-        private ArcadeStick.Models.ConfigurationSettings _settings;
-        private ArcadeStick.ViewModels.MainViewModel _viewModel;
-        private Action _persistToDisk;
-        private Action _refreshOptionsBindings;
+        private ArcadeStick.Models.ConfigurationSettings _settings = null!;
+        private ArcadeStick.ViewModels.MainViewModel _viewModel = null!;
+        private Action? _persistToDisk;
+        private Action? _refreshOptionsBindings;
         private Action? _themeSavedCallback;
 
         // Lets the hosting window react when Save Changes writes a theme (Theme Builder uses it to move
         // its close-without-saving restore point). Optional - nothing else needs to set it.
         public void SetThemeSavedCallback(Action callback) => _themeSavedCallback = callback;
-        private System.Windows.Threading.DispatcherTimer _themeSavedFlashTimer;
+        private System.Windows.Threading.DispatcherTimer? _themeSavedFlashTimer;
 
         public ThemesTabControl()
         {
@@ -168,7 +168,7 @@ namespace ArcadeStick.Views
         // any new flat theme property must be added to this DTO too (and to ThemeSettings and LoadTheme).
         private void BtnSaveTheme_Click(object sender, RoutedEventArgs e)
         {
-            string themeName = CboThemePresets.SelectedItem as string;
+            string? themeName = CboThemePresets.SelectedItem as string;
             if (themeName == "[New Theme...]")
             {
                 themeName = TxtNewThemeName.Text.Trim();
@@ -184,7 +184,7 @@ namespace ArcadeStick.Views
             try
             {
                 string themeFile = _settings.GetThemePath(themeName);
-                Directory.CreateDirectory(Path.GetDirectoryName(themeFile));
+                Directory.CreateDirectory(Path.GetDirectoryName(themeFile) ?? throw new InvalidOperationException($"Invalid theme path: {themeFile}"));
 
                 // Create and populate the DTO
                 var themeDto = new ArcadeStick.Models.ThemeSettings
@@ -330,7 +330,7 @@ namespace ArcadeStick.Views
             _themeSavedFlashTimer.Tick += (s, e) =>
             {
                 TxtThemeSavedFlash.Visibility = Visibility.Collapsed;
-                _themeSavedFlashTimer.Stop();
+                _themeSavedFlashTimer?.Stop();
             };
             _themeSavedFlashTimer.Start();
         }

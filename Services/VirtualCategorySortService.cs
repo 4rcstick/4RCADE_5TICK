@@ -24,7 +24,6 @@ namespace ArcadeStick.Services
         // comes from this ini (that field was a machine-generated snapshot that could drift out of sync)
         // - it's now found live via GameItem.CloneOf, sourced fresh from mame_cache.json every time.
         private Dictionary<string, MasterLibraryEntry>? _cachedParentLookup;
-        private Dictionary<string, string>? _cachedVariantToParent;
 
         // Keywords that disqualify a clone/variant from appearing in the virtual sort tree - bootlegs,
         // hacks, and prototypes are noise for browsing purposes even though they may still be physically

@@ -9,7 +9,7 @@ namespace ArcadeStick.Views
 {
     public partial class MAMEiniTabControl : UserControl
     {
-        private ArcadeStick.Models.ConfigurationSettings _settings;
+        private ArcadeStick.Models.ConfigurationSettings _settings = null!;
 
         // Captures whatever artpath value mame.ini actually has on load (the real bezel folder),
         // so it can be restored on Save if the user re-checks ChkEnableBezels after disabling.

@@ -10,7 +10,7 @@ namespace ArcadeStick.Views
     // Code-behind for the About tab: opens external links (GitHub, Buy Me a Coffee) in the system browser.
     public partial class AboutTabControl : UserControl
     {
-        private ArcadeStick.Models.ConfigurationSettings _settings;
+        private ArcadeStick.Models.ConfigurationSettings _settings = null!;
 
         public AboutTabControl()
         {

@@ -10,8 +10,8 @@ namespace ArcadeStick.Views
 {
     public partial class PreviewsOrderTabControl : UserControl
     {
-        private ArcadeStick.Models.ConfigurationSettings _settings;
-        private ArcadeStick.ViewModels.MainViewModel _viewModel;
+        private ArcadeStick.Models.ConfigurationSettings _settings = null!;
+        private ArcadeStick.ViewModels.MainViewModel _viewModel = null!;
         private ObservableCollection<string> _mediaCategories = new();
 
         public PreviewsOrderTabControl()
