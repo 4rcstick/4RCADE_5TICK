@@ -235,7 +235,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <ListBox x:Name="LstLayers" Grid.Column="0" DisplayMemberPath="DisplayName" SelectionChanged="LstLayers_SelectionChanged" MouseDoubleClick="LstLayers_MouseDoubleClick"
+                <ListBox x:Name="LstLayers" Grid.Column="0" DisplayMemberPath="DisplayName" SelectionMode="Extended" SelectionChanged="LstLayers_SelectionChanged" MouseDoubleClick="LstLayers_MouseDoubleClick"
                          Background="#1C1C1E" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1"
                          Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}">
                     <ListBox.ItemContainerStyle>
@@ -1786,6 +1786,32 @@
                     </TabItem>
                     <!-- [END SECTION: Main Window Background - Image Tab] -->
                 </TabControl>
+
+                <!-- [SECTION: Multi-Select Nudge] -->
+                <!-- Two or more rows selected: replaces the tab frame. The boxes are nudge amounts (not positions) that
+                     move every selected layer together and return to 0 after each move (code-behind: LoadMultiSelection). -->
+                <StackPanel Grid.Row="1" x:Name="PnlMultiSelect" Visibility="Collapsed" Margin="10,0,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="110"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Move X by (px):" Style="{StaticResource GLLabelStyle}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Move Y by (px):" Style="{StaticResource GLLabelStyle}"/>
+                        <TextBox x:Name="TxtMultiX" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
+                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="MultiNudge_LostFocus" KeyDown="MultiNudge_KeyDown"/>
+                        <TextBox x:Name="TxtMultiY" Grid.Row="1" Grid.Column="2" HorizontalContentAlignment="Center"
+                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="MultiNudge_LostFocus" KeyDown="MultiNudge_KeyDown"/>
+                    </Grid>
+                    <TextBlock x:Name="TxtMultiHint" TextWrapping="Wrap" Margin="0,10,0,0"
+                               Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}"/>
+                </StackPanel>
+                <!-- [END SECTION: Multi-Select Nudge] -->
 
                 <!-- Layer-wide buttons, pinned below the tab frame so they sit in the same place on every tab and layer -->
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">

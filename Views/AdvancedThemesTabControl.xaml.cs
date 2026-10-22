@@ -51,8 +51,26 @@ namespace ArcadeStick.Views
             // so this one call lets the main window re-apply the layout live.
             LayoutChanged?.Invoke();
 
+            // Multi mode: one guide rect around the bounding box of every moving entry
+            if (IsMultiSelect)
+            {
+                var moving = GetMultiMoveEntries();
+                if (!_settings.ShowGuideLines || moving.Count == 0)
+                {
+                    GuidesChanged?.Invoke(null);
+                    return;
+                }
+
+                double minX = moving.Min(e => e.X);
+                double minY = moving.Min(e => e.Y);
+                double maxRight = moving.Max(e => e.X + e.Width);
+                double maxBottom = moving.Max(e => e.Y + e.Height);
+                GuidesChanged?.Invoke(new GuideInfo(minX, minY, maxRight - minX, maxBottom - minY, _settings.GuideLineColorHex));
+                return;
+            }
+
             if (!_settings.ShowGuideLines
-    || LstLayers.SelectedItem is not LayerListItem selected
+    || SingleSelectedLayer is not LayerListItem selected
     || IsBackground(selected.Id))
             {
                 GuidesChanged?.Invoke(null);
@@ -245,6 +263,102 @@ namespace ArcadeStick.Views
             LoadSelectedLayerIntoFields();
         }
 
+        // [SECTION: Multi-Select]
+        // Ctrl/Shift-click selects several rows ("multi mode"): the pane shows only the Move X / Move Y nudge boxes,
+        // which shift every selected row's entries together. Single-selection code reads SingleSelectedLayer,
+        // which is null in multi mode, so it stays inactive there. Nothing about the selection is saved.
+        private const string MultiSelectHint = "Several layers selected. Type an amount to shift every selected layer together: positive X moves right, positive Y moves down. The boxes return to 0 after each move.";
+        private const string MultiSelectNothingMovableHint = "None of the selected layers can be moved (the Main Window Background is not positionable).";
+
+        // Does the multi-mode check: true while two or more rows are selected
+        private bool IsMultiSelect => LstLayers.SelectedItems.Count > 1;
+
+        // Does the single-selection lookup: the selected row, or null when none or several are selected
+        private LayerListItem? SingleSelectedLayer => IsMultiSelect ? null : LstLayers.SelectedItem as LayerListItem;
+
+        // Does the multi-mode entry list: every entry of every selected row (all parts of a group), without
+        // the Main Window Background. Hidden layers are included.
+        private List<LayerLayoutEntry> GetMultiMoveEntries() =>
+            LstLayers.SelectedItems.OfType<LayerListItem>()
+                .SelectMany(row => GetUnitEntries(row.Id))
+                .Where(entry => !IsBackground(entry.Id))
+                .Distinct()
+                .ToList();
+
+        // Does the multi-mode page: heading, nudge boxes reset to 0, single-layer tabs and buttons hidden
+        private void LoadMultiSelection()
+        {
+            // Returning to one row then re-selects that layer's first tab
+            _tabsUnitKey = null;
+
+            PnlLayerFields.Visibility = Visibility.Visible;
+            TxtLayerName.Text = $"{LstLayers.SelectedItems.Count} layers selected";
+            TabsLayer.Visibility = Visibility.Collapsed;
+            PnlMultiSelect.Visibility = Visibility.Visible;
+
+            BtnRenameLayer.Visibility = Visibility.Collapsed;
+            BtnResetLayer.Visibility = Visibility.Collapsed;
+            BtnRemoveLayer.Visibility = Visibility.Collapsed;
+            BtnLayerUp.IsEnabled = false;
+            BtnLayerDown.IsEnabled = false;
+
+            bool canMove = GetMultiMoveEntries().Count > 0;
+            _loading = true;
+            TxtMultiX.Text = "0";
+            TxtMultiY.Text = "0";
+            _loading = false;
+            TxtMultiX.IsEnabled = canMove;
+            TxtMultiY.IsEnabled = canMove;
+            TxtMultiHint.Text = canMove ? MultiSelectHint : MultiSelectNothingMovableHint;
+
+            RaiseGuides();
+        }
+
+        // Does the undo of the multi-mode page before a single selection (or none) is shown
+        private void EndMultiSelectionPage()
+        {
+            PnlMultiSelect.Visibility = Visibility.Collapsed;
+            TabsLayer.Visibility = Visibility.Visible;
+            BtnLayerUp.IsEnabled = true;
+            BtnLayerDown.IsEnabled = true;
+        }
+
+        private void MultiNudge_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyMultiNudge(sender as TextBox);
+        }
+
+        private void MultiNudge_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyMultiNudge(sender as TextBox);
+        }
+
+        // Does the nudge: shifts every moving entry by the typed amount (X box: right is positive, Y box: down is
+        // positive), then puts the box back to 0 so a later focus loss cannot apply the same amount twice.
+        // Blank, invalid or 0 applies nothing.
+        private void ApplyMultiNudge(TextBox? box)
+        {
+            if (_loading || box == null || !IsMultiSelect) return;
+
+            if (double.TryParse(box.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double delta)
+                && double.IsFinite(delta) && delta != 0)
+            {
+                foreach (var entry in GetMultiMoveEntries())
+                {
+                    if (box == TxtMultiX) entry.X += delta;
+                    else if (box == TxtMultiY) entry.Y += delta;
+                }
+            }
+
+            _loading = true;
+            box.Text = "0";
+            _loading = false;
+            RaiseGuides();
+        }
+        // [END SECTION: Multi-Select]
+
         // Does the name shown for a single layer (list row and heading). Custom layers: their own Name.
         // Shape layers: this resolution's Name, else the first Name set at any resolution, else the registry
         // name. Every other layer: the registry name.
@@ -281,7 +395,7 @@ namespace ArcadeStick.Views
             while (source != null && source is not ListBoxItem) source = VisualTreeHelper.GetParent(source);
             if (source is not ListBoxItem row) return;
 
-            if (row.DataContext is not LayerListItem item || !ReferenceEquals(item, LstLayers.SelectedItem)) return;
+            if (row.DataContext is not LayerListItem item || !ReferenceEquals(item, SingleSelectedLayer)) return;
             if (!LayerRegistry.IsBoxId(item.Id)) return;
 
             RenameSelectedLayer();
@@ -291,7 +405,7 @@ namespace ArcadeStick.Views
         // resolution (empty clears the name everywhere, back to the registry name)
         private void RenameSelectedLayer()
         {
-            if (LstLayers.SelectedItem is not LayerListItem selected || !LayerRegistry.IsBoxId(selected.Id)) return;
+            if (SingleSelectedLayer is not LayerListItem selected || !LayerRegistry.IsBoxId(selected.Id)) return;
             if (GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
 
             bool isCustom = LayerRegistry.IsCustomId(selected.Id);
@@ -335,7 +449,7 @@ namespace ArcadeStick.Views
         // at the bottom and can't be moved or passed.
         private void MoveSelectedLayer(int direction)
         {
-            if (LstLayers.SelectedItem is not LayerListItem selected) return;
+            if (SingleSelectedLayer is not LayerListItem selected) return;
             if (IsBackground(selected.Id)) return;
 
             // Rows (a group counts once), top-to-bottom
@@ -482,7 +596,7 @@ namespace ArcadeStick.Views
         // Remove: deletes the selected custom layer at this resolution only (other resolutions are untouched).
         private void BtnRemoveLayer_Click(object sender, RoutedEventArgs e)
         {
-            if (LstLayers.SelectedItem is not LayerListItem selected || !LayerRegistry.IsCustomId(selected.Id)) return;
+            if (SingleSelectedLayer is not LayerListItem selected || !LayerRegistry.IsCustomId(selected.Id)) return;
 
             var result = MessageBox.Show(
                 $"Remove the layer '{selected.DisplayName}' from the {_currentLayout.Width} x {_currentLayout.Height} layout?\n\nOther resolutions are not affected.",
@@ -561,9 +675,17 @@ namespace ArcadeStick.Views
 
         private void LoadSelectedLayerIntoFields()
         {
+            // Several rows selected: the nudge page only (none of the single-layer loaders below run)
+            if (IsMultiSelect)
+            {
+                LoadMultiSelection();
+                return;
+            }
+            EndMultiSelectionPage();
+
             // Tabs for the selected layer: Position always, the others per layer type. Selecting a different
             // layer returns to Position; edits to the same layer stay on the current tab.
-            ApplyLayerTabs((LstLayers.SelectedItem as LayerListItem)?.Id);
+            ApplyLayerTabs(SingleSelectedLayer?.Id);
 
             // Games List styling fields: filled from the entry when the Games List is selected
             LoadGamesListStyleFields();
@@ -579,7 +701,7 @@ namespace ArcadeStick.Views
             LoadGameInfoStyleFields();
 
             // Marquee logo field: filled when the Marquee layer is selected
-            if (LstLayers.SelectedItem is LayerListItem marqueeSel && marqueeSel.Id == LayerRegistry.MarqueePanel)
+            if (SingleSelectedLayer is LayerListItem marqueeSel && marqueeSel.Id == LayerRegistry.MarqueePanel)
             {
                 TxtMarqueeLogoFile.Text = GetEntry(LayerRegistry.MarqueePanel)?.ImagePath ?? "";
             }
@@ -588,13 +710,13 @@ namespace ArcadeStick.Views
             LoadMarqueeShadowFields();
 
             // Splash Image file field: filled when the Splash Image layer is selected
-            if (LstLayers.SelectedItem is LayerListItem splashSel && splashSel.Id == LayerRegistry.SplashImage)
+            if (SingleSelectedLayer is LayerListItem splashSel && splashSel.Id == LayerRegistry.SplashImage)
             {
                 TxtSplashFile.Text = GetEntry(LayerRegistry.SplashImage)?.ImagePath ?? "";
             }
 
             // Video Preview background color and fallback image: filled when the Video Preview layer is selected
-            if (LstLayers.SelectedItem is LayerListItem videoSel && videoSel.Id == LayerRegistry.VideoPreview
+            if (SingleSelectedLayer is LayerListItem videoSel && videoSel.Id == LayerRegistry.VideoPreview
                 && GetEntry(LayerRegistry.VideoPreview) is LayerLayoutEntry videoEntry)
             {
                 _loading = true;
@@ -604,7 +726,7 @@ namespace ArcadeStick.Views
             }
 
             // Main Window Background image fields: filled when that layer is selected
-            if (LstLayers.SelectedItem is LayerListItem bgSel && bgSel.Id == LayerRegistry.MainBackground
+            if (SingleSelectedLayer is LayerListItem bgSel && bgSel.Id == LayerRegistry.MainBackground
                 && GetEntry(LayerRegistry.MainBackground) is LayerLayoutEntry bgEntry)
             {
                 _loading = true;
@@ -615,14 +737,14 @@ namespace ArcadeStick.Views
             }
 
             // A group row shows every part's fields at once on its own page
-            if (LstLayers.SelectedItem is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition selectedGroup)
+            if (SingleSelectedLayer is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition selectedGroup)
             {
                 BtnRenameLayer.Visibility = Visibility.Collapsed;
                 LoadGroupIntoFields(selectedGroup);
                 return;
             }
 
-            if (LstLayers.SelectedItem is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry)
+            if (SingleSelectedLayer is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry)
             {
                 PnlLayerFields.Visibility = Visibility.Collapsed;
                 RaiseGuides();
@@ -867,7 +989,7 @@ namespace ArcadeStick.Views
         private void ApplyField(TextBox? box)
         {
             if (_loading || box == null) return;
-            if (LstLayers.SelectedItem is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
+            if (SingleSelectedLayer is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
 
             if (double.TryParse(box.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
             {
@@ -914,7 +1036,7 @@ namespace ArcadeStick.Views
 
         private void BtnBrowseLayerFile_Click(object sender, RoutedEventArgs e)
         {
-            if (LstLayers.SelectedItem is not LayerListItem selected || GetFileEntry(selected.Id) is not LayerLayoutEntry entry) return;
+            if (SingleSelectedLayer is not LayerListItem selected || GetFileEntry(selected.Id) is not LayerLayoutEntry entry) return;
 
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -938,7 +1060,7 @@ namespace ArcadeStick.Views
 
         private void BtnClearLayerFile_Click(object sender, RoutedEventArgs e)
         {
-            if (LstLayers.SelectedItem is not LayerListItem selected || GetFileEntry(selected.Id) is not LayerLayoutEntry entry) return;
+            if (SingleSelectedLayer is not LayerListItem selected || GetFileEntry(selected.Id) is not LayerLayoutEntry entry) return;
 
             entry.ImagePath = "";
             LoadSelectedLayerIntoFields();
@@ -947,7 +1069,7 @@ namespace ArcadeStick.Views
         private void ChkLayerHidden_Click(object sender, RoutedEventArgs e)
         {
             if (_loading) return;
-            if (LstLayers.SelectedItem is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
+            if (SingleSelectedLayer is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
 
             entry.Visible = ChkLayerHidden.IsChecked != true;
             LayoutChanged?.Invoke();
@@ -966,7 +1088,7 @@ namespace ArcadeStick.Views
 
         private LayerLayoutEntry? GetSelectedShapeEntry()
         {
-            if (LstLayers.SelectedItem is LayerListItem sel && LayerRegistry.IsBoxId(sel.Id)) return GetEntry(sel.Id);
+            if (SingleSelectedLayer is LayerListItem sel && LayerRegistry.IsBoxId(sel.Id)) return GetEntry(sel.Id);
             return null;
         }
 
@@ -974,7 +1096,7 @@ namespace ArcadeStick.Views
         // Image, Video Preview), or the Random Game Button entry (the shared button style) for Search & Buttons
         private LayerLayoutEntry? GetSelectedBorderEntry()
         {
-            if (LstLayers.SelectedItem is not LayerListItem sel) return null;
+            if (SingleSelectedLayer is not LayerListItem sel) return null;
             if (sel.Id == LayerRegistry.SearchAndButtonsGroup) return GetEntry(LayerRegistry.RandomButton);
             if (LayerRegistry.HasBorderTab(sel.Id)) return GetEntry(sel.Id);
             return null;
@@ -1426,7 +1548,7 @@ namespace ArcadeStick.Views
         // Fills the Folders and Game Titles tab fields from the Games List entry. Which tabs are visible is decided by ApplyLayerTabs.
         private void LoadGamesListStyleFields()
         {
-            bool show = LstLayers.SelectedItem is LayerListItem sel && sel.Id == LayerRegistry.GamesList && GetEntry(LayerRegistry.GamesList) != null;
+            bool show = SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.GamesList && GetEntry(LayerRegistry.GamesList) != null;
             if (!show) return;
 
             var entry = GetEntry(LayerRegistry.GamesList)!;
@@ -2207,7 +2329,7 @@ namespace ArcadeStick.Views
         // checkboxes and combos apply immediately; number fields apply on Enter or focus loss and revert invalid input.
         private static readonly string[] TextAlignChoices = { "Left", "Center", "Right" };
 
-        private bool IsSearchButtonsSelected => LstLayers.SelectedItem is LayerListItem sel && sel.Id == LayerRegistry.SearchAndButtonsGroup;
+        private bool IsSearchButtonsSelected => SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.SearchAndButtonsGroup;
 
         // Fills the Search and Buttons tabs and the Border tab's hover row from the three entries
         private void LoadSearchButtonsStyleFields()
@@ -2495,7 +2617,7 @@ namespace ArcadeStick.Views
         }
 
         // Does the gating check: true while the block's list row (Game Info group or Marquee layer) is selected
-        private bool IsBlockSelected(GIBlockDef def) => LstLayers.SelectedItem is LayerListItem sel && sel.Id == def.SelectUnit;
+        private bool IsBlockSelected(GIBlockDef def) => SingleSelectedLayer is LayerListItem sel && sel.Id == def.SelectUnit;
 
         // Returns the block's style accessor for the current layout (null when the block's row isn't selected)
         private GIStyle? GetGIStyle(string? block) =>
@@ -3021,7 +3143,7 @@ namespace ArcadeStick.Views
         private void BtnResetLayer_Click(object sender, RoutedEventArgs e)
         {
             // A group resets every one of its parts
-            if (LstLayers.SelectedItem is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition resetGroup)
+            if (SingleSelectedLayer is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition resetGroup)
             {
                 var groupRestore = GetRestoreLayout(_currentLayout.Width, _currentLayout.Height);
                 foreach (string partId in resetGroup.PartIds)
@@ -3048,7 +3170,7 @@ namespace ArcadeStick.Views
                 return;
             }
 
-            if (LstLayers.SelectedItem is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
+            if (SingleSelectedLayer is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
 
             var restore = GetRestoreLayout(_currentLayout.Width, _currentLayout.Height);
             var defEntry = restore.Layers.FirstOrDefault(l => l.Id == entry.Id);
