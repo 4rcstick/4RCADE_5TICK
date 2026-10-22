@@ -19,7 +19,7 @@
 
         <!-- [SECTION: Guide] -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="ADVANCED THEMES" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
+            <TextBlock Text="THEME BUILDER" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
             <TextBlock Text="Choose a resolution, then select a layer to set its position, size and visibility. Layers higher in the list draw on top. Values apply when you press Enter or leave the field. Save Adjustments writes them to settings.json; Save Changes on the Basic Themes tab writes them into the theme file."
                        Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" TextWrapping="Wrap"/>
         </StackPanel>

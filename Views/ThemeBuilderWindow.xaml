@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ArcadeStick"
         xmlns:views="clr-namespace:ArcadeStick.Views"
-        Title="4RCADE 5TICK Theme Builder" Height="885" Width="693"
+        Title="4RCADE 5TICK Theme Builder" Height="885" Width="717"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource Global.Options.Bg}"
         BorderBrush="{StaticResource ChromeBorder}"
@@ -26,13 +26,14 @@
                  Advanced Themes hosts the layer list and per-layer property tabs.
                  Global hosts the theme-wide values (not per resolution): Fonts and Backgrounds so far.
                  A Theme Browser tab will be added down the road. -->
-            <TabItem Header="BASIC THEMES">
-                <views:ThemesTabControl x:Name="ThemesTab"/>
-            </TabItem>
 
-            <TabItem Header="ADVANCED THEMES">
+            <TabItem Header="THEME BUILDER">
                 <views:AdvancedThemesTabControl x:Name="AdvancedTab"/>
             </TabItem>
+
+            <TabItem Header="THEME BROWSER">
+                <views:ThemesTabControl x:Name="ThemesTab"/>
+            </TabItem>            
 
             <TabItem Header="GLOBAL">
                 <views:GlobalThemesTabControl x:Name="GlobalTab"/>

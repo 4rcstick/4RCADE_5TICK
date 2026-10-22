@@ -46,7 +46,7 @@ namespace ArcadeStick.Views
             // Advanced tab is actually the selected tab. Cleared when switching to Basic or closing.
             AdvancedTab.GuidesChanged += info =>
             {
-                if (ThemeBuilderTabControl.SelectedIndex != 1) info = null;
+                if (!ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, AdvancedTab)) info = null;
                 (Owner as MainWindow)?.ShowGuides(info);
             };
 
@@ -55,7 +55,7 @@ namespace ArcadeStick.Views
                 // SelectionChanged bubbles up from the ListBox and ComboBox inside the tabs - only react to the tab strip itself
                 if (!ReferenceEquals(e.OriginalSource, ThemeBuilderTabControl)) return;
 
-                if (ThemeBuilderTabControl.SelectedIndex == 1) AdvancedTab.RaiseGuides();
+                if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, AdvancedTab)) AdvancedTab.RaiseGuides();
                 else (Owner as MainWindow)?.ShowGuides(null);
             };
 
