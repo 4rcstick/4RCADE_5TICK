@@ -44,6 +44,10 @@ namespace ArcadeStick.Views
         // Raised whenever the guides should be redrawn or cleared. ThemeBuilderWindow forwards it to MainWindow.
         public event Action<GuideInfo?>? GuidesChanged;
 
+        // Raised when the Random Game Display card preview turns on or off (and with which state). ThemeBuilderWindow
+        // forwards it to MainWindow.SetRandomCardPreview. Session-only, never stored.
+        public event Action<bool, bool>? RandomPreviewChanged;
+
         // Raised after any committed layout edit so the main window can re-apply the layout live.
         // Nothing is written to disk here - Save Adjustments / Save Changes still do that.
         public event Action? LayoutChanged;
@@ -127,6 +131,7 @@ namespace ArcadeStick.Views
             _loading = true;
 
             _pendingSize = null; // a theme load or reload starts clean
+            StopRandomPreview();
 
             // No theme loaded or saved this session yet: the size the window opened at is the best
             // available "saved" size for Delete Size to return to.
@@ -301,6 +306,8 @@ namespace ArcadeStick.Views
         {
             // Returning to one row then re-selects that layer's first tab
             _tabsUnitKey = null;
+            StopRandomPreview();
+            PnlRandomPreview.Visibility = Visibility.Collapsed;
 
             PnlLayerFields.Visibility = Visibility.Visible;
             TxtLayerName.Text = $"{LstLayers.SelectedItems.Count} layers selected";
@@ -695,6 +702,7 @@ namespace ArcadeStick.Views
             {
                 _tabsUnitKey = unitKey;
                 _rgStatePartId = LayerRegistry.RandomGameDisplay; // the State combo starts on the first state each time
+                StopRandomPreview(); // the card preview belongs to the layer it was turned on for
                 TabsLayer.SelectedItem = TabsLayer.Items.OfType<TabItem>().FirstOrDefault(t => t.Visibility == Visibility.Visible) ?? TabPosition;
             }
         }
@@ -2607,6 +2615,15 @@ namespace ArcadeStick.Views
             var stateVisibility = IsRandomDisplaySelected ? Visibility.Visible : Visibility.Collapsed;
             PnlRGBorderState.Visibility = stateVisibility;
             PnlRGBgState.Visibility = stateVisibility;
+            PnlRandomPreview.Visibility = stateVisibility;
+            if (CboRandomPreviewState.Items.Count == 0)
+            {
+                bool wasLoading = _loading;
+                _loading = true;
+                foreach (var choice in RGStateChoices) CboRandomPreviewState.Items.Add(choice.Label);
+                CboRandomPreviewState.SelectedIndex = 0;
+                _loading = wasLoading;
+            }
             if (RGEntry is not LayerLayoutEntry entry || RGSplashEntry is not LayerLayoutEntry splash || RGStateEntry is not LayerLayoutEntry stateEntry) return;
 
             _loading = true;
@@ -2651,6 +2668,36 @@ namespace ArcadeStick.Views
             TxtRGFile.Text = entry.ImagePath ?? "";
 
             _loading = false;
+        }
+
+        // Card preview: the checkbox turns it on or off, the combo picks the state (live while on)
+        private void ChkRandomPreview_Click(object sender, RoutedEventArgs e) => RaiseRandomPreview();
+
+        private void CboRandomPreviewState_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || ChkRandomPreview.IsChecked != true) return;
+            RaiseRandomPreview();
+        }
+
+        // Sends the checkbox and combo state to the main window (through ThemeBuilderWindow)
+        private void RaiseRandomPreview()
+        {
+            bool fromSplash = CboRandomPreviewState.SelectedIndex == 1;
+            RandomPreviewChanged?.Invoke(ChkRandomPreview.IsChecked == true, fromSplash);
+        }
+
+        // Turns the card preview off (unchecks the box and tells the main window). Safe to call when it is already off.
+        public void StopRandomPreview()
+        {
+            if (ChkRandomPreview.IsChecked != true) return;
+            ChkRandomPreview.IsChecked = false;
+            RandomPreviewChanged?.Invoke(false, false);
+        }
+
+        // Unchecks the box after the main window already ended the preview (a real spin started); raises nothing
+        public void ClearRandomPreview()
+        {
+            ChkRandomPreview.IsChecked = false;
         }
 
         // Switches which state the Border tab and the Background tab's color row edit (both combos stay in step)
@@ -3177,6 +3224,7 @@ namespace ArcadeStick.Views
                 }
             }
 
+            StopRandomPreview();
             _settings.ActiveResolutionWidth = preset.Width;
             _settings.ActiveResolutionHeight = preset.Height;
             _currentLayout = ResolveAndStoreFrom(saved, preset.Width, preset.Height);
@@ -3286,6 +3334,7 @@ namespace ArcadeStick.Views
                 }
             }
 
+            StopRandomPreview();
             _settings.ActiveResolutionWidth = width;
             _settings.ActiveResolutionHeight = height;
             _currentLayout = ResolveAndStoreFrom(saved, width, height);

@@ -129,7 +129,20 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" x:Name="TxtLayerName" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,8"/>
+                <StackPanel Grid.Row="0">
+                    <TextBlock x:Name="TxtLayerName" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,8"/>
+
+                    <!-- Random Game Display only: session-only card preview on the main window, in the chosen state.
+                         Turned off by selecting another layer, a resolution switch, a theme load, leaving the tab,
+                         closing the builder, or a real spin. -->
+                    <StackPanel x:Name="PnlRandomPreview" Orientation="Horizontal" Margin="0,0,0,8" Visibility="Collapsed">
+                        <CheckBox x:Name="ChkRandomPreview" Content="Preview card" Click="ChkRandomPreview_Click" VerticalAlignment="Center" Margin="0,0,15,0"
+                                  Style="{StaticResource GLCheckBoxStyle}"/>
+                        <TextBlock Text="Preview as:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <ComboBox x:Name="CboRandomPreviewState" Width="200" Height="25"
+                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRandomPreviewState_SelectionChanged"/>
+                    </StackPanel>
+                </StackPanel>
 
                 <TabControl Grid.Row="1" x:Name="TabsLayer" Style="{StaticResource ThemedTabControlStyle}" Background="Transparent">
 
@@ -1406,19 +1419,26 @@
 
                                 <!-- Max text size per state (6 to 200): the text shrinks below it only when it does not fit -->
                                 <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5" Text="Max text size (px):" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                <!-- One state per row, label above its box, on the tab's column grid -->
                                 <Grid Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="18"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="6"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Game selected:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                    <TextBox x:Name="TxtRGFontSize" Grid.Column="1" HorizontalContentAlignment="Center"
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="When a game is selected:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBox x:Name="TxtRGFontSize" Grid.Row="1" Grid.Column="0" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
-                                    <TextBlock Grid.Column="3" Text="Splash page:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                    <TextBox x:Name="TxtRGSplashFontSize" Grid.Column="4" HorizontalContentAlignment="Center"
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Text="When on the splash page:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBox x:Name="TxtRGSplashFontSize" Grid.Row="3" Grid.Column="0" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
                                 </Grid>
 

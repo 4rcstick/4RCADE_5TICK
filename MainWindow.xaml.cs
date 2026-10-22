@@ -693,12 +693,18 @@ namespace ArcadeStick
         // The Random Game Display layer has two rects: one used when the die is clicked with a game selected,
         // one used when it's clicked on the splash page (no game selected). Which one applies is decided at
         // the moment of the click and stays fixed for the whole spin, so the animation can't jump when the
-        // winner lands.
+        // winner lands. While the Theme Builder's card preview is on, the preview's chosen state is used instead.
         private bool _randomSpinFromSplash;
+
+        // Session-only card preview from the Theme Builder (Random Game Display group): shows the card as a spin
+        // would, without a spin. Never stored; a real spin turns it off first.
+        private bool _randomCardPreview;
+        private bool _randomPreviewFromSplash;
+        private bool RandomDisplayFromSplash => _randomCardPreview ? _randomPreviewFromSplash : _randomSpinFromSplash;
 
         private void ApplyRandomGameDisplayRect(Models.ThemeLayout layout)
         {
-            string id = _randomSpinFromSplash ? Models.LayerRegistry.RandomGameDisplaySplash : Models.LayerRegistry.RandomGameDisplay;
+            string id = RandomDisplayFromSplash ? Models.LayerRegistry.RandomGameDisplaySplash : Models.LayerRegistry.RandomGameDisplay;
             var entry = layout.Layers.FirstOrDefault(e => e.Id == id);
             if (entry == null) return;
 
@@ -707,11 +713,39 @@ namespace ArcadeStick
             RandomGameDisplayLayer.Width = entry.Width;
             RandomGameDisplayLayer.Height = entry.Height;
             Panel.SetZIndex(RandomGameDisplayLayer, entry.Z);
-            RandomGameDisplayLayer.Visibility = entry.Visible ? Visibility.Visible : Visibility.Collapsed;
+            // The preview ignores the part's Hide flag
+            RandomGameDisplayLayer.Visibility = (entry.Visible || _randomCardPreview) ? Visibility.Visible : Visibility.Collapsed;
 
             // The card's background color and border follow the same state pick
-            _viewModel.RandomDisplaySplashState = _randomSpinFromSplash;
+            _viewModel.RandomDisplaySplashState = RandomDisplayFromSplash;
             ApplyRandomGameDisplayCardSize(layout, entry);
+        }
+
+        // Turns the Theme Builder's card preview on (in the chosen state) or off. On: the card shows exactly as a spin
+        // would draw it (rect, background, border, text) with a card video paused on its first frame; the preview video,
+        // Splash Image and spin state are left alone. Off: the card hides again. Ignored while a real spin runs.
+        public void SetRandomCardPreview(bool on, bool fromSplash)
+        {
+            if (_viewModel == null || _viewModel.IsRandomizerSpinning) return;
+
+            _randomCardPreview = on;
+            _randomPreviewFromSplash = fromSplash;
+
+            // A local value beats the spin's DataTrigger; clearing it hands visibility back to the trigger
+            if (on) RandomSpinContent.Visibility = Visibility.Visible;
+            else RandomSpinContent.ClearValue(VisibilityProperty);
+
+            ApplyRandomGameDisplayRect();
+            UpdateRandomGameDisplayPlayback();
+        }
+
+        // Ends the card preview because a real spin is starting, and tells the Theme Builder so its checkbox unchecks
+        private void EndRandomCardPreviewForSpin()
+        {
+            if (!_randomCardPreview) return;
+
+            SetRandomCardPreview(false, false);
+            _themeBuilderWindow?.RandomCardPreviewEndedBySpin();
         }
 
         // Sets the parts of the spin card that depend on the active state: this state's max text size, the wrapped
@@ -790,6 +824,9 @@ namespace ArcadeStick
             RandomSpinFileHost.Children.Add(element);
             RandomSpinFileHost.Visibility = Visibility.Visible;
             _randomDisplayElement = element;
+
+            // A file picked while the card preview is on shows its still frame straight away
+            UpdateRandomGameDisplayPlayback();
         }
 
         // Stops and removes the layer's file so nothing stays open (the card's background and message stay).
@@ -814,7 +851,8 @@ namespace ArcadeStick
             RandomSpinFileHost.Visibility = Visibility.Collapsed;
         }
 
-        // A video starts from the beginning each time a spin starts, and stops when it ends.
+        // A video starts from the beginning each time a spin starts, and stops when it ends. During the card preview
+        // it shows its first frame, paused.
         private void UpdateRandomGameDisplayPlayback()
         {
             if (_randomDisplayElement is not MediaElement video) return;
@@ -823,6 +861,12 @@ namespace ArcadeStick
             {
                 video.Position = TimeSpan.Zero;
                 video.Play();
+            }
+            else if (_randomCardPreview)
+            {
+                video.ScrubbingEnabled = true; // so the paused frame actually renders
+                video.Pause();
+                video.Position = TimeSpan.Zero;
             }
             else
             {
@@ -2645,6 +2689,9 @@ namespace ArcadeStick
                     "Play Random Game", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
+
+            // A real spin wins over the Theme Builder's card preview
+            EndRandomCardPreviewForSpin();
 
             // Which of the layer's two rects applies is decided now and stays fixed for the whole spin. Both states
             // draw over what is behind them; the card's background alpha decides how much shows through.
