@@ -111,12 +111,17 @@ namespace ArcadeStick
             _viewModel.ThemeBindingsRefreshed += RefreshBootSplashImageCornerClip;
             _viewModel.ThemeBindingsRefreshed += RefreshMainBgVideo;
             _viewModel.ThemeBindingsRefreshed += ApplyLayout;
+            _viewModel.ThemeBindingsRefreshed += ApplyGlobalThemeResources;
             _viewModel.ThemeExtractionStarting += ReleaseCustomLayers;
             _viewModel.GameLaunchCompleted += ResumeMainBgVideo;
 
             // Position every layer from the active layout right away (the first ThemeBindingsRefreshed
             // may have fired inside MainViewModel's constructor, before this subscription existed).
             ApplyLayout();
+
+            // Publish the Global tab values as app resources now, for the same reason (the view model's first
+            // theme load and refresh ran before the subscription above existed).
+            ApplyGlobalThemeResources();
 
             // Paint the four main window buttons' resting colors immediately - if MainViewModel's constructor
             // above already fired ThemeBindingsRefreshed as part of its own theme-load setup, that event
@@ -163,6 +168,9 @@ namespace ArcadeStick
 
         // Called by Theme Builder after each committed Advanced edit so layers move live (nothing saved).
         public void ApplyLayoutNow() => ApplyLayout();
+
+        // Rebuilds the Global tab's app resources from the current settings (startup and every ThemeBindingsRefreshed)
+        private void ApplyGlobalThemeResources() => Services.GlobalThemeResources.Apply(_viewModel.Configuration);
 
         // The Games List style values last pushed onto the rows. ApplyLayout runs often (every position
         // edit, reorder and theme refresh), so the rows are only repainted when this actually changes.

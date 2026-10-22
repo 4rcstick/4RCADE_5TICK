@@ -12,6 +12,8 @@ namespace ArcadeStick.Views
         private System.Collections.Generic.List<ArcadeStick.Models.ThemeLayout> _layoutsAtLastSave = new();
         private int _resolutionWidthAtLastSave;
         private int _resolutionHeightAtLastSave;
+        // The flat Global tab values at the same restore point (theme-wide, so the size switch never moves it)
+        private ArcadeStick.Models.ThemeSettings _globalAtLastSave = new();
 
         // [SECTION: Constructor & Tab Initialization]
         // Anchors DataContext to the live ConfigurationSettings (same as OptionsWindow, so the window
@@ -35,6 +37,7 @@ namespace ArcadeStick.Views
                 _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
                 _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
                 _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
+                _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
             });
             AdvancedTab.Initialize(_settings);
 
@@ -59,10 +62,11 @@ namespace ArcadeStick.Views
             // Nothing is written to disk here - only Save Adjustments / Save Changes do that.
             AdvancedTab.LayoutChanged += () => (Owner as MainWindow)?.ApplyLayoutNow();
 
-            // Restore point for closing without saving: the layouts as of window open / last Save Adjustments.
+            // Restore point for closing without saving: the layouts and Global values as of window open / last Save Adjustments.
             _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
             _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
             _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
+            _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
 
             Closed += (s, e) =>
             {
@@ -70,6 +74,10 @@ namespace ArcadeStick.Views
                 _settings.Layouts = _layoutsAtLastSave;
                 _settings.ActiveResolutionWidth = _resolutionWidthAtLastSave;
                 _settings.ActiveResolutionHeight = _resolutionHeightAtLastSave;
+
+                // Same for the Global values, then republish their app resources
+                ArcadeStick.Services.GlobalThemeResources.RestoreSnapshot(_globalAtLastSave, _settings, ArcadeStick.Services.GlobalArea.All);
+                ArcadeStick.Services.GlobalThemeResources.Apply(_settings);
 
                 var main = Owner as MainWindow;
                 main?.ShowGuides(null);
@@ -86,10 +94,11 @@ namespace ArcadeStick.Views
             RefreshWindowBindings();
             AdvancedTab.ReloadFromSettings();
 
-            // A theme load is a deliberate change: the loaded layouts become the restore point for closing
+            // A theme load is a deliberate change: the loaded layouts and Global values become the restore point for closing
             _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
             _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
             _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
+            _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
         }
 
         // Called by MainWindow after the theme is switched from the hamburger menu. Reloads both tabs and
@@ -149,6 +158,7 @@ namespace ArcadeStick.Views
                 _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
                 _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
                 _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
+                _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
 
                 _viewModel.RefreshThemeBindings();
                 _viewModel.RefreshFolderColorsLive();

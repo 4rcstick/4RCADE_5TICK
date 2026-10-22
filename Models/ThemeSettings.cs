@@ -17,6 +17,11 @@ namespace ArcadeStick.Models
         // 0 means "not saved" (older themes), in which case the current resolution is kept.
         public int ActiveWidth { get; set; } = 0;
         public int ActiveHeight { get; set; } = 0;
+
+        // Flat theme values. Defaults must equal the ConfigurationSettings initializers (the one source of defaults),
+        // so a theme saved without a key loads the same value Restore Defaults gives. OptionsBg is the known
+        // exception ("" here, "#FF000000" in ConfigurationSettings) until Manage Playlists stops using the blank value.
+        // GlobalThemeResources also reuses this class as the Theme Builder's close-revert snapshot of the Global values.
         public string OptionsBg { get; set; } = "";
         public string BorderColorFramework { get; set; } = "#FF3A3A3C";
         public string ScrollTrackColor { get; set; } = "#FF000000";
@@ -33,10 +38,10 @@ namespace ArcadeStick.Models
         public string TabActiveBgColorHex { get; set; } = "#FF00D4FF";
         public string TabHoverColorHex { get; set; } = "#FF00D4FF";
         public int HeaderFontSize { get; set; } = 14;
-        public string HeaderColorHex { get; set; } = "#FFFFCC00";
+        public string HeaderColorHex { get; set; } = "#FFEF44C3";
         public int SubHeaderFontSize { get; set; } = 13;
         public string SubHeaderColorHex { get; set; } = "#FF00D4FF";
-        public int StandardFontSize { get; set; } = 12;
+        public int StandardFontSize { get; set; } = 13;
         public string StandardColorHex { get; set; } = "#FFF2F2F7";
         public int InputFontSize { get; set; } = 13;
         public string InputColorHex { get; set; } = "#FFFFFFFF";
@@ -64,7 +69,7 @@ namespace ArcadeStick.Models
         public string BtnBgColorHex { get; set; } = "#FF1C1C1E";
         public string BtnBorderColorHex { get; set; } = "#FF00D4FF";
         public string BtnTextColorNormalHex { get; set; } = "#FF00D4FF";
-        public string BtnBgColorHoverHex { get; set; } = "#FF2C2C2E";
+        public string BtnBgColorHoverHex { get; set; } = "#FF422a3c";
     }
 }
 // 🏗️ END: LIGHTWEIGHT THEME SETTINGS MODEL FOR DTO SERIALIZATION

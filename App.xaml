@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ArcadeStick"
              xmlns:Models="clr-namespace:ArcadeStick.Models"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <Models:RadiusConverter x:Key="RadiusConverter"/>
@@ -14,6 +15,59 @@
              MainWindow.ApplyLayout replaces it whenever the layer's color changes. -->
         <SolidColorBrush x:Key="MainBackgroundBrush" Color="#FF1C1C1E"/>
         <!-- [END SECTION: Main Background Brush] -->
+
+        <!-- [SECTION: Global Theme Resources] -->
+        <!-- Startup defaults for every Global tab value (the ConfigurationSettings initializers), so a
+             {DynamicResource Global.<Area>.<Name>} lookup never fails before the first apply. The live values come
+             from GlobalThemeResources.Apply, which replaces these at startup and after every theme load, save and
+             Global edit. Key names are constants in GlobalThemeResources. Colors are brushes, font sizes doubles,
+             border sizes Thickness, radii CornerRadius (DynamicResource has no converter). -->
+        <sys:Double x:Key="Global.Font.Header.Size">14</sys:Double>
+        <SolidColorBrush x:Key="Global.Font.Header.Color" Color="#FFEF44C3"/>
+        <sys:Double x:Key="Global.Font.SubHeader.Size">13</sys:Double>
+        <SolidColorBrush x:Key="Global.Font.SubHeader.Color" Color="#FF00D4FF"/>
+        <sys:Double x:Key="Global.Font.Standard.Size">13</sys:Double>
+        <SolidColorBrush x:Key="Global.Font.Standard.Color" Color="#FFF2F2F7"/>
+        <sys:Double x:Key="Global.Font.SubText.Size">12</sys:Double>
+        <SolidColorBrush x:Key="Global.Font.SubText.Color" Color="#FFA0A0A2"/>
+
+        <SolidColorBrush x:Key="Global.Options.Bg" Color="#FF1C1C1E"/>
+        <SolidColorBrush x:Key="Global.Options.ContentBg" Color="#FF000000"/>
+        <SolidColorBrush x:Key="Global.Options.Separator" Color="#FF2C2C2E"/>
+        <Thickness x:Key="Global.Options.BorderSize">1</Thickness>
+        <SolidColorBrush x:Key="Global.Options.BorderColor" Color="#FF3A3A3C"/>
+        <CornerRadius x:Key="Global.Options.RadiusTop">0</CornerRadius>
+        <CornerRadius x:Key="Global.Options.RadiusBottom">0</CornerRadius>
+
+        <sys:Double x:Key="Global.Tab.FontSize">12</sys:Double>
+        <SolidColorBrush x:Key="Global.Tab.Text" Color="#FFA0A0A2"/>
+        <SolidColorBrush x:Key="Global.Tab.Bg" Color="Transparent"/>
+        <SolidColorBrush x:Key="Global.Tab.TextHover" Color="#FF00D4FF"/>
+        <SolidColorBrush x:Key="Global.Tab.BgHover" Color="#FF2C2C2E"/>
+        <SolidColorBrush x:Key="Global.Tab.TextActive" Color="#FF000000"/>
+        <SolidColorBrush x:Key="Global.Tab.BgActive" Color="#FF00D4FF"/>
+
+        <sys:Double x:Key="Global.Button.FontSize">13</sys:Double>
+        <SolidColorBrush x:Key="Global.Button.Text" Color="#FF00D4FF"/>
+        <SolidColorBrush x:Key="Global.Button.Bg" Color="#FF1C1C1E"/>
+        <SolidColorBrush x:Key="Global.Button.TextHover" Color="#FF00D4FF"/>
+        <SolidColorBrush x:Key="Global.Button.BgHover" Color="#FF422A3C"/>
+        <Thickness x:Key="Global.Button.BorderSize">1</Thickness>
+        <SolidColorBrush x:Key="Global.Button.BorderColor" Color="#FF00D4FF"/>
+        <CornerRadius x:Key="Global.Button.Radius">0</CornerRadius>
+
+        <SolidColorBrush x:Key="Global.Scroll.Thumb" Color="#FF2C2C2E"/>
+        <SolidColorBrush x:Key="Global.Scroll.ThumbHover" Color="#FF3A3A3C"/>
+        <SolidColorBrush x:Key="Global.Scroll.ThumbDrag" Color="#FF00D4FF"/>
+        <SolidColorBrush x:Key="Global.Scroll.Track" Color="#FF000000"/>
+        <SolidColorBrush x:Key="Global.Scroll.TrackHover" Color="#FF1C1C1E"/>
+
+        <SolidColorBrush x:Key="Global.Menu.Text" Color="#FFF2F2F7"/>
+        <SolidColorBrush x:Key="Global.Menu.Icon" Color="#FF00D4FF"/>
+        <SolidColorBrush x:Key="Global.Menu.Bg" Color="#FF1C1C1E"/>
+        <SolidColorBrush x:Key="Global.Menu.TextHover" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="Global.Menu.BgHover" Color="#FF2C2C2E"/>
+        <!-- [END SECTION: Global Theme Resources] -->
         
 
         <!-- [SECTION: ArcadeDarkScrollBar Style] -->
