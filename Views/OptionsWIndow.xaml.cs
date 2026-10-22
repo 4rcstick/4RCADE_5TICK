@@ -17,9 +17,8 @@ namespace ArcadeStick.Views
 
         // [SECTION: Constructor & Tab Initialization]
         // Anchors DataContext to the live ConfigurationSettings, then initializes each tab UserControl
-        // (loading its portion of settings). ThemesTab additionally gets callbacks for persisting to disk
-        // and refreshing this window's bindings, since Theme Builder can save/load independently of the
-        // main Save Adjustments button.
+        // (loading its portion of settings). SystemPathsTab additionally gets the rom-path rescan and
+        // persist-to-disk callbacks.
         public OptionsWindow(ArcadeStick.ViewModels.MainViewModel viewModel)
         {
             InitializeComponent();

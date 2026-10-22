@@ -44,7 +44,7 @@ Settings and themes
 - **New styling goes on layer entries, per resolution**, not on `ConfigurationSettings`. Old keys in saved files are ignored; there is no legacy migration (the user rebuilds themes).
 
 Windows and views
-- `MainWindow` (layout canvas, `ApplyLayout` and its style keys, TreeView templates, hamburger menu), `ThemeBuilderWindow` (hosts the Basic, Advanced and Global tabs), `AdvancedThemesTabControl` (layer list, tabbed property pages), `GlobalThemesTabControl` (Global tab: Fonts, Backgrounds, Tabs, Buttons, Scrollbars, Context Menus), `ThemesTabControl` (Basic tab: the guide and the Themes Manager, theme load/save/delete only), the layer controls (`SplashLayerControl`, `VideoPreviewLayerControl`, `GameInfoLayerControl`).
+- `MainWindow` (layout canvas, `ApplyLayout` and its style keys, TreeView templates, hamburger menu), `ThemeBuilderWindow` (hosts the THEME BUILDER, THEME BROWSER and GLOBAL tabs), `AdvancedThemesTabControl` (layer list, tabbed property pages), `GlobalThemesTabControl` (Global tab: Fonts, Backgrounds, Tabs, Buttons, Scrollbars, Context Menus), `ThemesManagerControl` (the Themes Manager row at the top of THEME BUILDER: theme load/save/delete only), the layer controls (`SplashLayerControl`, `VideoPreviewLayerControl`, `GameInfoLayerControl`).
 - `MainViewModel` holds the forwarders, `GetLayerEntry`, the `Refresh...Bindings` methods, theme load, tree building, and media loading.
 
 Media
@@ -58,9 +58,9 @@ The remaining flat properties are the Global tab's theme-wide values (fonts, Opt
 1. The property in `ConfigurationSettings` **and its line in `ApplyThemeSettings()`** (also applied at settings.json load in the `MainViewModel` constructor)
 2. The `ThemeSettings` DTO
 3. The `LoadTheme` mapping in `MainViewModel`
-4. The DTO builder in `BtnSaveTheme_Click` in `ThemesTabControl`
+4. The DTO builder in `BtnSaveTheme_Click` in `ThemesManagerControl`
 5. `GlobalThemeResources` (key constant, typed resource in `Apply`, `CaptureSnapshot` / `RestoreSnapshot` in its area), its default in App.xaml's `[SECTION: Global Theme Resources]`, and a field in the Global tab's `BuildFieldTables`
-Readers use `{DynamicResource Global...}`, never a binding or a `Theme*` forwarder (the only flat forwarder left is `ThemeHeaderColor`, for the no-art banner and spin card). Do not add value fields back to the Basic tab.
+Readers use `{DynamicResource Global...}`, never a binding or a `Theme*` forwarder (the only flat forwarder left is `ThemeHeaderColor`, for the no-art banner and spin card). Do not add value fields to the Themes Manager.
 Prefer layer-entry storage for anything new; it avoids most of this.
 
 ### Layer entry styling (the usual silent failures)
@@ -100,9 +100,9 @@ Earlier betas used LibVLCSharp for previews. Two incidents from that era: an RTS
 
 ## Theme Builder Status (beta.4)
 
-Built: Main Window Background (color, wallpaper), Games List (folders, game titles), Shape Layers 01 to 04 and custom layers, Marquee (logo, shadow), Splash Image, Video Preview (border, background, fallback image), Search & Buttons, Game Info (title, publisher, info headers and body, navs, previews shadow). Also: layer rename, multi-select nudge, group move, alignment guides. **Global tab** (theme-wide, not per resolution): Fonts, Backgrounds, Tabs, Buttons, Scrollbars (colors and width), Context Menus (colors and border), each with Restore Defaults, live through Global resources, reverted on close without saving. The input chrome (text boxes, combos, lists, checkboxes, sliders, picker popups, small dialogs) uses the fixed Chrome Palette in App.xaml. The Basic tab is the guide and the Themes Manager only (Global tab migration Passes 1 to 6, `global-tab-plan.md`).
+Built: Main Window Background (color, wallpaper), Games List (folders, game titles), Shape Layers 01 to 04 and custom layers, Marquee (logo, shadow), Splash Image, Video Preview (border, background, fallback image), Search & Buttons, Game Info (title, publisher, info headers and body, navs, previews shadow). Also: layer rename, multi-select nudge, group move, alignment guides. **Global tab** (theme-wide, not per resolution): Fonts, Backgrounds, Tabs, Buttons, Scrollbars (colors and width), Context Menus (colors and border), each with Restore Defaults, live through Global resources, reverted on close without saving. The input chrome (text boxes, combos, lists, checkboxes, sliders, picker popups, small dialogs) uses the fixed Chrome Palette in App.xaml. The Themes Manager (theme load/save/delete) is a row at the top of THEME BUILDER; THEME BROWSER is an empty Grid placeholder awaiting the theme browser (Global tab migration Passes 1 to 6, `global-tab-plan.md`, then 2026-10-22).
 
-Remaining: Footer, Random Game Display (fonts and colors for the spin fallback), the no-art banner customization on the Marquee layer (it still reads `ThemeHeaderColor`), a theme browser on the Basic tab, then replacing registry defaults with the finished default theme. A WYSIWYG edit mode is planned for beta.5 (no drag handles in beta.4).
+Remaining: Footer, Random Game Display (fonts and colors for the spin fallback), the no-art banner customization on the Marquee layer (it still reads `ThemeHeaderColor`), a theme browser on the THEME BROWSER tab, then replacing registry defaults with the finished default theme. A WYSIWYG edit mode is planned for beta.5 (no drag handles in beta.4).
 
 ## Current Scope Boundaries
 

@@ -1224,7 +1224,7 @@ namespace ArcadeStick.ViewModels
 
         // [SECTION: Shared Theme Loader]
         // Extracts a saved theme's zip archive and maps every field onto Configuration - the single
-        // source of truth for "load theme X", used both by ThemesTabControl's Load Theme button and by
+        // source of truth for "load theme X", used both by ThemesManagerControl's Load Theme button and by
         // the constructor's first-run/no-active-theme bootstrap (see LoadTheme("default") call below).
         // Asset paths are rewritten relative to Configuration.BaseDirectory rather than left absolute -
         // matches ResolveAssetAbsolutePath's existing expectation on the Save side, and keeps settings.json

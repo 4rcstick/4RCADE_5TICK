@@ -7,7 +7,7 @@ using System.Windows.Controls;
 
 namespace ArcadeStick.Views
 {
-    public partial class ThemesTabControl : UserControl
+    public partial class ThemesManagerControl : UserControl
     {
         private ArcadeStick.Models.ConfigurationSettings _settings = null!;
         private ArcadeStick.ViewModels.MainViewModel _viewModel = null!;
@@ -20,14 +20,14 @@ namespace ArcadeStick.Views
         public void SetThemeSavedCallback(Action callback) => _themeSavedCallback = callback;
         private System.Windows.Threading.DispatcherTimer? _themeSavedFlashTimer;
 
-        public ThemesTabControl()
+        public ThemesManagerControl()
         {
             InitializeComponent();
         }
 
         // [SECTION: Constructor & Initialization]
         // Wires up theme dropdown/button events and populates the theme list. persistToDisk/refreshOptionsBindings
-        // are callbacks from the hosting window so this tab can save settings.json and force-refresh the parent
+        // are callbacks from the hosting window so this row can save settings.json and force-refresh the parent
         // window's bindings independently of the main Save Adjustments button.
         public void Initialize(ArcadeStick.ViewModels.MainViewModel viewModel, ArcadeStick.Models.ConfigurationSettings settings, Action persistToDisk, Action refreshOptionsBindings)
         {
@@ -45,7 +45,7 @@ namespace ArcadeStick.Views
         }
 
         // Rebuilds the theme list and re-selects the active theme. Used when the theme is switched from
-        // outside this tab (the main window's hamburger menu).
+        // outside this row (the main window's hamburger menu).
         public void ReloadFromSettings()
         {
             RefreshThemeList();

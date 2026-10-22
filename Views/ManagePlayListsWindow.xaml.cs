@@ -116,7 +116,7 @@ namespace ArcadeStick.Views
         // [END SECTION: Event Wiring]
 
         // [SECTION: Playlist Color Picker Sync]
-        // Mirrors the ThemesTabControl swatch/hex sync pattern - suppress flag prevents the picker's
+        // Swatch/hex sync - suppress flag prevents the picker's
         // ColorChanged and the hex TextBox's TextChanged from feeding back into each other in a loop.
         private void PlaylistColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {

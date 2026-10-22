@@ -17,8 +17,8 @@ namespace ArcadeStick.Views
 
         // [SECTION: Constructor & Tab Initialization]
         // Anchors DataContext to the live ConfigurationSettings (same as OptionsWindow, so the window
-        // inherits the exact same theme bindings), then hands ThemesTab the persist/refresh callbacks
-        // it needs to save settings.json and re-evaluate this window's bindings independently.
+        // inherits the exact same theme bindings), then hands the Themes Manager row the persist/refresh
+        // callbacks it needs to save settings.json and re-evaluate this window's bindings independently.
         public ThemeBuilderWindow(ArcadeStick.ViewModels.MainViewModel viewModel)
         {
             InitializeComponent();
@@ -27,8 +27,8 @@ namespace ArcadeStick.Views
 
             this.DataContext = _settings;
 
-            ThemesTab.Initialize(_viewModel, _settings, PersistSettingsToDisk, RefreshAfterThemeLoad);
-            ThemesTab.SetThemeSavedCallback(() =>
+            ThemesManager.Initialize(_viewModel, _settings, PersistSettingsToDisk, RefreshAfterThemeLoad);
+            ThemesManager.SetThemeSavedCallback(() =>
             {
                 AdvancedTab.RefreshSavedSizes();
                 // Save Changes wrote the theme zip (which includes the current size), so a pending size is now kept
@@ -43,10 +43,10 @@ namespace ArcadeStick.Views
             GlobalTab.Initialize(_settings);
 
             // Alignment guides: forward the Advanced tab's guide info to the main window, but only while the
-            // Advanced tab is actually the selected tab. Cleared when switching to Basic or closing.
+            // THEME BUILDER tab (ThemeBuilderPage) is selected. Cleared when switching to another tab or closing.
             AdvancedTab.GuidesChanged += info =>
             {
-                if (!ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, AdvancedTab)) info = null;
+                if (!ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBuilderPage)) info = null;
                 (Owner as MainWindow)?.ShowGuides(info);
             };
 
@@ -55,7 +55,7 @@ namespace ArcadeStick.Views
                 // SelectionChanged bubbles up from the ListBox and ComboBox inside the tabs - only react to the tab strip itself
                 if (!ReferenceEquals(e.OriginalSource, ThemeBuilderTabControl)) return;
 
-                if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, AdvancedTab)) AdvancedTab.RaiseGuides();
+                if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBuilderPage)) AdvancedTab.RaiseGuides();
                 else (Owner as MainWindow)?.ShowGuides(null);
             };
 
@@ -86,7 +86,7 @@ namespace ArcadeStick.Views
             };
         }
 
-        // Passed to ThemesTab as its refresh callback. A theme load replaces _settings.Layouts and the Global
+        // Passed to ThemesManager as its refresh callback. A theme load replaces _settings.Layouts and the Global
         // values, so the Advanced and Global tabs re-read them in addition to the normal binding refresh.
         // Save Adjustments deliberately calls RefreshWindowBindings only, so the Advanced tab keeps its
         // current layer selection when you save.
@@ -103,11 +103,11 @@ namespace ArcadeStick.Views
             _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
         }
 
-        // Called by MainWindow after the theme is switched from the hamburger menu. Reloads both tabs and
+        // Called by MainWindow after the theme is switched from the hamburger menu. Reloads the manager row and tabs and
         // moves the close-without-saving restore point to the newly loaded theme.
         public void RefreshAfterExternalThemeSwitch()
         {
-            ThemesTab.ReloadFromSettings();
+            ThemesManager.ReloadFromSettings();
             RefreshAfterThemeLoad();
         }
 
@@ -146,7 +146,7 @@ namespace ArcadeStick.Views
         // [SECTION: Save / Close Handlers]
         // Save Adjustments: writes settings.json (the Advanced and Global tabs already edit _settings live),
         // moves the close-without-saving restore point and live-refreshes the main window's theme bindings and
-        // folder/game colors. Does NOT write to a theme file - only Save Changes on the Basic tab does that.
+        // folder/game colors. Does NOT write to a theme file - only Save Changes in the Themes Manager row does that.
         private void BtnSaveAdjustments_Click(object sender, RoutedEventArgs e)
         {
             try

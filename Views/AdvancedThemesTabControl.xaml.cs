@@ -102,8 +102,8 @@ namespace ArcadeStick.Views
 
         // [SECTION: Initialization]
         // Fills the resolution combo box, then loads the active resolution's layout. Edits only touch
-        // _settings.Layouts in memory - Save Adjustments persists to settings.json, and Save Changes on
-        // the Basic tab (Themes Manager) writes the layouts into the theme zip.
+        // _settings.Layouts in memory - Save Adjustments persists to settings.json, and Save Changes in
+        // the Themes Manager row above this tab writes the layouts into the theme zip.
         public void Initialize(ConfigurationSettings settings)
         {
             _settings = settings;

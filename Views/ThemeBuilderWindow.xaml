@@ -22,18 +22,28 @@
                     Style="{StaticResource ThemedTabControlStyle}">
 
             <!-- [SECTION: Tab Pages] -->
-            <!-- Basic Themes hosts the Themes tab moved over from OptionsWindow, content unchanged.
-                 Advanced Themes hosts the layer list and per-layer property tabs.
-                 Global hosts the theme-wide values (not per resolution): Fonts and Backgrounds so far.
-                 A Theme Browser tab will be added down the road. -->
+            <!-- THEME BUILDER: the Themes Manager row (load, save, delete) on top, then the layer list and
+                 per-layer property tabs. Code-behind compares the selected tab's Content to ThemeBuilderPage.
+                 THEME BROWSER: empty placeholder reserved for the theme browser.
+                 GLOBAL: the theme-wide values (not per resolution). -->
 
             <TabItem Header="THEME BUILDER">
-                <views:AdvancedThemesTabControl x:Name="AdvancedTab"/>
+                <Grid x:Name="ThemeBuilderPage">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <views:ThemesManagerControl x:Name="ThemesManager" Grid.Row="0" Margin="0,0,0,5"/>
+                    <Separator Grid.Row="1" Background="{DynamicResource Global.Options.Separator}" Margin="15,10,15,0"/>
+                    <views:AdvancedThemesTabControl x:Name="AdvancedTab" Grid.Row="2"/>
+                </Grid>
             </TabItem>
 
             <TabItem Header="THEME BROWSER">
-                <views:ThemesTabControl x:Name="ThemesTab"/>
-            </TabItem>            
+                <!-- Reserved for the theme browser control, which will replace this Grid -->
+                <Grid x:Name="ThemeBrowserTab"/>
+            </TabItem>
 
             <TabItem Header="GLOBAL">
                 <views:GlobalThemesTabControl x:Name="GlobalTab"/>

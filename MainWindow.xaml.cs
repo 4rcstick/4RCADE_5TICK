@@ -54,7 +54,7 @@ namespace ArcadeStick
         private string? _colorFlyoutTargetFolderName;
         private Brush? _colorFlyoutOriginalColor; // snapshot to revert to on Escape
         private bool _colorFlyoutEscaped;
-        private bool _suppressColorHexSync; // prevents the picker's ColorChanged and the hex textbox's LostFocus from re-triggering each other, same pattern as ThemesTabControl
+        private bool _suppressColorHexSync; // prevents the picker's ColorChanged and the hex textbox's LostFocus from re-triggering each other
         // [END SECTION: Folder Flyout State]
 
         public WGIService? GamepadService => _gamepadService;
@@ -1588,8 +1588,7 @@ namespace ArcadeStick
             _colorFlyoutTargetNode.FolderColor = new SolidColorBrush(newColor);
         }
 
-        // Pushes a manually-typed hex value back into the picker (and live-applies it), mirroring
-        // ThemesTabControl's TxtXColorHex_LostFocus pattern. Invalid text is left alone.
+        // Pushes a manually-typed hex value back into the picker (and live-applies it). Invalid text is left alone.
         private void FolderColorHexTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             if (_suppressColorHexSync) return;
