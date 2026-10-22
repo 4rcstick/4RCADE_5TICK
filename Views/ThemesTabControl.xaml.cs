@@ -26,10 +26,9 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: Constructor & Initialization]
-        // Wires up theme dropdown/button events, populates the theme list, and loads current settings
-        // into the UI. persistToDisk/refreshOptionsBindings are callbacks from OptionsWindow so this tab
-        // can save settings.json and force-refresh the parent window's bindings independently of the
-        // main Save Adjustments button.
+        // Wires up theme dropdown/button events and populates the theme list. persistToDisk/refreshOptionsBindings
+        // are callbacks from the hosting window so this tab can save settings.json and force-refresh the parent
+        // window's bindings independently of the main Save Adjustments button.
         public void Initialize(ArcadeStick.ViewModels.MainViewModel viewModel, ArcadeStick.Models.ConfigurationSettings settings, Action persistToDisk, Action refreshOptionsBindings)
         {
             _viewModel = viewModel;
@@ -43,28 +42,13 @@ namespace ArcadeStick.Views
             BtnDeleteTheme.Click += BtnDeleteTheme_Click;
 
             RefreshThemeList();
-            LoadCurrentThemeValuesIntoUi();
         }
 
-        // Commits every Theme Builder control's value into _settings, then immediately re-populates the
-        // UI from that same _settings state (reusing LoadCurrentThemeValuesIntoUi's existing sync-point-3
-        // logic). This closes the gap where a saved value could differ from what's displayed - e.g. a
-        // bare hex typed without a trailing Tab/focus-loss would commit normalized via
-        // SyncUiEntriesToSettingsLayer, but the textbox and color-picker swatch would keep showing the
-        // stale, unnormalized input until the window was closed and reopened.
-        public void SyncUiToSettings()
-        {
-            SyncUiEntriesToSettingsLayer();
-            LoadCurrentThemeValuesIntoUi();
-        }
-
-        // Re-reads every field from _settings WITHOUT writing anything back first (unlike SyncUiToSettings,
-        // which would overwrite freshly loaded values with the tab's stale field contents). Used when the
-        // theme is switched from outside this tab (the main window's hamburger menu).
+        // Rebuilds the theme list and re-selects the active theme. Used when the theme is switched from
+        // outside this tab (the main window's hamburger menu).
         public void ReloadFromSettings()
         {
             RefreshThemeList();
-            LoadCurrentThemeValuesIntoUi();
         }
         // [END SECTION: Constructor & Initialization]
 
@@ -97,81 +81,6 @@ namespace ArcadeStick.Views
         }
         // [END SECTION: Theme List Management]
 
-        
-
-        
-
-        // Normalizes a hex color string to #RRGGBB (uppercase, # prefix, stripping alpha if present).
-        // Any recognized WPF named color (Transparent, Red, DodgerBlue, etc.) passes through as its proper
-        // canonical name instead of getting a "#" incorrectly prepended - mirrors SafeConvertToBrush's
-        // IsKnownColorName check in MainViewModel.cs, so load-time display and live rendering agree.
-        private string FormatHexCode(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
-            string cleanInput = input.Trim();
-
-            var namedColorProperty = typeof(System.Windows.Media.Colors).GetProperty(
-                cleanInput, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.IgnoreCase);
-            if (namedColorProperty != null) return namedColorProperty.Name;
-
-            cleanInput = cleanInput.ToUpper();
-            if (!cleanInput.StartsWith("#")) cleanInput = "#" + cleanInput;
-            return cleanInput;
-        }
-
-        // Prepends "#" to a bare hex string (e.g. "1C1C1E" or "FF1C1C1E") before it's persisted to
-        // settings, so saving doesn't require the user to type the "#" themselves. Unlike FormatHexCode,
-        // this does not strip the alpha channel or uppercase - it only fixes the missing "#" so ARGB
-        // values from the alpha-enabled pickers round-trip intact. "Transparent" and WPF named colors
-        // (e.g. "Red") are passed through untouched.
-        private static string NormalizeHexInput(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input)) return input;
-            string trimmed = input.Trim();
-            if (trimmed.StartsWith("#")) return trimmed;
-            if (trimmed.Equals("Transparent", StringComparison.OrdinalIgnoreCase)) return "Transparent";
-            if (IsBareHexDigits(trimmed)) return "#" + trimmed;
-            return trimmed;
-        }
-
-        // True if the string is exactly 6 or 8 hex digits (RGB or ARGB with no "#" prefix)
-        private static bool IsBareHexDigits(string input)
-        {
-            if (input.Length != 6 && input.Length != 8) return false;
-            foreach (char c in input)
-            {
-                if (!Uri.IsHexDigit(c)) return false;
-            }
-            return true;
-        }
-
-        // Parses a hex (or "Transparent") string into a Color, returning null instead of throwing on
-        // invalid input. Shared by every picker field's LostFocus handler and load-sync block.
-        private static System.Windows.Media.Color? TryParseColor(string hexText)
-        {
-            try
-            {
-                var brush = (System.Windows.Media.SolidColorBrush)new System.Windows.Media.BrushConverter().ConvertFromString(hexText);
-                return brush.Color;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        // [SECTION: Load Current Values Into UI - SYNC POINT 3 of 3]
-        // Populates every Theme Builder control from the current ConfigurationSettings. DANGER: any new
-        // theme property must be added here too, or the Theme Builder UI will show stale/default values
-        // even though the underlying setting is correct - see project notes on the three Theme Builder
-        // sync points (this method, the themeDto builder in BtnSaveTheme_Click, and BtnLoadTheme_Click).
-        private void LoadCurrentThemeValuesIntoUi()
-        {
-            // Nothing left to load: every flat theme value moved to the Global tab (Global tab migration Passes 3 to 5),
-            // which loads its own fields. Kept until the Basic tab is reduced to the Themes Manager (Pass 6).
-        }
-        // [END SECTION: Load Current Values Into UI - SYNC POINT 3 of 3]
-
         // Shows/hides the "New Theme Name" input based on whether "[New Theme...]" is selected
         private void CboThemePresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -183,10 +92,9 @@ namespace ArcadeStick.Views
 
         // [SECTION: Theme Serialization Logic]
 
-        // [SUB-SECTION: Load Theme - SYNC POINT 1 of 3]
-        // Deserializes the selected theme's .cfg (JSON) file into a ThemeSettings DTO and copies every
-        // field onto _settings. DANGER: any new theme property must be added here too - see the sync
-        // point warning on LoadCurrentThemeValuesIntoUi above.
+        // [SUB-SECTION: Load Theme]
+        // Loads the selected theme zip through MainViewModel.LoadTheme (which maps theme.json onto _settings),
+        // then refreshes the hosting window's bindings and persists settings.json.
         private void BtnLoadTheme_Click(object sender, RoutedEventArgs e)
         {
             if (CboThemePresets.SelectedItem is string selectedTheme && selectedTheme != "[New Theme...]")
@@ -195,7 +103,6 @@ namespace ArcadeStick.Views
                 {
                     if (_viewModel.LoadTheme(selectedTheme))
                     {
-                        LoadCurrentThemeValuesIntoUi();
                         _refreshOptionsBindings?.Invoke();
                         _persistToDisk?.Invoke();
                     }
@@ -206,7 +113,7 @@ namespace ArcadeStick.Views
                 }
             }
         }
-        // [END SUB-SECTION: Load Theme - SYNC POINT 1 of 3]
+        // [END SUB-SECTION: Load Theme]
 
         // [SECTION: Theme Archive Asset Bundling]
         // Resolves a theme asset's stored value to a real absolute path: a relative value is resolved against
@@ -251,11 +158,11 @@ namespace ArcadeStick.Views
         }
         // [END SECTION: Theme Archive Asset Bundling]
 
-        // [SUB-SECTION: Save Theme - SYNC POINT 2 of 3]
-        // Validates the theme name (prompting for one if "[New Theme...]" is selected), syncs the UI into
-        // _settings, builds a ThemeSettings DTO, bundles every layout entry's ImagePath into a staging assets/
-        // folder (rewriting the DTO's copies of those paths to archive-relative paths), then zips the result to the theme's .zip file. DANGER: any new theme property must be added to this
-        // DTO too - see the sync point warning above.
+        // [SUB-SECTION: Save Theme]
+        // Validates the theme name (prompting for one if "[New Theme...]" is selected), builds a ThemeSettings DTO
+        // from _settings, bundles every layout entry's ImagePath into a staging assets/ folder (rewriting the DTO's
+        // copies of those paths to archive-relative paths), then zips the result to the theme's .zip file. DANGER:
+        // any new flat theme property must be added to this DTO too (and to ThemeSettings and LoadTheme).
         private void BtnSaveTheme_Click(object sender, RoutedEventArgs e)
         {
             string themeName = CboThemePresets.SelectedItem as string;
@@ -276,8 +183,6 @@ namespace ArcadeStick.Views
                 string themeFile = _settings.GetThemePath(themeName);
                 Directory.CreateDirectory(Path.GetDirectoryName(themeFile));
 
-                SyncUiEntriesToSettingsLayer();
-
                 // Create and populate the DTO
                 var themeDto = new ArcadeStick.Models.ThemeSettings
                 {
@@ -288,8 +193,6 @@ namespace ArcadeStick.Views
                     ScrollThumbHoverColor = _settings.ScrollThumbHoverColor,
                     ScrollThumbDragColor = _settings.ScrollThumbDragColor,
                     ScrollbarWidth = _settings.ScrollbarWidth,
-                    BorderWidthValue = _settings.BorderWidthValue,
-                    BorderCurveValue = _settings.BorderCurveValue,
                     SeparatorColorHex = _settings.SeparatorColorHex,
                     TabFontSize = _settings.TabFontSize,
                     TabColorHex = _settings.TabColorHex,
@@ -409,7 +312,7 @@ namespace ArcadeStick.Views
                 MessageBox.Show($"Failed to save theme: {ex.Message}", "Write Crash", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        // [END SUB-SECTION: Save Theme - SYNC POINT 2 of 3]
+        // [END SUB-SECTION: Save Theme]
 
         // Briefly flashes the "Theme Saved" confirmation text for 2 seconds after a successful save
         private void ShowThemeSavedFlash()
@@ -472,17 +375,5 @@ namespace ArcadeStick.Views
             }
         }
         // [END SECTION: Delete Theme]
-
-        // [SECTION: Sync UI to Settings]
-        // Writes every Theme Builder control's current value back into _settings. Called before saving
-        // a theme file (BtnSaveTheme_Click) and from OptionsWindow's main Save Adjustments button
-        // (via SyncUiToSettings). Numeric fields are parsed defensively - invalid input leaves the
-        // existing setting unchanged rather than throwing.
-        private void SyncUiEntriesToSettingsLayer()
-        {
-            // Nothing left to sync: the Global tab writes its values into _settings as they are edited (Global tab
-            // migration Passes 3 to 5). Kept until the Basic tab is reduced to the Themes Manager (Pass 6).
-        }
-        // [END SECTION: Sync UI to Settings]
     }
 }

@@ -142,8 +142,6 @@ namespace ArcadeStick.Models
         public int StandardFontSize { get; set; } = 13;
         public string StandardColorHex { get; set; } = "#FFF2F2F7";
         public string SeparatorColorHex { get; set; } = "#FF2C2C2E";
-        public double BorderWidthValue { get; set; } = 1;
-        public double BorderCurveValue { get; set; } = 0;
 
         public string ContextMenuFontColorHex { get; set; } = "#FFF2F2F7";
         public string ContextMenuIconColorHex { get; set; } = "#FF00D4FF";
@@ -385,8 +383,6 @@ namespace ArcadeStick.Models
             this.StandardFontSize = source.StandardFontSize;
             this.StandardColorHex = source.StandardColorHex;
             this.SeparatorColorHex = source.SeparatorColorHex;
-            this.BorderWidthValue = source.BorderWidthValue;
-            this.BorderCurveValue = source.BorderCurveValue;
             this.ContextMenuFontColorHex = source.ContextMenuFontColorHex;
             this.ContextMenuIconColorHex = source.ContextMenuIconColorHex;
             this.ContextMenuBgColorHex = source.ContextMenuBgColorHex;

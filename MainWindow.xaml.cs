@@ -1655,8 +1655,7 @@ namespace ArcadeStick
             }
         }
 
-        // Parses a hex string into a Color, returning null instead of throwing on invalid input. Mirrors
-        // ThemesTabControl.TryParseColor.
+        // Parses a hex string into a Color, returning null instead of throwing on invalid input.
         private static Color? TryParseFolderColor(string hexText)
         {
             try

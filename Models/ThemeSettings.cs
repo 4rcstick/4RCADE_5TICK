@@ -40,8 +40,6 @@ namespace ArcadeStick.Models
         public int StandardFontSize { get; set; } = 13;
         public string StandardColorHex { get; set; } = "#FFF2F2F7";
         public string SeparatorColorHex { get; set; } = "#FF2C2C2E";
-        public double BorderWidthValue { get; set; } = 1;
-        public double BorderCurveValue { get; set; } = 0;
 
         public string ContextMenuFontColorHex { get; set; } = "#FFF2F2F7";
         public string ContextMenuIconColorHex { get; set; } = "#FF00D4FF";

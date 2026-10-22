@@ -77,8 +77,7 @@ namespace ArcadeStick.ViewModels
         public List<string> PreviewPriorityOrder { get; private set; } = new List<string>();
 
         // Converts a hex string or WPF named color into a brush without throwing. Bare hex digits with
-        // no "#" (e.g. "1C1C1E") are prepended with "#" before conversion, matching the normalization
-        // ThemesTabControl.xaml.cs's FormatHexCode already does for the Theme Builder UI. Falls back to
+        // no "#" (e.g. "1C1C1E") are prepended with "#" before conversion. Falls back to
         // Brushes.Gray on null/empty input or any conversion failure so a malformed saved value can't
         // throw and break the caller.
         internal static SolidColorBrush SafeConvertToBrush(string hexOrColorName)
@@ -592,22 +591,14 @@ namespace ArcadeStick.ViewModels
         // [END SECTION: Selection & Media State Properties]
 
         // [SECTION: Theme Property Forwarders]
-        // DANGER - SYNC POINT 1 of 3: these are pass-through bindings from ConfigurationSettings to XAML.
-        // Any new theme property added to ConfigurationSettings needs a forwarder here too, or XAML bindings
-        // referencing "Theme*" names will silently fail. This list must also be raised in RefreshThemeBindings()
-        // below (sync point 2) - a property added here but missing there won't update live after Theme Builder saves.
+        // DANGER - SYNC POINT 1 of 3: these are pass-through bindings from layer entries (and the one flat
+        // ThemeHeaderColor) to XAML. Global theme values do not use forwarders: they are DynamicResources published
+        // by GlobalThemeResources. A forwarder must also be raised in RefreshThemeBindings() below (sync point 2) -
+        // one added here but missing there won't update live after Theme Builder saves.
         // The Main Window Background layer's color for the active resolution (its BgColorHex). Fills the main window
         // under the wallpaper (and alone when the wallpaper is disabled), and also its own popups, the no-art banner
         // and the spin card.
         public string ThemeMainColor => GetLayerEntry(LayerRegistry.MainBackground).BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex;
-        public double ThemeBorderWidth => Configuration.BorderWidthValue;
-        public double ThemeBorderCurve => Configuration.BorderCurveValue;
-        public string ThemeSeparatorColor => Configuration.SeparatorColorHex;
-        public string ThemeScrollTrackColor => Configuration.ScrollTrackColor;
-        public string ThemeScrollTrackHoverColor => Configuration.ScrollTrackHoverColor;
-        public string ThemeScrollThumbColor => Configuration.ScrollThumbColor;
-        public string ThemeScrollThumbHoverColor => Configuration.ScrollThumbHoverColor;
-        public string ThemeScrollThumbDragColor => Configuration.ScrollThumbDragColor;
         // Returns one layer's entry for the active resolution, where its styling lives (per resolution).
         // Resolved with registry defaults filling any gaps, so it is never null for a registry layer.
         private LayerLayoutEntry GetLayerEntry(string id)
@@ -808,30 +799,9 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Game Info Forwarders]
 
-        public string ThemeContextMenuFontColor => Configuration.ContextMenuFontColorHex;
-        public string ThemeContextMenuIconColor => Configuration.ContextMenuIconColorHex;
-        public string ThemeContextMenuBgColor => Configuration.ContextMenuBgColorHex;
-        public string ThemeContextMenuHoverColor => Configuration.ContextMenuHoverColorHex;
-        public string ThemeContextMenuHoverBgColor => Configuration.ContextMenuHoverBgColorHex;
-        public int ThemeSubTextFontSize => Configuration.SubTextFontSize;
-        public string ThemeSubTextColor => Configuration.SubTextColorHex;
-        public string ThemeOptionsMenuBgColor => Configuration.OptionsMenuBgColorHex;
-        public double ThemeOptionsMenuBorderSize => Configuration.OptionsMenuBorderSize;
-        public string ThemeOptionsMenuBorderColor => Configuration.OptionsMenuBorderColorHex;
-        public double ThemeOptionsMenuBorderRadius => Configuration.OptionsMenuBorderRadius;
-        public string ThemeTabColorHover => Configuration.TabColorHoverHex;
-        public string ThemeTabBgColorHover => Configuration.TabBgColorHoverHex;
-        public int ThemeOptionsBtnFontSize => Configuration.OptionsBtnFontSize;
-        public string ThemeOptionsBtnColorHover => Configuration.OptionsBtnColorHoverHex;
-        public double ThemeOptionsBtnBorderSize => Configuration.OptionsBtnBorderSize;
-        public double ThemeOptionsBtnBorderRadius => Configuration.OptionsBtnBorderRadius;
-        public string ThemeTabColor => Configuration.TabColorHex;
-        public string ThemeTabBgColor => Configuration.TabBgColorHex;
-        public string ThemeTabActiveColor => Configuration.TabActiveColorHex;
-        public string ThemeTabActiveBgColor => Configuration.TabActiveBgColorHex;
-        public string ThemeStandardColor => Configuration.StandardColorHex;
+        // The Global Header font color, still read through a binding by the no-art banner and the spin card
+        // (they move to their own Marquee-layer settings in a later pass).
         public string ThemeHeaderColor => Configuration.HeaderColorHex;
-        public string ThemeSubHeaderColor => Configuration.SubHeaderColorHex;
         // [END SECTION: Theme Property Forwarders]
 
         // [SECTION: Theme Wallpaper & Asset Loading]
@@ -1114,44 +1084,13 @@ namespace ArcadeStick.ViewModels
             ResolveMarqueeImage();
 
             OnPropertyChanged(nameof(ThemeMainColor));
-            OnPropertyChanged(nameof(ThemeBorderWidth));
-            OnPropertyChanged(nameof(ThemeBorderCurve));
-            OnPropertyChanged(nameof(ThemeSeparatorColor));
-            OnPropertyChanged(nameof(ThemeScrollTrackColor));
-            OnPropertyChanged(nameof(ThemeScrollTrackHoverColor));
-            OnPropertyChanged(nameof(ThemeScrollThumbColor));
-            OnPropertyChanged(nameof(ThemeScrollThumbHoverColor));
-            OnPropertyChanged(nameof(ThemeScrollThumbDragColor));
             RefreshGameInfoBindings();
             RefreshMarqueeBindings();
             RefreshSearchButtonBindings();
-            OnPropertyChanged(nameof(ThemeContextMenuFontColor));
-            OnPropertyChanged(nameof(ThemeContextMenuIconColor));
-            OnPropertyChanged(nameof(ThemeContextMenuBgColor));
-            OnPropertyChanged(nameof(ThemeContextMenuHoverColor));
-            OnPropertyChanged(nameof(ThemeContextMenuHoverBgColor));
-            OnPropertyChanged(nameof(ThemeSubTextFontSize));
-            OnPropertyChanged(nameof(ThemeSubTextColor));
-            OnPropertyChanged(nameof(ThemeOptionsMenuBgColor));
-            OnPropertyChanged(nameof(ThemeOptionsMenuBorderSize));
-            OnPropertyChanged(nameof(ThemeOptionsMenuBorderColor));
-            OnPropertyChanged(nameof(ThemeOptionsMenuBorderRadius));
-            OnPropertyChanged(nameof(ThemeTabColorHover));
-            OnPropertyChanged(nameof(ThemeTabBgColorHover));
-            OnPropertyChanged(nameof(ThemeOptionsBtnFontSize));
-            OnPropertyChanged(nameof(ThemeOptionsBtnColorHover));
-            OnPropertyChanged(nameof(ThemeOptionsBtnBorderSize));
-            OnPropertyChanged(nameof(ThemeOptionsBtnBorderRadius));            
             OnPropertyChanged(nameof(ThemeFolderFontSize));
             OnPropertyChanged(nameof(ThemeArrowColor));
             OnPropertyChanged(nameof(ThemeFolderColor));
-            OnPropertyChanged(nameof(ThemeTabColor));
-            OnPropertyChanged(nameof(ThemeTabBgColor));
-            OnPropertyChanged(nameof(ThemeTabActiveColor));
-            OnPropertyChanged(nameof(ThemeTabActiveBgColor));
-            OnPropertyChanged(nameof(ThemeStandardColor));
             OnPropertyChanged(nameof(ThemeHeaderColor));
-            OnPropertyChanged(nameof(ThemeSubHeaderColor));
             OnPropertyChanged(nameof(ThemeMainWallpaper));
             OnPropertyChanged(nameof(IsMainWallpaperVideo));
             OnPropertyChanged(nameof(ThemeMainWallpaperVideoPath));
@@ -1336,8 +1275,6 @@ namespace ArcadeStick.ViewModels
             Configuration.ScrollThumbHoverColor = themeData.ScrollThumbHoverColor;
             Configuration.ScrollThumbDragColor = themeData.ScrollThumbDragColor;
             Configuration.ScrollbarWidth = themeData.ScrollbarWidth;
-            Configuration.BorderWidthValue = themeData.BorderWidthValue;
-            Configuration.BorderCurveValue = themeData.BorderCurveValue;
             Configuration.SeparatorColorHex = themeData.SeparatorColorHex;
             Configuration.TabFontSize = themeData.TabFontSize;
             Configuration.TabColorHex = themeData.TabColorHex;

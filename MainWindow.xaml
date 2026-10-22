@@ -658,11 +658,8 @@
 
 
 
-            <!-- ROW 1: THE RIGHT SIDE MAIN MEDIA PANEL CONTAINER -->
-            <!-- Extracted into its own UserControl (MediaPanelControl) - content/bindings unchanged from
-                 before, just relocated so the upcoming redesign happens in isolation. VideoPreview and
-                 MediaLayer0_Back are exposed as public fields on the control for MainWindow.xaml.cs's
-                 existing call sites (see MediaPanel.VideoPreview / MediaPanel.MediaLayer0_Back below). -->
+            <!-- Media layers: the old media panel container is gone; each media element is its own positioned layer
+                 control (MediaLayer0_Back is a public field on SplashLayerControl). -->
             
             <!-- Splash Image layer: its own positioned element, mapped in ApplyLayout() -->
             <views:SplashLayerControl x:Name="SplashLayer" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523"/>

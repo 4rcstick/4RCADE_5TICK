@@ -112,7 +112,7 @@ namespace ArcadeStick.Views
         }
 
         // Called by MainWindow after the layout size is switched from the hamburger menu. Only the Advanced
-        // tab is reloaded, so unsaved Basic tab edits survive. Only the size restore point moves, so closing
+        // tab is reloaded (Global values are not per size). Only the size restore point moves, so closing
         // won't snap the window back to the old size.
         public void RefreshAfterExternalSizeSwitch()
         {
@@ -144,15 +144,13 @@ namespace ArcadeStick.Views
         // [END SECTION: Settings Persistence]
 
         // [SECTION: Save / Close Handlers]
-        // Save Adjustments: commits the Basic Themes tab into ConfigurationSettings, writes settings.json,
-        // and live-refreshes the main window's theme bindings/folder/game colors. Does NOT write to a
-        // theme file - that only happens via the Save Changes button inside the Basic Themes tab.
+        // Save Adjustments: writes settings.json (the Advanced and Global tabs already edit _settings live),
+        // moves the close-without-saving restore point and live-refreshes the main window's theme bindings and
+        // folder/game colors. Does NOT write to a theme file - only Save Changes on the Basic tab does that.
         private void BtnSaveAdjustments_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                ThemesTab.SyncUiToSettings();
-
                 PersistSettingsToDisk();
 
                 // Saved: a pending custom size is now permanent, and this is the new restore point for closing
