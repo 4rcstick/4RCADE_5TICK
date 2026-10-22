@@ -673,10 +673,12 @@
             <views:GameInfoLayerControl x:Name="GameInfoLayer" Canvas.Left="0" Canvas.Top="0" Width="1280" Height="720"/>
 
             <!-- Random Game Display layer: its own positioned element, mapped in ApplyLayout(). The outer host is
-                 what ApplyLayout shows/hides; the inner grid shows only while a spin runs (DataTrigger). With no
-                 file set on the layer, the fallback shows the media-color fill and "Rolling the Dice!" text
-                 (scaled to the layer by the Viewbox). With a file set, code-behind collapses the fallback and
-                 plays the file in RandomSpinFileHost instead - the file shows alone, no fill. -->
+                 what ApplyLayout shows/hides; the inner grid shows only while a spin runs (DataTrigger). Both states
+                 (game selected, splash page) draw the same card over whatever is behind them: the background color
+                 (its alpha decides how much shows through), then the layer's file, then the message. The border sits
+                 on the card's Border, outside the Viewbox, so its size never scales with the box. The style comes
+                 from the ThemeRandomDisplay* forwarders; the per-state max text size, the wrapped text width and the
+                 file's rounded clip are set in ApplyRandomGameDisplayRect. -->
             <Grid x:Name="RandomGameDisplayLayer" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" ClipToBounds="True">
                 <Grid x:Name="RandomSpinContent">
                     <Grid.Style>
@@ -689,14 +691,22 @@
                             </Style.Triggers>
                         </Style>
                     </Grid.Style>
-                    <!-- Fill and corners hard-coded (black, square) since the Preview Panel flat settings were removed;
-                         revisit with the Random Game Display pass (font/color settings for this card). -->
-                    <Border x:Name="RandomSpinFallback" CornerRadius="0" Background="#FF000000">
-                        <Viewbox Stretch="Uniform" Margin="10">
-                            <TextBlock Text="Rolling the Dice!" FontSize="100" FontWeight="Bold" Foreground="{Binding ThemeFolderColor, FallbackValue=#00D4FF}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Viewbox>
+                    <Border x:Name="RandomSpinCard" Background="{Binding ThemeRandomDisplayBgColor, FallbackValue=#FF000000}"
+                            BorderBrush="{Binding ThemeRandomDisplayBorderColor, FallbackValue=#FF3A3A3C}"
+                            BorderThickness="{Binding ThemeRandomDisplayBorderThickness}" CornerRadius="{Binding ThemeRandomDisplayCornerRadius}">
+                        <Grid x:Name="RandomSpinInner">
+                            <Grid x:Name="RandomSpinFileHost" Visibility="Collapsed"/>
+                            <!-- Max text size is the cap: the shrink-only Viewbox scales the text down only when it does
+                                 not fit (one line: wider than the box; wrapped: taller than the box). 10px inner padding. -->
+                            <Viewbox x:Name="RandomSpinTextBox" Stretch="Uniform" StretchDirection="DownOnly" Margin="10"
+                                     HorizontalAlignment="{Binding ThemeRandomDisplayHorizontalAlignment}" VerticalAlignment="Center">
+                                <TextBlock x:Name="RandomSpinText" Text="{Binding ThemeRandomDisplayMessage}"
+                                           FontFamily="{Binding ThemeRandomDisplayFontFamily}" FontWeight="{Binding ThemeRandomDisplayFontWeight}"
+                                           Foreground="{Binding ThemeRandomDisplayColor, FallbackValue=#FF00D4FF}" Effect="{Binding ThemeRandomDisplayEffect}"
+                                           TextAlignment="{Binding ThemeRandomDisplayTextAlignment}" TextWrapping="{Binding ThemeRandomDisplayTextWrapping}"/>
+                            </Viewbox>
+                        </Grid>
                     </Border>
-                    <Grid x:Name="RandomSpinFileHost" Visibility="Collapsed"/>
                 </Grid>
             </Grid>
 

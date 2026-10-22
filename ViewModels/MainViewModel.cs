@@ -800,6 +800,77 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Game Info Forwarders]
 
+        // [SECTION: Random Game Display Forwarders]
+        // The spin card's style. Text (message, font, color, alignment, wrap, shadow) is shared by both states and read
+        // from the RandomGameDisplay entry; background color and border are per state, read from the active state's
+        // part. Each state's max text size, the wrapped text width and the file clip depend on the active rect, so
+        // MainWindow.ApplyRandomGameDisplayRect sets those (and sets RandomDisplaySplashState at the same pick).
+        private LayerLayoutEntry RandomDisplayEntry => GetLayerEntry(LayerRegistry.RandomGameDisplay);
+        private LayerLayoutEntry RandomDisplayStateEntry => GetLayerEntry(_randomDisplaySplashState ? LayerRegistry.RandomGameDisplaySplash : LayerRegistry.RandomGameDisplay);
+
+        // True while the card shows the splash-page state. Set by MainWindow from the die-click pick; a change
+        // re-raises the per-state forwarders.
+        private bool _randomDisplaySplashState;
+        public bool RandomDisplaySplashState
+        {
+            get => _randomDisplaySplashState;
+            set
+            {
+                if (_randomDisplaySplashState == value) return;
+                _randomDisplaySplashState = value;
+                OnPropertyChanged(nameof(ThemeRandomDisplayBgColor));
+                OnPropertyChanged(nameof(ThemeRandomDisplayBorderColor));
+                OnPropertyChanged(nameof(ThemeRandomDisplayBorderThickness));
+                OnPropertyChanged(nameof(ThemeRandomDisplayCornerRadius));
+            }
+        }
+
+        public string ThemeRandomDisplayMessage => RandomDisplayEntry.TextMessage ?? LayerRegistry.DefaultRandomDisplayMessage;
+        public FontFamily ThemeRandomDisplayFontFamily => ToFontFamily(RandomDisplayEntry.TextFontFamily);
+        public FontWeight ThemeRandomDisplayFontWeight => (RandomDisplayEntry.TextBold ?? LayerRegistry.DefaultRandomDisplayBold) ? FontWeights.Bold : FontWeights.Normal;
+        public string ThemeRandomDisplayColor => RandomDisplayEntry.TextColorHex ?? LayerRegistry.DefaultRandomDisplayColorHex;
+        public System.Windows.Media.Effects.Effect? ThemeRandomDisplayEffect => BuildTextShadowEffect(RandomDisplayEntry);
+        public TextWrapping ThemeRandomDisplayTextWrapping => (RandomDisplayEntry.TextWrap ?? LayerRegistry.DefaultRandomDisplayWrap) ? TextWrapping.Wrap : TextWrapping.NoWrap;
+
+        // Alignment: TextAlignment lines up wrapped lines; the HorizontalAlignment places a one-line message that is
+        // narrower than the box (the shrink-only Viewbox is then only as wide as the text).
+        public TextAlignment ThemeRandomDisplayTextAlignment => RandomDisplayEntry.TextAlign switch
+        {
+            "Left" => TextAlignment.Left,
+            "Right" => TextAlignment.Right,
+            _ => TextAlignment.Center
+        };
+        public HorizontalAlignment ThemeRandomDisplayHorizontalAlignment => RandomDisplayEntry.TextAlign switch
+        {
+            "Left" => HorizontalAlignment.Left,
+            "Right" => HorizontalAlignment.Right,
+            _ => HorizontalAlignment.Center
+        };
+
+        public string ThemeRandomDisplayBgColor => RandomDisplayStateEntry.BgColorHex ?? LayerRegistry.DefaultRandomDisplayBgColorHex;
+        public string ThemeRandomDisplayBorderColor => RandomDisplayStateEntry.BorderColorHex ?? LayerRegistry.DefaultShapeBorderColorHex;
+        public Thickness ThemeRandomDisplayBorderThickness => new Thickness(RandomDisplayStateEntry.BorderSize ?? 0);
+        public CornerRadius ThemeRandomDisplayCornerRadius => new CornerRadius(RandomDisplayStateEntry.CornerRadius ?? LayerRegistry.DefaultShapeCornerRadius);
+
+        // Re-raises the Random Game Display forwarders after their entry values changed (used by RefreshThemeBindings
+        // and MainWindow.ApplyLayout's Random Game Display style key).
+        public void RefreshRandomDisplayBindings()
+        {
+            OnPropertyChanged(nameof(ThemeRandomDisplayMessage));
+            OnPropertyChanged(nameof(ThemeRandomDisplayFontFamily));
+            OnPropertyChanged(nameof(ThemeRandomDisplayFontWeight));
+            OnPropertyChanged(nameof(ThemeRandomDisplayColor));
+            OnPropertyChanged(nameof(ThemeRandomDisplayEffect));
+            OnPropertyChanged(nameof(ThemeRandomDisplayTextWrapping));
+            OnPropertyChanged(nameof(ThemeRandomDisplayTextAlignment));
+            OnPropertyChanged(nameof(ThemeRandomDisplayHorizontalAlignment));
+            OnPropertyChanged(nameof(ThemeRandomDisplayBgColor));
+            OnPropertyChanged(nameof(ThemeRandomDisplayBorderColor));
+            OnPropertyChanged(nameof(ThemeRandomDisplayBorderThickness));
+            OnPropertyChanged(nameof(ThemeRandomDisplayCornerRadius));
+        }
+        // [END SECTION: Random Game Display Forwarders]
+
         // The Global Header font color, still read through a binding by the no-art banner and the spin card
         // (they move to their own Marquee-layer settings in a later pass).
         public string ThemeHeaderColor => Configuration.HeaderColorHex;
@@ -1086,6 +1157,7 @@ namespace ArcadeStick.ViewModels
 
             OnPropertyChanged(nameof(ThemeMainColor));
             RefreshGameInfoBindings();
+            RefreshRandomDisplayBindings();
             RefreshMarqueeBindings();
             RefreshSearchButtonBindings();
             OnPropertyChanged(nameof(ThemeFolderFontSize));

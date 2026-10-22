@@ -133,6 +133,7 @@ namespace ArcadeStick
             {
                 // Jump the game tree to the winner - the spin just lands on it, no reveal popup anymore.
                 ExpandAndSelectGameInMainTree(winner);
+                RestartPreviewAfterSpin();
             };
 
             // Fixes a pre-existing WPF quirk affecting every AllowsTransparency="True" Popup in this
@@ -182,6 +183,7 @@ namespace ArcadeStick
         private string? _lastVideoFallbackPath;
         private string? _lastSearchButtonsStyleKey;
         private string? _lastGameInfoStyleKey;
+        private string? _lastRandomDisplayStyleKey;
         private string? _lastMainBackgroundKey;
         private string? _lastMainBackgroundColor;
 
@@ -364,6 +366,19 @@ namespace ArcadeStick
             {
                 _lastGameInfoStyleKey = gameInfoStyleKey;
                 _viewModel.RefreshGameInfoBindings();
+            }
+
+            // Random Game Display: re-raise the spin card's bindings only when a style value on either part changed
+            string randomDisplayStyleKey = string.Join("#",
+                new[] { Models.LayerRegistry.RandomGameDisplay, Models.LayerRegistry.RandomGameDisplaySplash }
+                    .Select(id => layout.Layers.FirstOrDefault(e => e.Id == id))
+                    .Select(e => $"{e?.TextMessage}|{e?.TextWrap}|{e?.TextFontFamily}|{e?.TextBold}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextAlign}"
+                        + $"|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}"
+                        + $"|{e?.BgColorHex}|{e?.BorderSize}|{e?.BorderColorHex}|{e?.CornerRadius}"));
+            if (randomDisplayStyleKey != _lastRandomDisplayStyleKey)
+            {
+                _lastRandomDisplayStyleKey = randomDisplayStyleKey;
+                _viewModel.RefreshRandomDisplayBindings();
             }
 
             LayoutCanvas.Width = width;
@@ -693,6 +708,42 @@ namespace ArcadeStick
             RandomGameDisplayLayer.Height = entry.Height;
             Panel.SetZIndex(RandomGameDisplayLayer, entry.Z);
             RandomGameDisplayLayer.Visibility = entry.Visible ? Visibility.Visible : Visibility.Collapsed;
+
+            // The card's background color and border follow the same state pick
+            _viewModel.RandomDisplaySplashState = _randomSpinFromSplash;
+            ApplyRandomGameDisplayCardSize(layout, entry);
+        }
+
+        // Sets the parts of the spin card that depend on the active state: this state's max text size, the wrapped
+        // text width (the box inside this state's border and the 10px padding) and the file's rounded clip at this
+        // state's border inner edge. Only the wrap flag is shared, read from the RandomGameDisplay entry.
+        private void ApplyRandomGameDisplayCardSize(Models.ThemeLayout layout, Models.LayerLayoutEntry stateEntry)
+        {
+            var style = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomGameDisplay) ?? stateEntry;
+            double defaultSize = stateEntry.Id == Models.LayerRegistry.RandomGameDisplaySplash
+                ? Models.LayerRegistry.DefaultRandomDisplaySplashFontSize
+                : Models.LayerRegistry.DefaultRandomDisplayFontSize;
+            RandomSpinText.FontSize = stateEntry.TextFontSize ?? defaultSize;
+
+            double borderSize = stateEntry.BorderSize ?? 0;
+            double innerWidth = Math.Max(0, stateEntry.Width - (borderSize * 2));
+            double innerHeight = Math.Max(0, stateEntry.Height - (borderSize * 2));
+
+            bool wrap = style.TextWrap ?? Models.LayerRegistry.DefaultRandomDisplayWrap;
+            RandomSpinText.Width = wrap ? Math.Max(1, innerWidth - (RandomSpinTextBox.Margin.Left + RandomSpinTextBox.Margin.Right)) : double.NaN;
+
+            double radius = stateEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius;
+            if (radius > 0)
+            {
+                double innerRadius = Math.Max(0, radius - borderSize);
+                var clip = new RectangleGeometry(new Rect(0, 0, innerWidth, innerHeight), innerRadius, innerRadius);
+                clip.Freeze();
+                RandomSpinFileHost.Clip = clip;
+            }
+            else
+            {
+                RandomSpinFileHost.Clip = null;
+            }
         }
 
         // Same layout resolution ApplyLayout uses - lets the die click re-apply just this layer's rect.
@@ -709,9 +760,9 @@ namespace ArcadeStick
         // [END SECTION: Random Game Display Rect]
 
         // [SECTION: Random Game Display File]
-        // The Random Game Display layer can show a file (image, gif/APNG or mp4) during a spin instead of the
-        // "Rolling the Dice!" text. Built with the same loader as the custom layers; rebuilt only when the
-        // layer's file changes. A video is kept stopped until a spin starts (see UpdateRandomGameDisplayPlayback).
+        // The Random Game Display layer can show a file (image, gif/APNG or mp4) during a spin, drawn over the card's
+        // background color and under its message. Built with the same loader as the custom layers; rebuilt only when
+        // the layer's file changes. A video is kept stopped until a spin starts (see UpdateRandomGameDisplayPlayback).
         private string? _randomDisplayFilePath;
         private FrameworkElement? _randomDisplayElement;
 
@@ -732,21 +783,16 @@ namespace ArcadeStick
             if (element is MediaElement video)
             {
                 video.Stop();
-                // Unsupported codec: fall back to the text instead of showing an empty layer
-                video.MediaFailed += (s, e) =>
-                {
-                    RandomSpinFileHost.Visibility = Visibility.Collapsed;
-                    RandomSpinFallback.Visibility = Visibility.Visible;
-                };
+                // Unsupported codec: hide the file, the background and message still show
+                video.MediaFailed += (s, e) => RandomSpinFileHost.Visibility = Visibility.Collapsed;
             }
 
             RandomSpinFileHost.Children.Add(element);
             RandomSpinFileHost.Visibility = Visibility.Visible;
-            RandomSpinFallback.Visibility = Visibility.Collapsed;
             _randomDisplayElement = element;
         }
 
-        // Stops and removes the layer's file so nothing stays open, and brings the text fallback back.
+        // Stops and removes the layer's file so nothing stays open (the card's background and message stay).
         public void ReleaseRandomGameDisplayFile()
         {
             if (_randomDisplayElement is MediaElement video)
@@ -766,7 +812,6 @@ namespace ArcadeStick
             _randomDisplayElement = null;
             _randomDisplayFilePath = null;
             RandomSpinFileHost.Visibility = Visibility.Collapsed;
-            RandomSpinFallback.Visibility = Visibility.Visible;
         }
 
         // A video starts from the beginning each time a spin starts, and stops when it ends.
@@ -1058,13 +1103,6 @@ namespace ArcadeStick
                 UpdateRandomGameDisplayPlayback();
             }
 
-            // A spin started from the splash page dimmed the splash (see BtnPlayRandom_MouseLeftButtonUp). It
-            // comes back once the winner is selected, not when the spin flag clears, so it can't flash back
-            // for a moment before the winning game appears.
-            if (e.PropertyName == nameof(_viewModel.IsGameSelected) && _viewModel.IsGameSelected && SplashLayer.Opacity < 1)
-            {
-                SplashLayer.Opacity = 1;
-            }
         }
 
         // Starts/stops the boot splash mp4 based on current selection state and whether the resolved splash asset is a video
@@ -1186,13 +1224,44 @@ namespace ArcadeStick
 
         // Sets the idle/boot-splash media state at startup (no game selected, no video playing)
         // Stops and hides the video preview right as a spin begins, so the previous game's video doesn't
-        // keep playing under the spin animation. VideoPreview's visibility is otherwise owned entirely by
+        // keep playing under an opaque spin card. A spin from the game-selected state whose card background is
+        // translucent leaves it playing, since it shows through (the player is always muted, and the winner's
+        // video swaps in through the normal Play call). VideoPreview's visibility is otherwise owned entirely by
         // ViewModel_PropertyChanged/RefreshVideoPreview/etc., so this only ever hides it - the normal
         // selection-change pipeline is what reveals it again once a winner is set (or leaves it hidden if
         // the winner has none).
         private void StopVideoPreviewForSpin()
         {
+            if (!_randomSpinFromSplash && IsRandomDisplayBackgroundTranslucent()) return;
             StopActivePreview();
+            _previewStoppedForSpin = true;
+        }
+
+        // True from a spin's preview stop until the spin lands (see RestartPreviewAfterSpin)
+        private bool _previewStoppedForSpin;
+
+        // Restarts the preview when the spin stopped it and the winner's video did not start on its own: the winner
+        // is the game already selected, so VideoSourcePath did not change and nothing called Play. A different
+        // winner has already started (or correctly cleared) its video, so the surface check leaves it alone.
+        private void RestartPreviewAfterSpin()
+        {
+            if (!_previewStoppedForSpin) return;
+            _previewStoppedForSpin = false;
+
+            if (VideoPreviewLayer.PreviewVideoSurface.Visibility != Visibility.Visible) RefreshVideoPreview();
+        }
+
+        // Does the check for a see-through card: true when the game-selected part's background color alpha is below 255
+        private bool IsRandomDisplayBackgroundTranslucent()
+        {
+            var config = _viewModel.Configuration;
+            var saved = config.Layouts.FirstOrDefault(l => l.Width == config.ActiveResolutionWidth && l.Height == config.ActiveResolutionHeight);
+            var layout = Models.LayerRegistry.ResolveLayout(saved, config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+            string hex = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomGameDisplay)?.BgColorHex
+                ?? Models.LayerRegistry.DefaultRandomDisplayBgColorHex;
+
+            try { return ((Color)ColorConverter.ConvertFromString(hex)).A < 255; }
+            catch { return false; }
         }
 
         private void ApplyDefaultMedia()
@@ -2577,12 +2646,10 @@ namespace ArcadeStick
                 return;
             }
 
-            // Which of the layer's two rects applies is decided now and stays fixed for the whole spin.
-            // From the splash page the splash is dimmed too (opacity, not Visibility - ApplyLayout owns that),
-            // so the animation sits over the plain media panel; it comes back once a game is selected.
+            // Which of the layer's two rects applies is decided now and stays fixed for the whole spin. Both states
+            // draw over what is behind them; the card's background alpha decides how much shows through.
             _randomSpinFromSplash = !_viewModel.IsGameSelected;
             ApplyRandomGameDisplayRect();
-            if (_randomSpinFromSplash) SplashLayer.Opacity = 0;
 
             StopVideoPreviewForSpin();
             _viewModel.StartRandomizerSpin();

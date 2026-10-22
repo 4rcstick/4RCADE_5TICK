@@ -169,28 +169,10 @@
                                 <CheckBox x:Name="ChkGroupMove" Content="Move all parts together" HorizontalAlignment="Left" Margin="0,0,0,8"
                                           Style="{StaticResource GLCheckBoxStyle}" Visibility="Collapsed"/>
 
-                                <!-- Group parts: for a grouped layer (Search & Buttons, Game Info) one section per part is
-                                     built here in code-behind, all visible at once. Hidden for single layers. -->
+                                <!-- Group parts: for a grouped layer (Search & Buttons, Game Info, Random Game Display) one section
+                                     per part is built here in code-behind, all visible at once (with a per-part ratio lock where
+                                     the group allows it). Hidden for single layers. -->
                                 <StackPanel x:Name="PnlGroupParts" Margin="0,0,0,12" Visibility="Collapsed"/>
-
-                                <!-- File field: only for layers that show a file (Random Game Display). Shown from code-behind. -->
-                                <StackPanel x:Name="PnlFileField" Margin="0,0,0,12" Visibility="Collapsed">
-                                    <TextBlock Text="Image / video file (png, jpg, gif, mp4):" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,3"/>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox Grid.Column="0" x:Name="TxtLayerFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
-                                        <Button Grid.Column="1" x:Name="BtnBrowseLayerFile" Content="Browse" Click="BtnBrowseLayerFile_Click"
-                                                Style="{StaticResource ThemedActionButtonStyle}"
-                                                FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
-                                        <Button Grid.Column="2" x:Name="BtnClearLayerFile" Content="Clear" Click="BtnClearLayerFile_Click"
-                                                Style="{StaticResource ThemedActionButtonStyle}"
-                                                FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
-                                    </Grid>
-                                </StackPanel>
 
                                 <CheckBox x:Name="ChkLayerHidden" Content="Hide this layer" Click="ChkLayerHidden_Click" HorizontalAlignment="Left"
                                           Style="{StaticResource GLCheckBoxStyle}" Margin="0,6,0,0"/>
@@ -1361,10 +1343,167 @@
                     </TabItem>
                     <!-- [END SECTION: Splash Image - Image Tab] -->
 
+                    <!-- [SECTION: Random Game Display - Text Tab] -->
+                    <!-- The spin card's message and text style, shared by both states and stored on the RandomGameDisplay
+                         entry; the max text size is per state (each part's own TextFontSize). Empty message = no text. -->
+                    <TabItem x:Name="TabRGText" Header="TEXT" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="52"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Message (max 60 characters; applies on Enter or focus loss) -->
+                                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Message (leave empty for no text):" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <TextBox x:Name="TxtRGMessage" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" MaxLength="60"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGMessage_LostFocus" KeyDown="TxtRGMessage_KeyDown"/>
+
+                                <!-- Font family + bold -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                    <ComboBox x:Name="CboRGFont" Width="160" Height="25"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGFont_SelectionChanged"/>
+                                    <CheckBox x:Name="ChkRGBold" Content="Bold" Margin="12,0,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGBold_Click"/>
+                                </StackPanel>
+
+                                <!-- Color, then alignment -->
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="RGTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGTextColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                    <TextBox x:Name="TxtRGTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGTextColorHex_LostFocus"/>
+                                </StackPanel>
+                                <ComboBox x:Name="CboRGAlign" Grid.Row="5" Grid.Column="2" Grid.ColumnSpan="3" Width="110" Height="25" HorizontalAlignment="Left"
+                                          Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGAlign_SelectionChanged"/>
+
+                                <!-- Wrap at the box width (shared by both states) -->
+                                <CheckBox x:Name="ChkRGWrap" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Content="Wrap text" Margin="0,8,0,0"
+                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGWrap_Click"/>
+
+                                <!-- Max text size per state (6 to 200): the text shrinks below it only when it does not fit -->
+                                <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5" Text="Max text size (px):" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                <Grid Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="18"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Game selected:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBox x:Name="TxtRGFontSize" Grid.Column="1" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
+                                    <TextBlock Grid.Column="3" Text="Splash page:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <TextBox x:Name="TxtRGSplashFontSize" Grid.Column="4" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
+                                </Grid>
+
+                                <!-- Drop shadow -->
+                                <CheckBox x:Name="ChkRGShadow" Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,12,0,0"
+                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGShadow_Click"/>
+                                <TextBlock Grid.Row="10" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <TextBlock Grid.Row="10" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <TextBlock Grid.Row="10" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                <StackPanel Grid.Row="11" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="RGShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                    <TextBox x:Name="TxtRGShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGShadowColorHex_LostFocus"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtRGShadowBlur" Grid.Row="11" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
+                                <TextBox x:Name="TxtRGShadowDepth" Grid.Row="11" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Random Game Display - Text Tab] -->
+
+                    <!-- [SECTION: Random Game Display - Background Tab] -->
+                    <!-- The file (shared by both states, RandomGameDisplay's ImagePath) drawn over the background color and
+                         under the message, then the background color per state (each part's BgColorHex; its alpha decides how
+                         much of the layers behind shows through), picked with the State combo. -->
+                    <TabItem x:Name="TabRGBackground" Header="BACKGROUND" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <TextBlock Text="Image or video (png, jpg, gif, mp4), drawn over the color and under the message:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" x:Name="TxtRGFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
+                                    <Button Grid.Column="1" x:Name="BtnBrowseRGFile" Content="Browse" Click="BtnBrowseRGFile_Click"
+                        Style="{StaticResource ThemedActionButtonStyle}"
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                    <Button Grid.Column="2" x:Name="BtnClearRGFile" Content="Clear" Click="BtnClearRGFile_Click"
+                        Style="{StaticResource ThemedActionButtonStyle}"
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                </Grid>
+
+                                <!-- Which state's background color the row below edits (session-only) -->
+                                <StackPanel x:Name="PnlRGBgState" Orientation="Horizontal" Margin="0,0,0,12" Visibility="Collapsed">
+                                    <TextBlock Text="State:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <ComboBox x:Name="CboRGBgState" Width="200" Height="25"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGState_SelectionChanged"/>
+                                </StackPanel>
+                                <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="RGBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtRGBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGBgColorHex_LostFocus"/>
+                                </StackPanel>
+                                <TextBlock Text="Lower the alpha to let the layers behind the card show through." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Random Game Display - Background Tab] -->
+
                     <!-- [SECTION: Shape Layer - Border Tab] -->
                     <TabItem x:Name="TabShapeBorder" Header="BORDER" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
-                            <Grid Margin="10">
+                            <StackPanel Margin="10">
+                            <!-- Random Game Display only: which state's border the fields below edit (session-only) -->
+                            <StackPanel x:Name="PnlRGBorderState" Orientation="Horizontal" Margin="0,0,0,12" Visibility="Collapsed">
+                                <TextBlock Text="State:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ComboBox x:Name="CboRGBorderState" Width="200" Height="25"
+                                          Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGState_SelectionChanged"/>
+                            </StackPanel>
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
@@ -1411,6 +1550,7 @@
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>
+                            </StackPanel>
                         </ScrollViewer>
                     </TabItem>
                     <!-- [END SECTION: Shape Layer - Border Tab] -->

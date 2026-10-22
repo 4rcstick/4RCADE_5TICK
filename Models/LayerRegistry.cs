@@ -197,6 +197,14 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? TextNudgeY { get; set; }
 
+        // Random Game Display only (its first part, RandomGameDisplay): the spin card's message and whether it wraps
+        // at the box width. An empty message means no text; null fills from the default. Same rules as above.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? TextMessage { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? TextWrap { get; set; }
+
         // Game Info section headers (the Game Info Body entry only; its body text uses the generic Text* fields
         // above). A second block of text styling because the generic fields only fit one block per entry.
         // Same rules: null on every other layer, left out of the theme file when null, filled from defaults.
@@ -286,6 +294,8 @@ namespace ArcadeStick.Models
             TextShadowDepth = source.TextShadowDepth;
             ShadowTarget = source.ShadowTarget;
             TextNudgeY = source.TextNudgeY;
+            TextMessage = source.TextMessage;
+            TextWrap = source.TextWrap;
             SectionHeaderFontSize = source.SectionHeaderFontSize;
             SectionHeaderColorHex = source.SectionHeaderColorHex;
             SectionHeaderFontFamily = source.SectionHeaderFontFamily;
@@ -324,10 +334,6 @@ namespace ArcadeStick.Models
         // Non-empty = this layer is a part of a group (see LayerRegistry.AllGroups). Parts of one group
         // share a single Z and appear as one row in the Advanced tab's layer list.
         public string GroupId { get; init; } = "";
-
-        // True = this built-in layer shows a file (image, gif/APNG or mp4) chosen on its edit page, stored in
-        // the entry's ImagePath. Used by Random Game Display.
-        public bool HasFile { get; init; } = false;
     }
 
     public record ResolutionPreset(int Width, int Height)
@@ -337,8 +343,9 @@ namespace ArcadeStick.Models
 
     // A group of layers shown as one row in the Advanced tab's layer list. PartIds are in the order the
     // parts appear on the group's edit page. All parts share the group's Z. AllowGroupMove offers the
-    // "Move all parts together" checkbox on the group's Position tab.
-    public record LayerGroupDefinition(string Id, string DisplayName, string[] PartIds, bool AllowGroupMove = false);
+    // "Move all parts together" checkbox on the group's Position tab; AllowRatioLock gives each part its own
+    // aspect-ratio lock between its Width and Height boxes.
+    public record LayerGroupDefinition(string Id, string DisplayName, string[] PartIds, bool AllowGroupMove = false, bool AllowRatioLock = false);
 
     // [SECTION: Layer Registry]
     // Single source of truth for the layer list. Adding a layer = adding one entry to AllLayers; the
@@ -438,7 +445,7 @@ namespace ArcadeStick.Models
         {
             new(SearchAndButtonsGroup, "Search & Buttons", new[] { SearchLabel, SearchBox, RandomButton, SortButton, OptionsButton, HamburgerButton }, AllowGroupMove: true),
             new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsNav, ImagePreviewsBody }, AllowGroupMove: true),
-            new(RandomGameGroup, "Random Game Display", new[] { RandomGameDisplay, RandomGameDisplaySplash })
+            new(RandomGameGroup, "Random Game Display", new[] { RandomGameDisplay, RandomGameDisplaySplash }, AllowRatioLock: true)
         };
 
         // Custom image layers: Ids look like "Custom_<guid>". At most 10 per resolution.
@@ -589,6 +596,9 @@ namespace ArcadeStick.Models
                 // Image shadow: the Marquee layer and the Image Previews
                 FillImageShadowStyle(entry);
 
+                // Random Game Display: the spin card's text, background and border, and each state's max text size
+                FillRandomGameDisplayStyle(entry);
+
                 layout.Layers.Add(entry);
             }
             return layout;
@@ -692,6 +702,39 @@ namespace ArcadeStick.Models
             if (entry.Id == MarqueePanel && !IsShadowTarget(entry.ShadowTarget)) entry.ShadowTarget = DefaultShadowTarget;
         }
 
+        // Fills the Random Game Display spin card's style from defaults. The text style shared by both states (message,
+        // wrap, font, bold, color, alignment, shadow) lives on RandomGameDisplay; each part keeps its own max text size
+        // (TextFontSize), background color and border. An empty saved message is kept (it means no text); saved values are kept.
+        private static void FillRandomGameDisplayStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id == RandomGameDisplay)
+            {
+                entry.TextMessage ??= DefaultRandomDisplayMessage;
+                entry.TextWrap ??= DefaultRandomDisplayWrap;
+                if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
+                entry.TextBold ??= DefaultRandomDisplayBold;
+                if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultRandomDisplayColorHex;
+                if (string.IsNullOrWhiteSpace(entry.TextAlign)) entry.TextAlign = DefaultRandomDisplayAlign;
+                FillTextShadowDefaults(entry);
+                entry.TextFontSize ??= DefaultRandomDisplayFontSize;
+                FillRandomDisplayCardDefaults(entry);
+            }
+            else if (entry.Id == RandomGameDisplaySplash)
+            {
+                entry.TextFontSize ??= DefaultRandomDisplaySplashFontSize;
+                FillRandomDisplayCardDefaults(entry);
+            }
+        }
+
+        // Fills one Random Game Display state's background color and border (black, unbordered, square; saved values kept)
+        private static void FillRandomDisplayCardDefaults(LayerLayoutEntry entry)
+        {
+            if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultRandomDisplayBgColorHex;
+            entry.BorderSize ??= 0;
+            if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = DefaultShapeBorderColorHex;
+            entry.CornerRadius ??= DefaultShapeCornerRadius;
+        }
+
         // Does the Marquee shadow target check: true for "Both", "Logo" or "Marquees"
         public static bool IsShadowTarget(string? target) =>
             target == ShadowTargetBoth || target == ShadowTargetLogo || target == ShadowTargetMarquees;
@@ -786,6 +829,9 @@ namespace ArcadeStick.Models
 
                 // Image shadow: fill any missing Marquee layer or Image Previews shadow value
                 FillImageShadowStyle(entry);
+
+                // Random Game Display: fill any missing card style value or per-state max text size
+                FillRandomGameDisplayStyle(entry);
 
                 // Main Window Background: the Disable flag and the background color fill in when missing (saved values kept)
                 if (entry.Id == MainBackground)
@@ -884,6 +930,20 @@ namespace ArcadeStick.Models
         public const int DefaultNavSize = 9;
         public const int MinNavSize = 4;
         public const int MaxNavSize = 40;
+
+        // Random Game Display spin card defaults (the old hard-coded look: bold Segoe UI in the folder cyan on black,
+        // square and unbordered). The max sizes match what the old fill-the-box text came to at the default rects.
+        public const string DefaultRandomDisplayMessage = "Rolling the Dice!";
+        public const int MaxRandomDisplayMessageLength = 60;
+        public const bool DefaultRandomDisplayWrap = false;
+        public const bool DefaultRandomDisplayBold = true;
+        public const string DefaultRandomDisplayColorHex = "#FF00D4FF";
+        public const string DefaultRandomDisplayAlign = "Center";
+        public const string DefaultRandomDisplayBgColorHex = "#FF000000";
+        public const int DefaultRandomDisplayFontSize = 38;
+        public const int DefaultRandomDisplaySplashFontSize = 100;
+        public const int MinRandomDisplayFontSize = 6;
+        public const int MaxRandomDisplayFontSize = 200;
 
         // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
         // Segoe UI is also the fallback when a theme has no saved family.

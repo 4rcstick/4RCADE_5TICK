@@ -23,6 +23,10 @@ namespace ArcadeStick.Views
         private string _guidePartId = "";
         private readonly Dictionary<string, PartControls> _partControls = new();
 
+        // Per-part ratio lock states (groups with AllowRatioLock), by part id. Session-only like BtnRatioLock, and kept
+        // here rather than on the controls so they survive the group page being rebuilt for another group.
+        private readonly Dictionary<string, bool> _partRatioLocks = new();
+
         private class PartControls
         {
             public TextBox X = null!;
@@ -30,6 +34,7 @@ namespace ArcadeStick.Views
             public TextBox Width = null!;
             public TextBox Height = null!;
             public CheckBox Hide = null!;
+            public System.Windows.Controls.Primitives.ToggleButton? RatioLock;
         }
 
         // Rect and color of the alignment guides for the selected layer, and which parts to draw: the layer
@@ -635,7 +640,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -650,6 +655,10 @@ namespace ArcadeStick.Views
 
             // Game Info group: title, publisher block, headers + body, the two navs, and the image previews shadow
             if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews };
+
+            // Random Game Display group: the spin card's text, background (color and file) and the shared Border tab
+            // (mapped to the RandomGameDisplay entry by GetSelectedBorderEntry)
+            if (unitKey == LayerRegistry.RandomGameGroup) return new[] { TabRGText, TabRGBackground, TabShapeBorder };
 
             // Marquee gets the Logo tab (the logo shown when no game is selected) and the shared image shadow
             if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo, TabMarqueeShadow };
@@ -685,6 +694,7 @@ namespace ArcadeStick.Views
             if (unitKey != _tabsUnitKey)
             {
                 _tabsUnitKey = unitKey;
+                _rgStatePartId = LayerRegistry.RandomGameDisplay; // the State combo starts on the first state each time
                 TabsLayer.SelectedItem = TabsLayer.Items.OfType<TabItem>().FirstOrDefault(t => t.Visibility == Visibility.Visible) ?? TabPosition;
             }
         }
@@ -718,6 +728,9 @@ namespace ArcadeStick.Views
 
             // Game Info fields (Title, Publisher, Info and Nav tabs): filled when that group is selected
             LoadGameInfoStyleFields();
+
+            // Random Game Display fields (Text and Background tabs): filled when that group is selected
+            LoadRandomDisplayStyleFields();
 
             // Marquee logo field: filled when the Marquee layer is selected
             if (SingleSelectedLayer is LayerListItem marqueeSel && marqueeSel.Id == LayerRegistry.MarqueePanel)
@@ -778,10 +791,6 @@ namespace ArcadeStick.Views
             bool positionable = def?.IsPositionable ?? true;
             bool canHide = def?.CanHide ?? true;
 
-            // File field: only for built-in layers that show a file
-            PnlFileField.Visibility = (def?.HasFile ?? false) ? Visibility.Visible : Visibility.Collapsed;
-            TxtLayerFile.Text = entry.ImagePath;
-
             _loading = true;
             PnlLayerFields.Visibility = Visibility.Visible;
             bool isCustom = LayerRegistry.IsCustomId(entry.Id);
@@ -808,8 +817,8 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: Group Edit Page]
-        // Shows a grouped layer (Search & Buttons, Game Info): one section per part, all visible at once,
-        // in the group's page order. Sections are built once per group and then only refreshed.
+        // Shows a grouped layer (Search & Buttons, Game Info, Random Game Display): one section per part, all visible
+        // at once, in the group's page order. Sections are built once per group and then only refreshed.
         private void LoadGroupIntoFields(LayerGroupDefinition group)
         {
             _loading = true;
@@ -817,12 +826,6 @@ namespace ArcadeStick.Views
             PnlLayerFields.Visibility = Visibility.Visible;
             TxtLayerName.Text = group.DisplayName;
             PnlRectFields.Visibility = Visibility.Collapsed;
-
-            // The Random Game Display group has one file shared by both of its states, stored on its
-            // "when a game is selected" part.
-            bool hasSharedFile = group.Id == LayerRegistry.RandomGameGroup;
-            PnlFileField.Visibility = hasSharedFile ? Visibility.Visible : Visibility.Collapsed;
-            TxtLayerFile.Text = hasSharedFile ? (GetEntry(LayerRegistry.RandomGameDisplay)?.ImagePath ?? "") : "";
 
             ChkLayerHidden.Visibility = Visibility.Collapsed;
             PnlVisibilityMode.Visibility = Visibility.Collapsed;
@@ -847,12 +850,15 @@ namespace ArcadeStick.Views
                 controls.Width.Text = Fmt(entry.Width);
                 controls.Height.Text = Fmt(entry.Height);
                 controls.Hide.IsChecked = !entry.Visible;
+                if (controls.RatioLock != null) controls.RatioLock.IsChecked = _partRatioLocks.GetValueOrDefault(partId);
             }
 
             _loading = false;
             RaiseGuides();
         }
 
+        // Builds one section per part: X / Y / Width / Height boxes (with a ratio lock between Width and Height when
+        // the group allows it) and a Hide checkbox
         private void BuildGroupParts(LayerGroupDefinition group)
         {
             PnlGroupParts.Children.Clear();
@@ -887,19 +893,24 @@ namespace ArcadeStick.Views
                 heading.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontHeaderSize);
                 PnlGroupParts.Children.Add(heading);
 
+                // Columns: X, Y, Width, [lock], Height. The narrow lock column is only added when the group allows it.
                 var host = new Grid { Margin = new Thickness(0, 0, 0, 4) };
-                for (int i = 0; i < 4; i++) host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                for (int i = 0; i < 3; i++) host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                if (group.AllowRatioLock) host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(32) });
+                host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
                 host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                int heightColumn = group.AllowRatioLock ? 4 : 3;
 
                 string[] labels = { "X:", "Y:", "Width:", "Height:" };
+                int[] labelColumns = { 0, 1, 2, heightColumn };
                 for (int i = 0; i < 4; i++)
                 {
                     var label = new TextBlock { Text = labels[i], Margin = new Thickness(i == 0 ? 0 : 6, 0, 0, 3) };
                     label.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontSubHeaderColor);
                     label.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontSubHeaderSize);
                     Grid.SetRow(label, 0);
-                    Grid.SetColumn(label, i);
+                    Grid.SetColumn(label, labelColumns[i]);
                     host.Children.Add(label);
                 }
 
@@ -908,8 +919,30 @@ namespace ArcadeStick.Views
                     X = MakeBox(partId, 0, host),
                     Y = MakeBox(partId, 1, host),
                     Width = MakeBox(partId, 2, host),
-                    Height = MakeBox(partId, 3, host)
+                    Height = MakeBox(partId, heightColumn, host)
                 };
+
+                // Ratio lock: same glyph toggle and behavior as BtnRatioLock, one per part
+                if (group.AllowRatioLock)
+                {
+                    var ratioLock = new System.Windows.Controls.Primitives.ToggleButton
+                    {
+                        Tag = partId,
+                        Width = 26,
+                        Height = 26,
+                        Margin = new Thickness(6, 0, 0, 0),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        ToolTip = "Lock aspect ratio",
+                        Style = (Style)FindResource("GlyphToggleStyle"),
+                        IsChecked = _partRatioLocks.GetValueOrDefault(partId)
+                    };
+                    ratioLock.Click += PartRatioLock_Click;
+                    Grid.SetRow(ratioLock, 1);
+                    Grid.SetColumn(ratioLock, 3);
+                    host.Children.Add(ratioLock);
+                    controls.RatioLock = ratioLock;
+                }
 
                 // GLCheckBoxStyle: palette box, label in the themed Standard font color and size
                 var hide = new CheckBox { Content = "Hide", Tag = partId, Margin = new Thickness(0, 6, 0, 14), Style = (Style)FindResource("GLCheckBoxStyle") };
@@ -920,6 +953,13 @@ namespace ArcadeStick.Views
                 PnlGroupParts.Children.Add(host);
                 PnlGroupParts.Children.Add(hide);
             }
+        }
+
+        // Remembers a part's ratio lock state for the session
+        private void PartRatioLock_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not System.Windows.Controls.Primitives.ToggleButton toggle || toggle.Tag is not string partId) return;
+            _partRatioLocks[partId] = toggle.IsChecked == true;
         }
 
         // Clicking into a part's field points the alignment guides at that part
@@ -946,7 +986,8 @@ namespace ArcadeStick.Views
 
         // Applies one part field's value. Invalid input is discarded and the field shows the stored value again.
         // With "Move all parts together" on, an X or Y change moves every other part of the group by the same
-        // amount; Width and Height never propagate.
+        // amount; Width and Height never propagate. With the part's ratio lock on, a Width or Height change resizes
+        // the other one to keep the part's current proportions (read from the stored size just before the edit).
         private void ApplyPartField(TextBox? box)
         {
             if (_loading || box == null || box.Tag is not string partId) return;
@@ -954,11 +995,23 @@ namespace ArcadeStick.Views
 
             if (double.TryParse(box.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
             {
+                double oldWidth = entry.Width;
+                double oldHeight = entry.Height;
+                bool keepRatio = controls.RatioLock?.IsChecked == true && oldWidth > 0 && oldHeight > 0;
+
                 double dx = 0, dy = 0;
                 if (box == controls.X) { dx = value - entry.X; entry.X = value; }
                 else if (box == controls.Y) { dy = value - entry.Y; entry.Y = value; }
-                else if (box == controls.Width && value > 0) entry.Width = value;
-                else if (box == controls.Height && value > 0) entry.Height = value;
+                else if (box == controls.Width && value > 0)
+                {
+                    entry.Width = value;
+                    if (keepRatio && value != oldWidth) entry.Height = value * oldHeight / oldWidth;
+                }
+                else if (box == controls.Height && value > 0)
+                {
+                    entry.Height = value;
+                    if (keepRatio && value != oldHeight) entry.Width = value * oldWidth / oldHeight;
+                }
 
                 if ((dx != 0 || dy != 0) && ChkGroupMove.IsChecked == true
                     && GetGroup(LayerRegistry.GetDefinition(partId)?.GroupId ?? "") is LayerGroupDefinition group && group.AllowGroupMove)
@@ -1038,48 +1091,6 @@ namespace ArcadeStick.Views
             LoadSelectedLayerIntoFields();
         }
 
-        // File field (layers that show a file, e.g. Random Game Display): Browse stores the path in the layer's
-        // ImagePath, same convention as Add Image Layer. The file isn't read here - the main window loads it.
-        // The entry that holds a row's file path: the row's own entry, or for the Random Game Display group
-        // the "when a game is selected" part (both of its states share that one file).
-        private LayerLayoutEntry? GetFileEntry(string unitKey)
-        {
-            if (unitKey == LayerRegistry.RandomGameGroup) return GetEntry(LayerRegistry.RandomGameDisplay);
-            return GetEntry(unitKey);
-        }
-
-        private void BtnBrowseLayerFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (SingleSelectedLayer is not LayerListItem selected || GetFileEntry(selected.Id) is not LayerLayoutEntry entry) return;
-
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image and Video Files (*.png;*.jpg;*.jpeg;*.gif;*.mp4)|*.png;*.jpg;*.jpeg;*.gif;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.gif)|*.png;*.jpg;*.jpeg;*.gif|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*",
-                Title = "Select Image or Video for This Layer",
-                RestoreDirectory = true
-            };
-            if (dialog.ShowDialog() != true) return;
-
-            string storedPath = dialog.FileName;
-            try
-            {
-                string relative = System.IO.Path.GetRelativePath(_settings.BaseDirectory, dialog.FileName);
-                if (!relative.StartsWith("..") && !System.IO.Path.IsPathRooted(relative)) storedPath = relative;
-            }
-            catch { }
-
-            entry.ImagePath = storedPath;
-            LoadSelectedLayerIntoFields();
-        }
-
-        private void BtnClearLayerFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (SingleSelectedLayer is not LayerListItem selected || GetFileEntry(selected.Id) is not LayerLayoutEntry entry) return;
-
-            entry.ImagePath = "";
-            LoadSelectedLayerIntoFields();
-        }
-
         private void ChkLayerHidden_Click(object sender, RoutedEventArgs e)
         {
             if (_loading) return;
@@ -1107,16 +1118,18 @@ namespace ArcadeStick.Views
         }
 
         // Returns the entry the Border tab edits: the selected layer when it has a Border tab (shape layers, Splash
-        // Image, Video Preview), or the Random Game Button entry (the shared button style) for Search & Buttons
+        // Image, Video Preview), the Random Game Button entry (the shared button style) for Search & Buttons, or the
+        // part the State combo picks for Random Game Display (each state has its own border)
         private LayerLayoutEntry? GetSelectedBorderEntry()
         {
             if (SingleSelectedLayer is not LayerListItem sel) return null;
             if (sel.Id == LayerRegistry.SearchAndButtonsGroup) return GetEntry(LayerRegistry.RandomButton);
+            if (sel.Id == LayerRegistry.RandomGameGroup) return GetEntry(_rgStatePartId);
             if (LayerRegistry.HasBorderTab(sel.Id)) return GetEntry(sel.Id);
             return null;
         }
 
-        // Fills the Border tab for Splash Image, Video Preview and Search & Buttons (the shape layers are filled by LoadShapeStyleFields)
+        // Fills the Border tab for Splash Image, Video Preview, Search & Buttons and Random Game Display (the shape layers are filled by LoadShapeStyleFields)
         private void LoadBorderOnlyFields()
         {
             if (GetSelectedShapeEntry() != null) return;
@@ -2570,6 +2583,228 @@ namespace ArcadeStick.Views
         }
         // [END SECTION: Search & Buttons Styling Fields]
 
+        // [SECTION: Random Game Display Styling Fields]
+        // Shown while the Random Game Display group is selected. The text style shared by both states (and the file)
+        // lives on the RandomGameDisplay entry; each state's max text size, background color and border on its own
+        // part, the latter two picked with the State combo on the Background and Border tabs. Colors, checkboxes and
+        // combos apply immediately; the message and number fields apply on Enter or focus loss, and invalid numbers revert.
+        private bool IsRandomDisplaySelected => SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.RandomGameGroup;
+        private LayerLayoutEntry? RGEntry => IsRandomDisplaySelected ? GetEntry(LayerRegistry.RandomGameDisplay) : null;
+        private LayerLayoutEntry? RGSplashEntry => IsRandomDisplaySelected ? GetEntry(LayerRegistry.RandomGameDisplaySplash) : null;
+
+        // The part the State combos pick (session-only; back to the first state whenever the group is selected again)
+        private string _rgStatePartId = LayerRegistry.RandomGameDisplay;
+        private LayerLayoutEntry? RGStateEntry => IsRandomDisplaySelected ? GetEntry(_rgStatePartId) : null;
+        private static readonly (string PartId, string Label)[] RGStateChoices =
+        {
+            (LayerRegistry.RandomGameDisplay, "When a game is selected"),
+            (LayerRegistry.RandomGameDisplaySplash, "When on the splash page")
+        };
+
+        // Fills the Text and Background tabs from the two parts' entries, and both State combos
+        private void LoadRandomDisplayStyleFields()
+        {
+            var stateVisibility = IsRandomDisplaySelected ? Visibility.Visible : Visibility.Collapsed;
+            PnlRGBorderState.Visibility = stateVisibility;
+            PnlRGBgState.Visibility = stateVisibility;
+            if (RGEntry is not LayerLayoutEntry entry || RGSplashEntry is not LayerLayoutEntry splash || RGStateEntry is not LayerLayoutEntry stateEntry) return;
+
+            _loading = true;
+
+            foreach (var combo in new[] { CboRGBorderState, CboRGBgState })
+            {
+                if (combo.Items.Count == 0)
+                {
+                    foreach (var choice in RGStateChoices) combo.Items.Add(choice.Label);
+                }
+                combo.SelectedIndex = Math.Max(0, Array.FindIndex(RGStateChoices, c => c.PartId == _rgStatePartId));
+            }
+
+            TxtRGMessage.Text = entry.TextMessage ?? LayerRegistry.DefaultRandomDisplayMessage;
+
+            if (CboRGFont.Items.Count == 0)
+            {
+                foreach (string font in LayerRegistry.AvailableFonts) CboRGFont.Items.Add(font);
+            }
+            string family = string.IsNullOrWhiteSpace(entry.TextFontFamily) ? LayerRegistry.DefaultFontFamily : entry.TextFontFamily;
+            CboRGFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
+            ChkRGBold.IsChecked = entry.TextBold ?? LayerRegistry.DefaultRandomDisplayBold;
+
+            ShowColor(RGTextColorPicker, TxtRGTextColorHex, entry.TextColorHex ?? LayerRegistry.DefaultRandomDisplayColorHex);
+            if (CboRGAlign.Items.Count == 0)
+            {
+                foreach (string align in TextAlignChoices) CboRGAlign.Items.Add(align);
+            }
+            string alignment = entry.TextAlign ?? LayerRegistry.DefaultRandomDisplayAlign;
+            CboRGAlign.SelectedItem = TextAlignChoices.Contains(alignment) ? alignment : LayerRegistry.DefaultRandomDisplayAlign;
+            ChkRGWrap.IsChecked = entry.TextWrap ?? LayerRegistry.DefaultRandomDisplayWrap;
+
+            TxtRGFontSize.Text = (entry.TextFontSize ?? LayerRegistry.DefaultRandomDisplayFontSize).ToString(CultureInfo.InvariantCulture);
+            TxtRGSplashFontSize.Text = (splash.TextFontSize ?? LayerRegistry.DefaultRandomDisplaySplashFontSize).ToString(CultureInfo.InvariantCulture);
+
+            ChkRGShadow.IsChecked = entry.TextShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            ShowColor(RGShadowColorPicker, TxtRGShadowColorHex, entry.TextShadowColorHex ?? LayerRegistry.DefaultShadowColorHex);
+            TxtRGShadowBlur.Text = (entry.TextShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtRGShadowDepth.Text = (entry.TextShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            ShowColor(RGBgColorPicker, TxtRGBgColorHex, stateEntry.BgColorHex ?? LayerRegistry.DefaultRandomDisplayBgColorHex);
+            TxtRGFile.Text = entry.ImagePath ?? "";
+
+            _loading = false;
+        }
+
+        // Switches which state the Border tab and the Background tab's color row edit (both combos stay in step)
+        private void CboRGState_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null || sender is not ComboBox combo) return;
+            int index = combo.SelectedIndex;
+            if (index < 0 || index >= RGStateChoices.Length) return;
+
+            _rgStatePartId = RGStateChoices[index].PartId;
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Message: trimmed and capped at 60 characters; empty means no text (Reset Layer brings back the default)
+        private void TxtRGMessage_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyRandomDisplayMessage();
+        }
+
+        private void TxtRGMessage_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyRandomDisplayMessage();
+        }
+
+        // Stores the typed message on the RandomGameDisplay entry and re-applies the layout
+        private void ApplyRandomDisplayMessage()
+        {
+            if (_loading || _settings == null || RGEntry is not LayerLayoutEntry entry) return;
+
+            string message = TxtRGMessage.Text.Trim();
+            if (message.Length > LayerRegistry.MaxRandomDisplayMessageLength) message = message.Substring(0, LayerRegistry.MaxRandomDisplayMessageLength);
+            entry.TextMessage = message;
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Font, bold, alignment, wrap and shadow toggle
+        private void CboRGFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboRGFont.SelectedItem is not string family || RGEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextFontFamily = family;
+            RaiseGuides();
+        }
+
+        private void ChkRGBold_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || RGEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextBold = ChkRGBold.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void CboRGAlign_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboRGAlign.SelectedItem is not string align || RGEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextAlign = align;
+            RaiseGuides();
+        }
+
+        private void ChkRGWrap_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || RGEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextWrap = ChkRGWrap.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void ChkRGShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || RGEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextShadowEnabled = ChkRGShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        // Color pickers and hex boxes (text and shadow on the shared entry, background on the State combo's part)
+        private void RGTextColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(RGTextColorPicker, TxtRGTextColorHex, RGEntry, (en, hex) => en.TextColorHex = hex);
+        private void TxtRGTextColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(RGTextColorPicker, TxtRGTextColorHex, RGEntry, en => en.TextColorHex ?? LayerRegistry.DefaultRandomDisplayColorHex, (en, hex) => en.TextColorHex = hex);
+
+        private void RGShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(RGShadowColorPicker, TxtRGShadowColorHex, RGEntry, (en, hex) => en.TextShadowColorHex = hex);
+        private void TxtRGShadowColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(RGShadowColorPicker, TxtRGShadowColorHex, RGEntry, en => en.TextShadowColorHex ?? LayerRegistry.DefaultShadowColorHex, (en, hex) => en.TextShadowColorHex = hex);
+
+        private void RGBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(RGBgColorPicker, TxtRGBgColorHex, RGStateEntry, (en, hex) => en.BgColorHex = hex);
+        private void TxtRGBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(RGBgColorPicker, TxtRGBgColorHex, RGStateEntry, en => en.BgColorHex ?? LayerRegistry.DefaultRandomDisplayBgColorHex, (en, hex) => en.BgColorHex = hex);
+
+        // One shared handler pair for the number fields: the two max text sizes (6-200) and the shadow's blur (0-30) and depth (0-20)
+        private void RGField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyRandomDisplayFields();
+        }
+
+        private void RGField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyRandomDisplayFields();
+        }
+
+        // Stores each valid number field on its entry; an invalid one keeps its stored value
+        private void ApplyRandomDisplayFields()
+        {
+            if (_loading || _settings == null) return;
+            if (RGEntry is not LayerLayoutEntry entry || RGSplashEntry is not LayerLayoutEntry splash) return;
+
+            if (int.TryParse(TxtRGFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int size)
+                && size >= LayerRegistry.MinRandomDisplayFontSize && size <= LayerRegistry.MaxRandomDisplayFontSize)
+                entry.TextFontSize = size;
+            if (int.TryParse(TxtRGSplashFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int splashSize)
+                && splashSize >= LayerRegistry.MinRandomDisplayFontSize && splashSize <= LayerRegistry.MaxRandomDisplayFontSize)
+                splash.TextFontSize = splashSize;
+            if (int.TryParse(TxtRGShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int blur) && blur >= 0 && blur <= 30)
+                entry.TextShadowBlur = blur;
+            if (int.TryParse(TxtRGShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth) && depth >= 0 && depth <= 20)
+                entry.TextShadowDepth = depth;
+
+            // Re-display the stored values (reverts invalid input) and re-apply the layout
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Picks the spin card's file (images, gif or mp4), stored on the RandomGameDisplay entry and shared by both states
+        private void BtnBrowseRGFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (RGEntry is not LayerLayoutEntry entry) return;
+
+            string? storedPath = BrowseLayerFile(
+                "Image and Video Files (*.png;*.jpg;*.jpeg;*.gif;*.mp4)|*.png;*.jpg;*.jpeg;*.gif;*.mp4|Image Files (*.png;*.jpg;*.jpeg;*.gif)|*.png;*.jpg;*.jpeg;*.gif|Video Files (*.mp4)|*.mp4|All files (*.*)|*.*",
+                "Select Image or Video for the Random Game Display");
+            if (storedPath == null) return;
+
+            entry.ImagePath = storedPath;
+            LoadSelectedLayerIntoFields();
+        }
+
+        // Empties the spin card's file (the background color and message still show)
+        private void BtnClearRGFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (RGEntry is not LayerLayoutEntry entry) return;
+
+            entry.ImagePath = "";
+            LoadSelectedLayerIntoFields();
+        }
+        // [END SECTION: Random Game Display Styling Fields]
+
         // [SECTION: Game Info Styling Fields]
         // Six Game Info text blocks and two image-shadow blocks share one set of handlers: each control is named
         // GI{Block}{Control} and carries its block key in Tag, and GIBlocks maps the key to the entry, which field
@@ -3213,7 +3448,8 @@ namespace ArcadeStick.Views
                     // Style values too (the Search & Buttons label, box and shared button style live on its parts)
                     partEntry.CopyStyleFrom(partDefault);
 
-                    // The Random Game Display group's shared file lives on its first part
+                    // The Random Game Display group's shared file lives on its first part (its style, message included,
+                    // comes back through CopyStyleFrom above)
                     if (partId == LayerRegistry.RandomGameDisplay) partEntry.ImagePath = partDefault.ImagePath;
                 }
 
