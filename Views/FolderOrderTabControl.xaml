@@ -15,12 +15,12 @@
 
         <TextBlock Grid.Row="0" Text="FOLDER ORDER" 
                    FontWeight="Bold" Margin="0,0,0,8"
-                   FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                   Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                   FontSize="{DynamicResource Global.Font.Header.Size}"
+                   Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
         <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,15"
-                   FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
+                   FontSize="{DynamicResource Global.Font.Standard.Size}"
+                   Foreground="{DynamicResource Global.Font.Standard.Color}"
                    Text="To adjust what order the folders are displayed in the Game List Panel, select one below and use the up/down buttons to move it to it's desired position. Selecting a root folder that has subfolders lets you reorder those too on the right."/>
 
         <!-- [SECTION: Column Subheaders] -->
@@ -34,12 +34,12 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="Root Folders" FontWeight="Bold"
-                       FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
-                       Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"/>
+                       FontSize="{DynamicResource Global.Font.SubHeader.Size}"
+                       Foreground="{DynamicResource Global.Font.SubHeader.Color}"/>
 
             <TextBlock Grid.Column="2" Text="Sub Folders" FontWeight="Bold"
-                       FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
-                       Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"/>
+                       FontSize="{DynamicResource Global.Font.SubHeader.Size}"
+                       Foreground="{DynamicResource Global.Font.SubHeader.Color}"/>
         </Grid>
         <!-- [END SECTION: Column Subheaders] -->
 
@@ -116,8 +116,8 @@
                 <!-- Placeholder reminder text - wording TBD, using the standard body text property -->
                 <TextBlock Grid.Row="1" TextWrapping="Wrap" TextAlignment="left" Width="180" VerticalAlignment="Bottom"
                            Margin="10,15,0,15"
-                           FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                           Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
+                           FontSize="{DynamicResource Global.Font.Standard.Size}"
+                           Foreground="{DynamicResource Global.Font.Standard.Color}"
                            Text="When changing Sub-Folder Order you must apply the change before selecting another Root Folder"/>
 
                 <!-- Persists both lists' current order in one commit -->

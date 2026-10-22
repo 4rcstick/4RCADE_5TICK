@@ -7,7 +7,7 @@
         xmlns:views="clr-namespace:ArcadeStick.Views"
         Title="4RCADE 5TICK Options" Height="700" Width="680"
         WindowStartupLocation="CenterOwner" 
-        Background="{Binding OptionsMenuBgColorHex, FallbackValue=#1C1C1E}" 
+        Background="{DynamicResource Global.Options.Bg}" 
         BorderBrush="{StaticResource ChromeBorder}"
         BorderThickness="1">
 
@@ -18,9 +18,9 @@
         </Grid.RowDefinitions>
 
         <TabControl x:Name="OptionsTabControl" Grid.Row="0"
-                    Background="{Binding OptionsBg, FallbackValue=#000000}" 
-                    BorderBrush="{Binding OptionsMenuBorderColorHex, FallbackValue=#2C2C2E}" 
-                    BorderThickness="{Binding OptionsMenuBorderSize, FallbackValue=1}" 
+                    Background="{DynamicResource Global.Options.ContentBg}" 
+                    BorderBrush="{DynamicResource Global.Options.BorderColor}" 
+                    BorderThickness="{DynamicResource Global.Options.BorderSize}" 
                     Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}">
 
             <!-- [SECTION: Custom TabControl Template] -->
@@ -43,7 +43,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="{Binding DataContext.OptionsMenuBorderRadius, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource RadiusConverter}, ConverterParameter=Bottom, FallbackValue=0}">
+                                CornerRadius="{DynamicResource Global.Options.RadiusBottom}">
                             <ContentPresenter ContentSource="SelectedContent"/>
                         </Border>
                     </Grid>
@@ -62,10 +62,10 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="TabItem">
                                 <Border x:Name="TabBorder" 
-                                        Background="{Binding DataContext.OptionsBg, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
-                                        BorderBrush="{Binding DataContext.OptionsMenuBorderColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}" 
+                                        Background="{DynamicResource Global.Options.ContentBg}" 
+                                        BorderBrush="{DynamicResource Global.Options.BorderColor}" 
                                         BorderThickness="1,1,1,0" 
-                                        CornerRadius="{Binding DataContext.OptionsMenuBorderRadius, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource RadiusConverter}, ConverterParameter=Top, FallbackValue=0}"
+                                        CornerRadius="{DynamicResource Global.Options.RadiusTop}"
                                         Padding="{TemplateBinding Padding}">
                                     <ContentPresenter x:Name="ContentSite"
                                                       ContentSource="Header"

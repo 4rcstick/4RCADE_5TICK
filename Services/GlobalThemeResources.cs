@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Media;
 using ArcadeStick.Models;
-using ArcadeStick.ViewModels;
 
 namespace ArcadeStick.Services
 {
@@ -81,61 +80,74 @@ namespace ArcadeStick.Services
         public static void Apply(ConfigurationSettings s)
         {
             if (s == null || Application.Current == null) return;
+            var d = Defaults.Value;
 
-            SetBrush(FontHeaderColor, s.HeaderColorHex);
+            SetBrush(FontHeaderColor, s.HeaderColorHex, d.HeaderColorHex);
             SetValue(FontHeaderSize, (double)s.HeaderFontSize);
-            SetBrush(FontSubHeaderColor, s.SubHeaderColorHex);
+            SetBrush(FontSubHeaderColor, s.SubHeaderColorHex, d.SubHeaderColorHex);
             SetValue(FontSubHeaderSize, (double)s.SubHeaderFontSize);
-            SetBrush(FontStandardColor, s.StandardColorHex);
+            SetBrush(FontStandardColor, s.StandardColorHex, d.StandardColorHex);
             SetValue(FontStandardSize, (double)s.StandardFontSize);
-            SetBrush(FontSubTextColor, s.SubTextColorHex);
+            SetBrush(FontSubTextColor, s.SubTextColorHex, d.SubTextColorHex);
             SetValue(FontSubTextSize, (double)s.SubTextFontSize);
 
-            SetBrush(OptionsBg, s.OptionsMenuBgColorHex);
-            SetBrush(OptionsContentBg, s.OptionsBg);
-            SetBrush(OptionsSeparator, s.SeparatorColorHex);
+            SetBrush(OptionsBg, s.OptionsMenuBgColorHex, d.OptionsMenuBgColorHex);
+            SetBrush(OptionsContentBg, s.OptionsBg, d.OptionsBg);
+            SetBrush(OptionsSeparator, s.SeparatorColorHex, d.SeparatorColorHex);
             SetValue(OptionsBorderSize, new Thickness(s.OptionsMenuBorderSize));
-            SetBrush(OptionsBorderColor, s.OptionsMenuBorderColorHex);
+            SetBrush(OptionsBorderColor, s.OptionsMenuBorderColorHex, d.OptionsMenuBorderColorHex);
             SetValue(OptionsRadiusTop, new CornerRadius(s.OptionsMenuBorderRadius, s.OptionsMenuBorderRadius, 0, 0));
             SetValue(OptionsRadiusBottom, new CornerRadius(0, 0, s.OptionsMenuBorderRadius, s.OptionsMenuBorderRadius));
 
             SetValue(TabFontSize, (double)s.TabFontSize);
-            SetBrush(TabText, s.TabColorHex);
-            SetBrush(TabBg, s.TabBgColorHex);
-            SetBrush(TabTextHover, s.TabColorHoverHex);
-            SetBrush(TabBgHover, s.TabBgColorHoverHex);
-            SetBrush(TabTextActive, s.TabActiveColorHex);
-            SetBrush(TabBgActive, s.TabActiveBgColorHex);
+            SetBrush(TabText, s.TabColorHex, d.TabColorHex);
+            SetBrush(TabBg, s.TabBgColorHex, d.TabBgColorHex);
+            SetBrush(TabTextHover, s.TabColorHoverHex, d.TabColorHoverHex);
+            SetBrush(TabBgHover, s.TabBgColorHoverHex, d.TabBgColorHoverHex);
+            SetBrush(TabTextActive, s.TabActiveColorHex, d.TabActiveColorHex);
+            SetBrush(TabBgActive, s.TabActiveBgColorHex, d.TabActiveBgColorHex);
 
             SetValue(ButtonFontSize, (double)s.OptionsBtnFontSize);
-            SetBrush(ButtonText, s.BtnTextColorNormalHex);
-            SetBrush(ButtonBg, s.BtnBgColorHex);
-            SetBrush(ButtonTextHover, s.OptionsBtnColorHoverHex);
-            SetBrush(ButtonBgHover, s.BtnBgColorHoverHex);
+            SetBrush(ButtonText, s.BtnTextColorNormalHex, d.BtnTextColorNormalHex);
+            SetBrush(ButtonBg, s.BtnBgColorHex, d.BtnBgColorHex);
+            SetBrush(ButtonTextHover, s.OptionsBtnColorHoverHex, d.OptionsBtnColorHoverHex);
+            SetBrush(ButtonBgHover, s.BtnBgColorHoverHex, d.BtnBgColorHoverHex);
             SetValue(ButtonBorderSize, new Thickness(s.OptionsBtnBorderSize));
-            SetBrush(ButtonBorderColor, s.BtnBorderColorHex);
+            SetBrush(ButtonBorderColor, s.BtnBorderColorHex, d.BtnBorderColorHex);
             SetValue(ButtonRadius, new CornerRadius(s.OptionsBtnBorderRadius));
 
-            SetBrush(ScrollThumb, s.ScrollThumbColor);
-            SetBrush(ScrollThumbHover, s.ScrollThumbHoverColor);
-            SetBrush(ScrollThumbDrag, s.ScrollThumbDragColor);
-            SetBrush(ScrollTrack, s.ScrollTrackColor);
-            SetBrush(ScrollTrackHover, s.ScrollTrackHoverColor);
+            SetBrush(ScrollThumb, s.ScrollThumbColor, d.ScrollThumbColor);
+            SetBrush(ScrollThumbHover, s.ScrollThumbHoverColor, d.ScrollThumbHoverColor);
+            SetBrush(ScrollThumbDrag, s.ScrollThumbDragColor, d.ScrollThumbDragColor);
+            SetBrush(ScrollTrack, s.ScrollTrackColor, d.ScrollTrackColor);
+            SetBrush(ScrollTrackHover, s.ScrollTrackHoverColor, d.ScrollTrackHoverColor);
 
-            SetBrush(MenuText, s.ContextMenuFontColorHex);
-            SetBrush(MenuIcon, s.ContextMenuIconColorHex);
-            SetBrush(MenuBg, s.ContextMenuBgColorHex);
-            SetBrush(MenuTextHover, s.ContextMenuHoverColorHex);
-            SetBrush(MenuBgHover, s.ContextMenuHoverBgColorHex);
+            SetBrush(MenuText, s.ContextMenuFontColorHex, d.ContextMenuFontColorHex);
+            SetBrush(MenuIcon, s.ContextMenuIconColorHex, d.ContextMenuIconColorHex);
+            SetBrush(MenuBg, s.ContextMenuBgColorHex, d.ContextMenuBgColorHex);
+            SetBrush(MenuTextHover, s.ContextMenuHoverColorHex, d.ContextMenuHoverColorHex);
+            SetBrush(MenuBgHover, s.ContextMenuHoverBgColorHex, d.ContextMenuHoverBgColorHex);
         }
 
-        // Replaces a brush resource with a frozen brush of the given color, unless the current one already has that color
-        private static void SetBrush(string key, string colorHex)
+        // Replaces a brush resource with a frozen brush of the given color, unless the current one already has that color.
+        // A blank or unreadable value uses the property's default (not SafeConvertToBrush's gray), the same rule the Global tab shows.
+        private static void SetBrush(string key, string colorHex, string defaultHex)
         {
-            var brush = MainViewModel.SafeConvertToBrush(colorHex);
-            if (Application.Current.Resources[key] is SolidColorBrush current && current.Color == brush.Color) return;
-            if (!brush.IsFrozen) brush.Freeze();
+            Color color = ParseColor(colorHex) ?? ParseColor(defaultHex) ?? Colors.Gray;
+            if (Application.Current.Resources[key] is SolidColorBrush current && current.Color == color) return;
+            var brush = new SolidColorBrush(color);
+            brush.Freeze();
             Application.Current.Resources[key] = brush;
+        }
+
+        // Parses a stored color (ARGB or RGB hex with or without "#", or a named color); null when blank or unreadable
+        public static Color? ParseColor(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            string input = value.Trim();
+            try { return (Color)ColorConverter.ConvertFromString(input); } catch { }
+            try { return (Color)ColorConverter.ConvertFromString("#" + input); } catch { }
+            return null;
         }
 
         // Replaces a value resource (double, Thickness, CornerRadius), unless the current one is already equal
@@ -149,6 +161,9 @@ namespace ArcadeStick.Services
         // [SECTION: Snapshot, Restore and Defaults]
         // Code defaults: a fresh ConfigurationSettings holds the property initializers, the one source of defaults.
         private static readonly Lazy<ConfigurationSettings> Defaults = new(() => new ConfigurationSettings());
+
+        // The code defaults, for display fallbacks (the Global tab shows a property's default when its stored color is blank or unreadable)
+        public static ConfigurationSettings DefaultSettings => Defaults.Value;
 
         // Copies every Global value into a ThemeSettings (a shallow snapshot; used as the Theme Builder's close-revert point)
         public static ThemeSettings CaptureSnapshot(ConfigurationSettings s)

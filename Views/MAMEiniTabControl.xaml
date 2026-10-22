@@ -10,15 +10,15 @@
             <StackPanel>
                 <TextBlock Text="MAME.ini" 
                            FontWeight="Bold" Margin="0,0,0,8"
-                           FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                           Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                           FontSize="{DynamicResource Global.Font.Header.Size}"
+                           Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,15"
-                           FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                           Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
+                           FontSize="{DynamicResource Global.Font.Standard.Size}"
+                           Foreground="{DynamicResource Global.Font.Standard.Color}"
                            Text="These settings control the core MAME.ini options that govern video rendering and emulation behavior."/>
 
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Video / Rendering Combos] -->
                 <!-- Video OSD renderer and frameskip - written directly into mame.ini on save -->
@@ -30,7 +30,7 @@
                         <ColumnDefinition Width="100"/>
                     </Grid.ColumnDefinitions>
 
-                    <Label Content="Video OSD Renderer:" Grid.Column="0" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center"/>
+                    <Label Content="Video OSD Renderer:" Grid.Column="0" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center"/>
 
                     <ComboBox Style="{StaticResource ChromeComboBoxStyle}" x:Name="CboVideoMode" 
                               Grid.Column="1" 
@@ -45,7 +45,7 @@
                         <ComboBoxItem Content="none"/>
                     </ComboBox>
 
-                    <Label Content="Frame Skipping:" Grid.Column="2" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center"/>
+                    <Label Content="Frame Skipping:" Grid.Column="2" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center"/>
 
                     <ComboBox Style="{StaticResource ChromeComboBoxStyle}" x:Name="CboFrameSkip" 
                               Grid.Column="3" 
@@ -86,31 +86,31 @@
                     </Grid.RowDefinitions>
 
                     <!-- Row 0: windowed mode / auto frame skip (sits under the Frame Skipping combo above) -->
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkWindow" Grid.Row="0" Grid.Column="0" Content="Run in Windowed Mode" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkAutoFrameSkip" Grid.Row="0" Grid.Column="1" Content="Enable Auto Frame Skip" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkWindow" Grid.Row="0" Grid.Column="0" Content="Run in Windowed Mode" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkAutoFrameSkip" Grid.Row="0" Grid.Column="1" Content="Enable Auto Frame Skip" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 1: CRT/shader matrix / strict pixel aspect ratio -->
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkHlslEnable" Grid.Row="1" Grid.Column="0" Content="Enable CRT Scanline / Shaders Matrix" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkKeepAspect" Grid.Row="1" Grid.Column="1" Content="Enforce Strict Pixel Aspect Ratios" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkHlslEnable" Grid.Row="1" Grid.Column="0" Content="Enable CRT Scanline / Shaders Matrix" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkKeepAspect" Grid.Row="1" Grid.Column="1" Content="Enforce Strict Pixel Aspect Ratios" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 2: skip info screen / disable throttling -->
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSkipGameInfo" Grid.Row="2" Grid.Column="0" Content="Skip Mandatory System Information Screen" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkDisableThrottle" Grid.Row="2" Grid.Column="1" Content="Disable Throttling" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSkipGameInfo" Grid.Row="2" Grid.Column="0" Content="Skip Mandatory System Information Screen" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkDisableThrottle" Grid.Row="2" Grid.Column="1" Content="Disable Throttling" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 3: bilinear filter / vsync -->
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFilter" Grid.Row="3" Grid.Column="0" Content="Enable Bilinear Filtering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkVsync" Grid.Row="3" Grid.Column="1" Content="Enable Vertical Sync" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFilter" Grid.Row="3" Grid.Column="0" Content="Enable Bilinear Filtering" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkVsync" Grid.Row="3" Grid.Column="1" Content="Enable Vertical Sync" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 4: triple buffering / sync refresh rate -->
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkTripleBuffer" Grid.Row="4" Grid.Column="0" Content="Enable Triple Buffering" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSyncRefresh" Grid.Row="4" Grid.Column="1" Content="Synchronize Refresh Rate" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkTripleBuffer" Grid.Row="4" Grid.Column="0" Content="Enable Triple Buffering" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSyncRefresh" Grid.Row="4" Grid.Column="1" Content="Synchronize Refresh Rate" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 5: cheat engine / skip warning screens -->
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkCheat" Grid.Row="5" Grid.Column="0" Content="Enable Core Diagnostic Cheat Engines" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSkipWarnings" Grid.Row="5" Grid.Column="1" Content="Skip Warning Screens" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkCheat" Grid.Row="5" Grid.Column="0" Content="Enable Core Diagnostic Cheat Engines" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkSkipWarnings" Grid.Row="5" Grid.Column="1" Content="Skip Warning Screens" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
 
                     <!-- Row 6: bezel artwork toggle - writes a dummy artpath in mame.ini when unchecked -->
-                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkEnableBezels" Grid.Row="6" Grid.Column="0" Content="Enable Bezels" IsChecked="True" Foreground="{Binding StandardColorHex, FallbackValue=White}" FontSize="{Binding StandardFontSize, FallbackValue=13}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
+                    <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkEnableBezels" Grid.Row="6" Grid.Column="0" Content="Enable Bezels" IsChecked="True" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" Margin="0,0,0,15" VerticalContentAlignment="Center"/>
                 </Grid>
                 <!-- [END SECTION: MAME.ini Feature Checkboxes] -->
             </StackPanel>

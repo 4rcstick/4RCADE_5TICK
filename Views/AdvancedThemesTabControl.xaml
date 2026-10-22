@@ -19,9 +19,9 @@
 
         <!-- [SECTION: Guide] -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="ADVANCED THEMES" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+            <TextBlock Text="ADVANCED THEMES" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
             <TextBlock Text="Choose a resolution, then select a layer to set its position, size and visibility. Layers higher in the list draw on top. Values apply when you press Enter or leave the field. Save Adjustments writes them to settings.json; Save Changes on the Basic Themes tab writes them into the theme file."
-                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" TextWrapping="Wrap"/>
+                       Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" TextWrapping="Wrap"/>
         </StackPanel>
         <!-- [END SECTION: Guide] -->
 
@@ -30,7 +30,7 @@
 
             <!-- Theme sizes: one button per size saved in the theme file (filled from code-behind) -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="Theme sizes:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Text="Theme sizes:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <WrapPanel x:Name="PnlSavedSizes" VerticalAlignment="Center"/>
             </StackPanel>
 
@@ -49,9 +49,9 @@
 
                 <!-- Custom resolution entry: shown only after "Custom..." is picked in the combo box -->
                 <StackPanel x:Name="PnlCustomRes" Grid.Row="2" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0" Visibility="Collapsed">
-                    <TextBlock Text="Custom size:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="Custom size:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <TextBox x:Name="TxtCustomWidth" Width="70" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" KeyDown="CustomRes_KeyDown"/>
-                    <TextBlock Text="x" Foreground="{Binding StandardColorHex, FallbackValue=White}" VerticalAlignment="Center" Margin="6,0,6,0"/>
+                    <TextBlock Text="x" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" Margin="6,0,6,0"/>
                     <TextBox x:Name="TxtCustomHeight" Width="70" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" KeyDown="CustomRes_KeyDown"/>
                     <Button x:Name="BtnAddCustomRes" Content="Apply" Click="BtnAddCustomRes_Click"
                             Style="{StaticResource ThemedActionButtonStyle}"
@@ -67,7 +67,7 @@
                             BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
                 </StackPanel>
 
-                <TextBlock Grid.Column="0" Text="Resolution:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="0" Text="Resolution:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
 
                 <ComboBox Grid.Column="1" x:Name="CboResolution" Width="140" Height="25"
                           Style="{StaticResource ChromeComboBoxStyle}"
@@ -77,7 +77,7 @@
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
                     <CheckBox x:Name="ChkShowGuides" Content="Show guides" Click="ChkShowGuides_Click" Margin="0,0,15,0"
                               Style="{StaticResource GLCheckBoxStyle}"/>
-                    <TextBlock Text="Guide color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="Guide color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="GuideColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GuideColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
@@ -163,7 +163,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" x:Name="TxtLayerName" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="0" x:Name="TxtLayerName" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,8"/>
 
                 <TabControl Grid.Row="1" x:Name="TabsLayer" Style="{StaticResource ThemedTabControlStyle}" Background="Transparent">
 
@@ -209,7 +209,7 @@
 
                                 <!-- File field: only for layers that show a file (Random Game Display). Shown from code-behind. -->
                                 <StackPanel x:Name="PnlFileField" Margin="0,0,0,12" Visibility="Collapsed">
-                                    <TextBlock Text="Image / video file (png, jpg, gif, mp4):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="Image / video file (png, jpg, gif, mp4):" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,3"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -1306,7 +1306,7 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Image previews shadow" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Glow: set Depth to 0 and pick a bright color." TextWrapping="Wrap"
-                                               Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}"/>
+                                               Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIPreviewsShadow" Tag="Previews" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
@@ -1407,7 +1407,7 @@
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
                         BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Text="Leave empty to use the built-in splash." Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}" Margin="0,6,0,0"/>
+                                <TextBlock Text="Leave empty to use the built-in splash." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -1516,7 +1516,7 @@
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
                         BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Text="Leave empty to use the built-in image." Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}" Margin="0,6,0,0"/>
+                                <TextBlock Text="Leave empty to use the built-in image." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -1547,7 +1547,7 @@
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
                         BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Text="Leave empty to use the built-in logo." Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}" Margin="0,6,0,0"/>
+                                <TextBlock Text="Leave empty to use the built-in logo." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -1578,7 +1578,7 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Logo and marquee image shadow" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Glow: set Depth to 0 and pick a bright color." TextWrapping="Wrap"
-                                               Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}"/>
+                                               Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIMarqueeShadow" Tag="Marquee" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
@@ -1653,7 +1653,7 @@
                         BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
                         BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Text="Leave empty to use the built-in background image." Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}" Margin="0,6,0,0"/>
+                                <TextBlock Text="Leave empty to use the built-in background image." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                                 <CheckBox x:Name="ChkMainBgImageDisabled" Content="Disable Main Window Background Image (use solid Main Window Background Color only)"
                                           HorizontalAlignment="Left" Margin="0,12,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="ChkMainBgImageDisabled_Click"/>
                             </StackPanel>
@@ -1684,7 +1684,7 @@
                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="MultiNudge_LostFocus" KeyDown="MultiNudge_KeyDown"/>
                     </Grid>
                     <TextBlock x:Name="TxtMultiHint" TextWrapping="Wrap" Margin="0,10,0,0"
-                               Foreground="{Binding SubTextColorHex, FallbackValue=#A0A0A2}" FontSize="{Binding SubTextFontSize, FallbackValue=12}"/>
+                               Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
                 </StackPanel>
                 <!-- [END SECTION: Multi-Select Nudge] -->
 

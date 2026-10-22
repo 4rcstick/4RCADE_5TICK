@@ -9,12 +9,12 @@
         <StackPanel Margin="15">
             <TextBlock Text="SYSTEM PATHS" 
                        FontWeight="Bold" Margin="0,0,0,8"
-                       FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                       Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                       FontSize="{DynamicResource Global.Font.Header.Size}"
+                       Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
             <TextBlock TextWrapping="Wrap" Margin="0,0,0,15"
-                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                       FontSize="{DynamicResource Global.Font.Standard.Size}"
+                       Foreground="{DynamicResource Global.Font.Standard.Color}">
 
             <Run Text="Set the directory paths for your ROMs, BIOS, and CHD folders. These folders do not need to be in the MAME root directory and can even be located on separate drives."/>
             <LineBreak/>
@@ -25,7 +25,7 @@
             <Run Text="*It is highly recommended, if the ROMs directory is on a separate drive, to avoid deeply nesting it in multiple subfolders — this is due to a limitation in how MAME reads long rompath entries from mame.ini. If your rompath is too long, you'll be notified with an alert so you can address it. In most cases, this will not be an issue." />
             </TextBlock>
 
-            <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+            <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
             <!-- [SECTION: System Path Rows] -->
             <!-- Same TextBox + "..." browse Button pattern as Asset Paths, routed through
@@ -33,7 +33,7 @@
                  effect (see intro text above) since ROM/BIOS/CHD paths feed the boot-time scan. -->
 
             <!-- ROMs -->
-            <TextBlock Text="ROMs Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="ROMs Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -49,7 +49,7 @@
             </Grid>
 
             <!-- BIOS -->
-            <TextBlock Text="BIOS Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="BIOS Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -65,7 +65,7 @@
             </Grid>
 
             <!-- CHD -->
-            <TextBlock Text="CHD Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="CHD Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

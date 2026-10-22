@@ -1,0 +1,231 @@
+<UserControl x:Class="ArcadeStick.Views.GlobalThemesTabControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+             mc:Ignorable="d">
+
+    <!-- The Global tab: theme-wide (not per resolution) flat values on ConfigurationSettings, published as app
+         resources by GlobalThemeResources. Same grid and shared styles as the Advanced tab (App.xaml: [SECTION: Theme
+         Builder Shared Styles]). Every field is listed in the field tables in code-behind (BuildFieldTables), which
+         drive loading, live apply and Restore Defaults. Each subtab's Tag names its GlobalArea. -->
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- [SECTION: Guide] -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="GLOBAL" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
+            <TextBlock Text="Theme-wide values, the same at every size: the fonts and backgrounds of the Options window, the Sorting window, this Theme Builder and the other dialogs. Values apply when you press Enter or leave the field; colors apply as you pick them. Save Adjustments writes them to settings.json; Save Changes on the Basic Themes tab writes them into the theme file. Closing without saving puts them back."
+                       Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" TextWrapping="Wrap"/>
+        </StackPanel>
+        <!-- [END SECTION: Guide] -->
+
+        <!-- [SECTION: Global Subtabs] -->
+        <TabControl Grid.Row="1" x:Name="TabsGlobal" Style="{StaticResource ThemedTabControlStyle}" Background="Transparent">
+
+            <!-- [SECTION: Fonts Tab] -->
+            <!-- Header, Sub-Header, Standard and Sub-Text: size (6 to 72) and color. -->
+            <TabItem x:Name="TabGlobalFonts" Header="FONTS" Tag="Fonts">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="48"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                            <TextBlock Grid.Row="0" Grid.Column="4" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+
+                            <!-- Headers -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Headers:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <TextBox x:Name="GlobalHeaderSize" Grid.Row="1" Grid.Column="2" HorizontalContentAlignment="Center" Margin="0,0,0,8"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+                            <StackPanel Grid.Row="1" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalHeaderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalHeaderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Sub-Headers -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Sub-Headers:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <TextBox x:Name="GlobalSubHeaderSize" Grid.Row="2" Grid.Column="2" HorizontalContentAlignment="Center" Margin="0,0,0,8"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+                            <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalSubHeaderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalSubHeaderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Standard Text -->
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Standard Text:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <TextBox x:Name="GlobalStandardSize" Grid.Row="3" Grid.Column="2" HorizontalContentAlignment="Center" Margin="0,0,0,8"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+                            <StackPanel Grid.Row="3" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalStandardColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalStandardColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Sub-Text -->
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Sub-Text:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                            <TextBox x:Name="GlobalSubTextSize" Grid.Row="4" Grid.Column="2" HorizontalContentAlignment="Center"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+                            <StackPanel Grid.Row="4" Grid.Column="4" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalSubTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalSubTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,15,0,0"
+                                   Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"
+                                   Text="Headers are section titles, Sub-Headers are field labels, Standard Text is body text, check box labels and the text inside input fields, and Sub-Text is hint lines like this one."/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- [END SECTION: Fonts Tab] -->
+
+            <!-- [SECTION: Backgrounds Tab] -->
+            <!-- Window background, content area background, separator color, and the tab frame's border size (0 to 50),
+                 color and corner radius (0 to 200). -->
+            <TabItem x:Name="TabGlobalBackgrounds" Header="BACKGROUNDS" Tag="Backgrounds">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="52"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="52"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Window background -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Content area background -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Text="Content area background color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalContentBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalContentBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Separator -->
+                            <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Text="Separator color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalSeparatorColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalSeparatorColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Border color, size and corner radius (same row layout as the Advanced tab's Border tab) -->
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <TextBlock Grid.Row="6" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <TextBlock Grid.Row="6" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <StackPanel Grid.Row="7" Grid.Column="0" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <TextBox x:Name="GlobalBorderSize" Grid.Row="7" Grid.Column="2" HorizontalContentAlignment="Center"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+                            <TextBox x:Name="GlobalBorderRadius" Grid.Row="7" Grid.Column="4" HorizontalContentAlignment="Center"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+                        </Grid>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,15,0,0"
+                                   Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"
+                                   Text="The background color fills the Options, Sorting and Theme Builder windows. The content area is the framed panel under the tabs. The border color, size and radius frame that panel and the tabs above it."/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- [END SECTION: Backgrounds Tab] -->
+        </TabControl>
+        <!-- [END SECTION: Global Subtabs] -->
+
+        <!-- [SECTION: Restore Defaults] -->
+        <!-- Pinned below the tab frame (like Reset Layer on the Advanced tab); restores only the selected subtab's values. -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button x:Name="BtnRestoreGlobalDefaults" Content="Restore Defaults" Click="BtnRestoreGlobalDefaults_Click"
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
+                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
+                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
+                    BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3"/>
+        </StackPanel>
+        <!-- [END SECTION: Restore Defaults] -->
+    </Grid>
+</UserControl>

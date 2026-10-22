@@ -92,8 +92,8 @@
             <!-- Only relevant/visible when creating a new folder - hidden when editing an existing one -->
             <StackPanel Grid.Row="1" Margin="0,0,0,20">
                 <TextBlock Text="Folder Name:" 
-                       Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" 
-                       FontSize="{Binding HeaderFontSize, FallbackValue=14}" 
+                       Foreground="{DynamicResource Global.Font.Header.Color}" 
+                       FontSize="{DynamicResource Global.Font.Header.Size}" 
                        FontWeight="Bold" 
                        Margin="0,0,0,5"
                        Visibility="{Binding Visibility, ElementName=FolderNameTextBox}"/>

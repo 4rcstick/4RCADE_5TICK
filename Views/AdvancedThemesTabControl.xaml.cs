@@ -886,8 +886,8 @@ namespace ArcadeStick.Views
                 string partName = LayerRegistry.GetDefinition(partId)?.DisplayName ?? partId;
 
                 var heading = new TextBlock { Text = partName, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 4, 0, 4) };
-                heading.SetBinding(TextBlock.ForegroundProperty, new System.Windows.Data.Binding("HeaderColorHex"));
-                heading.SetBinding(TextBlock.FontSizeProperty, new System.Windows.Data.Binding("HeaderFontSize"));
+                heading.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontHeaderColor);
+                heading.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontHeaderSize);
                 PnlGroupParts.Children.Add(heading);
 
                 var host = new Grid { Margin = new Thickness(0, 0, 0, 4) };
@@ -899,8 +899,8 @@ namespace ArcadeStick.Views
                 for (int i = 0; i < 4; i++)
                 {
                     var label = new TextBlock { Text = labels[i], Margin = new Thickness(i == 0 ? 0 : 6, 0, 0, 3) };
-                    label.SetBinding(TextBlock.ForegroundProperty, new System.Windows.Data.Binding("SubHeaderColorHex"));
-                    label.SetBinding(TextBlock.FontSizeProperty, new System.Windows.Data.Binding("SubHeaderFontSize"));
+                    label.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontSubHeaderColor);
+                    label.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontSubHeaderSize);
                     Grid.SetRow(label, 0);
                     Grid.SetColumn(label, i);
                     host.Children.Add(label);

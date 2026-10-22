@@ -17,11 +17,11 @@
                     <StackPanel>
                         <TextBlock Text="ABOUT" 
                                    FontWeight="Bold" Margin="0,0,0,8"
-                                   FontSize="{Binding HeaderFontSize, FallbackValue=14}"
+                                   FontSize="{DynamicResource Global.Font.Header.Size}"
                                    Foreground="#1A2A4a"/>
 
                         <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,0"
-                                   FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                                   FontSize="{DynamicResource Global.Font.Standard.Size}"
                                    Foreground="#000000">
                             <Run Text="4RCADE 5TICK — v1.0.0-beta.3"/>
                             <LineBreak/>
@@ -65,17 +65,17 @@
                 </Border>
                 <!-- [END SECTION: About Header / Legal / Donate] -->
 
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Features List] -->
                 <TextBlock Text="FEATURES" 
                            FontWeight="Bold" Margin="0,0,0,15"
-                           FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                           Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                           FontSize="{DynamicResource Global.Font.Header.Size}"
+                           Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
                 <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
-                           FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                           Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                           FontSize="{DynamicResource Global.Font.Standard.Size}"
+                           Foreground="{DynamicResource Global.Font.Standard.Color}">
                     <Run Text="4RCADE 5TICK is packed with features carefully designed to fit all your arcade gaming needs — here are a few highlights:"/>
                     <LineBreak/>
                     <LineBreak/>
@@ -105,13 +105,13 @@
                     </TextBlock>
                 <!-- [END SECTION: Features List] -->
 
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Keyboard Shortcuts] -->
                 <TextBlock Text="KEYBOARD SHORTCUTS" 
                            FontWeight="Bold" Margin="0,0,0,15"
-                           FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                           Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                           FontSize="{DynamicResource Global.Font.Header.Size}"
+                           Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
                 <!-- Ctrl+F: Favorites -->
                 <Grid Margin="0,0,0,12">
@@ -122,7 +122,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="CTRL + F" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Adds/Removes Selected Game From Favorites" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Adds/Removes Selected Game From Favorites" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- Ctrl+G: Custom Folders -->
@@ -134,7 +134,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="CTRL + G" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Select Game, Then Hit Hotkey To Create And Manage Custom Folders." Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Select Game, Then Hit Hotkey To Create And Manage Custom Folders." Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- Ctrl+M: Mouse Support -->
@@ -146,7 +146,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="CTRL + M" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Activate Persistent Mouse Support For Selected Game" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Activate Persistent Mouse Support For Selected Game" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- Ctrl+O: Options Window -->
@@ -158,7 +158,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="CTRL + O" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Opens This Options Window" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Opens This Options Window" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- F11: Fullscreen Toggle -->
@@ -170,7 +170,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="F11" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Toggles Fullscreen Mode" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Toggles Fullscreen Mode" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- Esc: Close App -->
@@ -182,17 +182,17 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="ESC" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Closes 4RCADE 5TICK" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Closes 4RCADE 5TICK" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
                 <!-- [END SECTION: Keyboard Shortcuts] -->
 
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Joystick Controls] -->
                 <TextBlock Text="JOYSTICK CONTROLS (Xbox 360 controller)" 
                            FontWeight="Bold" Margin="0,0,0,15"
-                           FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                           Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                           FontSize="{DynamicResource Global.Font.Header.Size}"
+                           Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
                 <!-- D-Pad/Joystick: Navigate -->
                 <Grid Margin="0,0,0,12">
@@ -203,7 +203,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="JOY/D-PAD" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Navigate Games List" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Navigate Games List" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- Start: Launch Game -->
@@ -215,7 +215,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="START" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Launches Selected Game" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Launches Selected Game" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- A: Open/Close Folders -->
@@ -227,7 +227,7 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="A" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Opens/Closes Folders and Launches Selected Game" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Opens/Closes Folders and Launches Selected Game" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
 
                 <!-- Y: Toggle Favorite -->
@@ -239,22 +239,22 @@
                     <Border Grid.Column="0" Background="#1C1C1E" BorderBrush="#3A3A3C" BorderThickness="1" CornerRadius="4" Padding="6,4" HorizontalAlignment="Left" Width="82">
                         <TextBlock Text="Y" Foreground="#FFCC00" FontWeight="Bold" FontFamily="Consolas" FontSize="13" HorizontalAlignment="Center"/>
                     </Border>
-                    <TextBlock Grid.Column="1" Text="Adds/Removes Selected Game From Favorites" Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                    <TextBlock Grid.Column="1" Text="Adds/Removes Selected Game From Favorites" Foreground="{DynamicResource Global.Font.Standard.Color}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                 </Grid>
                 <!-- [END SECTION: Joystick Controls] -->
 
 
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
                     <TextBlock Text="ATTRIBUTIONS" 
                     FontWeight="Bold" Margin="0,0,0,15"
-                    FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                    Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                    FontSize="{DynamicResource Global.Font.Header.Size}"
+                    Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
                 <!-- Wikipedia attribution - CC BY-SA requires naming the source AND linking the license. -->
                 <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
-                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                    FontSize="{DynamicResource Global.Font.Standard.Size}"
+                    Foreground="{DynamicResource Global.Font.Standard.Color}">
                         <Run Text="Game info text adapted from:"/>
                         <LineBreak/>
                         <LineBreak/>
@@ -266,8 +266,8 @@
 
                 <!-- Arcade-History attribution - source of history_arcade.xml (shipped with the launcher). -->
                 <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
-                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                    FontSize="{DynamicResource Global.Font.Standard.Size}"
+                    Foreground="{DynamicResource Global.Font.Standard.Color}">
                         <Run Text="Game history, specs and credits from:"/>
                         <LineBreak/>
                         <LineBreak/>
@@ -277,8 +277,8 @@
 
                 <!-- Arcade Database attribution - source of artwork downloaded by the scraper. -->
                 <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
-                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                    FontSize="{DynamicResource Global.Font.Standard.Size}"
+                    Foreground="{DynamicResource Global.Font.Standard.Color}">
                         <Run Text="Artwork scraped from:"/>
                         <LineBreak/>
                         <LineBreak/>
@@ -290,8 +290,8 @@
                      program. The GPL requires the license notice plus a source offer; the offer is this text and the
                      ffmpeg-x264-source.zip attached to each GitHub release. Plain text on purpose, no links needed. -->
                 <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
-                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                    FontSize="{DynamicResource Global.Font.Standard.Size}"
+                    Foreground="{DynamicResource Global.Font.Standard.Color}">
                         <Run Text="Video conversion powered by:"/>
                         <LineBreak/>
                         <LineBreak/>
@@ -302,8 +302,8 @@
                 </TextBlock>
 
                 <TextBlock TextWrapping="Wrap" FontFamily="Consolas" Margin="0,0,8,15"
-                    FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                    Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}">
+                    FontSize="{DynamicResource Global.Font.Standard.Size}"
+                    Foreground="{DynamicResource Global.Font.Standard.Color}">
                                 
                      <Run Text="Some images provided by:"/>
                         <LineBreak/>

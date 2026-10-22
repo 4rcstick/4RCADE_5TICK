@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ArcadeStick"
         Title="4RCADE 5TICK Sorting and Filter Options" Height="610" Width="500"
         WindowStartupLocation="CenterOwner"
-        Background="{Binding OptionsMenuBgColorHex, FallbackValue=#1C1C1E}"
+        Background="{DynamicResource Global.Options.Bg}"
         BorderBrush="{StaticResource ChromeBorder}"
         BorderThickness="1">
 
@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
 
         <TabControl Grid.Row="0"
-                    Background="{Binding OptionsBg, FallbackValue=#000000}" 
+                    Background="{DynamicResource Global.Options.ContentBg}" 
                     BorderBrush="{StaticResource ChromeBorder}" 
                     BorderThickness="1" 
                     Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}">
@@ -62,7 +62,7 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="TabItem">
                                 <Border x:Name="TabBorder" 
-                                        Background="{Binding DataContext.OptionsBg, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
+                                        Background="{DynamicResource Global.Options.ContentBg}" 
                                         BorderBrush="{StaticResource ChromeBorder}" 
                                         BorderThickness="1,1,1,0" 
                                         Padding="{TemplateBinding Padding}">
@@ -104,53 +104,53 @@
                         <!-- [SECTION: Structure Mode] -->
                         <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="EnableAutoSortCheckBox" Content="Enable Auto Sorting (Built-in Categories)"
                                   IsChecked="{Binding IsCategorySortEnabled, Mode=TwoWay}"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
-                                  FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}"
+                                  FontSize="{DynamicResource Global.Font.Standard.Size}"
                                   Margin="0,0,0,4"/>
                         <TextBlock Text="Keep on for auto-sorting into virtual folders. Turn off to display default folders. "
-                                   Foreground="{Binding StandardColorHex, FallbackValue=#A0A0A2}" FontSize="11"
+                                   Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="11"
                                    TextWrapping="Wrap" Margin="20,0,0,15"/>
                         <!-- [END SECTION: Structure Mode] -->
 
-                        <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+                        <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,0,0,15"/>
 
                         <!-- [SECTION: Filtering Toggle] -->
                         <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="EnableFiltersCheckBox" Content="Enable Base Filter"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
-                                  FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}"
+                                  FontSize="{DynamicResource Global.Font.Standard.Size}"
                                   Margin="0,0,0,4"/>
                         <TextBlock Text="Turns on the base filter, which can be further refined below.  Applies to either sorting methods chosen above. Base filter uses a customized bestgames.ini file to remove the junk, including all bootlegs, hacks, and prototypes."
-                                   Foreground="{Binding StandardColorHex, FallbackValue=#A0A0A2}" FontSize="11"
+                                   Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="11"
                                    TextWrapping="Wrap" Margin="20,0,0,15"/>
                         <!-- [END SECTION: Filtering Toggle] -->
 
                         <!-- [SECTION: Region Row] -->
                         <TextBlock Text="REGION" FontWeight="Bold" Margin="0,0,0,6"
-                                   Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                                   FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
+                                   Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                                   FontSize="{DynamicResource Global.Font.SubHeader.Size}"
                                    IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"/>
                         <WrapPanel IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}" Margin="0,0,0,15">
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionWorld" Content="World" Margin="0,0,15,6"
-                                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                      Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionUS" Content="US" Margin="0,0,15,6"
-                                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                      Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionJapan" Content="Japan" Margin="0,0,15,6"
-                                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                      Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionAsia" Content="Asia" Margin="0,0,15,6"
-                                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                      Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionEurope" Content="Europe" Margin="0,0,15,6"
-                                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                      Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionOther" Content="Other" Margin="0,0,15,6"
-                                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                      Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkRegionUnspecified" Content="Unspecified" Margin="0,0,15,6"
-                                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                      Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                         </WrapPanel>
                         <!-- [END SECTION: Region Row] -->
 
                         <!-- [SECTION: Genre Row] -->
                         <TextBlock Text="GENRE" FontWeight="Bold" Margin="0,0,0,6"
-                                   Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                                   FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
+                                   Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                                   FontSize="{DynamicResource Global.Font.SubHeader.Size}"
                                    IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"/>
                         <Grid IsSharedSizeScope="True" IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}" Margin="0,0,0,15">
                             <Grid.ColumnDefinitions>
@@ -165,22 +165,22 @@
                             </Grid.RowDefinitions>
 
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="0" Grid.Column="0" x:Name="ChkGenreShooter" Content="Shooter" Margin="0,0,15,6"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="0" Grid.Column="1" x:Name="ChkGenreFighter" Content="Fighter" Margin="0,0,15,6"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="0" Grid.Column="2" x:Name="ChkGenrePlatform" Content="Platform" Margin="0,0,15,6"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="0" Grid.Column="3" x:Name="ChkGenrePuzzle" Content="Puzzle" Margin="0,0,0,6"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
 
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="1" Grid.Column="0" x:Name="ChkGenreSports" Content="Sports" Margin="0,0,15,0"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="1" Grid.Column="1" x:Name="ChkGenreBallPaddle" Content="Ball &amp; Paddle" Margin="0,0,15,0"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="1" Grid.Column="2" x:Name="ChkGenreMaze" Content="Maze" Margin="0,0,15,0"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" Grid.Row="1" Grid.Column="3" x:Name="ChkGenreDriving" Content="Driving"
-                                  Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                  Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                         </Grid>
                         <!-- [END SECTION: Genre Row] -->
 
@@ -193,24 +193,24 @@
 
                             <StackPanel Grid.Column="0" Margin="0,0,10,0">
                                 <TextBlock Text="VARIANT TYPE" FontWeight="Bold" Margin="0,0,0,6"
-                                           Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                                           FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                                           Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                                           FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                                 <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="IncludeRevisionsCheckBox" Content="Include Revisions"
                                           IsChecked="{Binding SortIncludeRevisions, Mode=TwoWay}"
                                           IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
-                                          Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
-                                          FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                          Foreground="{DynamicResource Global.Font.Standard.Color}"
+                                          FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1">
                                 <TextBlock Text="PLAYER COUNT" FontWeight="Bold" Margin="0,0,0,6"
-                                           Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                                           FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                                           Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                                           FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                                 <WrapPanel IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}">
                                     <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkPlayers2" Content="2 Player" Margin="0,0,15,6"
-                                              Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                              Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                                     <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkPlayers4" Content="4 Player" Margin="0,0,15,6"
-                                              Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}"/>
+                                              Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
                                 </WrapPanel>
                             </StackPanel>
                         </Grid>
@@ -218,8 +218,8 @@
 
                         <!-- [SECTION: Manufacturer] -->
                         <TextBlock Text="MANUFACTURER" FontWeight="Bold" Margin="0,0,0,6"
-                               Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                               FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
+                               Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                               FontSize="{DynamicResource Global.Font.SubHeader.Size}"
                                IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"/>
                         <ComboBox x:Name="CmbManufacturer" Height="25" HorizontalAlignment="Left" Width="220" Margin="0,0,0,15"
                               IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
@@ -250,12 +250,12 @@
                         </ComboBox>
                         <!-- [END SECTION: Manufacturer] -->
 
-                        <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+                        <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,0,0,15"/>
 
                         <!-- [SECTION: Rating Range Sliders] -->
                         <TextBlock FontWeight="Bold" Margin="0,0,0,6"
-                                   Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                                   FontSize="{Binding SubHeaderFontSize, FallbackValue=13}">
+                                   Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                                   FontSize="{DynamicResource Global.Font.SubHeader.Size}">
                             <Run Text="MINIMUM RATING: "/>
                             <Run Text="{Binding Value, ElementName=RatingSlider, Mode=OneWay}"/>
                         </TextBlock>
@@ -263,12 +263,12 @@
                                 IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                 Margin="0,0,0,4"/>
                         <TextBlock Text="Sets the Lower Limit"
-                                   Foreground="{Binding StandardColorHex, FallbackValue=#A0A0A2}" FontSize="11"
+                                   Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="11"
                                    TextWrapping="Wrap" Margin="0,0,0,15"/>
 
                         <TextBlock FontWeight="Bold" Margin="0,0,0,6"
-                                   Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                                   FontSize="{Binding SubHeaderFontSize, FallbackValue=13}">
+                                   Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                                   FontSize="{DynamicResource Global.Font.SubHeader.Size}">
                             <Run Text="MAXIMUM RATING: "/>
                             <Run Text="{Binding Value, ElementName=RatingMaxSlider, Mode=OneWay}"/>
                         </TextBlock>
@@ -276,16 +276,16 @@
                                 IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                 Margin="0,0,0,4"/>
                         <TextBlock Text="Sets the Upper Limit"
-                                   Foreground="{Binding StandardColorHex, FallbackValue=#A0A0A2}" FontSize="11"
+                                   Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="11"
                                    TextWrapping="Wrap" Margin="0,0,0,15"/>
                         <!-- [END SECTION: Rating Range Sliders] -->
 
-                        <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+                        <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,0,0,15"/>
 
                         <!-- [SECTION: Year Range Sliders] -->
                         <TextBlock FontWeight="Bold" Margin="0,0,0,6"
-                                   Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                                   FontSize="{Binding SubHeaderFontSize, FallbackValue=13}">
+                                   Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                                   FontSize="{DynamicResource Global.Font.SubHeader.Size}">
                             <Run Text="MINIMUM YEAR: "/>
                             <Run Text="{Binding Value, ElementName=YearMinSlider, Mode=OneWay}"/>
                         </TextBlock>
@@ -293,12 +293,12 @@
                                 IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                 Margin="0,0,0,4"/>
                         <TextBlock Text="Sets the Lower Limit"
-                                   Foreground="{Binding StandardColorHex, FallbackValue=#A0A0A2}" FontSize="11"
+                                   Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="11"
                                    TextWrapping="Wrap" Margin="0,0,0,15"/>
 
                         <TextBlock FontWeight="Bold" Margin="0,0,0,6"
-                                   Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"
-                                   FontSize="{Binding SubHeaderFontSize, FallbackValue=13}">
+                                   Foreground="{DynamicResource Global.Font.SubHeader.Color}"
+                                   FontSize="{DynamicResource Global.Font.SubHeader.Size}">
                             <Run Text="MAXIMUM YEAR: "/>
                             <Run Text="{Binding Value, ElementName=YearMaxSlider, Mode=OneWay}"/>
                         </TextBlock>
@@ -306,7 +306,7 @@
                                 IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                 Margin="0,0,0,4"/>
                         <TextBlock Text="Sets the Upper Limit"
-                                   Foreground="{Binding StandardColorHex, FallbackValue=#A0A0A2}" FontSize="11"
+                                   Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="11"
                                    TextWrapping="Wrap"/>
                         <!-- [END SECTION: Year Range Sliders] -->
                     </StackPanel>

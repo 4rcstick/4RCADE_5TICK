@@ -9,82 +9,82 @@
         <StackPanel Margin="15">
             <TextBlock Text="ARTWORK SCRAPER" 
                        FontWeight="Bold" Margin="0,0,0,8"
-                       FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                       Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                       FontSize="{DynamicResource Global.Font.Header.Size}"
+                       Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
             <TextBlock TextWrapping="Wrap" Margin="0,0,0,15"
-                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
+                       FontSize="{DynamicResource Global.Font.Standard.Size}"
+                       Foreground="{DynamicResource Global.Font.Standard.Color}"
                        Text="When enabled, missing artwork is fetched automatically in the background after you launch a game, or on demand from a game's right-click menu. Nothing downloads until you turn this on."/>
 
-            <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+            <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
             <!-- [SECTION: Master Enable] -->
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkScraperEnabled" Content="Enable Artwork Scraper" 
-                      Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" 
-                      FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.SubHeader.Color}" 
+                      FontSize="{DynamicResource Global.Font.SubHeader.Size}"
                       FontWeight="Bold"
                       Margin="0,0,0,15"/>
             <!-- [END SECTION: Master Enable] -->
 
             <!-- [SECTION: Trigger Toggles] -->
-            <TextBlock Text="Triggers:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Triggers:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchOnLaunch" Content="Fetch missing artwork in the background after launching a game" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,5"/>
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchOnContextMenu" Content="Enable &quot;Get Artwork&quot; option in the game right-click menu" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,15"/>
             <!-- [END SECTION: Trigger Toggles] -->
 
-            <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+            <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,0,0,15"/>
 
             <!-- [SECTION: Category Checkboxes] -->
-            <TextBlock Text="Asset Types to Fetch:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Asset Types to Fetch:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchMarquees" Content="Marquees" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,5"/>
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchFlyers" Content="Flyers" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,5"/>
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchTitlescreens" Content="Title Screens" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,5"/>
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchSnaps" Content="Gameplay Snaps" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,5"/>
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchCabinets" Content="Cabinets" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,5"/>
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkFetchVideos" Content="Videos (larger downloads)" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,15"/>
             <!-- [END SECTION: Category Checkboxes] -->
 
-            <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+            <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,0,0,15"/>
 
             <!-- [SECTION: Behavior Options] -->
             <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="ChkOverwriteExisting" Content="Overwrite existing local files (unchecked = skip files you already have)" 
-                      Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
-                      FontSize="{Binding StandardFontSize, FallbackValue=13}"
+                      Foreground="{DynamicResource Global.Font.Standard.Color}" 
+                      FontSize="{DynamicResource Global.Font.Standard.Size}"
                       Margin="0,0,0,15"/>
             <!-- [END SECTION: Behavior Options] -->
 
-            <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+            <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,0,0,15"/>
 
             <!-- [SECTION: Status / Diagnostics] -->
-            <TextBlock Text="Status:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Status:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <TextBlock x:Name="TxtScraperStatus" Text="Not yet checked." TextWrapping="Wrap"
-                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
+                       FontSize="{DynamicResource Global.Font.Standard.Size}"
+                       Foreground="{DynamicResource Global.Font.Standard.Color}" 
                        Margin="0,0,0,8"/>
             <Button x:Name="BtnTestConnection" Click="BtnTestConnection_Click" Content="Test Connection" 
                     HorizontalAlignment="Left"
@@ -95,12 +95,12 @@
                     Padding="10,5" Margin="0,0,0,15"/>
             <!-- [END SECTION: Status / Diagnostics] -->
 
-            <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+            <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,0,0,15"/>
 
             <!-- [SECTION: Attribution] -->
             <TextBlock TextWrapping="Wrap" 
-                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" 
+                       FontSize="{DynamicResource Global.Font.Standard.Size}"
+                       Foreground="{DynamicResource Global.Font.Standard.Color}" 
                        Text="Artwork provided by Arcade Database (ADB) by motoschifo - adb.arcadeitalia.net"/>
             <!-- [END SECTION: Attribution] -->
 

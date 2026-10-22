@@ -40,6 +40,7 @@ namespace ArcadeStick.Views
                 _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
             });
             AdvancedTab.Initialize(_settings);
+            GlobalTab.Initialize(_settings);
 
             // Alignment guides: forward the Advanced tab's guide info to the main window, but only while the
             // Advanced tab is actually the selected tab. Cleared when switching to Basic or closing.
@@ -85,14 +86,15 @@ namespace ArcadeStick.Views
             };
         }
 
-        // Passed to ThemesTab as its refresh callback. A theme load replaces _settings.Layouts, so the
-        // Advanced tab has to re-read its resolution and layer list in addition to the normal binding
-        // refresh. Save Adjustments deliberately calls RefreshWindowBindings only, so the Advanced tab
-        // keeps its current layer selection when you save.
+        // Passed to ThemesTab as its refresh callback. A theme load replaces _settings.Layouts and the Global
+        // values, so the Advanced and Global tabs re-read them in addition to the normal binding refresh.
+        // Save Adjustments deliberately calls RefreshWindowBindings only, so the Advanced tab keeps its
+        // current layer selection when you save.
         private void RefreshAfterThemeLoad()
         {
             RefreshWindowBindings();
             AdvancedTab.ReloadFromSettings();
+            GlobalTab.ReloadFromSettings();
 
             // A theme load is a deliberate change: the loaded layouts and Global values become the restore point for closing
             _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);

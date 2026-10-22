@@ -15,15 +15,15 @@
             <StackPanel Margin="15">
 
                 <!-- [SECTION: Theme Builder Guide] -->
-                <TextBlock Text="THEME BUILDER GUIDE" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-                <TextBlock Text="Select an existing theme and click Load Theme to edit it, or choose [New Theme...] and enter a name to start fresh. Save Changes writes your edits to the named theme file and applies them immediately. Save Adjustments (below) only saves your current settings so they persist on next launch, without updating the theme file itself. Delete Theme permanently removes the selected theme." Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}" FontSize="{Binding StandardFontSize, FallbackValue=13}" TextWrapping="Wrap" Margin="0,0,0,15"/>
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,0,0,15"/>
+                <TextBlock Text="THEME BUILDER GUIDE" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
+                <TextBlock Text="Select an existing theme and click Load Theme to edit it, or choose [New Theme...] and enter a name to start fresh. Save Changes writes your edits to the named theme file and applies them immediately. Save Adjustments (below) only saves your current settings so they persist on next launch, without updating the theme file itself. Delete Theme permanently removes the selected theme." Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,0,0,15"/>
                 <!-- [END SECTION: Theme Builder Guide] -->
 
                 <!-- [SECTION: Themes Manager] -->
                 <!-- Custom-templated ComboBox listing saved themes (+ "New Theme..."), a conditional
                  New Theme Name field, and Load/Save-Apply/Delete buttons. -->
-                <TextBlock Text="THEMES MANAGER" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <TextBlock Text="THEMES MANAGER" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
                 <Grid Margin="0,0,0,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -36,13 +36,13 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
-                        <TextBlock Text="Active Theme:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Active Theme:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <ComboBox x:Name="CboThemePresets" Width="180" Height="25" Style="{StaticResource ChromeComboBoxStyle}"/>
                     </StackPanel>
 
                     <!-- Only visible when "[New Theme...]" is selected in the dropdown above -->
                     <StackPanel Grid.Column="0" Grid.Row="2" x:Name="PnlNewThemeName" Orientation="Horizontal" Visibility="Collapsed">
-                        <TextBlock Text="New Theme Name:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="New Theme Name:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <TextBox x:Name="TxtNewThemeName" Width="151" Height="25" Style="{StaticResource GLTextBoxStyle}"/>
                     </StackPanel>
 
@@ -78,199 +78,14 @@
                 <!-- Old [SECTION: Background Colors] removed entirely - Content Area Background Color(formerly "Options Window Content") migrated into [SECTION: Options Menu] above. -->
 
                 
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Options Menu] -->
-                <!-- Consolidates Options Window Fonts, Tab Options, and the Options Menu/ManagePlaylists
-                 button system (old [SECTION: Global Buttons] - the Main Window button system stays
-                 separate, see [SECTION: Main Window]) plus Separator Color migrating in from
-                 [SECTION: Border and Line Options] and Content Area Background Color migrating in from
-                 the old Background Colors grid (formerly "Options Window Content"). All carried-over
-                 controls keep their exact x:Name/event handlers. New fields are placeholder-only. -->
-                <TextBlock Text="OPTIONS MENU" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
-
-                <!-- Headers + Sub-Headers (CARRIED OVER) -->
-                <Grid Margin="0,0,0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="5" Text="Headers:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="6" Grid.ColumnSpan="5" Text="Sub-Headers:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                </Grid>
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtHeaderFontSize" HorizontalContentAlignment="Center" Text="12" Style="{StaticResource GLTextBoxStyle}"/>
-                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="HeaderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="HeaderColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="4" x:Name="TxtHeaderColorHex" Text="#FFFFCC00" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtHeaderColorHex_LostFocus"/>
-                    <TextBox Grid.Column="6" x:Name="TxtSubHeaderFontSize" HorizontalContentAlignment="Center" Text="13" Style="{StaticResource GLTextBoxStyle}"/>
-                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="SubHeaderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SubHeaderColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="10" x:Name="TxtSubHeaderColorHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSubHeaderColorHex_LostFocus"/>
-                </Grid>
-
-                <!-- Standard Text + Sub-Text (CARRIED OVER + NEW placeholder) -->
-                <Grid Margin="0,0,0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="5" Text="Standard Text:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="6" Grid.ColumnSpan="5" Text="Sub-Text:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                </Grid>
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="40"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtStandardFontSize" HorizontalContentAlignment="Center" Text="13" Style="{StaticResource GLTextBoxStyle}"/>
-                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="StandardColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="StandardColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="4" x:Name="TxtStandardColorHex" Text="#FFF2F2F7" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtStandardColorHex_LostFocus"/>
-                    <TextBox Grid.Column="6" x:Name="TxtSubTextFontSize" HorizontalContentAlignment="Center" Text="12" Style="{StaticResource GLTextBoxStyle}"/>
-                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="SubTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SubTextColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="10" x:Name="TxtSubTextColorHex" Text="#FFA0A0A2" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSubTextColorHex_LostFocus"/>
-                </Grid>
-
-                <!-- Background Color (NEW placeholder) + Content Area Background Color (CARRIED OVER, relabeled) -->
-                <Grid Margin="0,0,0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Text="Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="4" Grid.ColumnSpan="3" Text="Content Area Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                </Grid>
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="OptionsMenuBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="OptionsMenuBgColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="2" x:Name="TxtOptionsMenuBgColorHex" Text="#FF1C1C1E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtOptionsMenuBgColorHex_LostFocus"/>
-                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="OptionsColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="OptionsColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="6" x:Name="TxtOptionsColorHex" Text="" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtOptionsColorHex_LostFocus"/>
-                </Grid>
-
-                <!-- Border Size / Border Color / Border Corner Radius (NEW - placeholder) -->
-                <Grid Margin="0,0,0,3">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Border Size:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="2" Grid.ColumnSpan="3" Text="Border Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="6" Text="Border Corner Radius:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                </Grid>
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtOptionsMenuBorderSize" HorizontalContentAlignment="Center" Text="1" Style="{StaticResource GLTextBoxStyle}"/>
-                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="OptionsMenuBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="OptionsMenuBorderColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="4" x:Name="TxtOptionsMenuBorderColorHex" Text="#FF3A3A3C" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtOptionsMenuBorderColorHex_LostFocus"/>
-                    <TextBox Grid.Column="6" x:Name="TxtOptionsMenuBorderRadius" HorizontalContentAlignment="Center" Text="0" Style="{StaticResource GLTextBoxStyle}"/>
-                </Grid>
+                <!-- Tab Options and the Options Menu/ManagePlaylists button system (old [SECTION: Global Buttons];
+                 the Main Window button system is separate). The fonts, backgrounds, border and separator rows moved
+                 to the Global tab's Fonts and Backgrounds subtabs (Global tab Pass 3); tabs and buttons follow in
+                 Pass 4. -->
+                <TextBlock Text="OPTIONS MENU" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
 
                 <!-- Tab Font Size/Color + Tab Background Color (CARRIED OVER) -->
                 <Grid Margin="0,0,0,3">
@@ -279,8 +94,8 @@
                         <ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Tab Font Size/Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="2" Text="Tab Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                    <TextBlock Grid.Column="0" Text="Tab Font Size/Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="2" Text="Tab Background Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                 </Grid>
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
@@ -342,10 +157,10 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Text="Tab Font Color (Hover):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="4" Grid.ColumnSpan="3" Text="Tab BG Color (Hover):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="8" Grid.ColumnSpan="3" Text="Tab Font Color (Active):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="12" Grid.ColumnSpan="3" Text="Tab BG Color (Active):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Text="Tab Font Color (Hover):" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="4" Grid.ColumnSpan="3" Text="Tab BG Color (Hover):" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="8" Grid.ColumnSpan="3" Text="Tab Font Color (Active):" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="12" Grid.ColumnSpan="3" Text="Tab BG Color (Active):" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                 </Grid>
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
@@ -406,8 +221,8 @@
                         <ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Button Font Size/Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="2" Text="Button Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                    <TextBlock Grid.Column="0" Text="Button Font Size/Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="2" Text="Button Background Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                 </Grid>
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
@@ -461,8 +276,8 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Text="Button Font Color (Hover):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="4" Grid.ColumnSpan="3" Text="Button Background Color (Hover):" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Text="Button Font Color (Hover):" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="4" Grid.ColumnSpan="3" Text="Button Background Color (Hover):" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                 </Grid>
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
@@ -492,7 +307,7 @@
                     <TextBox Grid.Column="6" x:Name="TxtBtnBgColorHoverHex" Text="#FF2C2C2E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBtnBgColorHoverHex_LostFocus"/>
                 </Grid>
 
-                <!-- Button Border Size (NEW) / Button Border Color (CARRIED OVER) / Button Border Radius (NEW) / Separator Color (CARRIED OVER) -->
+                <!-- Button Border Size (NEW) / Button Border Color (CARRIED OVER) / Button Border Radius (NEW) -->
                 <Grid Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -502,15 +317,10 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
-                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Button Border Size:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="2" Grid.ColumnSpan="3" Text="Button Border Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="6" Text="Button Border Radius:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="8" Grid.ColumnSpan="3" Text="Separator Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                    <TextBlock Grid.Column="0" Text="Button Border Size:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="2" Grid.ColumnSpan="3" Text="Button Border Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="6" Text="Button Border Radius:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                 </Grid>
                 <Grid Margin="0,0,0,15">
                     <Grid.ColumnDefinitions>
@@ -520,10 +330,6 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="10"/>
-                        <ColumnDefinition Width="26"/>
-                        <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBox Grid.Column="0" x:Name="TxtOptionsBtnBorderSize" HorizontalContentAlignment="Center" Text="1" Style="{StaticResource GLTextBoxStyle}"/>
@@ -536,14 +342,6 @@
                     </Border>
                     <TextBox Grid.Column="4" x:Name="TxtBtnBorderColorHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBtnBorderColorHex_LostFocus"/>
                     <TextBox Grid.Column="6" x:Name="TxtOptionsBtnBorderRadius" HorizontalContentAlignment="Center" Text="0" Style="{StaticResource GLTextBoxStyle}"/>
-                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                        <colorpicker:PortableColorPicker x:Name="SeparatorColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SeparatorColorPicker_ColorChanged">
-                            <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                            </colorpicker:PortableColorPicker.Resources>
-                        </colorpicker:PortableColorPicker>
-                    </Border>
-                    <TextBox Grid.Column="10" x:Name="TxtSeparatorColorHex" Text="#FF2C2C2E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSeparatorColorHex_LostFocus"/>
                 </Grid>
                 <!-- [END SECTION: Options Menu] -->
 
@@ -552,17 +350,16 @@
 
                <!-- Old [SECTION: Border and Line Options] removed entirely. BorderColorFramework has no input
                  field; it is being replaced by the fixed ChromeBorder palette color (the swatch borders in this
-                 file already use it) and is removed in Global tab Pass 2b. Separator Color migrated into
-                 [SECTION: Options Menu] above. -->
+                 file already use it). Separator Color moved to the Global tab's Backgrounds subtab (Pass 3). -->
 
                <!-- Old [SECTION: Global Buttons] removed entirely - fully consolidated into
                  [SECTION: Options Menu] above (as the Options Menu/ManagePlaylists button system). -->
 
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Global Scrollbars] -->
                 <!-- Feeds ArcadeDarkScrollBar in App.xaml / MainWindow.xaml's local copy -->
-                <TextBlock Text="GLOBAL SCROLLBARS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <TextBlock Text="GLOBAL SCROLLBARS" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -576,7 +373,7 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Column="0" Grid.Row="0">
-                        <TextBlock Text="Main Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBlock Text="Main Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,3"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="26"/>
@@ -595,7 +392,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Grid.Row="0">
-                        <TextBlock Text="Hover Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBlock Text="Hover Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,3"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="26"/>
@@ -614,7 +411,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="0" Grid.Row="2">
-                        <TextBlock Text="Drag Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBlock Text="Drag Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,3"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="26"/>
@@ -633,7 +430,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Grid.Row="2">
-                        <TextBlock Text="Track Background:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                        <TextBlock Text="Track Background:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,3"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="26"/>
@@ -651,7 +448,7 @@
                         </Grid>
                     </StackPanel>
                 </Grid>
-                <TextBlock Text="Track Hover Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,3"/>
+                <TextBlock Text="Track Hover Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,3"/>
                 <Grid Margin="0,0,0,15">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -675,10 +472,10 @@
                     </Grid>
                 </Grid>
                 <!-- [END SECTION: Global Scrollbars] -->
-                <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
                 <!-- [SECTION: Context Menus] -->
-                <TextBlock Text="CONTEXT MENUS" Foreground="{Binding HeaderColorHex, FallbackValue=#FFCC00}" FontWeight="Bold" FontSize="{Binding HeaderFontSize, FallbackValue=14}" Margin="0,0,0,10"/>
+                <TextBlock Text="CONTEXT MENUS" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
                 <Grid Margin="0,0,0,3">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="26"/>
@@ -693,9 +490,9 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Text="Font Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="4" Grid.ColumnSpan="3" Text="Icon Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="8" Grid.ColumnSpan="3" Text="Background Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                    <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Text="Font Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="4" Grid.ColumnSpan="3" Text="Icon Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="8" Grid.ColumnSpan="3" Text="Background Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                 </Grid>
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
@@ -744,8 +541,8 @@
                         <ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Font &amp; Icon Hover Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
-                    <TextBlock Grid.Column="2" Text="Font &amp; Icon Hover BG Color:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+                    <TextBlock Grid.Column="0" Text="Font &amp; Icon Hover Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
+                    <TextBlock Grid.Column="2" Text="Font &amp; Icon Hover BG Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                 </Grid>
                 <Grid Margin="0,0,0,15">
                     <Grid.ColumnDefinitions>

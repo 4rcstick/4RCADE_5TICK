@@ -14,12 +14,12 @@
 
         <TextBlock Grid.Row="0" Text="PREVIEWS ORDER" 
                    FontWeight="Bold" Margin="0,0,0,8"
-                   FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                   Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                   FontSize="{DynamicResource Global.Font.Header.Size}"
+                   Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
         <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,15"
-                   FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                   Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
+                   FontSize="{DynamicResource Global.Font.Standard.Size}"
+                   Foreground="{DynamicResource Global.Font.Standard.Color}"
                    Text="To adjust what order the previews are displayed in the Preview Panel, select one below and use the up/down buttons to move it to it's desired position. The program will start with the top and work through each asset and display the first matching asset it finds. If none are found it will display the default &quot;no preview found&quot; Image, or you can select your own image in the THEMES tab."/>
 
         <!-- [SECTION: Preview Priority List + Controls] -->

@@ -9,22 +9,22 @@
         <StackPanel Margin="15">
             <TextBlock Text="ASSET PATHS" 
                        FontWeight="Bold" Margin="0,0,0,8"
-                       FontSize="{Binding HeaderFontSize, FallbackValue=14}"
-                       Foreground="{Binding HeaderColorHex, FallbackValue=#FFef44c3}"/>
+                       FontSize="{DynamicResource Global.Font.Header.Size}"
+                       Foreground="{DynamicResource Global.Font.Header.Color}"/>
 
             <TextBlock TextWrapping="Wrap" Margin="0,0,0,15"
-                       FontSize="{Binding StandardFontSize, FallbackValue=13}"
-                       Foreground="{Binding StandardColorHex, FallbackValue=#F2F2F7}"
+                       FontSize="{DynamicResource Global.Font.Standard.Size}"
+                       Foreground="{DynamicResource Global.Font.Standard.Color}"
                        Text="The default folders for media assets are stored in the MAME root media subfolder, but you can change their directory paths here if yours are stored elsewhere."/>
 
-            <Separator Background="{Binding SeparatorColorHex, FallbackValue=#2C2C2E}" Margin="0,5,0,15"/>
+            <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,5,0,15"/>
 
             <!-- [SECTION: Asset Path Rows] -->
             <!-- Repeating pattern: a path TextBox + a "..." browse Button, all wired to the same
                  BtnBrowseDirectory_Click handler in code-behind (which resolves the target TextBox from the sender). -->
 
             <!-- Marquees -->
-            <TextBlock Text="Marquees Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Marquees Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -40,7 +40,7 @@
             </Grid>
 
             <!-- Videos -->
-            <TextBlock Text="Videos Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Videos Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -56,7 +56,7 @@
             </Grid>
 
             <!-- Flyers -->
-            <TextBlock Text="Flyers Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Flyers Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -72,7 +72,7 @@
             </Grid>
 
             <!-- Gameplay Captures -->
-            <TextBlock Text="Gameplay Captures Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Gameplay Captures Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -88,7 +88,7 @@
             </Grid>
 
             <!-- Title Screens -->
-            <TextBlock Text="Title Screens Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Title Screens Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,15">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -104,7 +104,7 @@
             </Grid>
 
             <!-- Cabinets -->
-            <TextBlock Text="Cabinets Folder:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" Margin="0,0,0,5"/>
+            <TextBlock Text="Cabinets Folder:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" Margin="0,0,0,5"/>
             <Grid Margin="0,0,0,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
