@@ -8,6 +8,32 @@
     <Application.Resources>
         <Models:RadiusConverter x:Key="RadiusConverter"/>
 
+        <!-- [SECTION: Chrome Palette] -->
+        <!-- The fixed (not themeable) colors of the app's input chrome: text boxes, combo boxes and their dropdowns,
+             list boxes, checkboxes, sliders, the color picker popups and the small dialogs (Manage Playlists, the
+             name prompts, RomCopyPath). Every Chrome* and Theme Builder shared style below references these keys and
+             holds no hex values of its own, so the whole palette is retuned by editing only this block. Disabled
+             controls use opacity 0.5 instead of a color. Text size and family stay themeable (Global Fonts). -->
+        <SolidColorBrush x:Key="ChromeWindowBg" Color="#FF1C1C1E"/>
+        <SolidColorBrush x:Key="ChromeBg" Color="#FF000000"/>
+        <SolidColorBrush x:Key="ChromeBgHover" Color="#FF1C1C1E"/>
+        <SolidColorBrush x:Key="ChromeBorder" Color="#FF3A3A3C"/>
+        <SolidColorBrush x:Key="ChromeBorderHover" Color="#FF636366"/>
+        <SolidColorBrush x:Key="ChromeAccent" Color="#FF00D4FF"/>
+        <SolidColorBrush x:Key="ChromeText" Color="#FFF2F2F7"/>
+        <SolidColorBrush x:Key="ChromeTextMuted" Color="#FFA0A0A2"/>
+        <SolidColorBrush x:Key="ChromeItemHoverBg" Color="#1F00D4FF"/>
+        <SolidColorBrush x:Key="ChromeItemHoverBorder" Color="#A800D4FF"/>
+        <SolidColorBrush x:Key="ChromeSelectedBg" Color="#3D00D4FF"/>
+        <SolidColorBrush x:Key="ChromeSelectedBorder" Color="#FF00D4FF"/>
+        <SolidColorBrush x:Key="ChromeSelectedText" Color="#FFF2F2F7"/>
+        <!-- Selection while the list is not focused. Equal to the active pair so the selection stays cyan; the stock
+             Windows grey-out would be #3DDADADA / #FFDADADA. -->
+        <SolidColorBrush x:Key="ChromeSelectedInactiveBg" Color="#3D00D4FF"/>
+        <SolidColorBrush x:Key="ChromeSelectedInactiveBorder" Color="#FF00D4FF"/>
+        <SolidColorBrush x:Key="ChromeSliderTrack" Color="#FF3A3A3C"/>
+        <!-- [END SECTION: Chrome Palette] -->
+
         <!-- [SECTION: Main Background Brush] -->
         <!-- The Main Window Background layer's color for the active resolution, for windows that cannot bind to
              MainViewModel.ThemeMainColor (Theme Builder picker popups, Sorting window, Manage Playlists). Use it as
@@ -241,6 +267,357 @@
             </Setter>
         </Style>
         <!-- [END SECTION: ArcadeDarkScrollViewer Style] -->
+
+        <!-- [SECTION: Chrome Control Styles] -->
+        <!-- Keyed (never implicit) styles for the fixed chrome, built only on the Chrome Palette keys. Full templates,
+             because the stock Windows templates ignore Background/BorderBrush for these states. Text size follows the
+             Global Standard font size. Lists and dropdowns scroll through ArcadeDarkScrollViewer. -->
+        <Style x:Key="ChromeTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource ChromeBg}"/>
+            <Setter Property="Foreground" Value="{StaticResource ChromeText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ChromeBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="{StaticResource ChromeText}"/>
+            <Setter Property="SelectionBrush" Value="{StaticResource ChromeAccent}"/>
+            <Setter Property="FontSize" Value="{DynamicResource Global.Font.Standard.Size}"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeBgHover}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeBorderHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeAccent}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChromeComboBoxItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="{StaticResource ChromeText}"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeItemHoverBg}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeItemHoverBorder}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeSelectedBg}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeSelectedBorder}"/>
+                                <Setter Property="Foreground" Value="{StaticResource ChromeSelectedText}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChromeComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource ChromeBg}"/>
+            <Setter Property="Foreground" Value="{StaticResource ChromeText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ChromeBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="{DynamicResource Global.Font.Standard.Size}"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ChromeComboBoxItemStyle}"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True"/>
+                            <ToggleButton x:Name="ToggleButton" Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent">
+                                            <Path Fill="{StaticResource ChromeAccent}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" Margin="8,0,25,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
+                            <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Grid SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border Background="{StaticResource ChromeBg}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1"/>
+                                    <ScrollViewer Margin="1" SnapsToDevicePixels="True" Style="{StaticResource ArcadeDarkScrollViewer}">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeBgHover}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeBorderHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeAccent}"/>
+                            </Trigger>
+                            <Trigger Property="IsDropDownOpen" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeAccent}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChromeListBoxItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeItemHoverBg}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeItemHoverBorder}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeSelectedInactiveBg}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeSelectedInactiveBorder}"/>
+                                <Setter Property="Foreground" Value="{StaticResource ChromeSelectedText}"/>
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="Selector.IsSelectionActive" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeSelectedBg}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeSelectedBorder}"/>
+                                <Setter Property="Foreground" Value="{StaticResource ChromeSelectedText}"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChromeListBoxStyle" TargetType="ListBox">
+            <Setter Property="Background" Value="{StaticResource ChromeBg}"/>
+            <Setter Property="Foreground" Value="{StaticResource ChromeText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ChromeBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="{DynamicResource Global.Font.Standard.Size}"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ChromeListBoxItemStyle}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+                            <ScrollViewer Style="{StaticResource ArcadeDarkScrollViewer}" Padding="{TemplateBinding Padding}" Focusable="False">
+                                <ItemsPresenter/>
+                            </ScrollViewer>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- The box, border and check mark only. The label keeps whatever Foreground and FontSize the checkbox is given
+             (the themed Standard font values, see GLCheckBoxStyle). -->
+        <Style x:Key="ChromeCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="Box" Width="14" Height="14" VerticalAlignment="Center" Background="{StaticResource ChromeBg}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                <Grid>
+                                    <Path x:Name="CheckMark" Data="M 1.5,6 L 4.5,9 L 10.5,2.5" Stroke="{StaticResource ChromeAccent}" StrokeThickness="2" Visibility="Collapsed"/>
+                                    <Rectangle x:Name="IndeterminateMark" Width="6" Height="6" Fill="{StaticResource ChromeAccent}" Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+                            <ContentPresenter Grid.Column="1" Margin="6,0,0,0" RecognizesAccessKey="True"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="{x:Null}">
+                                <Setter TargetName="IndeterminateMark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource ChromeBorderHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource ChromeAccent}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Horizontal slider: a thin track and a round thumb. -->
+        <Style x:Key="ChromeSliderStyle" TargetType="Slider">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid MinHeight="20" Background="Transparent">
+                            <Border Height="4" Margin="6,0" VerticalAlignment="Center" Background="{StaticResource ChromeSliderTrack}" SnapsToDevicePixels="True"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge" Focusable="False" IsTabStop="False" OverridesDefaultStyle="True">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Rectangle Fill="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge" Focusable="False" IsTabStop="False" OverridesDefaultStyle="True">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Rectangle Fill="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb OverridesDefaultStyle="True">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse x:Name="Knob" Width="12" Height="12" Fill="{StaticResource ChromeAccent}"/>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Knob" Property="Stroke" Value="{StaticResource ChromeText}"/>
+                                                        <Setter TargetName="Knob" Property="StrokeThickness" Value="1"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsDragging" Value="True">
+                                                        <Setter TargetName="Knob" Property="Fill" Value="{StaticResource ChromeText}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- [END SECTION: Chrome Control Styles] -->
+
+        <!-- [SECTION: Theme Builder Shared Styles] -->
+        <!-- Moved from AdvancedThemesTabControl.xaml (Pass 2a) so both Theme Builder tabs share them. The color picker
+             popup, text box, check box box and glyph toggle are on the Chrome Palette. The label and check box label
+             colors and sizes stay themed (Global Fonts), read from the window's DataContext (ConfigurationSettings). -->
+        <!-- Themes the color picker's own popup: applied through each picker's Resources as an implicit Grid style
+             BasedOn this one (the popup's root Grid is named MainGrid). -->
+        <Style x:Key="PickerPopupGridStyle" TargetType="Grid">
+            <Style.Triggers>
+                <Trigger Property="Name" Value="MainGrid">
+                    <Setter Property="Background" Value="{StaticResource ChromeWindowBg}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="GLLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}"/>
+            <Setter Property="FontSize" Value="{Binding SubHeaderFontSize, FallbackValue=13}"/>
+            <Setter Property="Margin" Value="0,10,0,3"/>
+        </Style>
+
+        <Style x:Key="GLTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource ChromeTextBoxStyle}">
+            <Setter Property="Padding" Value="4"/>
+        </Style>
+
+        <Style x:Key="GLCheckBoxStyle" TargetType="CheckBox" BasedOn="{StaticResource ChromeCheckBoxStyle}">
+            <Setter Property="Foreground" Value="{Binding StandardColorHex, FallbackValue=White}"/>
+            <Setter Property="FontSize" Value="{Binding StandardFontSize, FallbackValue=12}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Small square toggle with a link glyph (Segoe MDL2 Assets), used for the aspect-ratio lock. Checked shows the
+             selected chrome look. -->
+        <Style x:Key="GlyphToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bd" BorderThickness="1" Background="{StaticResource ChromeBg}" BorderBrush="{StaticResource ChromeBorder}" SnapsToDevicePixels="True">
+                            <TextBlock x:Name="Glyph" Text="&#xE71B;" FontFamily="Segoe MDL2 Assets" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{StaticResource ChromeText}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeBgHover}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeBorderHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource ChromeSelectedBg}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ChromeSelectedBorder}"/>
+                                <Setter TargetName="Glyph" Property="Foreground" Value="{StaticResource ChromeAccent}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- [END SECTION: Theme Builder Shared Styles] -->
 
         <!-- [SECTION: Themed Tab Styles] -->
         <!-- Shared tab chrome, copied from the inline styles in ThemeBuilderWindow.xaml / OptionsWindow.xaml.

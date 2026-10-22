@@ -552,19 +552,27 @@ namespace ArcadeStick.Views
         }
 
         // Small name prompt built in code (OK / Cancel, Enter confirms, Esc cancels), pre-filled with initialText
-        // (selected). Returns null if cancelled; an empty result is "" when allowEmpty, otherwise null.
+        // (selected). Returns null if cancelled; an empty result is "" when allowEmpty, otherwise null. Chrome Palette
+        // window and text box; the label and buttons use the Global font and button values.
         private string? PromptForLayerName(string title, string label, string initialText, bool allowEmpty)
         {
-            var nameBox = new TextBox { Margin = new Thickness(0, 6, 0, 12), Padding = new Thickness(4), MaxLength = 24, Text = initialText };
-            var okButton = new Button { Content = "OK", Width = 70, IsDefault = true, Margin = new Thickness(0, 0, 8, 0), Padding = new Thickness(0, 3, 0, 3) };
-            var cancelButton = new Button { Content = "Cancel", Width = 70, IsCancel = true, Padding = new Thickness(0, 3, 0, 3) };
+            var nameBox = new TextBox { Margin = new Thickness(0, 6, 0, 12), MaxLength = 24, Text = initialText, Style = (Style)FindResource("GLTextBoxStyle") };
+            var okButton = MakePromptButton("OK");
+            okButton.IsDefault = true;
+            okButton.Margin = new Thickness(0, 0, 8, 0);
+            var cancelButton = MakePromptButton("Cancel");
+            cancelButton.IsCancel = true;
 
             var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
             buttons.Children.Add(okButton);
             buttons.Children.Add(cancelButton);
 
+            var labelText = new TextBlock { Text = label };
+            labelText.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardColor);
+            labelText.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardSize);
+
             var panel = new StackPanel { Margin = new Thickness(14) };
-            panel.Children.Add(new TextBlock { Text = label });
+            panel.Children.Add(labelText);
             panel.Children.Add(nameBox);
             panel.Children.Add(buttons);
 
@@ -577,8 +585,11 @@ namespace ArcadeStick.Views
                 ResizeMode = ResizeMode.NoResize,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = Window.GetWindow(this),
-                ShowInTaskbar = false
+                ShowInTaskbar = false,
+                // ThemedActionButtonStyle reads its hover, radius and font size from the window's DataContext
+                DataContext = _settings
             };
+            prompt.SetResourceReference(Window.BackgroundProperty, "ChromeWindowBg");
 
             okButton.Click += (s, args) => prompt.DialogResult = true;
             prompt.Loaded += (s, args) =>
@@ -591,6 +602,17 @@ namespace ArcadeStick.Views
 
             string name = nameBox.Text.Trim();
             return string.IsNullOrEmpty(name) && !allowEmpty ? null : name;
+        }
+
+        // Builds one name prompt button: the shared action button template with the Global button colors and border
+        private Button MakePromptButton(string content)
+        {
+            var button = new Button { Content = content, Width = 70, Padding = new Thickness(0, 3, 0, 3), Style = (Style)FindResource("ThemedActionButtonStyle") };
+            button.SetResourceReference(Button.BackgroundProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBg);
+            button.SetResourceReference(Button.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.ButtonText);
+            button.SetResourceReference(Button.BorderBrushProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBorderColor);
+            button.SetResourceReference(Button.BorderThicknessProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBorderSize);
+            return button;
         }
 
         // Remove: deletes the selected custom layer at this resolution only (other resolutions are untouched).
@@ -839,8 +861,7 @@ namespace ArcadeStick.Views
             PnlGroupParts.Children.Clear();
             _partControls.Clear();
 
-            var fieldBackground = (Brush)new BrushConverter().ConvertFromString("#1C1C1E")!;
-            var fieldBorder = (Brush)new BrushConverter().ConvertFromString("#3A3A3C")!;
+            var fieldStyle = (Style)FindResource("GLTextBoxStyle");
 
             TextBox MakeBox(string partId, int column, Grid host)
             {
@@ -848,10 +869,7 @@ namespace ArcadeStick.Views
                 {
                     Tag = partId,
                     HorizontalContentAlignment = HorizontalAlignment.Center,
-                    Background = fieldBackground,
-                    Foreground = Brushes.White,
-                    BorderBrush = fieldBorder,
-                    Padding = new Thickness(4),
+                    Style = fieldStyle,
                     Margin = new Thickness(column == 0 ? 0 : 6, 0, 0, 0)
                 };
                 box.GotFocus += PartField_GotFocus;
@@ -896,9 +914,8 @@ namespace ArcadeStick.Views
                     Height = MakeBox(partId, 3, host)
                 };
 
-                var hide = new CheckBox { Content = "Hide", Tag = partId, Margin = new Thickness(0, 6, 0, 14), VerticalContentAlignment = VerticalAlignment.Center };
-                hide.SetBinding(CheckBox.ForegroundProperty, new System.Windows.Data.Binding("StandardColorHex"));
-                hide.SetBinding(CheckBox.FontSizeProperty, new System.Windows.Data.Binding("StandardFontSize"));
+                // GLCheckBoxStyle: palette box, label in the themed Standard font color and size
+                var hide = new CheckBox { Content = "Hide", Tag = partId, Margin = new Thickness(0, 6, 0, 14), Style = (Style)FindResource("GLCheckBoxStyle") };
                 hide.Click += PartHide_Click;
                 controls.Hide = hide;
 

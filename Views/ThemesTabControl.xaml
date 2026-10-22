@@ -37,63 +37,13 @@
 
                     <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal">
                         <TextBlock Text="Active Theme:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <ComboBox x:Name="CboThemePresets" Width="180" Height="25" 
-          Foreground="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=White}">
-                            <ComboBox.Template>
-                                <ControlTemplate TargetType="ComboBox">
-                                    <Grid>
-                                        <ToggleButton x:Name="ToggleButton" Focusable="false" 
-                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press">
-                                            <ToggleButton.Template>
-                                                <ControlTemplate TargetType="ToggleButton">
-                                                    <Border Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
-                                    BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" 
-                                    BorderThickness="1">
-                                                        <Path x:Name="Arrow" 
-                                      Fill="{Binding DataContext.BtnTextColorNormalHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}" 
-                                      HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Data="M 0 0 L 4 4 L 8 0 Z"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </ToggleButton.Template>
-                                        </ToggleButton>
-                                        <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" 
-                                  Content="{TemplateBinding SelectionBoxItem}" Margin="8,0,25,0" 
-                                  VerticalAlignment="Center" HorizontalAlignment="Left" />
-                                        <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
-                                            <Grid x:Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                                <Border x:Name="DropDownBorder" 
-                                Background="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" 
-                                BorderThickness="1" 
-                                BorderBrush="{Binding DataContext.BorderColorFramework, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                                <ScrollViewer Margin="1" SnapsToDevicePixels="True">
-                                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
-                                                </ScrollViewer>
-                                            </Grid>
-                                        </Popup>
-                                    </Grid>
-                                </ControlTemplate>
-                            </ComboBox.Template>
-                            <ComboBox.ItemContainerStyle>
-                                <Style TargetType="ComboBoxItem">
-                                    <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
-                                    <Setter Property="Foreground" Value="{Binding DataContext.StandardColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
-                                    <Setter Property="Padding" Value="8,4"/>
-                                    <Setter Property="BorderThickness" Value="1"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsHighlighted" Value="True">
-                                            <Setter Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
-                                            <Setter Property="Foreground" Value="{Binding DataContext.FolderSelectedColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ComboBox.ItemContainerStyle>
-                        </ComboBox>
+                        <ComboBox x:Name="CboThemePresets" Width="180" Height="25" Style="{StaticResource ChromeComboBoxStyle}"/>
                     </StackPanel>
 
                     <!-- Only visible when "[New Theme...]" is selected in the dropdown above -->
                     <StackPanel Grid.Column="0" Grid.Row="2" x:Name="PnlNewThemeName" Orientation="Horizontal" Visibility="Collapsed">
                         <TextBlock Text="New Theme Name:" Foreground="{Binding SubHeaderColorHex, FallbackValue=#00D4FF}" FontSize="{Binding SubHeaderFontSize, FallbackValue=13}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBox x:Name="TxtNewThemeName" Width="151" Height="25" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                        <TextBox x:Name="TxtNewThemeName" Width="151" Height="25" Style="{StaticResource GLTextBoxStyle}"/>
                     </StackPanel>
 
                     <!-- Load / Save-Apply / Delete theme actions -->
@@ -164,48 +114,22 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="FolderSelectedColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="FolderSelectedColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="2" x:Name="TxtFolderSelectedColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtFolderSelectedColorHex_LostFocus"/>
-                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="2" x:Name="TxtFolderSelectedColorHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtFolderSelectedColorHex_LostFocus"/>
+                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="FolderSelectedBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="FolderSelectedBgColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="6" x:Name="TxtFolderSelectedBgColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtFolderSelectedBgColorHex_LostFocus"/>
+                    <TextBox Grid.Column="6" x:Name="TxtFolderSelectedBgColorHex" Text="#FF2C2C2E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtFolderSelectedBgColorHex_LostFocus"/>
                 </Grid>
                 
                 <!-- [END SECTION: Games List Panel] -->
@@ -259,50 +183,24 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtHeaderFontSize" HorizontalContentAlignment="Center" Text="12" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="0" x:Name="TxtHeaderFontSize" HorizontalContentAlignment="Center" Text="12" Style="{StaticResource GLTextBoxStyle}"/>
+                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="HeaderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="HeaderColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="4" x:Name="TxtHeaderColorHex" Text="#FFFFCC00" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtHeaderColorHex_LostFocus"/>
-                    <TextBox Grid.Column="6" x:Name="TxtSubHeaderFontSize" HorizontalContentAlignment="Center" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="4" x:Name="TxtHeaderColorHex" Text="#FFFFCC00" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtHeaderColorHex_LostFocus"/>
+                    <TextBox Grid.Column="6" x:Name="TxtSubHeaderFontSize" HorizontalContentAlignment="Center" Text="13" Style="{StaticResource GLTextBoxStyle}"/>
+                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="SubHeaderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SubHeaderColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="10" x:Name="TxtSubHeaderColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtSubHeaderColorHex_LostFocus"/>
+                    <TextBox Grid.Column="10" x:Name="TxtSubHeaderColorHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSubHeaderColorHex_LostFocus"/>
                 </Grid>
 
                 <!-- Standard Text + Sub-Text (CARRIED OVER + NEW placeholder) -->
@@ -337,50 +235,24 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtStandardFontSize" HorizontalContentAlignment="Center" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="0" x:Name="TxtStandardFontSize" HorizontalContentAlignment="Center" Text="13" Style="{StaticResource GLTextBoxStyle}"/>
+                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="StandardColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="StandardColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="4" x:Name="TxtStandardColorHex" Text="#FFF2F2F7" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtStandardColorHex_LostFocus"/>
-                    <TextBox Grid.Column="6" x:Name="TxtSubTextFontSize" HorizontalContentAlignment="Center" Text="12" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="4" x:Name="TxtStandardColorHex" Text="#FFF2F2F7" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtStandardColorHex_LostFocus"/>
+                    <TextBox Grid.Column="6" x:Name="TxtSubTextFontSize" HorizontalContentAlignment="Center" Text="12" Style="{StaticResource GLTextBoxStyle}"/>
+                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="SubTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SubTextColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="10" x:Name="TxtSubTextColorHex" Text="#FFA0A0A2" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtSubTextColorHex_LostFocus"/>
+                    <TextBox Grid.Column="10" x:Name="TxtSubTextColorHex" Text="#FFA0A0A2" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSubTextColorHex_LostFocus"/>
                 </Grid>
 
                 <!-- Background Color (NEW placeholder) + Content Area Background Color (CARRIED OVER, relabeled) -->
@@ -407,48 +279,22 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="OptionsMenuBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="OptionsMenuBgColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="2" x:Name="TxtOptionsMenuBgColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtOptionsMenuBgColorHex_LostFocus"/>
-                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="2" x:Name="TxtOptionsMenuBgColorHex" Text="#FF1C1C1E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtOptionsMenuBgColorHex_LostFocus"/>
+                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="OptionsColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="OptionsColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="6" x:Name="TxtOptionsColorHex" Text="" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtOptionsColorHex_LostFocus"/>
+                    <TextBox Grid.Column="6" x:Name="TxtOptionsColorHex" Text="" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtOptionsColorHex_LostFocus"/>
                 </Grid>
 
                 <!-- Border Size / Border Color / Border Corner Radius (NEW - placeholder) -->
@@ -476,29 +322,16 @@
                         <ColumnDefinition Width="10"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtOptionsMenuBorderSize" HorizontalContentAlignment="Center" Text="1" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="0" x:Name="TxtOptionsMenuBorderSize" HorizontalContentAlignment="Center" Text="1" Style="{StaticResource GLTextBoxStyle}"/>
+                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="OptionsMenuBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="OptionsMenuBorderColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="4" x:Name="TxtOptionsMenuBorderColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtOptionsMenuBorderColorHex_LostFocus"/>
-                    <TextBox Grid.Column="6" x:Name="TxtOptionsMenuBorderRadius" HorizontalContentAlignment="Center" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
+                    <TextBox Grid.Column="4" x:Name="TxtOptionsMenuBorderColorHex" Text="#FF3A3A3C" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtOptionsMenuBorderColorHex_LostFocus"/>
+                    <TextBox Grid.Column="6" x:Name="TxtOptionsMenuBorderRadius" HorizontalContentAlignment="Center" Text="0" Style="{StaticResource GLTextBoxStyle}"/>
                 </Grid>
 
                 <!-- Tab Font Size/Color + Tab Background Color (CARRIED OVER) -->
@@ -525,28 +358,15 @@
                             <ColumnDefinition Width="5"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0" x:Name="TxtTabFontSize" HorizontalContentAlignment="Center" Text="12" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                        <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                        <TextBox Grid.Column="0" x:Name="TxtTabFontSize" HorizontalContentAlignment="Center" Text="12" Style="{StaticResource GLTextBoxStyle}"/>
+                        <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                             <colorpicker:PortableColorPicker x:Name="TabColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="TabColorPicker_ColorChanged">
                                 <colorpicker:PortableColorPicker.Resources>
-                                    <Style TargetType="Grid">
-                                        <Style.Triggers>
-                                            <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                    <Style TargetType="colorpicker:HexColorTextBox">
-                                        <Style.Resources>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                            </Style>
-                                        </Style.Resources>
-                                    </Style>
+                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                 </colorpicker:PortableColorPicker.Resources>
                             </colorpicker:PortableColorPicker>
                         </Border>
-                        <TextBox Grid.Column="4" x:Name="TxtTabColorHex" Text="#FFA0A0A2" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtTabColorHex_LostFocus"/>
+                        <TextBox Grid.Column="4" x:Name="TxtTabColorHex" Text="#FFA0A0A2" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtTabColorHex_LostFocus"/>
                     </Grid>
                     <Grid Grid.Column="2">
                         <Grid.ColumnDefinitions>
@@ -554,27 +374,14 @@
                             <ColumnDefinition Width="5"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                        <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                             <colorpicker:PortableColorPicker x:Name="TabBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="TabBgColorPicker_ColorChanged">
                                 <colorpicker:PortableColorPicker.Resources>
-                                    <Style TargetType="Grid">
-                                        <Style.Triggers>
-                                            <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                    <Style TargetType="colorpicker:HexColorTextBox">
-                                        <Style.Resources>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                            </Style>
-                                        </Style.Resources>
-                                    </Style>
+                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                 </colorpicker:PortableColorPicker.Resources>
                             </colorpicker:PortableColorPicker>
                         </Border>
-                        <TextBox Grid.Column="2" x:Name="TxtTabBgColorHex" Text="Transparent" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtTabBgColorHex_LostFocus"/>
+                        <TextBox Grid.Column="2" x:Name="TxtTabBgColorHex" Text="Transparent" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtTabBgColorHex_LostFocus"/>
                     </Grid>
                 </Grid>
 
@@ -620,90 +427,38 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="TabColorHoverPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="TabColorHoverPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="2" x:Name="TxtTabColorHoverHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtTabColorHoverHex_LostFocus"/>
-                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="2" x:Name="TxtTabColorHoverHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtTabColorHoverHex_LostFocus"/>
+                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="TabBgColorHoverPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="TabBgColorHoverPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="6" x:Name="TxtTabBgColorHoverHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtTabBgColorHoverHex_LostFocus"/>
-                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="6" x:Name="TxtTabBgColorHoverHex" Text="#FF2C2C2E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtTabBgColorHoverHex_LostFocus"/>
+                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="TabActiveColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="TabActiveColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="10" x:Name="TxtTabActiveColorHex" Text="#000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtTabActiveColorHex_LostFocus"/>
-                    <Border Grid.Column="12" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="10" x:Name="TxtTabActiveColorHex" Text="#000000" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtTabActiveColorHex_LostFocus"/>
+                    <Border Grid.Column="12" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="TabActiveBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="TabActiveBgColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="14" x:Name="TxtTabActiveBgColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtTabActiveBgColorHex_LostFocus"/>
+                    <TextBox Grid.Column="14" x:Name="TxtTabActiveBgColorHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtTabActiveBgColorHex_LostFocus"/>
                 </Grid>
 
                 <!-- Button Font Size/Color (NEW size + CARRIED OVER color) + Button Background Color (CARRIED OVER) -->
@@ -730,28 +485,15 @@
                             <ColumnDefinition Width="5"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0" x:Name="TxtOptionsBtnFontSize" HorizontalContentAlignment="Center" Text="13" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                        <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                        <TextBox Grid.Column="0" x:Name="TxtOptionsBtnFontSize" HorizontalContentAlignment="Center" Text="13" Style="{StaticResource GLTextBoxStyle}"/>
+                        <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                             <colorpicker:PortableColorPicker x:Name="BtnTextColorNormalPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BtnTextColorNormalPicker_ColorChanged">
                                 <colorpicker:PortableColorPicker.Resources>
-                                    <Style TargetType="Grid">
-                                        <Style.Triggers>
-                                            <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                    <Style TargetType="colorpicker:HexColorTextBox">
-                                        <Style.Resources>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                            </Style>
-                                        </Style.Resources>
-                                    </Style>
+                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                 </colorpicker:PortableColorPicker.Resources>
                             </colorpicker:PortableColorPicker>
                         </Border>
-                        <TextBox Grid.Column="4" x:Name="TxtBtnTextColorNormalHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtBtnTextColorNormalHex_LostFocus"/>
+                        <TextBox Grid.Column="4" x:Name="TxtBtnTextColorNormalHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBtnTextColorNormalHex_LostFocus"/>
                     </Grid>
                     <Grid Grid.Column="2">
                         <Grid.ColumnDefinitions>
@@ -759,27 +501,14 @@
                             <ColumnDefinition Width="5"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                        <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                             <colorpicker:PortableColorPicker x:Name="BtnBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BtnBgColorPicker_ColorChanged">
                                 <colorpicker:PortableColorPicker.Resources>
-                                    <Style TargetType="Grid">
-                                        <Style.Triggers>
-                                            <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                    <Style TargetType="colorpicker:HexColorTextBox">
-                                        <Style.Resources>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                            </Style>
-                                        </Style.Resources>
-                                    </Style>
+                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                 </colorpicker:PortableColorPicker.Resources>
                             </colorpicker:PortableColorPicker>
                         </Border>
-                        <TextBox Grid.Column="2" x:Name="TxtBtnBgColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtBtnBgColorHex_LostFocus"/>
+                        <TextBox Grid.Column="2" x:Name="TxtBtnBgColorHex" Text="#FF1C1C1E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBtnBgColorHex_LostFocus"/>
                     </Grid>
                 </Grid>
 
@@ -807,48 +536,22 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="OptionsBtnColorHoverPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="OptionsBtnColorHoverPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="2" x:Name="TxtOptionsBtnColorHoverHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtOptionsBtnColorHoverHex_LostFocus"/>
-                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="2" x:Name="TxtOptionsBtnColorHoverHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtOptionsBtnColorHoverHex_LostFocus"/>
+                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="BtnBgColorHoverPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BtnBgColorHoverPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="6" x:Name="TxtBtnBgColorHoverHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtBtnBgColorHoverHex_LostFocus"/>
+                    <TextBox Grid.Column="6" x:Name="TxtBtnBgColorHoverHex" Text="#FF2C2C2E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBtnBgColorHoverHex_LostFocus"/>
                 </Grid>
 
                 <!-- Button Border Size (NEW) / Button Border Color (CARRIED OVER) / Button Border Radius (NEW) / Separator Color (CARRIED OVER) -->
@@ -885,62 +588,34 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="0" x:Name="TxtOptionsBtnBorderSize" HorizontalContentAlignment="Center" Text="1" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="0" x:Name="TxtOptionsBtnBorderSize" HorizontalContentAlignment="Center" Text="1" Style="{StaticResource GLTextBoxStyle}"/>
+                    <Border Grid.Column="2" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="BtnBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BtnBorderColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="4" x:Name="TxtBtnBorderColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtBtnBorderColorHex_LostFocus"/>
-                    <TextBox Grid.Column="6" x:Name="TxtOptionsBtnBorderRadius" HorizontalContentAlignment="Center" Text="0" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4"/>
-                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="4" x:Name="TxtBtnBorderColorHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBtnBorderColorHex_LostFocus"/>
+                    <TextBox Grid.Column="6" x:Name="TxtOptionsBtnBorderRadius" HorizontalContentAlignment="Center" Text="0" Style="{StaticResource GLTextBoxStyle}"/>
+                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="SeparatorColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SeparatorColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="10" x:Name="TxtSeparatorColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtSeparatorColorHex_LostFocus"/>
+                    <TextBox Grid.Column="10" x:Name="TxtSeparatorColorHex" Text="#FF2C2C2E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSeparatorColorHex_LostFocus"/>
                 </Grid>
                 <!-- [END SECTION: Options Menu] -->
 
                  <!-- Old [SECTION: Tab Options] removed entirely - fully consolidated into
                  [SECTION: Options Menu] above. -->
 
-               <!-- Old [SECTION: Border and Line Options] removed entirely. FrameworkBorderColorPicker/
-                 TxtFrameworkBorderColorHex (BorderColorFramework) still needed - it drives OptionsWindow.xaml
-                 chrome and every swatch-wrapper border throughout this file via ThemeBorderColor - but
-                 currently has NO input field anywhere in the UI (removed here without a new home). Flag
-                 for a follow-up: either give it a slot in [SECTION: Options Menu] or elsewhere before the
-                 next build. Separator Color migrated into [SECTION: Options Menu] above. -->
+               <!-- Old [SECTION: Border and Line Options] removed entirely. BorderColorFramework has no input
+                 field; it is being replaced by the fixed ChromeBorder palette color (the swatch borders in this
+                 file already use it) and is removed in Global tab Pass 2b. Separator Color migrated into
+                 [SECTION: Options Menu] above. -->
 
                <!-- Old [SECTION: Global Buttons] removed entirely - fully consolidated into
                  [SECTION: Options Menu] above (as the Options Menu/ManagePlaylists button system). -->
@@ -970,27 +645,14 @@
                                 <ColumnDefinition Width="5"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                                 <colorpicker:PortableColorPicker x:Name="ScrollThumbColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrollThumbColorPicker_ColorChanged">
                                     <colorpicker:PortableColorPicker.Resources>
-                                        <Style TargetType="Grid">
-                                            <Style.Triggers>
-                                                <Trigger Property="Name" Value="MainGrid">
-                                                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                        <Style TargetType="colorpicker:HexColorTextBox">
-                                            <Style.Resources>
-                                                <Style TargetType="TextBox">
-                                                    <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                                </Style>
-                                            </Style.Resources>
-                                        </Style>
+                                        <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                     </colorpicker:PortableColorPicker.Resources>
                                 </colorpicker:PortableColorPicker>
                             </Border>
-                            <TextBox Grid.Column="2" x:Name="TxtScrollThumbColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtScrollThumbColorHex_LostFocus"/>
+                            <TextBox Grid.Column="2" x:Name="TxtScrollThumbColorHex" Text="#FF2C2C2E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtScrollThumbColorHex_LostFocus"/>
                         </Grid>
                     </StackPanel>
 
@@ -1002,27 +664,14 @@
                                 <ColumnDefinition Width="5"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                                 <colorpicker:PortableColorPicker x:Name="ScrollThumbHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrollThumbHoverColorPicker_ColorChanged">
                                     <colorpicker:PortableColorPicker.Resources>
-                                        <Style TargetType="Grid">
-                                            <Style.Triggers>
-                                                <Trigger Property="Name" Value="MainGrid">
-                                                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                        <Style TargetType="colorpicker:HexColorTextBox">
-                                            <Style.Resources>
-                                                <Style TargetType="TextBox">
-                                                    <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                                </Style>
-                                            </Style.Resources>
-                                        </Style>
+                                        <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                     </colorpicker:PortableColorPicker.Resources>
                                 </colorpicker:PortableColorPicker>
                             </Border>
-                            <TextBox Grid.Column="2" x:Name="TxtScrollThumbHoverColorHex" Text="#FF3A3A3C" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtScrollThumbHoverColorHex_LostFocus"/>
+                            <TextBox Grid.Column="2" x:Name="TxtScrollThumbHoverColorHex" Text="#FF3A3A3C" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtScrollThumbHoverColorHex_LostFocus"/>
                         </Grid>
                     </StackPanel>
 
@@ -1034,27 +683,14 @@
                                 <ColumnDefinition Width="5"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                                 <colorpicker:PortableColorPicker x:Name="ScrollThumbDragColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrollThumbDragColorPicker_ColorChanged">
                                     <colorpicker:PortableColorPicker.Resources>
-                                        <Style TargetType="Grid">
-                                            <Style.Triggers>
-                                                <Trigger Property="Name" Value="MainGrid">
-                                                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                        <Style TargetType="colorpicker:HexColorTextBox">
-                                            <Style.Resources>
-                                                <Style TargetType="TextBox">
-                                                    <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                                </Style>
-                                            </Style.Resources>
-                                        </Style>
+                                        <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                     </colorpicker:PortableColorPicker.Resources>
                                 </colorpicker:PortableColorPicker>
                             </Border>
-                            <TextBox Grid.Column="2" x:Name="TxtScrollThumbDragColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtScrollThumbDragColorHex_LostFocus"/>
+                            <TextBox Grid.Column="2" x:Name="TxtScrollThumbDragColorHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtScrollThumbDragColorHex_LostFocus"/>
                         </Grid>
                     </StackPanel>
 
@@ -1066,27 +702,14 @@
                                 <ColumnDefinition Width="5"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                            <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                                 <colorpicker:PortableColorPicker x:Name="ScrollTrackColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrollTrackColorPicker_ColorChanged">
                                     <colorpicker:PortableColorPicker.Resources>
-                                        <Style TargetType="Grid">
-                                            <Style.Triggers>
-                                                <Trigger Property="Name" Value="MainGrid">
-                                                    <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                        <Style TargetType="colorpicker:HexColorTextBox">
-                                            <Style.Resources>
-                                                <Style TargetType="TextBox">
-                                                    <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                                </Style>
-                                            </Style.Resources>
-                                        </Style>
+                                        <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                     </colorpicker:PortableColorPicker.Resources>
                                 </colorpicker:PortableColorPicker>
                             </Border>
-                            <TextBox Grid.Column="2" x:Name="TxtScrollTrackColorHex" Text="#FF000000" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtScrollTrackColorHex_LostFocus"/>
+                            <TextBox Grid.Column="2" x:Name="TxtScrollTrackColorHex" Text="#FF000000" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtScrollTrackColorHex_LostFocus"/>
                         </Grid>
                     </StackPanel>
                 </Grid>
@@ -1103,27 +726,14 @@
                             <ColumnDefinition Width="5"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                        <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                             <colorpicker:PortableColorPicker x:Name="ScrollTrackHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrollTrackHoverColorPicker_ColorChanged">
                                 <colorpicker:PortableColorPicker.Resources>
-                                    <Style TargetType="Grid">
-                                        <Style.Triggers>
-                                            <Trigger Property="Name" Value="MainGrid">
-                                                <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                    <Style TargetType="colorpicker:HexColorTextBox">
-                                        <Style.Resources>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                            </Style>
-                                        </Style.Resources>
-                                    </Style>
+                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                 </colorpicker:PortableColorPicker.Resources>
                             </colorpicker:PortableColorPicker>
                         </Border>
-                        <TextBox Grid.Column="2" x:Name="TxtScrollTrackHoverColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtScrollTrackHoverColorHex_LostFocus"/>
+                        <TextBox Grid.Column="2" x:Name="TxtScrollTrackHoverColorHex" Text="#FF1C1C1E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtScrollTrackHoverColorHex_LostFocus"/>
                     </Grid>
                 </Grid>
                 <!-- [END SECTION: Global Scrollbars] -->
@@ -1163,69 +773,30 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="ContextMenuFontColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ContextMenuFontColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="2" x:Name="TxtContextMenuFontColorHex" Text="#FFF2F2F7" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtContextMenuFontColorHex_LostFocus"/>
-                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="2" x:Name="TxtContextMenuFontColorHex" Text="#FFF2F2F7" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtContextMenuFontColorHex_LostFocus"/>
+                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="ContextMenuIconColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ContextMenuIconColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="6" x:Name="TxtContextMenuIconColorHex" Text="#FF00D4FF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtContextMenuIconColorHex_LostFocus"/>
-                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="6" x:Name="TxtContextMenuIconColorHex" Text="#FF00D4FF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtContextMenuIconColorHex_LostFocus"/>
+                    <Border Grid.Column="8" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="ContextMenuBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ContextMenuBgColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="10" x:Name="TxtContextMenuBgColorHex" Text="#FF1C1C1E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtContextMenuBgColorHex_LostFocus"/>
+                    <TextBox Grid.Column="10" x:Name="TxtContextMenuBgColorHex" Text="#FF1C1C1E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtContextMenuBgColorHex_LostFocus"/>
                 </Grid>
 
                 <!-- Font & Icon Hover Color / Font & Icon Hover BG Color (NEW - placeholder) -->
@@ -1248,48 +819,22 @@
                         <ColumnDefinition Width="5"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <Border Grid.Column="0" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="ContextMenuHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ContextMenuHoverColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="2" x:Name="TxtContextMenuHoverColorHex" Text="#FFFFFFFF" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtContextMenuHoverColorHex_LostFocus"/>
-                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}" BorderThickness="1">
+                    <TextBox Grid.Column="2" x:Name="TxtContextMenuHoverColorHex" Text="#FFFFFFFF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtContextMenuHoverColorHex_LostFocus"/>
+                    <Border Grid.Column="4" Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="ContextMenuHoverBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ContextMenuHoverBgColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="Background" Value="{DynamicResource MainBackgroundBrush}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                                <Style TargetType="colorpicker:HexColorTextBox">
-                                    <Style.Resources>
-                                        <Style TargetType="TextBox">
-                                            <Setter Property="BorderBrush" Value="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}"/>
-                                        </Style>
-                                    </Style.Resources>
-                                </Style>
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>
-                    <TextBox Grid.Column="6" x:Name="TxtContextMenuHoverBgColorHex" Text="#FF2C2C2E" Background="#1C1C1E" Foreground="White" BorderBrush="#3A3A3C" Padding="4" LostFocus="TxtContextMenuHoverBgColorHex_LostFocus"/>
+                    <TextBox Grid.Column="6" x:Name="TxtContextMenuHoverBgColorHex" Text="#FF2C2C2E" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtContextMenuHoverBgColorHex_LostFocus"/>
                 </Grid>
                 <!-- [END SECTION: Context Menus] -->
             </StackPanel>
