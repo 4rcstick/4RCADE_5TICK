@@ -41,26 +41,17 @@
                 <Button x:Name="BtnMediaUp" Content="Up ▲" 
                         Width="100" Height="35" Margin="0,0,0,15"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         FontWeight="SemiBold" Click="BtnMediaUp_Click"/>
 
                 <Button x:Name="BtnMediaDown" Content="Down ▼" 
                         Width="100" Height="35" Margin="0,0,0,0"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         FontWeight="SemiBold" Click="BtnMediaDown_Click"/>
 
                 <!-- Persists the current list order to preview_order.cfg -->
                 <Button x:Name="BtnSaveMediaOrder" Content="Save Priority" 
                         Width="100" Height="35" Margin="0,100,0,0"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         FontWeight="SemiBold" Click="BtnSaveMediaOrder_Click"/>
             </StackPanel>
         </Grid>

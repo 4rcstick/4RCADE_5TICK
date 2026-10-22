@@ -79,17 +79,11 @@
                         <Button x:Name="BtnFolderUp" Content="▲" 
                                 Width="25" Height="50" Margin="0,0,0,0"
                                 Style="{StaticResource ThemedActionButtonStyle}"
-                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
-                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                                 FontWeight="SemiBold" Click="BtnFolderUp_Click"/>
 
                         <Button x:Name="BtnFolderDown" Content="▼" 
                                 Width="25" Height="50" Margin="0,0,0,0"
                                 Style="{StaticResource ThemedActionButtonStyle}"
-                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
-                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                                 FontWeight="SemiBold" Click="BtnFolderDown_Click"/>
                     </StackPanel>
 
@@ -98,17 +92,11 @@
                         <Button x:Name="BtnSubfolderUp" Content="▲" 
                                 Width="25" Height="50" Margin="0,0,0,0"
                                 Style="{StaticResource ThemedActionButtonStyle}"
-                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
-                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                                 FontWeight="SemiBold" Click="BtnSubfolderUp_Click"/>
 
                         <Button x:Name="BtnSubfolderDown" Content="▼" 
                                 Width="25" Height="50" Margin="0,0,0,0"
                                 Style="{StaticResource ThemedActionButtonStyle}"
-                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}" 
-                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                                 FontWeight="SemiBold" Click="BtnSubfolderDown_Click"/>
                     </StackPanel>
                 </Grid>
@@ -125,9 +113,6 @@
                         Grid.Row="2" Width="120" Height="35"
                         HorizontalAlignment="Center" VerticalAlignment="Bottom"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         FontWeight="SemiBold" Click="BtnSaveFolderOrder_Click"/>
             </Grid>
 

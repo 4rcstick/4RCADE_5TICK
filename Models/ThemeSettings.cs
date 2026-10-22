@@ -33,7 +33,6 @@ namespace ArcadeStick.Models
         public string TabBgColorHex { get; set; } = "Transparent";
         public string TabActiveColorHex { get; set; } = "#000000";
         public string TabActiveBgColorHex { get; set; } = "#FF00D4FF";
-        public string TabHoverColorHex { get; set; } = "#FF00D4FF";
         public int HeaderFontSize { get; set; } = 14;
         public string HeaderColorHex { get; set; } = "#FFEF44C3";
         public int SubHeaderFontSize { get; set; } = 13;

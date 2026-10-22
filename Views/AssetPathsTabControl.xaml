@@ -33,9 +33,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtMarqueesPath" Text=".\data\media\marquees" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseMarquees" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -49,9 +46,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtVideosPath" Text=".\data\media\videos" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseVideos" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -65,9 +59,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtFlyersPath" Text=".\data\media\flyers" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseFlyers" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -81,9 +72,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtGameplayPath" Text=".\data\media\gameplay" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseGameplay" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -97,9 +85,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtTitlescreensPath" Text=".\data\media\titlescreens" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseTitlescreens" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -113,9 +98,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtCabinetsPath" Text=".\data\media\cabinets" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseCabinets" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
             <!-- [END SECTION: Asset Path Rows] -->

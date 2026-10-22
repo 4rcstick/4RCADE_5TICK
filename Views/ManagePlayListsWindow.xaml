@@ -16,54 +16,8 @@
         Foreground="{StaticResource ChromeText}">
 
     <!-- This window handles both creating a new custom folder (playlist) and editing/deleting an
-         existing one - which mode is active is driven by FolderComboBox selection in code-behind. -->
-    <Window.Resources>
-        <!-- [SECTION: Standard Button Style] -->
-        <!-- Shared button style for this window's action buttons (Confirm/Cancel/Delete/Remove) -->
-        <Style x:Key="StandardButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{Binding BtnBgColorHex, FallbackValue=#2D2D35}"/>
-            <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=White}"/>
-            <Setter Property="BorderBrush" Value="{Binding BtnBorderColorHex, FallbackValue=Transparent}"/>
-            <Setter Property="BorderThickness" Value="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-            <Setter Property="FontSize" Value="{Binding OptionsBtnFontSize, FallbackValue=13}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="BtnBorder" Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="{Binding OptionsBtnBorderRadius, FallbackValue=0}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="BtnBorder" Property="Background" Value="{Binding BtnBgColorHoverHex, FallbackValue=#3A3A42}"/>
-                                <Setter Property="Foreground" Value="{Binding OptionsBtnColorHoverHex, FallbackValue=White}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.4"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <!-- [END SECTION: Standard Button Style] -->
-
-        <!-- [SECTION: Confirm Button Style] -->
-        <!-- Cyan "confirm" scheme layered on top of StandardButtonStyle's shared template/triggers -->
-        <Style x:Key="ConfirmButtonStyle" TargetType="Button" BasedOn="{StaticResource StandardButtonStyle}">
-            <Setter Property="Background" Value="{Binding BtnBgColorHex, FallbackValue=#1E1E24}"/>
-            <Setter Property="BorderBrush" Value="{Binding BtnBorderColorHex, FallbackValue=#00CBCB}"/>
-            <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=#00CBCB}"/>
-        </Style>
-        <!-- [END SECTION: Confirm Button Style] -->
-
-        <!-- [SECTION: Danger Button Style] -->
-        <!-- Shared red "destructive action" scheme for Remove/Delete, layered on StandardButtonStyle -->
-        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource StandardButtonStyle}">
-            <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=#CC1111}"/>
-        </Style>
-        <!-- [END SECTION: Danger Button Style] -->
-    </Window.Resources>
-
+         existing one - which mode is active is driven by FolderComboBox selection in code-behind.
+         Its buttons use the shared ThemedActionButtonStyle (Global Buttons resources). -->
     <Border Margin="20" 
             BorderBrush="{StaticResource ChromeBorder}" 
             BorderThickness="1" 
@@ -129,7 +83,7 @@
                          Margin="5,0,0,0"/>
                 </Grid>
                 <Button x:Name="RemoveButton" 
-                    Style="{StaticResource DangerButtonStyle}"
+                    Style="{StaticResource ThemedActionButtonStyle}"
                     Content="Remove From Custom Folder" 
                     Height="35" 
                     Margin="10,0,0,0" 
@@ -140,7 +94,7 @@
             <!-- Deletes the entire selected custom folder (edit mode only) -->
             <Button x:Name="DeleteFolderButton" 
                 Grid.Row="3" 
-                Style="{StaticResource DangerButtonStyle}"
+                Style="{StaticResource ThemedActionButtonStyle}"
                 Content="Delete Entire Folder" 
                 Height="35" 
                 Margin="0,0,0,20"/>
@@ -155,13 +109,13 @@
 
                 <Button x:Name="ConfirmButton" 
                     Grid.Column="0" 
-                    Style="{StaticResource ConfirmButtonStyle}"
+                    Style="{StaticResource ThemedActionButtonStyle}"
                     Content="Confirm Add" 
                     Height="35"/>
 
                 <Button x:Name="CancelButton" 
                     Grid.Column="2" 
-                    Style="{StaticResource StandardButtonStyle}"
+                    Style="{StaticResource ThemedActionButtonStyle}"
                     Content="Cancel" 
                     Height="35"/>
             </Grid>

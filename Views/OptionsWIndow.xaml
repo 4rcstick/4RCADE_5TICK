@@ -17,93 +17,9 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TabControl x:Name="OptionsTabControl" Grid.Row="0"
-                    Background="{DynamicResource Global.Options.ContentBg}" 
-                    BorderBrush="{DynamicResource Global.Options.BorderColor}" 
-                    BorderThickness="{DynamicResource Global.Options.BorderSize}" 
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}">
-
-            <!-- [SECTION: Custom TabControl Template] -->
-            <!-- WPF's default TabControl template has internal overlap math that can't be fixed with
-                 margin nudges - this fully custom Grid/TabPanel/ContentPresenter layout replaces it entirely. -->
-            <TabControl.Template>
-                <ControlTemplate TargetType="TabControl">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-
-                        <TabPanel Grid.Row="0"
-                                  IsItemsHost="True"
-                                  Panel.ZIndex="1"
-                                  Margin="0"/>
-
-                        <Border x:Name="TabContentBorder" Grid.Row="1"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="{DynamicResource Global.Options.RadiusBottom}">
-                            <ContentPresenter ContentSource="SelectedContent"/>
-                        </Border>
-                    </Grid>
-                </ControlTemplate>
-            </TabControl.Template>
-            <!-- [END SECTION: Custom TabControl Template] -->
-
-            <!-- [SECTION: Custom TabItem Style] -->
-            <!-- Themed tab header: normal / hover / selected states, all theme-bound with fallbacks -->
-            <TabControl.Resources>
-                <Style TargetType="TabItem">
-                    <Setter Property="Height" Value="25"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                    <Setter Property="FontSize" Value="{Binding TabFontSize, FallbackValue=12}"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TabItem">
-                                <Border x:Name="TabBorder" 
-                                        Background="{DynamicResource Global.Options.ContentBg}" 
-                                        BorderBrush="{DynamicResource Global.Options.BorderColor}" 
-                                        BorderThickness="1,1,1,0" 
-                                        CornerRadius="{DynamicResource Global.Options.RadiusTop}"
-                                        Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter x:Name="ContentSite"
-                                                      ContentSource="Header"
-                                                      HorizontalAlignment="Center"
-                                                      VerticalAlignment="Center"
-                                                      Margin="5,2"/>
-                                </Border>
-
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabActiveBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
-                                        <Setter Property="Foreground" Value="{Binding DataContext.TabActiveColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#000000}"/>
-                                    </Trigger>
-
-                                    <Trigger Property="IsSelected" Value="False">
-                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
-                                        <Setter Property="Foreground" Value="{Binding DataContext.TabColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#A0A0A2}"/>
-                                    </Trigger>
-
-                                    <!-- Declared last so it wins the same-property trigger-conflict resolution
-                                     against the IsSelected="False" trigger above. Only fires when IsSelected
-                                     is explicitly False, so the active tab's own trigger is never touched -
-                                     hover intentionally has no effect on the currently-selected tab. -->
-                                    <MultiTrigger>
-                                        <MultiTrigger.Conditions>
-                                            <Condition Property="IsMouseOver" Value="True"/>
-                                            <Condition Property="IsSelected" Value="False"/>
-                                        </MultiTrigger.Conditions>
-                                        <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
-                                        <Setter Property="Foreground" Value="{Binding DataContext.TabColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
-                                    </MultiTrigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </TabControl.Resources>
-            <!-- [END SECTION: Custom TabItem Style] -->
+        <TabControl x:Name="OptionsTabControl" Grid.Row="0" Style="{StaticResource ThemedTabControlStyle}">
+            <!-- Tab strip, headers and framed content area come from the shared Themed Tab Styles in App.xaml
+                 (Global Tabs and Backgrounds resources). -->
 
             <!-- [SECTION: Tab Pages] -->
             <!-- Each tab hosts its own UserControl (see Views folder); OptionsWindow.xaml.cs calls each
@@ -150,16 +66,10 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
             <Button Content="Save Adjustments" x:Name="BtnSaveOptions" Click="BtnSaveOptions_Click" 
                     Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" 
-                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                    BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="Bold" Padding="15,6" Margin="0,0,10,0"/>
+                    FontWeight="Bold" Padding="15,6" Margin="0,0,10,0"/>
             <Button Content="Close Panel" x:Name="BtnCloseOptions" Click="BtnCloseOptions_Click"
                     Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" 
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}"
-                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}"
-                    BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" Padding="15,6"/>
+                    Padding="15,6"/>
         </StackPanel>
         <!-- [END SECTION: Save / Close Button Row] -->
     </Grid>

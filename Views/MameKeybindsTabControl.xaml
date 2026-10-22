@@ -34,8 +34,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Stick 1 Up:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0,10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyUp" Content="Bind" Click="BtnCaptureP1JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1JoyUp" Content="Clear" Margin="10,0" Click="BtnClearP1JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyUp" Content="Bind" Click="BtnCaptureP1JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1JoyUp" Content="Clear" Margin="10,0" Click="BtnClearP1JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1JoyUpSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -50,8 +50,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Stick 1 Down:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyDown" Content="Bind" Click="BtnCaptureP1JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1JoyDown" Content="Clear" Margin="10,0" Click="BtnClearP1JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyDown" Content="Bind" Click="BtnCaptureP1JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1JoyDown" Content="Clear" Margin="10,0" Click="BtnClearP1JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1JoyDownSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -66,8 +66,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Stick 1 Left:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyLeft" Content="Bind" Click="BtnCaptureP1JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1JoyLeft" Content="Clear" Margin="10,0" Click="BtnClearP1JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyLeft" Content="Bind" Click="BtnCaptureP1JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1JoyLeft" Content="Clear" Margin="10,0" Click="BtnClearP1JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1JoyLeftSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -82,8 +82,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Stick 1 Right:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyRight" Content="Bind" Click="BtnCaptureP1JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1JoyRight" Content="Clear" Margin="10,0" Click="BtnClearP1JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1JoyRight" Content="Bind" Click="BtnCaptureP1JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1JoyRight" Content="Clear" Margin="10,0" Click="BtnClearP1JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1JoyRightSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -99,8 +99,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Stick 2 Up:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyUp" Content="Bind" Click="BtnCaptureP2JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP2JoyUp" Content="Clear" Margin="10,0" Click="BtnClearP2JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyUp" Content="Bind" Click="BtnCaptureP2JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP2JoyUp" Content="Clear" Margin="10,0" Click="BtnClearP2JoyUp_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP2JoyUpSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -115,8 +115,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Stick 2 Down:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyDown" Content="Bind" Click="BtnCaptureP2JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP2JoyDown" Content="Clear" Margin="10,0" Click="BtnClearP2JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyDown" Content="Bind" Click="BtnCaptureP2JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP2JoyDown" Content="Clear" Margin="10,0" Click="BtnClearP2JoyDown_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP2JoyDownSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -131,8 +131,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Stick 2 Left:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyLeft" Content="Bind" Click="BtnCaptureP2JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP2JoyLeft" Content="Clear" Margin="10,0" Click="BtnClearP2JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyLeft" Content="Bind" Click="BtnCaptureP2JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP2JoyLeft" Content="Clear" Margin="10,0" Click="BtnClearP2JoyLeft_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP2JoyLeftSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -147,8 +147,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Stick 2 Right:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyRight" Content="Bind" Click="BtnCaptureP2JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP2JoyRight" Content="Clear" Margin="10,0" Click="BtnClearP2JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP2JoyRight" Content="Bind" Click="BtnCaptureP2JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP2JoyRight" Content="Clear" Margin="10,0" Click="BtnClearP2JoyRight_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP2JoyRightSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -166,8 +166,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Button 1:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button1" Content="Bind" Click="BtnCaptureP1Button1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1Button1" Content="Clear" Margin="10,0" Click="BtnClearP1Button1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button1" Content="Bind" Click="BtnCaptureP1Button1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button1" Content="Clear" Margin="10,0" Click="BtnClearP1Button1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1Button1Summary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -182,8 +182,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Button 2:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button2" Content="Bind" Click="BtnCaptureP1Button2_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1Button2" Content="Clear" Margin="10,0" Click="BtnClearP1Button2_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button2" Content="Bind" Click="BtnCaptureP1Button2_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button2" Content="Clear" Margin="10,0" Click="BtnClearP1Button2_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1Button2Summary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -198,8 +198,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Button 3:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button3" Content="Bind" Click="BtnCaptureP1Button3_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1Button3" Content="Clear" Margin="10,0" Click="BtnClearP1Button3_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button3" Content="Bind" Click="BtnCaptureP1Button3_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button3" Content="Clear" Margin="10,0" Click="BtnClearP1Button3_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1Button3Summary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -214,8 +214,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Button 4:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button4" Content="Bind" Click="BtnCaptureP1Button4_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1Button4" Content="Clear" Margin="10,0" Click="BtnClearP1Button4_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button4" Content="Bind" Click="BtnCaptureP1Button4_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button4" Content="Clear" Margin="10,0" Click="BtnClearP1Button4_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1Button4Summary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -230,8 +230,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Button 5:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button5" Content="Bind" Click="BtnCaptureP1Button5_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1Button5" Content="Clear" Margin="10,0" Click="BtnClearP1Button5_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button5" Content="Bind" Click="BtnCaptureP1Button5_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button5" Content="Clear" Margin="10,0" Click="BtnClearP1Button5_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1Button5Summary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -246,8 +246,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Button 6:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button6" Content="Bind" Click="BtnCaptureP1Button6_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearP1Button6" Content="Clear" Margin="10,0" Click="BtnClearP1Button6_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureP1Button6" Content="Bind" Click="BtnCaptureP1Button6_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearP1Button6" Content="Clear" Margin="10,0" Click="BtnClearP1Button6_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtP1Button6Summary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -262,8 +262,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Insert Coin:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureCoin1" Content="Bind" Click="BtnCaptureCoin1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearCoin1" Content="Clear" Margin="10,0" Click="BtnClearCoin1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureCoin1" Content="Bind" Click="BtnCaptureCoin1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearCoin1" Content="Clear" Margin="10,0" Click="BtnClearCoin1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtCoin1Summary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -278,8 +278,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="1P Start:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureStart1" Content="Bind" Click="BtnCaptureStart1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearStart1" Content="Clear" Margin="10,0" Click="BtnClearStart1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureStart1" Content="Bind" Click="BtnCaptureStart1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearStart1" Content="Clear" Margin="10,0" Click="BtnClearStart1_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtStart1Summary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -297,8 +297,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Rotary Axis:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureRotaryAxis" Content="Bind" Click="BtnCaptureRotaryAxis_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearRotaryAxis" Content="Clear" Margin="10,0" Click="BtnClearRotaryAxis_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureRotaryAxis" Content="Bind" Click="BtnCaptureRotaryAxis_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearRotaryAxis" Content="Clear" Margin="10,0" Click="BtnClearRotaryAxis_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtRotaryAxisSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                         <!-- <TextBlock Text="Move a stick or the wheel. Feeds both Dial and Paddle games (spinners, wheels, ball-and-paddle)." Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="11" Margin="0,2,0,0"/>  -->
@@ -314,8 +314,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Gas Pedal:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureGasPedal" Content="Bind" Click="BtnCaptureGasPedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearGasPedal" Content="Clear" Margin="10,0" Click="BtnClearGasPedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureGasPedal" Content="Bind" Click="BtnCaptureGasPedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearGasPedal" Content="Clear" Margin="10,0" Click="BtnClearGasPedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtGasPedalSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -330,8 +330,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Brake Pedal:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureBrakePedal" Content="Bind" Click="BtnCaptureBrakePedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearBrakePedal" Content="Clear" Margin="10,0" Click="BtnClearBrakePedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureBrakePedal" Content="Bind" Click="BtnCaptureBrakePedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearBrakePedal" Content="Clear" Margin="10,0" Click="BtnClearBrakePedal_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtBrakePedalSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -352,8 +352,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Options Menu:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureUiMenu" Content="Bind" Click="BtnCaptureUiMenu_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearUiMenu" Content="Clear" Margin="10,0" Click="BtnClearUiMenu_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureUiMenu" Content="Bind" Click="BtnCaptureUiMenu_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearUiMenu" Content="Clear" Margin="10,0" Click="BtnClearUiMenu_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtUiMenuSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                         
@@ -369,8 +369,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Exit MAME:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureUiCancel" Content="Bind" Click="BtnCaptureUiCancel_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearUiCancel" Content="Clear" Margin="10,0" Click="BtnClearUiCancel_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureUiCancel" Content="Bind" Click="BtnCaptureUiCancel_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearUiCancel" Content="Clear" Margin="10,0" Click="BtnClearUiCancel_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtUiCancelSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>                    
@@ -385,8 +385,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Pause:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureUiPause" Content="Bind" Click="BtnCaptureUiPause_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearUiPause" Content="Clear" Margin="10,0" Click="BtnClearUiPause_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureUiPause" Content="Bind" Click="BtnCaptureUiPause_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearUiPause" Content="Clear" Margin="10,0" Click="BtnClearUiPause_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtUiPauseSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -401,8 +401,8 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Toggle FS:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureFullscreen" Content="Bind" Click="BtnCaptureFullscreen_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearFullscreen" Content="Clear" Margin="10,0" Click="BtnClearFullscreen_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureFullscreen" Content="Bind" Click="BtnCaptureFullscreen_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearFullscreen" Content="Clear" Margin="10,0" Click="BtnClearFullscreen_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtFullscreenSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
@@ -417,15 +417,15 @@ apply to any game that does not have custom bindings in their respective gamenam
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Snapshot:" Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" VerticalAlignment="Center" HorizontalAlignment="Right"  Margin="10,0"/>
-                            <Button Grid.Column="1" x:Name="BtnCaptureSnapshot" Content="Bind" Click="BtnCaptureSnapshot_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
-                            <Button Grid.Column="2" x:Name="BtnClearSnapshot" Content="Clear" Margin="10,0" Click="BtnClearSnapshot_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            <Button Grid.Column="1" x:Name="BtnCaptureSnapshot" Content="Bind" Click="BtnCaptureSnapshot_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
+                            <Button Grid.Column="2" x:Name="BtnClearSnapshot" Content="Clear" Margin="10,0" Click="BtnClearSnapshot_Click" Padding="6,3" HorizontalAlignment="Left" Style="{StaticResource ThemedActionButtonStyle}"/>
                             <TextBlock Grid.Column="3" x:Name="TxtSnapshotSummary" Text="—" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>                    
 
                     <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,6,0,10"/>
 
-                    <Button x:Name="BtnApplyKeybinds" Content="Apply Bindings" Click="BtnApplyKeybinds_Click" Padding="10,5" HorizontalAlignment="Left" FontWeight="Bold" Style="{StaticResource ThemedActionButtonStyle}" Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}" Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}" BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                    <Button x:Name="BtnApplyKeybinds" Content="Apply Bindings" Click="BtnApplyKeybinds_Click" Padding="10,5" HorizontalAlignment="Left" FontWeight="Bold" Style="{StaticResource ThemedActionButtonStyle}"/>
                     <TextBlock x:Name="TxtApplyStatus" Text="" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="12" Margin="0,6,0,0"/>
 
                 </StackPanel>

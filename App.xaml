@@ -615,13 +615,13 @@
         <!-- Shared tab chrome, copied from the inline styles in ThemeBuilderWindow.xaml / OptionsWindow.xaml.
              ThemedTabItemStyle is the header (normal / hover / selected). ThemedTabControlStyle is the strip plus
              the framed content area, and applies the header style to its tabs, so a tab control only needs
-             Style="{StaticResource ThemedTabControlStyle}". The content area, border and corner radii read the Global
-             Backgrounds resources; the tab colors and size are still bound through the Window's DataContext, same as
-             ThemedActionButtonStyle (Global tab Pass 4), so the window's DataContext must be ConfigurationSettings. -->
+             Style="{StaticResource ThemedTabControlStyle}". Every value is a Global resource (Backgrounds for the
+             content area, border and corner radii; Tabs for the header size and colors), so the styles work in any
+             window whatever its DataContext. Used by the Theme Builder, Options and Sorting windows. -->
         <Style x:Key="ThemedTabItemStyle" TargetType="TabItem">
             <Setter Property="Height" Value="25"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="{Binding TabFontSize, FallbackValue=12}"/>
+            <Setter Property="FontSize" Value="{DynamicResource Global.Tab.FontSize}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
@@ -640,13 +640,13 @@
 
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabActiveBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
-                                <Setter Property="Foreground" Value="{Binding DataContext.TabActiveColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#000000}"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource Global.Tab.BgActive}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Global.Tab.TextActive}"/>
                             </Trigger>
 
                             <Trigger Property="IsSelected" Value="False">
-                                <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabBgColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"/>
-                                <Setter Property="Foreground" Value="{Binding DataContext.TabColorHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#A0A0A2}"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource Global.Tab.Bg}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Global.Tab.Text}"/>
                             </Trigger>
 
                             <!-- Declared last so it wins over the IsSelected="False" trigger above.
@@ -656,8 +656,8 @@
                                     <Condition Property="IsMouseOver" Value="True"/>
                                     <Condition Property="IsSelected" Value="False"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="TabBorder" Property="Background" Value="{Binding DataContext.TabBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
-                                <Setter Property="Foreground" Value="{Binding DataContext.TabColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource Global.Tab.BgHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Global.Tab.TextHover}"/>
                             </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -669,7 +669,8 @@
             <Setter Property="Background" Value="{DynamicResource Global.Options.ContentBg}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Global.Options.BorderColor}"/>
             <Setter Property="BorderThickness" Value="{DynamicResource Global.Options.BorderSize}"/>
-            <Setter Property="Foreground" Value="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}"/>
+            <!-- Inherited by tab page content that sets no color of its own: the Standard Fonts color. -->
+            <Setter Property="Foreground" Value="{DynamicResource Global.Font.Standard.Color}"/>
             <Setter Property="ItemContainerStyle" Value="{StaticResource ThemedTabItemStyle}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -700,21 +701,27 @@
         <!-- [END SECTION: Themed Tab Styles] -->
 
         <!-- [SECTION: ThemedActionButtonStyle] -->
-        <!-- Shared button template used across Options window tabs (Save/Load/Browse etc.).
-             Hover background is theme-bound (BtnBgColorHoverHex); disabled state dims via opacity. -->
+        <!-- The one action button style for every window (Options tabs, Sorting, Theme Builder, Manage Playlists,
+             RomCopyPath, the name prompts, code-built buttons). Every color, size, border and radius is a Global
+             Buttons resource set here, so a button only picks the style: setting Background, Foreground, BorderBrush
+             or BorderThickness on a button overrides the theme. Disabled state dims via opacity. -->
         <Style x:Key="ThemedActionButtonStyle" TargetType="Button">
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="{Binding DataContext.OptionsBtnFontSize, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=13}"/>
+            <Setter Property="FontSize" Value="{DynamicResource Global.Button.FontSize}"/>
+            <Setter Property="Background" Value="{DynamicResource Global.Button.Bg}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Global.Button.Text}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Global.Button.BorderColor}"/>
+            <Setter Property="BorderThickness" Value="{DynamicResource Global.Button.BorderSize}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{Binding DataContext.OptionsBtnBorderRadius, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=0}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource Global.Button.Radius}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                             <ContentPresenter x:Name="Cp" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{Binding DataContext.BtnBgColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#2C2C2E}"/>
-                                <Setter TargetName="Cp" Property="TextElement.Foreground" Value="{Binding DataContext.OptionsBtnColorHoverHex, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Global.Button.BgHover}"/>
+                                <Setter TargetName="Cp" Property="TextElement.Foreground" Value="{DynamicResource Global.Button.TextHover}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5"/>

@@ -21,7 +21,7 @@
         <!-- [SECTION: Guide] -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
             <TextBlock Text="GLOBAL" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
-            <TextBlock Text="Theme-wide values, the same at every size: the fonts and backgrounds of the Options window, the Sorting window, this Theme Builder and the other dialogs. Values apply when you press Enter or leave the field; colors apply as you pick them. Save Adjustments writes them to settings.json; Save Changes on the Basic Themes tab writes them into the theme file. Closing without saving puts them back."
+            <TextBlock Text="Theme-wide values, the same at every size: the fonts, backgrounds, tabs and buttons of the Options window, the Sorting window, this Theme Builder and the other dialogs. Values apply when you press Enter or leave the field; colors apply as you pick them. Save Adjustments writes them to settings.json; Save Changes on the Basic Themes tab writes them into the theme file. Closing without saving puts them back."
                        Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" TextWrapping="Wrap"/>
         </StackPanel>
         <!-- [END SECTION: Guide] -->
@@ -213,6 +213,229 @@
                 </ScrollViewer>
             </TabItem>
             <!-- [END SECTION: Backgrounds Tab] -->
+
+            <!-- [SECTION: Tabs Tab] -->
+            <!-- Tab headers: font size (6 to 72), then font and background color for the resting, hover and active (selected) states. -->
+            <TabItem x:Name="TabGlobalTabs" Header="TABS" Tag="Tabs">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Font size -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Font size:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <TextBox x:Name="GlobalTabFontSize" Grid.Row="0" Grid.Column="2" Width="48" HorizontalAlignment="Left" Margin="0,0,0,8" HorizontalContentAlignment="Center"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="Font color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <TextBlock Grid.Row="1" Grid.Column="4" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+
+                            <!-- Resting -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Resting:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalTabTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalTabTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalTabBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalTabBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Hover -->
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Hover:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalTabHoverTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalTabHoverTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="3" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalTabHoverBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalTabHoverBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Active -->
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Active:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalTabActiveTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalTabActiveTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="4" Grid.Column="4" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalTabActiveBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalTabActiveBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,15,0,0"
+                                   Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"
+                                   Text="Tabs are the headers of the Options, Sorting and Theme Builder tab strips. Hover applies to tabs that are not selected; the active tab keeps its own colors. The tab border and corners come from the Backgrounds subtab."/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- [END SECTION: Tabs Tab] -->
+
+            <!-- [SECTION: Buttons Tab] -->
+            <!-- Action buttons: font size (6 to 72), font and background color resting and on hover, then border color, size (0 to 50) and radius (0 to 200). -->
+            <TabItem x:Name="TabGlobalButtons" Header="BUTTONS" Tag="Buttons">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Font size -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Font size:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <TextBox x:Name="GlobalButtonFontSize" Grid.Row="0" Grid.Column="2" Width="48" HorizontalAlignment="Left" Margin="0,0,0,8" HorizontalContentAlignment="Center"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="Font color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <TextBlock Grid.Row="1" Grid.Column="4" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+
+                            <!-- Resting -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Resting:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalButtonTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalButtonTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalButtonBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalButtonBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Hover -->
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Hover:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalButtonHoverTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalButtonHoverTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="3" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalButtonHoverBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalButtonHoverBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Border color, size and corner radius (same row layout as the Backgrounds subtab) -->
+                            <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="52"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBlock Grid.Row="0" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="GlobalButtonBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="GlobalButtonBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                                </StackPanel>
+                                <TextBox x:Name="GlobalButtonBorderSize" Grid.Row="1" Grid.Column="2" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+                                <TextBox x:Name="GlobalButtonBorderRadius" Grid.Row="1" Grid.Column="4" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+                            </Grid>
+                        </Grid>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,15,0,0"
+                                   Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"
+                                   Text="Buttons are the action buttons in the Options, Sorting and Theme Builder windows and the other dialogs (Save, Browse, Bind, Restore Defaults and the like). The main window's own buttons are styled on their layers in the Advanced tab."/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- [END SECTION: Buttons Tab] -->
         </TabControl>
         <!-- [END SECTION: Global Subtabs] -->
 
@@ -221,10 +444,7 @@
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
             <Button x:Name="BtnRestoreGlobalDefaults" Content="Restore Defaults" Click="BtnRestoreGlobalDefaults_Click"
                     Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                    BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3"/>
+                    FontWeight="SemiBold" Padding="7,3"/>
         </StackPanel>
         <!-- [END SECTION: Restore Defaults] -->
     </Grid>

@@ -89,9 +89,6 @@
             <Button x:Name="BtnTestConnection" Click="BtnTestConnection_Click" Content="Test Connection" 
                     HorizontalAlignment="Left"
                     Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                     Padding="10,5" Margin="0,0,0,15"/>
             <!-- [END SECTION: Status / Diagnostics] -->
 

@@ -42,9 +42,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtRomsPath" Text=".\Data\roms" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseRoms" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -58,9 +55,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtBiosPath" Text=".\Data\bios" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseBios" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
 
@@ -74,9 +68,6 @@
                 <TextBox Grid.Column="0" x:Name="TxtChdPath" Text="" Style="{StaticResource ChromeTextBoxStyle}" Padding="4"/>
                 <Button Grid.Column="1" x:Name="BtnBrowseChd" Click="BtnBrowseDirectory_Click" Content="..." 
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                         Margin="5,0,0,0"/>
             </Grid>
             <!-- [END SECTION: System Path Rows] -->
@@ -87,9 +78,6 @@
             <Button x:Name="BtnRescanRomPaths" Click="BtnRescanRomPaths_Click" Content="Rescan Folders"
                     HorizontalAlignment="Left" Padding="10,5"
                     Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{Binding BtnBgColorHex, FallbackValue=#2C2C2E}" 
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=White}" 
-                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}" BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"
                     Margin="0,5,0,0"/>
             <!-- [END SECTION: Live Rescan Button] -->
         </StackPanel>

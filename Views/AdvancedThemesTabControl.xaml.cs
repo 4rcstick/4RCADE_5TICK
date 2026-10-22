@@ -585,9 +585,7 @@ namespace ArcadeStick.Views
                 ResizeMode = ResizeMode.NoResize,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Owner = Window.GetWindow(this),
-                ShowInTaskbar = false,
-                // ThemedActionButtonStyle reads its hover, radius and font size from the window's DataContext
-                DataContext = _settings
+                ShowInTaskbar = false
             };
             prompt.SetResourceReference(Window.BackgroundProperty, "ChromeWindowBg");
 
@@ -604,16 +602,9 @@ namespace ArcadeStick.Views
             return string.IsNullOrEmpty(name) && !allowEmpty ? null : name;
         }
 
-        // Builds one name prompt button: the shared action button template with the Global button colors and border
-        private Button MakePromptButton(string content)
-        {
-            var button = new Button { Content = content, Width = 70, Padding = new Thickness(0, 3, 0, 3), Style = (Style)FindResource("ThemedActionButtonStyle") };
-            button.SetResourceReference(Button.BackgroundProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBg);
-            button.SetResourceReference(Button.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.ButtonText);
-            button.SetResourceReference(Button.BorderBrushProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBorderColor);
-            button.SetResourceReference(Button.BorderThicknessProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBorderSize);
-            return button;
-        }
+        // Builds one name prompt button on the shared action button style (the Global button values come from the style)
+        private Button MakePromptButton(string content) =>
+            new Button { Content = content, Width = 70, Padding = new Thickness(0, 3, 0, 3), Style = (Style)FindResource("ThemedActionButtonStyle") };
 
         // Remove: deletes the selected custom layer at this resolution only (other resolutions are untouched).
         private void BtnRemoveLayer_Click(object sender, RoutedEventArgs e)
@@ -3156,10 +3147,8 @@ namespace ArcadeStick.Views
                     Margin = new Thickness(0, 0, 6, 4),
                     FontWeight = active ? FontWeights.Bold : FontWeights.Normal
                 };
-                button.SetBinding(Button.BackgroundProperty, new System.Windows.Data.Binding(active ? "BtnBgColorHoverHex" : "BtnBgColorHex"));
-                button.SetBinding(Button.ForegroundProperty, new System.Windows.Data.Binding("BtnTextColorNormalHex"));
-                button.SetBinding(Button.BorderBrushProperty, new System.Windows.Data.Binding("BtnBorderColorHex"));
-                button.SetBinding(Button.BorderThicknessProperty, new System.Windows.Data.Binding("OptionsBtnBorderSize"));
+                // The style gives the Global button look; the active size rests on the hover background
+                if (active) button.SetResourceReference(Button.BackgroundProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBgHover);
                 button.Click += BtnSavedSize_Click;
 
                 PnlSavedSizes.Children.Add(button);

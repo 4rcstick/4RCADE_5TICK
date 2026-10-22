@@ -44,16 +44,10 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
             <Button Content="Save Adjustments" x:Name="BtnSaveAdjustments" Click="BtnSaveAdjustments_Click"
                     Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                    BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="Bold" Padding="15,6" Margin="0,0,10,0"/>
+                    FontWeight="Bold" Padding="15,6" Margin="0,0,10,0"/>
             <Button Content="Close Panel" x:Name="BtnClosePanel" Click="BtnClosePanel_Click"
                     Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                    Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#F2F2F7}"
-                    BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#3A3A3C}"
-                    BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" Padding="15,6"/>
+                    Padding="15,6"/>
         </StackPanel>
         <!-- [END SECTION: Save / Close Button Row] -->
     </Grid>

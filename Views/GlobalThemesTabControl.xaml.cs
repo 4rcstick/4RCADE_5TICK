@@ -33,7 +33,7 @@ namespace ArcadeStick.Views
         private readonly Dictionary<object, ColorField> _colorFields = new();
         private readonly Dictionary<TextBox, NumberField> _numberFields = new();
 
-        // Font sizes use the Games List range; border size and radius the Advanced tab's Border tab ranges.
+        // Font sizes (fonts, tabs, buttons) use the Games List range; border sizes and radii the Advanced tab's Border tab ranges.
         private const double MinFontSize = 6, MaxFontSize = 72;
         private const double MinBorderSize = 0, MaxBorderSize = 50;
         private const double MinBorderRadius = 0, MaxBorderRadius = 200;
@@ -44,7 +44,7 @@ namespace ArcadeStick.Views
             BuildFieldTables();
         }
 
-        // Registers every Fonts and Backgrounds control with its ConfigurationSettings property
+        // Registers every Fonts, Backgrounds, Tabs and Buttons control with its ConfigurationSettings property
         private void BuildFieldTables()
         {
             AddColor(GlobalHeaderColorPicker, GlobalHeaderColorHex, s => s.HeaderColorHex, (s, v) => s.HeaderColorHex = v);
@@ -62,6 +62,23 @@ namespace ArcadeStick.Views
             AddColor(GlobalBorderColorPicker, GlobalBorderColorHex, s => s.OptionsMenuBorderColorHex, (s, v) => s.OptionsMenuBorderColorHex = v);
             AddNumber(GlobalBorderSize, s => s.OptionsMenuBorderSize, (s, v) => s.OptionsMenuBorderSize = v, MinBorderSize, MaxBorderSize, false);
             AddNumber(GlobalBorderRadius, s => s.OptionsMenuBorderRadius, (s, v) => s.OptionsMenuBorderRadius = v, MinBorderRadius, MaxBorderRadius, false);
+
+            AddNumber(GlobalTabFontSize, s => s.TabFontSize, (s, v) => s.TabFontSize = (int)v, MinFontSize, MaxFontSize, true);
+            AddColor(GlobalTabTextColorPicker, GlobalTabTextColorHex, s => s.TabColorHex, (s, v) => s.TabColorHex = v);
+            AddColor(GlobalTabBgColorPicker, GlobalTabBgColorHex, s => s.TabBgColorHex, (s, v) => s.TabBgColorHex = v);
+            AddColor(GlobalTabHoverTextColorPicker, GlobalTabHoverTextColorHex, s => s.TabColorHoverHex, (s, v) => s.TabColorHoverHex = v);
+            AddColor(GlobalTabHoverBgColorPicker, GlobalTabHoverBgColorHex, s => s.TabBgColorHoverHex, (s, v) => s.TabBgColorHoverHex = v);
+            AddColor(GlobalTabActiveTextColorPicker, GlobalTabActiveTextColorHex, s => s.TabActiveColorHex, (s, v) => s.TabActiveColorHex = v);
+            AddColor(GlobalTabActiveBgColorPicker, GlobalTabActiveBgColorHex, s => s.TabActiveBgColorHex, (s, v) => s.TabActiveBgColorHex = v);
+
+            AddNumber(GlobalButtonFontSize, s => s.OptionsBtnFontSize, (s, v) => s.OptionsBtnFontSize = (int)v, MinFontSize, MaxFontSize, true);
+            AddColor(GlobalButtonTextColorPicker, GlobalButtonTextColorHex, s => s.BtnTextColorNormalHex, (s, v) => s.BtnTextColorNormalHex = v);
+            AddColor(GlobalButtonBgColorPicker, GlobalButtonBgColorHex, s => s.BtnBgColorHex, (s, v) => s.BtnBgColorHex = v);
+            AddColor(GlobalButtonHoverTextColorPicker, GlobalButtonHoverTextColorHex, s => s.OptionsBtnColorHoverHex, (s, v) => s.OptionsBtnColorHoverHex = v);
+            AddColor(GlobalButtonHoverBgColorPicker, GlobalButtonHoverBgColorHex, s => s.BtnBgColorHoverHex, (s, v) => s.BtnBgColorHoverHex = v);
+            AddColor(GlobalButtonBorderColorPicker, GlobalButtonBorderColorHex, s => s.BtnBorderColorHex, (s, v) => s.BtnBorderColorHex = v);
+            AddNumber(GlobalButtonBorderSize, s => s.OptionsBtnBorderSize, (s, v) => s.OptionsBtnBorderSize = v, MinBorderSize, MaxBorderSize, false);
+            AddNumber(GlobalButtonBorderRadius, s => s.OptionsBtnBorderRadius, (s, v) => s.OptionsBtnBorderRadius = v, MinBorderRadius, MaxBorderRadius, false);
         }
 
         // Adds one color field to the table, keyed by both its picker and its hex box

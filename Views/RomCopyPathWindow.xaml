@@ -28,22 +28,16 @@
                      Padding="6,4" VerticalContentAlignment="Center" Margin="0,0,8,0"/>
             <Button x:Name="BrowseButton" Grid.Column="1" Content="Browse..." Padding="12,4"
                     Click="BrowseButton_Click"
-                    Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{DynamicResource Global.Button.Bg}" Foreground="{DynamicResource Global.Button.Text}"
-                    BorderBrush="{DynamicResource Global.Button.BorderColor}" BorderThickness="{DynamicResource Global.Button.BorderSize}"/>
+                    Style="{StaticResource ThemedActionButtonStyle}"/>
         </Grid>
 
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button x:Name="CancelButton" Content="Cancel" Width="80" Padding="0,4" Margin="0,0,8,0"
                     Click="CancelButton_Click"
-                    Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{DynamicResource Global.Button.Bg}" Foreground="{DynamicResource Global.Button.Text}"
-                    BorderBrush="{DynamicResource Global.Button.BorderColor}" BorderThickness="{DynamicResource Global.Button.BorderSize}"/>
+                    Style="{StaticResource ThemedActionButtonStyle}"/>
             <Button x:Name="SaveButton" Content="Save" Width="80" Padding="0,4"
                     Click="SaveButton_Click"
-                    Style="{StaticResource ThemedActionButtonStyle}"
-                    Background="{DynamicResource Global.Button.Bg}" Foreground="{DynamicResource Global.Button.Text}"
-                    BorderBrush="{DynamicResource Global.Button.BorderColor}" BorderThickness="{DynamicResource Global.Button.BorderSize}"/>
+                    Style="{StaticResource ThemedActionButtonStyle}"/>
         </StackPanel>
     </Grid>
 </Window>

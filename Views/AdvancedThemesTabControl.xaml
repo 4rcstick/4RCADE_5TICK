@@ -55,16 +55,10 @@
                     <TextBox x:Name="TxtCustomHeight" Width="70" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" KeyDown="CustomRes_KeyDown"/>
                     <Button x:Name="BtnAddCustomRes" Content="Apply" Click="BtnAddCustomRes_Click"
                             Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
+                            FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
                     <Button x:Name="BtnKeepCustomRes" Content="Keep" Click="BtnKeepCustomRes_Click"
                             Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
+                            FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
                 </StackPanel>
 
                 <TextBlock Grid.Column="0" Text="Resolution:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -91,22 +85,13 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button x:Name="BtnResetLayout" Content="Reset Layout" Click="BtnResetLayout_Click" HorizontalAlignment="Left"
                             Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FF453A}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FF453A}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
+                            FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
                     <Button x:Name="BtnDeleteCustomRes" Content="Delete Size" Click="BtnDeleteCustomRes_Click" Visibility="Collapsed"
                             Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FF453A}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FF453A}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
+                            FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
                     <Button x:Name="BtnRestoreDefaults" Content="Restore Defaults" Click="BtnRestoreDefaults_Click"
                             Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
+                            FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
                 </StackPanel>
             </Grid>
         </StackPanel>
@@ -132,23 +117,11 @@
 
                 <StackPanel Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Top">
                     <Button x:Name="BtnLayerUp" Content="&#xE70E;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerUp_Click" ToolTip="Bring forward" Width="30" Height="30" Margin="0,0,0,6"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            Style="{StaticResource ThemedActionButtonStyle}"/>
                     <Button x:Name="BtnLayerDown" Content="&#xE70D;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerDown_Click" ToolTip="Send backward" Width="30" Height="30" Margin="0,0,0,6"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            Style="{StaticResource ThemedActionButtonStyle}"/>
                     <Button x:Name="BtnAddImageLayer" Content="&#xE710;" FontFamily="Segoe MDL2 Assets" Click="BtnAddImageLayer_Click" ToolTip="Add layer" Width="30" Height="30"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}"/>
+                            Style="{StaticResource ThemedActionButtonStyle}"/>
                 </StackPanel>
             </Grid>
 
@@ -219,16 +192,10 @@
                                         <TextBox Grid.Column="0" x:Name="TxtLayerFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
                                         <Button Grid.Column="1" x:Name="BtnBrowseLayerFile" Content="Browse" Click="BtnBrowseLayerFile_Click"
                                                 Style="{StaticResource ThemedActionButtonStyle}"
-                                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                                                BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                                FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                         <Button Grid.Column="2" x:Name="BtnClearLayerFile" Content="Clear" Click="BtnClearLayerFile_Click"
                                                 Style="{StaticResource ThemedActionButtonStyle}"
-                                                Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                                                Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                                                BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                                                BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                                FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                     </Grid>
                                 </StackPanel>
 
@@ -1348,16 +1315,10 @@
                                     <TextBox Grid.Column="0" x:Name="TxtShapeFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
                                     <Button Grid.Column="1" x:Name="BtnBrowseShapeFile" Content="Browse" Click="BtnBrowseShapeFile_Click"
                                             Style="{StaticResource ThemedActionButtonStyle}"
-                                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                            FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                     <Button Grid.Column="2" x:Name="BtnClearShapeFile" Content="Clear" Click="BtnClearShapeFile_Click"
                                             Style="{StaticResource ThemedActionButtonStyle}"
-                                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                                            FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
 
                                 <TextBlock Text="Image / video opacity (0 to 100):" Style="{StaticResource GLLabelStyle}" Margin="0,16,0,3"/>
@@ -1396,16 +1357,10 @@
                                     <TextBox Grid.Column="0" x:Name="TxtSplashFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
                                     <Button Grid.Column="1" x:Name="BtnBrowseSplashFile" Content="Browse" Click="BtnBrowseSplashFile_Click"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                     <Button Grid.Column="2" x:Name="BtnClearSplashFile" Content="Clear" Click="BtnClearSplashFile_Click"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
                                 <TextBlock Text="Leave empty to use the built-in splash." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                             </StackPanel>
@@ -1505,16 +1460,10 @@
                                     <TextBox Grid.Column="0" x:Name="TxtVPFallbackFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
                                     <Button Grid.Column="1" x:Name="BtnBrowseVPFallback" Content="Browse" Click="BtnBrowseVPFallback_Click"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                     <Button Grid.Column="2" x:Name="BtnClearVPFallback" Content="Clear" Click="BtnClearVPFallback_Click"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
                                 <TextBlock Text="Leave empty to use the built-in image." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                             </StackPanel>
@@ -1536,16 +1485,10 @@
                                     <TextBox Grid.Column="0" x:Name="TxtMarqueeLogoFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
                                     <Button Grid.Column="1" x:Name="BtnBrowseMarqueeLogo" Content="Browse" Click="BtnBrowseMarqueeLogo_Click"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                     <Button Grid.Column="2" x:Name="BtnClearMarqueeLogo" Content="Clear" Click="BtnClearMarqueeLogo_Click"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
                                 <TextBlock Text="Leave empty to use the built-in logo." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                             </StackPanel>
@@ -1642,16 +1585,10 @@
                                     <TextBox Grid.Column="0" x:Name="TxtMainBgFile" IsReadOnly="True" Style="{StaticResource GLTextBoxStyle}"/>
                                     <Button Grid.Column="1" x:Name="BtnBrowseMainBgFile" Content="Browse" Click="BtnBrowseMainBgFile_Click"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                     <Button Grid.Column="2" x:Name="BtnClearMainBgFile" Content="Clear" Click="BtnClearMainBgFile_Click"
                         Style="{StaticResource ThemedActionButtonStyle}"
-                        Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                        Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                        BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                        BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
+                        FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
                                 <TextBlock Text="Leave empty to use the built-in background image." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                                 <CheckBox x:Name="ChkMainBgImageDisabled" Content="Disable Main Window Background Image (use solid Main Window Background Color only)"
@@ -1693,22 +1630,13 @@
                     <!-- Rename: shape layers and custom layers only (shown from code) -->
                     <Button x:Name="BtnRenameLayer" Content="Rename" Click="BtnRenameLayer_Click" Visibility="Collapsed"
                             Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#00D4FF}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#00D4FF}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3"/>
+                            FontWeight="SemiBold" Padding="7,3"/>
                     <Button x:Name="BtnResetLayer" Content="Reset Layer" Click="BtnResetLayer_Click"
                             Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FFD60A}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FFD60A}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
+                            FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
                     <Button x:Name="BtnRemoveLayer" Content="Remove Layer" Click="BtnRemoveLayer_Click" Visibility="Collapsed"
                             Style="{StaticResource ThemedActionButtonStyle}"
-                            Background="{Binding BtnBgColorHex, FallbackValue=#1C1C1E}"
-                            Foreground="{Binding BtnTextColorNormalHex, FallbackValue=#FF453A}"
-                            BorderBrush="{Binding BtnBorderColorHex, FallbackValue=#FF453A}"
-                            BorderThickness="{Binding OptionsBtnBorderSize, FallbackValue=1}" FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
+                            FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
                 </StackPanel>
             </Grid>
             <!-- [END SECTION: Layer Property Tabs] -->

@@ -23,28 +23,17 @@ namespace ArcadeStick.Views
         // TEMPLATE for Claude Code: this field plus the sync block below are the pattern to replicate
         // per Theme*ColorHex field (rename to match, e.g. _suppressGameColorSync). Prevents the picker's
         // ColorChanged and the hex textbox's LostFocus from re-triggering each other.
-        private bool _suppressTabBgColorSync;
-        private bool _suppressTabActiveColorSync;
-        private bool _suppressTabActiveBgColorSync;
         private bool _suppressFrameworkBorderColorSync;
-        private bool _suppressBtnTextColorNormalSync;
-        private bool _suppressBtnBgColorSync;
-        private bool _suppressBtnBorderColorSync;
-        private bool _suppressBtnBgColorHoverSync;
         private bool _suppressScrollThumbColorSync;
         private bool _suppressScrollThumbHoverColorSync;
         private bool _suppressScrollThumbDragColorSync;
         private bool _suppressScrollTrackColorSync;
         private bool _suppressScrollTrackHoverColorSync;
-        private bool _suppressTabColorSync;
         private bool _suppressContextMenuFontColorSync;
         private bool _suppressContextMenuIconColorSync;
         private bool _suppressContextMenuBgColorSync;
         private bool _suppressContextMenuHoverColorSync;
         private bool _suppressContextMenuHoverBgColorSync;
-        private bool _suppressTabColorHoverSync;
-        private bool _suppressTabBgColorHoverSync;
-        private bool _suppressOptionsBtnColorHoverSync;
 
         public ThemesTabControl()
         {
@@ -122,35 +111,6 @@ namespace ArcadeStick.Views
             }
         }
         // [END SECTION: Theme List Management]
-
-        // Mirrors the picker's color into the hex textbox. Alpha 0 writes "Transparent" to match this
-        // field's existing convention rather than a #00RRGGBB hex value.
-        private void TabBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabBgColorSync) return;
-
-            var newColor = TabBgColorPicker.SelectedColor;
-            _suppressTabBgColorSync = true;
-            TxtTabBgColorHex.Text = newColor.A == 0
-                ? "Transparent"
-                : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressTabBgColorSync = false;
-        }
-
-        // Pushes a manually-typed hex value back into the picker on focus loss. Invalid text is left
-        // alone rather than crashing.
-        private void TxtTabBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabBgColorSync) return;
-
-            var parsedColor = TryParseColor(TxtTabBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressTabBgColorSync = true;
-                TabBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressTabBgColorSync = false;
-            }
-        }
 
         
 
@@ -261,198 +221,9 @@ namespace ArcadeStick.Views
             }
         }
 
-        private void TabColorHoverPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabColorHoverSync) return;
-            var newColor = TabColorHoverPicker.SelectedColor;
-            _suppressTabColorHoverSync = true;
-            TxtTabColorHoverHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressTabColorHoverSync = false;
-        }
-
-        private void TxtTabColorHoverHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabColorHoverSync) return;
-            var parsedColor = TryParseColor(TxtTabColorHoverHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressTabColorHoverSync = true;
-                TabColorHoverPicker.SelectedColor = parsedColor.Value;
-                _suppressTabColorHoverSync = false;
-            }
-        }
-
-        private void TabBgColorHoverPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabBgColorHoverSync) return;
-            var newColor = TabBgColorHoverPicker.SelectedColor;
-            _suppressTabBgColorHoverSync = true;
-            TxtTabBgColorHoverHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressTabBgColorHoverSync = false;
-        }
-
-        private void TxtTabBgColorHoverHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabBgColorHoverSync) return;
-            var parsedColor = TryParseColor(TxtTabBgColorHoverHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressTabBgColorHoverSync = true;
-                TabBgColorHoverPicker.SelectedColor = parsedColor.Value;
-                _suppressTabBgColorHoverSync = false;
-            }
-        }
-
-        private void OptionsBtnColorHoverPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressOptionsBtnColorHoverSync) return;
-            var newColor = OptionsBtnColorHoverPicker.SelectedColor;
-            _suppressOptionsBtnColorHoverSync = true;
-            TxtOptionsBtnColorHoverHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressOptionsBtnColorHoverSync = false;
-        }
-
-        private void TxtOptionsBtnColorHoverHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressOptionsBtnColorHoverSync) return;
-            var parsedColor = TryParseColor(TxtOptionsBtnColorHoverHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressOptionsBtnColorHoverSync = true;
-                OptionsBtnColorHoverPicker.SelectedColor = parsedColor.Value;
-                _suppressOptionsBtnColorHoverSync = false;
-            }
-        }
-
-        private void TabActiveColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabActiveColorSync) return;
-            var newColor = TabActiveColorPicker.SelectedColor;
-            _suppressTabActiveColorSync = true;
-            TxtTabActiveColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressTabActiveColorSync = false;
-        }
-
-        private void TxtTabActiveColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabActiveColorSync) return;
-            var parsedColor = TryParseColor(TxtTabActiveColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressTabActiveColorSync = true;
-                TabActiveColorPicker.SelectedColor = parsedColor.Value;
-                _suppressTabActiveColorSync = false;
-            }
-        }
-
-        private void TabActiveBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabActiveBgColorSync) return;
-            var newColor = TabActiveBgColorPicker.SelectedColor;
-            _suppressTabActiveBgColorSync = true;
-            TxtTabActiveBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressTabActiveBgColorSync = false;
-        }
-
-        private void TxtTabActiveBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabActiveBgColorSync) return;
-            var parsedColor = TryParseColor(TxtTabActiveBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressTabActiveBgColorSync = true;
-                TabActiveBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressTabActiveBgColorSync = false;
-            }
-        }
-
         // BorderColorFramework has no field: the chrome borders it drove now use the fixed ChromeBorder palette
         // color. Only the main window's context menu border still reads it (through ThemeBorderColor) until the
         // Global tab's Context Menus pass gives the menus their own border color.
-
-        private void BtnTextColorNormalPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressBtnTextColorNormalSync) return;
-            var newColor = BtnTextColorNormalPicker.SelectedColor;
-            _suppressBtnTextColorNormalSync = true;
-            TxtBtnTextColorNormalHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressBtnTextColorNormalSync = false;
-        }
-
-        private void TxtBtnTextColorNormalHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressBtnTextColorNormalSync) return;
-            var parsedColor = TryParseColor(TxtBtnTextColorNormalHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressBtnTextColorNormalSync = true;
-                BtnTextColorNormalPicker.SelectedColor = parsedColor.Value;
-                _suppressBtnTextColorNormalSync = false;
-            }
-        }
-
-        private void BtnBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressBtnBgColorSync) return;
-            var newColor = BtnBgColorPicker.SelectedColor;
-            _suppressBtnBgColorSync = true;
-            TxtBtnBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressBtnBgColorSync = false;
-        }
-
-        private void TxtBtnBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressBtnBgColorSync) return;
-            var parsedColor = TryParseColor(TxtBtnBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressBtnBgColorSync = true;
-                BtnBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressBtnBgColorSync = false;
-            }
-        }
-
-        private void BtnBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressBtnBorderColorSync) return;
-            var newColor = BtnBorderColorPicker.SelectedColor;
-            _suppressBtnBorderColorSync = true;
-            TxtBtnBorderColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressBtnBorderColorSync = false;
-        }
-
-        private void TxtBtnBorderColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressBtnBorderColorSync) return;
-            var parsedColor = TryParseColor(TxtBtnBorderColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressBtnBorderColorSync = true;
-                BtnBorderColorPicker.SelectedColor = parsedColor.Value;
-                _suppressBtnBorderColorSync = false;
-            }
-        }
-
-        private void BtnBgColorHoverPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressBtnBgColorHoverSync) return;
-            var newColor = BtnBgColorHoverPicker.SelectedColor;
-            _suppressBtnBgColorHoverSync = true;
-            TxtBtnBgColorHoverHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressBtnBgColorHoverSync = false;
-        }
-
-        private void TxtBtnBgColorHoverHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressBtnBgColorHoverSync) return;
-            var parsedColor = TryParseColor(TxtBtnBgColorHoverHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressBtnBgColorHoverSync = true;
-                BtnBgColorHoverPicker.SelectedColor = parsedColor.Value;
-                _suppressBtnBgColorHoverSync = false;
-            }
-        }
 
         private void ScrollThumbColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
@@ -559,27 +330,6 @@ namespace ArcadeStick.Views
             }
         }
 
-        private void TabColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabColorSync) return;
-            var newColor = TabColorPicker.SelectedColor;
-            _suppressTabColorSync = true;
-            TxtTabColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressTabColorSync = false;
-        }
-
-        private void TxtTabColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressTabColorSync) return;
-            var parsedColor = TryParseColor(TxtTabColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressTabColorSync = true;
-                TabColorPicker.SelectedColor = parsedColor.Value;
-                _suppressTabColorSync = false;
-            }
-        }
-
         // Normalizes a hex color string to #RRGGBB (uppercase, # prefix, stripping alpha if present).
         // Any recognized WPF named color (Transparent, Red, DodgerBlue, etc.) passes through as its proper
         // canonical name instead of getting a "#" incorrectly prepended - mirrors SafeConvertToBrush's
@@ -649,7 +399,7 @@ namespace ArcadeStick.Views
 
             // Color System Enforcements (Filtered through Gatekeeper)
             
-            // BorderColorFramework has no field (see the note above BtnTextColorNormalPicker_ColorChanged).
+            // BorderColorFramework has no field (see the note above ScrollThumbColorPicker_ColorChanged).
             
                         
             TxtContextMenuFontColorHex.Text = FormatHexCode(_settings.ContextMenuFontColorHex);
@@ -703,39 +453,6 @@ namespace ArcadeStick.Views
                 }
             }
             
-            TxtTabColorHoverHex.Text = FormatHexCode(_settings.TabColorHoverHex);
-            {
-                var parsedColor = TryParseColor(TxtTabColorHoverHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressTabColorHoverSync = true;
-                    TabColorHoverPicker.SelectedColor = parsedColor.Value;
-                    _suppressTabColorHoverSync = false;
-                }
-            }
-            TxtTabBgColorHoverHex.Text = FormatHexCode(_settings.TabBgColorHoverHex);
-            {
-                var parsedColor = TryParseColor(TxtTabBgColorHoverHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressTabBgColorHoverSync = true;
-                    TabBgColorHoverPicker.SelectedColor = parsedColor.Value;
-                    _suppressTabBgColorHoverSync = false;
-                }
-            }
-            TxtOptionsBtnFontSize.Text = _settings.OptionsBtnFontSize.ToString();
-            TxtOptionsBtnColorHoverHex.Text = FormatHexCode(_settings.OptionsBtnColorHoverHex);
-            {
-                var parsedColor = TryParseColor(TxtOptionsBtnColorHoverHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressOptionsBtnColorHoverSync = true;
-                    OptionsBtnColorHoverPicker.SelectedColor = parsedColor.Value;
-                    _suppressOptionsBtnColorHoverSync = false;
-                }
-            }
-            TxtOptionsBtnBorderSize.Text = _settings.OptionsBtnBorderSize.ToString();
-            TxtOptionsBtnBorderRadius.Text = _settings.OptionsBtnBorderRadius.ToString();
             TxtScrollTrackColorHex.Text = FormatHexCode(_settings.ScrollTrackColor);
             {
                 var parsedColor = TryParseColor(TxtScrollTrackColorHex.Text);
@@ -791,91 +508,6 @@ namespace ArcadeStick.Views
             // any of these anymore (BorderWidthValue/BorderCurveValue retired entirely; BorderColorFramework
             // has no field, see the earlier note).
 
-            // Typography & State Colors (Filtered through Gatekeeper)
-            
-            TxtTabFontSize.Text = _settings.TabFontSize.ToString();
-            TxtTabColorHex.Text = FormatHexCode(_settings.TabColorHex);
-            {
-                var parsedColor = TryParseColor(TxtTabColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressTabColorSync = true;
-                    TabColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressTabColorSync = false;
-                }
-            }
-            TxtTabBgColorHex.Text = _settings.TabBgColorHex;
-            {
-                var parsedColor = TryParseColor(_settings.TabBgColorHex);
-                if (parsedColor.HasValue)
-                {
-                    _suppressTabBgColorSync = true;
-                    TabBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressTabBgColorSync = false;
-                }
-            }
-            TxtTabActiveColorHex.Text = FormatHexCode(_settings.TabActiveColorHex);
-            {
-                var parsedColor = TryParseColor(TxtTabActiveColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressTabActiveColorSync = true;
-                    TabActiveColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressTabActiveColorSync = false;
-                }
-            }
-            TxtTabActiveBgColorHex.Text = FormatHexCode(_settings.TabActiveBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtTabActiveBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressTabActiveBgColorSync = true;
-                    TabActiveBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressTabActiveBgColorSync = false;
-                }
-            }
-
-            // Button Configs (Filtered through Gatekeeper)
-            TxtBtnBgColorHex.Text = FormatHexCode(_settings.BtnBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtBtnBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressBtnBgColorSync = true;
-                    BtnBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressBtnBgColorSync = false;
-                }
-            }
-            TxtBtnBorderColorHex.Text = FormatHexCode(_settings.BtnBorderColorHex);
-            {
-                var parsedColor = TryParseColor(TxtBtnBorderColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressBtnBorderColorSync = true;
-                    BtnBorderColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressBtnBorderColorSync = false;
-                }
-            }
-            TxtBtnTextColorNormalHex.Text = FormatHexCode(_settings.BtnTextColorNormalHex);
-            {
-                var parsedColor = TryParseColor(TxtBtnTextColorNormalHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressBtnTextColorNormalSync = true;
-                    BtnTextColorNormalPicker.SelectedColor = parsedColor.Value;
-                    _suppressBtnTextColorNormalSync = false;
-                }
-            }
-            TxtBtnBgColorHoverHex.Text = FormatHexCode(_settings.BtnBgColorHoverHex);
-            {
-                var parsedColor = TryParseColor(TxtBtnBgColorHoverHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressBtnBgColorHoverSync = true;
-                    BtnBgColorHoverPicker.SelectedColor = parsedColor.Value;
-                    _suppressBtnBgColorHoverSync = false;
-                }
-            }
         }
         // [END SECTION: Load Current Values Into UI - SYNC POINT 3 of 3]
 
@@ -1201,11 +833,6 @@ namespace ArcadeStick.Views
 
             
 
-            if (int.TryParse(TxtTabFontSize.Text, out int tSize)) _settings.TabFontSize = tSize;
-            _settings.TabColorHex = NormalizeHexInput(TxtTabColorHex.Text);
-            _settings.TabBgColorHex = NormalizeHexInput(TxtTabBgColorHex.Text);
-            _settings.TabActiveColorHex = NormalizeHexInput(TxtTabActiveColorHex.Text);
-            _settings.TabActiveBgColorHex = NormalizeHexInput(TxtTabActiveBgColorHex.Text);
 
 
             
@@ -1218,17 +845,6 @@ namespace ArcadeStick.Views
 
             
 
-            _settings.TabColorHoverHex = NormalizeHexInput(TxtTabColorHoverHex.Text);
-            _settings.TabBgColorHoverHex = NormalizeHexInput(TxtTabBgColorHoverHex.Text);
-            if (int.TryParse(TxtOptionsBtnFontSize.Text, out int optionsBtnSize)) _settings.OptionsBtnFontSize = optionsBtnSize;
-            _settings.OptionsBtnColorHoverHex = NormalizeHexInput(TxtOptionsBtnColorHoverHex.Text);
-            if (double.TryParse(TxtOptionsBtnBorderSize.Text, out double optionsBtnBorderSize)) _settings.OptionsBtnBorderSize = optionsBtnBorderSize;
-            if (double.TryParse(TxtOptionsBtnBorderRadius.Text, out double optionsBtnBorderRadius)) _settings.OptionsBtnBorderRadius = optionsBtnBorderRadius;
-
-            _settings.BtnBgColorHex = NormalizeHexInput(TxtBtnBgColorHex.Text);
-            _settings.BtnBorderColorHex = NormalizeHexInput(TxtBtnBorderColorHex.Text);
-            _settings.BtnTextColorNormalHex = NormalizeHexInput(TxtBtnTextColorNormalHex.Text);
-            _settings.BtnBgColorHoverHex = NormalizeHexInput(TxtBtnBgColorHoverHex.Text);
         }
         // [END SECTION: Sync UI to Settings]
     }
