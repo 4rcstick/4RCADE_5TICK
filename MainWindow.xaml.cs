@@ -186,25 +186,29 @@ namespace ArcadeStick
         private string? _lastMainBackgroundColor;
 
         // [SECTION: Theme Builder Alignment Guides]
-        // Draws (or hides, when info is null) four 1px guide lines at the selected layer's pending rect.
-        // Vertical lines span the full canvas height, horizontal lines the full canvas width. Right and
-        // bottom lines sit on the last pixel inside the layer (X + Width - 0.5) so they hug its edge.
+        private Views.AdvancedThemesTabControl.GuideInfo? _lastGuideInfo; // redrawn when the overlay resizes (fullscreen toggle)
+
+        // Draws (or hides, when info is null) the guides on the full-window GuideOverlay: four 1px lines at the
+        // selected layer's pending rect (ShowRect) and a cross at that rect's center (ShowCenter). Every line runs
+        // to the window edge; coordinates are offset by LayoutCanvas' origin in the overlay. Right and bottom
+        // lines sit on the last pixel inside the layer (X + Width - 0.5) so they hug its edge.
         public void ShowGuides(Views.AdvancedThemesTabControl.GuideInfo? info)
         {
-            var lines = new[] { GuideLeft, GuideRight, GuideTop, GuideBottom };
+            _lastGuideInfo = info;
+            foreach (var l in new[] { GuideLeft, GuideRight, GuideTop, GuideBottom, GuideCenterV, GuideCenterH })
+                l.Visibility = Visibility.Collapsed;
 
-            if (info == null)
-            {
-                foreach (var l in lines) l.Visibility = Visibility.Collapsed;
-                return;
-            }
+            if (info == null) return;
 
             Brush brush;
             try { brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(info.ColorHex)); }
             catch { brush = Brushes.Cyan; }
 
+            Point origin = LayoutCanvas.TranslatePoint(new Point(0, 0), GuideOverlay);
             double canvasW = LayoutCanvas.Width;
             double canvasH = LayoutCanvas.Height;
+            double fullW = Math.Max(GuideOverlay.ActualWidth, origin.X + canvasW);
+            double fullH = Math.Max(GuideOverlay.ActualHeight, origin.Y + canvasH);
 
             void Place(Line line, double x1, double y1, double x2, double y2)
             {
@@ -213,15 +217,34 @@ namespace ArcadeStick
                 line.Visibility = Visibility.Visible;
             }
 
-            double left = info.X + 0.5;
-            double right = info.X + info.Width - 0.5;
-            double top = info.Y + 0.5;
-            double bottom = info.Y + info.Height - 0.5;
+            if (info.ShowRect)
+            {
+                double left = origin.X + info.X + 0.5;
+                double right = origin.X + info.X + info.Width - 0.5;
+                double top = origin.Y + info.Y + 0.5;
+                double bottom = origin.Y + info.Y + info.Height - 0.5;
 
-            Place(GuideLeft, left, 0, left, canvasH);
-            Place(GuideRight, right, 0, right, canvasH);
-            Place(GuideTop, 0, top, canvasW, top);
-            Place(GuideBottom, 0, bottom, canvasW, bottom);
+                Place(GuideLeft, left, 0, left, fullH);
+                Place(GuideRight, right, 0, right, fullH);
+                Place(GuideTop, 0, top, fullW, top);
+                Place(GuideBottom, 0, bottom, fullW, bottom);
+            }
+
+            if (info.ShowCenter)
+            {
+                // On the pixel at the guide rect's center, so the cross follows the layer as it moves or resizes
+                double centerX = origin.X + info.X + Math.Floor(info.Width / 2) + 0.5;
+                double centerY = origin.Y + info.Y + Math.Floor(info.Height / 2) + 0.5;
+
+                Place(GuideCenterV, centerX, 0, centerX, fullH);
+                Place(GuideCenterH, 0, centerY, fullW, centerY);
+            }
+        }
+
+        // Redraws the visible guides when the overlay changes size (fullscreen on or off), so they still reach the edge
+        private void GuideOverlay_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_lastGuideInfo != null) ShowGuides(_lastGuideInfo);
         }
         // [END SECTION: Theme Builder Alignment Guides]
 

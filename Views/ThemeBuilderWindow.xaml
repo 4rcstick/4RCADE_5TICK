@@ -27,7 +27,7 @@
                  THEME BROWSER: empty placeholder reserved for the theme browser.
                  GLOBAL: the theme-wide values (not per resolution). -->
 
-            <TabItem Header="THEME BUILDER">
+            <TabItem x:Name="TabThemeBuilder" Header="THEME BUILDER">
                 <Grid x:Name="ThemeBuilderPage">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -50,6 +50,21 @@
             </TabItem>
             <!-- [END SECTION: Tab Pages] -->
         </TabControl>
+
+        <!-- [SECTION: Theme Saved Flash] -->
+        <!-- Transient "Theme Saved" confirmation at the right end of the tab header strip, shown briefly by
+             ShowThemeSavedFlash after Save Changes. Its host takes a tab header's height, so the box centers on the strip;
+             the -2 top/bottom margin lets the box (slightly taller than a header) overhang evenly instead of being clipped.
+             Fixed Chrome Palette colors so it stays readable on any theme. -->
+        <Grid Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" IsHitTestVisible="False"
+              Height="{Binding ActualHeight, ElementName=TabThemeBuilder}">
+            <Border x:Name="BrdThemeSavedFlash" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,-2,5,-2"
+                    Visibility="Collapsed" IsHitTestVisible="False"
+                    Background="{StaticResource ChromeBg}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="8,3">
+                <TextBlock x:Name="TxtThemeSavedFlash" Text="Theme Saved" Foreground="#4CD964" FontWeight="Bold" FontSize="14"/>
+            </Border>
+        </Grid>
+        <!-- [END SECTION: Theme Saved Flash] -->
 
         <!-- [SECTION: Save / Close Button Row] -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">

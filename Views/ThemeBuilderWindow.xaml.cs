@@ -14,6 +14,7 @@ namespace ArcadeStick.Views
         private int _resolutionHeightAtLastSave;
         // The flat Global tab values at the same restore point (theme-wide, so the size switch never moves it)
         private ArcadeStick.Models.ThemeSettings _globalAtLastSave = new();
+        private System.Windows.Threading.DispatcherTimer? _themeSavedFlashTimer;
 
         // [SECTION: Constructor & Tab Initialization]
         // Anchors DataContext to the live ConfigurationSettings (same as OptionsWindow, so the window
@@ -38,6 +39,7 @@ namespace ArcadeStick.Views
                 _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
                 _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
                 _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
+                ShowThemeSavedFlash();
             });
             AdvancedTab.Initialize(_settings);
             GlobalTab.Initialize(_settings);
@@ -121,6 +123,26 @@ namespace ArcadeStick.Views
             _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
         }
         // [END SECTION: Constructor & Tab Initialization]
+
+        // [SECTION: Theme Saved Flash]
+        // Shows the "Theme Saved" text beside the tab headers for 2 seconds (a repeat save restarts the timer)
+        private void ShowThemeSavedFlash()
+        {
+            BrdThemeSavedFlash.Visibility = Visibility.Visible;
+
+            _themeSavedFlashTimer?.Stop();
+            _themeSavedFlashTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            _themeSavedFlashTimer.Tick += (s, e) =>
+            {
+                BrdThemeSavedFlash.Visibility = Visibility.Collapsed;
+                _themeSavedFlashTimer?.Stop();
+            };
+            _themeSavedFlashTimer.Start();
+        }
+        // [END SECTION: Theme Saved Flash]
 
         // [SECTION: Window Binding Refresh]
         // Forces every binding in this window to re-evaluate by briefly clearing and restoring

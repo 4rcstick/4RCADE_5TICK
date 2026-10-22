@@ -60,7 +60,9 @@
 
                 <!-- Alignment guides: editor preferences (not saved in the theme). Handlers live in code-behind. -->
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
-                    <CheckBox x:Name="ChkShowGuides" Content="Show guides" Click="ChkShowGuides_Click" Margin="0,0,15,0"
+                    <CheckBox x:Name="ChkShowGuides" Content="Edge guides" Click="ChkShowGuides_Click" Margin="0,0,15,0"
+                              Style="{StaticResource GLCheckBoxStyle}"/>
+                    <CheckBox x:Name="ChkCenterGuides" Content="Center guides" Click="ChkCenterGuides_Click" Margin="0,0,15,0"
                               Style="{StaticResource GLCheckBoxStyle}"/>
                     <TextBlock Text="Guide color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">

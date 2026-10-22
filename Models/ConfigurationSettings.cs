@@ -82,8 +82,9 @@ namespace ArcadeStick.Models
         public List<ThemeLayout> Layouts { get; set; } = new();
 
         // Theme Builder alignment guides (editor preferences, not part of any theme file): four 1px lines
-        // drawn at the selected layer's edges while the Advanced tab is open.
+        // drawn at the selected layer's edges, and a cross at that layer's center, while the Advanced tab is open.
         public bool ShowGuideLines { get; set; } = true;
+        public bool ShowCenterGuide { get; set; } = false;
         public string GuideLineColorHex { get; set; } = "#FF00FFFF";
 
         // Snapshot of the active theme's layouts as last loaded from or saved to the theme file. Used as

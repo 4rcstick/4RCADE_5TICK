@@ -52,8 +52,5 @@
             </StackPanel>
         </Grid>
         <!-- [END SECTION: Themes Manager] -->
-
-        <!-- Transient "Theme Saved" confirmation flash, toggled visible briefly by code-behind after a save -->
-        <TextBlock x:Name="TxtThemeSavedFlash" Grid.Row="1" Text="Theme Saved" Foreground="#4CD964" Background="#000000" Padding="6,3" FontWeight="Bold" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed"/>
     </Grid>
 </UserControl>

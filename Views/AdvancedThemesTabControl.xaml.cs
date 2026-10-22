@@ -32,8 +32,9 @@ namespace ArcadeStick.Views
             public CheckBox Hide = null!;
         }
 
-        // Rect and color of the alignment guides for the selected layer (null = no guides).
-        public record GuideInfo(double X, double Y, double Width, double Height, string ColorHex);
+        // Rect and color of the alignment guides for the selected layer, and which parts to draw: the layer
+        // edges (ShowRect) and a cross at the rect's center (ShowCenter). Null = no guides.
+        public record GuideInfo(double X, double Y, double Width, double Height, string ColorHex, bool ShowRect, bool ShowCenter);
 
         // Raised whenever the guides should be redrawn or cleared. ThemeBuilderWindow forwards it to MainWindow.
         public event Action<GuideInfo?>? GuidesChanged;
@@ -42,7 +43,8 @@ namespace ArcadeStick.Views
         // Nothing is written to disk here - Save Adjustments / Save Changes still do that.
         public event Action? LayoutChanged;
 
-        // Recomputes the guides from the selected layer's pending rect and the show/color preferences.
+        // Recomputes the guides from the selected layer's pending rect and the show/center/color preferences.
+        // Null only when there is nothing to draw: no usable selection, or both toggles off.
         public void RaiseGuides()
         {
             if (_settings == null) return;
@@ -51,11 +53,14 @@ namespace ArcadeStick.Views
             // so this one call lets the main window re-apply the layout live.
             LayoutChanged?.Invoke();
 
+            bool showRect = _settings.ShowGuideLines;
+            bool showCenter = _settings.ShowCenterGuide;
+
             // Multi mode: one guide rect around the bounding box of every moving entry
             if (IsMultiSelect)
             {
                 var moving = GetMultiMoveEntries();
-                if (!_settings.ShowGuideLines || moving.Count == 0)
+                if ((!showRect && !showCenter) || moving.Count == 0)
                 {
                     GuidesChanged?.Invoke(null);
                     return;
@@ -65,11 +70,11 @@ namespace ArcadeStick.Views
                 double minY = moving.Min(e => e.Y);
                 double maxRight = moving.Max(e => e.X + e.Width);
                 double maxBottom = moving.Max(e => e.Y + e.Height);
-                GuidesChanged?.Invoke(new GuideInfo(minX, minY, maxRight - minX, maxBottom - minY, _settings.GuideLineColorHex));
+                GuidesChanged?.Invoke(new GuideInfo(minX, minY, maxRight - minX, maxBottom - minY, _settings.GuideLineColorHex, showRect, showCenter));
                 return;
             }
 
-            if (!_settings.ShowGuideLines
+            if ((!showRect && !showCenter)
     || SingleSelectedLayer is not LayerListItem selected
     || IsBackground(selected.Id))
             {
@@ -86,7 +91,7 @@ namespace ArcadeStick.Views
                 return;
             }
 
-            GuidesChanged?.Invoke(new GuideInfo(entry.X, entry.Y, entry.Width, entry.Height, _settings.GuideLineColorHex));
+            GuidesChanged?.Invoke(new GuideInfo(entry.X, entry.Y, entry.Width, entry.Height, _settings.GuideLineColorHex, showRect, showCenter));
         }
 
         private class LayerListItem
@@ -130,6 +135,7 @@ namespace ArcadeStick.Views
 
             // Guide preferences (editor settings, not part of the theme)
             ChkShowGuides.IsChecked = _settings.ShowGuideLines;
+            ChkCenterGuides.IsChecked = _settings.ShowCenterGuide;
             TxtGuideColorHex.Text = _settings.GuideLineColorHex;
             try
             {
@@ -2830,6 +2836,13 @@ namespace ArcadeStick.Views
         private void ChkShowGuides_Click(object sender, RoutedEventArgs e)
         {
             _settings.ShowGuideLines = ChkShowGuides.IsChecked == true;
+            RaiseGuides();
+        }
+
+        // Toggles the layer center cross (independent of Edge guides) and redraws
+        private void ChkCenterGuides_Click(object sender, RoutedEventArgs e)
+        {
+            _settings.ShowCenterGuide = ChkCenterGuides.IsChecked == true;
             RaiseGuides();
         }
 

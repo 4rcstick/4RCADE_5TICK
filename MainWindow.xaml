@@ -725,15 +725,22 @@
             </StackPanel>
         </Grid>
         <!-- [END SECTION: Footer Bar - Games Count + Play Stats + Version/Copyright] -->
-
-            <!-- Theme Builder alignment guides: 1px lines at the selected layer's edges, above every layer,
-                 never hit-testable. Positioned, sized and colored by ShowGuides() in code-behind. -->
-            <Line x:Name="GuideLeft" Panel.ZIndex="2000" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
-            <Line x:Name="GuideRight" Panel.ZIndex="2000" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
-            <Line x:Name="GuideTop" Panel.ZIndex="2000" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
-            <Line x:Name="GuideBottom" Panel.ZIndex="2000" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
         </Canvas>
         <!-- [END: LayoutCanvas] -->
+
+        <!-- [SECTION: Theme Builder Alignment Guides] -->
+        <!-- Full-window overlay above LayoutCanvas, so the guides run to the window edge even at fullscreen.
+             1px lines at the selected layer's edges plus a cross at its center, never hit-testable.
+             Positioned, sized and colored by ShowGuides() in code-behind. -->
+        <Canvas x:Name="GuideOverlay" IsHitTestVisible="False" SizeChanged="GuideOverlay_SizeChanged">
+            <Line x:Name="GuideLeft" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+            <Line x:Name="GuideRight" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+            <Line x:Name="GuideTop" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+            <Line x:Name="GuideBottom" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+            <Line x:Name="GuideCenterV" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+            <Line x:Name="GuideCenterH" IsHitTestVisible="False" StrokeThickness="1" Visibility="Collapsed" SnapsToDevicePixels="True"/>
+        </Canvas>
+        <!-- [END SECTION: Theme Builder Alignment Guides] -->
 
         <!-- [SECTION: Folder Name Input Flyout] -->
         <!-- Shared by "Create folder" (opens empty, at mouse point) and "Rename folder" (opens pre-

@@ -161,6 +161,7 @@ namespace ArcadeStick.ViewModels
                         Configuration.RomCopyDestinationPath = loadedSettings.RomCopyDestinationPath;
 
                         Configuration.ShowGuideLines = loadedSettings.ShowGuideLines;
+                        Configuration.ShowCenterGuide = loadedSettings.ShowCenterGuide;
                         Configuration.GuideLineColorHex = loadedSettings.GuideLineColorHex;
                     }
                 }

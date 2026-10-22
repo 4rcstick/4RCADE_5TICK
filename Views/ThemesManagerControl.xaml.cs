@@ -18,7 +18,6 @@ namespace ArcadeStick.Views
         // Lets the hosting window react when Save Changes writes a theme (Theme Builder uses it to move
         // its close-without-saving restore point). Optional - nothing else needs to set it.
         public void SetThemeSavedCallback(Action callback) => _themeSavedCallback = callback;
-        private System.Windows.Threading.DispatcherTimer? _themeSavedFlashTimer;
 
         public ThemesManagerControl()
         {
@@ -308,7 +307,6 @@ namespace ArcadeStick.Views
                 _settings.ActiveThemeName = themeName;
                 _persistToDisk?.Invoke();
                 _themeSavedCallback?.Invoke();
-                ShowThemeSavedFlash();
             }
             catch (Exception ex)
             {
@@ -317,23 +315,6 @@ namespace ArcadeStick.Views
         }
         // [END SUB-SECTION: Save Theme]
 
-        // Briefly flashes the "Theme Saved" confirmation text for 2 seconds after a successful save
-        private void ShowThemeSavedFlash()
-        {
-            TxtThemeSavedFlash.Visibility = Visibility.Visible;
-
-            _themeSavedFlashTimer?.Stop();
-            _themeSavedFlashTimer = new System.Windows.Threading.DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(2)
-            };
-            _themeSavedFlashTimer.Tick += (s, e) =>
-            {
-                TxtThemeSavedFlash.Visibility = Visibility.Collapsed;
-                _themeSavedFlashTimer?.Stop();
-            };
-            _themeSavedFlashTimer.Start();
-        }
         // [END SECTION: Theme Serialization Logic]
 
         // [SECTION: Delete Theme]
