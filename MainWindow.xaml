@@ -551,8 +551,9 @@
             <Border x:Name="MarqueePanelBorder" Canvas.Left="393" Canvas.Top="20" Width="867" Height="137">
                 <Grid>
                     <!-- Default logo, hidden once a game is selected -->
-                    <!-- The logo, MarqueeDisplay and the spin frames share the Marquee layer's shadow (ThemeMarqueeEffect) -->
-                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Effect="{Binding ThemeMarqueeEffect}">
+                    <!-- The Marquee layer's shadow: the logo binds ThemeMarqueeLogoEffect, MarqueeDisplay and the spin frames
+                         bind ThemeMarqueeEffect (each is null when the layer's "Apply shadow to" choice leaves it out) -->
+                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Effect="{Binding ThemeMarqueeLogoEffect}">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Visible"/>

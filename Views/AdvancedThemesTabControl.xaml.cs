@@ -2568,13 +2568,23 @@ namespace ArcadeStick.Views
         // One block's storage: the entry it lives on, whether it uses the SectionHeader* fields, and its defaults.
         // SelectUnit is the list row that shows the block's tab; ShadowOnly blocks have no size or color controls.
         // DefaultAlign set = the block has a GI{Block}Align combo (Left / Center / Right, stored in Text* TextAlign).
+        // HasShadowTarget = the block has a GI{Block}ShadowTarget combo (Both / Logo only / Marquees only, ShadowTarget).
         private sealed record GIBlockDef(string EntryId, bool UsesSectionHeader, bool HasFont, string DefaultFamily, bool DefaultBold,
             int DefaultSize, int MinSize, int MaxSize, bool DefaultShadowEnabled, string DefaultShadowColorHex, int DefaultShadowBlur, int DefaultShadowDepth)
         {
             public string SelectUnit { get; init; } = LayerRegistry.GameInfoGroup;
             public bool ShadowOnly { get; init; }
             public string? DefaultAlign { get; init; }
+            public bool HasShadowTarget { get; init; }
         }
+
+        // The Marquee shadow target combo: stored value and the label shown for it, in combo order
+        private static readonly (string Value, string Label)[] ShadowTargetChoices =
+        {
+            (LayerRegistry.ShadowTargetBoth, "Both"),
+            (LayerRegistry.ShadowTargetLogo, "Logo only"),
+            (LayerRegistry.ShadowTargetMarquees, "Marquees only")
+        };
 
         private static readonly Dictionary<string, GIBlockDef> GIBlocks = new()
         {
@@ -2594,7 +2604,7 @@ namespace ArcadeStick.Views
             ["Previews"] = new(LayerRegistry.ImagePreviewsBody, false, false, LayerRegistry.DefaultFontFamily, false,
                 0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true },
             ["Marquee"] = new(LayerRegistry.MarqueePanel, false, false, LayerRegistry.DefaultFontFamily, false,
-                0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true, SelectUnit = LayerRegistry.MarqueePanel },
+                0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true, SelectUnit = LayerRegistry.MarqueePanel, HasShadowTarget = true },
         };
 
         // Reads and writes one block's style on its entry, picking the Text* or SectionHeader* fields
@@ -2614,6 +2624,8 @@ namespace ArcadeStick.Views
             public int? ShadowDepth { get => _h ? _e.SectionHeaderShadowDepth : _e.TextShadowDepth; set { if (_h) _e.SectionHeaderShadowDepth = value; else _e.TextShadowDepth = value; } }
             // Text* only: there is no SectionHeader alignment field yet (add one before giving the headers an Align combo)
             public string? TextAlign { get => _e.TextAlign; set => _e.TextAlign = value; }
+            // Marquee layer only: which images its shadow applies to
+            public string? ShadowTarget { get => _e.ShadowTarget; set => _e.ShadowTarget = value; }
         }
 
         // Does the gating check: true while the block's list row (Game Info group or Marquee layer) is selected
@@ -2665,6 +2677,16 @@ namespace ArcadeStick.Views
                     alignCombo.SelectedItem = TextAlignChoices.Contains(alignment) ? alignment : def.DefaultAlign;
                 }
 
+                if (def.HasShadowTarget && GIControl<ComboBox>(block, "ShadowTarget") is ComboBox targetCombo)
+                {
+                    if (targetCombo.Items.Count == 0)
+                    {
+                        foreach (var choice in ShadowTargetChoices) targetCombo.Items.Add(choice.Label);
+                    }
+                    int targetIndex = Array.FindIndex(ShadowTargetChoices, c => c.Value == style.ShadowTarget);
+                    targetCombo.SelectedIndex = targetIndex >= 0 ? targetIndex : 0; // unknown or blank = Both
+                }
+
                 if (!def.ShadowOnly)
                 {
                     GIControl<TextBox>(block, "Size")!.Text = (style.FontSize ?? def.DefaultSize).ToString(CultureInfo.InvariantCulture);
@@ -2697,6 +2719,17 @@ namespace ArcadeStick.Views
             if ((sender as ComboBox)?.SelectedItem is not string align || GetGIStyle(GIBlockKey(sender)) is not GIStyle style) return;
 
             style.TextAlign = align;
+            RaiseGuides();
+        }
+
+        // Does the shadow target combo (any block with HasShadowTarget, resolved from the sender's Tag)
+        private void GIShadowTarget_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null || GetGIStyle(GIBlockKey(sender)) is not GIStyle style) return;
+            int index = (sender as ComboBox)?.SelectedIndex ?? -1;
+            if (index < 0 || index >= ShadowTargetChoices.Length) return;
+
+            style.ShadowTarget = ShadowTargetChoices[index].Value;
             RaiseGuides();
         }
 

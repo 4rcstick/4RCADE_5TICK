@@ -1704,6 +1704,8 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Logo and marquee image shadow" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
@@ -1713,10 +1715,15 @@
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIMarqueeShadow" Tag="Marquee" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
                                               Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}">
+                                    <!-- Which images get the shadow: Both, Logo only, Marquees only (game marquee and spin frames) -->
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Text="Apply shadow to:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <ComboBox x:Name="GIMarqueeShadowTarget" Tag="Marquee" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Width="130" Height="25" HorizontalAlignment="Left"
+                                              IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
+                                              Style="{StaticResource ThemedComboBoxStyle}" SelectionChanged="GIShadowTarget_SelectionChanged"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}">
                                         <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{Binding BorderColorFramework, FallbackValue=#3A3A3C}" BorderThickness="1">
                                             <colorpicker:PortableColorPicker x:Name="GIMarqueeShadowColorPicker" Tag="Marquee" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
@@ -1726,9 +1733,9 @@
                                         </Border>
                                         <TextBox x:Name="GIMarqueeShadowColorHex" Tag="Marquee" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIShadowColorHex_LostFocus"/>
                                     </StackPanel>
-                                    <TextBox x:Name="GIMarqueeShadowBlur" Tag="Marquee" Grid.Row="4" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
+                                    <TextBox x:Name="GIMarqueeShadowBlur" Tag="Marquee" Grid.Row="6" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
-                                    <TextBox x:Name="GIMarqueeShadowDepth" Tag="Marquee" Grid.Row="4" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
+                                    <TextBox x:Name="GIMarqueeShadowDepth" Tag="Marquee" Grid.Row="6" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                 </Grid>
                             </StackPanel>

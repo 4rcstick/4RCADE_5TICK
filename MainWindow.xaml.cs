@@ -275,7 +275,7 @@ namespace ArcadeStick
 
             // Marquee shadow: re-raise the shared logo / marquee / spin frame shadow only when one of its values changed
             var marqueeEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.MarqueePanel);
-            string marqueeShadowKey = $"{marqueeEntry?.TextShadowEnabled}|{marqueeEntry?.TextShadowColorHex}|{marqueeEntry?.TextShadowBlur}|{marqueeEntry?.TextShadowDepth}";
+            string marqueeShadowKey = $"{marqueeEntry?.TextShadowEnabled}|{marqueeEntry?.TextShadowColorHex}|{marqueeEntry?.TextShadowBlur}|{marqueeEntry?.TextShadowDepth}|{marqueeEntry?.ShadowTarget}";
             if (marqueeShadowKey != _lastMarqueeShadowKey)
             {
                 _lastMarqueeShadowKey = marqueeShadowKey;

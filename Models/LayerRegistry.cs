@@ -186,6 +186,12 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? TextShadowDepth { get; set; }
 
+        // Which images the Marquee layer's shadow (TextShadow* above) applies to: "Both", "Logo" (the idle logo
+        // only) or "Marquees" (the game's marquee and the spin frames only). MarqueePanel entry only; unknown or
+        // blank reads as "Both".
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? ShadowTarget { get; set; }
+
         // Moves only the drawn text up (negative) or down (positive) in pixels, -10 to 10; the layer's fill,
         // size and position stay put. Lets the user re-center text when a font's ascent/descent shifts it.
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -278,6 +284,7 @@ namespace ArcadeStick.Models
             TextShadowColorHex = source.TextShadowColorHex;
             TextShadowBlur = source.TextShadowBlur;
             TextShadowDepth = source.TextShadowDepth;
+            ShadowTarget = source.ShadowTarget;
             TextNudgeY = source.TextNudgeY;
             SectionHeaderFontSize = source.SectionHeaderFontSize;
             SectionHeaderColorHex = source.SectionHeaderColorHex;
@@ -677,11 +684,17 @@ namespace ArcadeStick.Models
         }
 
         // Fills the image shadow (generic TextShadow* fields, off by default) on the Marquee layer (logo, marquee
-        // image and spin frames) and the Image Previews. Other entries are left untouched; saved values are kept.
+        // image and spin frames) and the Image Previews, plus the Marquee shadow's target (unknown or blank becomes
+        // "Both"). Other entries are left untouched; saved values are kept.
         private static void FillImageShadowStyle(LayerLayoutEntry entry)
         {
             if (entry.Id == MarqueePanel || entry.Id == ImagePreviewsBody) FillTextShadowDefaults(entry);
+            if (entry.Id == MarqueePanel && !IsShadowTarget(entry.ShadowTarget)) entry.ShadowTarget = DefaultShadowTarget;
         }
+
+        // Does the Marquee shadow target check: true for "Both", "Logo" or "Marquees"
+        public static bool IsShadowTarget(string? target) =>
+            target == ShadowTargetBoth || target == ShadowTargetLogo || target == ShadowTargetMarquees;
 
         // Fills the generic TextShadow* fields with the standard off-by-default shadow (saved values kept)
         private static void FillTextShadowDefaults(LayerLayoutEntry entry)
@@ -857,6 +870,12 @@ namespace ArcadeStick.Models
         public const int DefaultPublisherFontSize = 13;
         public const bool DefaultPublisherBold = false;
         public const string DefaultPublisherAlign = "Right"; // the old hard-coded look
+
+        // Marquee shadow target (LayerLayoutEntry.ShadowTarget): which marquee images the shadow applies to
+        public const string ShadowTargetBoth = "Both";
+        public const string ShadowTargetLogo = "Logo";
+        public const string ShadowTargetMarquees = "Marquees";
+        public const string DefaultShadowTarget = ShadowTargetBoth; // the Part 1 look: logo, marquee and spin frames
         public const int DefaultInfoHeaderFontSize = 20;
         public const bool DefaultInfoHeaderBold = true;
         public const string DefaultInfoBodyFontFamily = "Georgia";

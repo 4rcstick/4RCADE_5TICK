@@ -941,15 +941,31 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeLogoAsset));
         }
 
-        // Shadow/glow shared by the logo, the game's marquee image and the spin frames (the no-art banner and
-        // the spin's no-marquee card have none). Built from the Marquee layer's TextShadow* fields.
-        public System.Windows.Media.Effects.Effect? ThemeMarqueeEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.MarqueePanel));
+        // The Marquee layer's one shadow/glow (its TextShadow* fields), split by ShadowTarget ("Both", "Logo",
+        // "Marquees"; unknown or blank = "Both"). The no-art banner and the spin's no-marquee card have none.
+        private string MarqueeShadowTarget
+        {
+            get
+            {
+                string? target = GetLayerEntry(LayerRegistry.MarqueePanel).ShadowTarget;
+                return LayerRegistry.IsShadowTarget(target) ? target! : LayerRegistry.DefaultShadowTarget;
+            }
+        }
 
-        // Does the marquee shadow re-raise after the Marquee layer's shadow values changed (RefreshThemeBindings and
-        // MainWindow.ApplyLayout's marquee shadow key)
+        // The game's marquee image and the spin frames (null when the target is Logo only)
+        public System.Windows.Media.Effects.Effect? ThemeMarqueeEffect =>
+            MarqueeShadowTarget != LayerRegistry.ShadowTargetLogo ? BuildTextShadowEffect(GetLayerEntry(LayerRegistry.MarqueePanel)) : null;
+
+        // The idle logo (null when the target is Marquees only)
+        public System.Windows.Media.Effects.Effect? ThemeMarqueeLogoEffect =>
+            MarqueeShadowTarget != LayerRegistry.ShadowTargetMarquees ? BuildTextShadowEffect(GetLayerEntry(LayerRegistry.MarqueePanel)) : null;
+
+        // Does the marquee shadow re-raise after the Marquee layer's shadow values or target changed
+        // (RefreshThemeBindings and MainWindow.ApplyLayout's marquee shadow key)
         public void RefreshMarqueeBindings()
         {
             OnPropertyChanged(nameof(ThemeMarqueeEffect));
+            OnPropertyChanged(nameof(ThemeMarqueeLogoEffect));
         }
 
         // The splash file set on the Splash Image layer for the active resolution (empty = the built-in splash).
