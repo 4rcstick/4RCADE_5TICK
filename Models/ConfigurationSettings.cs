@@ -56,13 +56,13 @@ namespace ArcadeStick.Models
         public string FavoritesColor { get; set; } = "#EFBF04";
 
         public string OptionsBg { get; set; } = "#FF000000";
-        public string BorderColorFramework { get; set; } = "#FF3A3A3C";
 
         public string ScrollTrackColor { get; set; } = "#FF000000";
         public string ScrollTrackHoverColor { get; set; } = "#FF1C1C1E";
         public string ScrollThumbColor { get; set; } = "#FF2C2C2E";
         public string ScrollThumbHoverColor { get; set; } = "#FF3A3A3C";
         public string ScrollThumbDragColor { get; set; } = "#FF00D4FF";
+        public double ScrollbarWidth { get; set; } = 10;
         // =========================================================================
         // 🛑 END: THEME PALETTE HEX BRUSH PROPERTIES
         // =========================================================================
@@ -150,6 +150,7 @@ namespace ArcadeStick.Models
         public string ContextMenuBgColorHex { get; set; } = "#FF1C1C1E";
         public string ContextMenuHoverColorHex { get; set; } = "#FFFFFFFF";
         public string ContextMenuHoverBgColorHex { get; set; } = "#FF2C2C2E";
+        public string ContextMenuBorderColorHex { get; set; } = "#FF3A3A3C";
         public int SubTextFontSize { get; set; } = 12;
         public string SubTextColorHex { get; set; } = "#FFA0A0A2";
         public string OptionsMenuBgColorHex { get; set; } = "#FF1C1C1E";
@@ -362,12 +363,12 @@ namespace ArcadeStick.Models
             this.ActiveResolutionHeight = source.ActiveResolutionHeight;
             this.Layouts = source.Layouts ?? new List<ThemeLayout>();
             this.OptionsBg = source.OptionsBg;
-            this.BorderColorFramework = source.BorderColorFramework;
             this.ScrollTrackColor = source.ScrollTrackColor;
             this.ScrollTrackHoverColor = source.ScrollTrackHoverColor;
             this.ScrollThumbColor = source.ScrollThumbColor;
             this.ScrollThumbHoverColor = source.ScrollThumbHoverColor;
             this.ScrollThumbDragColor = source.ScrollThumbDragColor;
+            this.ScrollbarWidth = source.ScrollbarWidth;
             this.FavoritesColorFile = source.FavoritesColorFile;
             this.RecentlyPlayedColorFile = source.RecentlyPlayedColorFile;
             this.MostPlayedColorFile = source.MostPlayedColorFile;
@@ -391,6 +392,7 @@ namespace ArcadeStick.Models
             this.ContextMenuBgColorHex = source.ContextMenuBgColorHex;
             this.ContextMenuHoverColorHex = source.ContextMenuHoverColorHex;
             this.ContextMenuHoverBgColorHex = source.ContextMenuHoverBgColorHex;
+            this.ContextMenuBorderColorHex = source.ContextMenuBorderColorHex;
             this.SubTextFontSize = source.SubTextFontSize;
             this.SubTextColorHex = source.SubTextColorHex;
             this.OptionsMenuBgColorHex = source.OptionsMenuBgColorHex;

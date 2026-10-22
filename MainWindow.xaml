@@ -35,13 +35,11 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="MenuItem">
-                        <!-- Bound to MainViewModel's ThemeX forwarder properties (not raw Configuration.X) -
-                             ConfigurationSettings doesn't implement INotifyPropertyChanged, so a binding
-                             straight to Configuration.X only ever evaluates once and never updates after a
-                             theme loads/saves. The ThemeX forwarders do get explicitly refreshed via
-                             RefreshThemeBindings(), which is the mechanism every other themed element in
-                             this app already relies on. -->
-                        <Border x:Name="ItemBorder" Background="{Binding DataContext.ThemeContextMenuBgColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}" Padding="{TemplateBinding Padding}">
+                        <!-- Every color is a Global Context Menus resource (Global.Menu.*, published by
+                             GlobalThemeResources), so the menus follow the Global tab live and DynamicResource
+                             resolves from inside the menu popups. The submenu border, the ContextMenu border and
+                             the Separator line below use Global.Menu.BorderColor. -->
+                        <Border x:Name="ItemBorder" Background="{DynamicResource Global.Menu.Bg}" Padding="{TemplateBinding Padding}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="24"/>
@@ -50,14 +48,14 @@
                                     <ColumnDefinition Width="16"/>
                                 </Grid.ColumnDefinitions>
                                 <ContentPresenter x:Name="IconPresenter" Grid.Column="0" ContentSource="Icon" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                  TextElement.Foreground="{Binding DataContext.ThemeContextMenuIconColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"/>
+                                                  TextElement.Foreground="{DynamicResource Global.Menu.Icon}"/>
                                 <ContentPresenter x:Name="HeaderPresenter" Grid.Column="1" ContentSource="Header" VerticalAlignment="Center" Margin="6,0,0,0"
-                                                  TextElement.Foreground="{Binding DataContext.ThemeContextMenuFontColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
-                                <Path x:Name="SubmenuArrow" Grid.Column="2" Data="M0,0 L4,4 L0,8" Stroke="{Binding DataContext.ThemeContextMenuIconColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#00D4FF}"
+                                                  TextElement.Foreground="{DynamicResource Global.Menu.Text}"/>
+                                <Path x:Name="SubmenuArrow" Grid.Column="2" Data="M0,0 L4,4 L0,8" Stroke="{DynamicResource Global.Menu.Icon}"
                                       StrokeThickness="1.3" VerticalAlignment="Center" Margin="8,0,4,0" Visibility="Collapsed"/>
                                 <Popup x:Name="SubmenuPopup" Grid.Column="0" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False">
-                                    <Border Background="{Binding DataContext.ThemeContextMenuBgColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#1C1C1E}"
-                                            BorderBrush="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" BorderThickness="1">
+                                    <Border Background="{DynamicResource Global.Menu.Bg}"
+                                            BorderBrush="{DynamicResource Global.Menu.BorderColor}" BorderThickness="1">
                                         <StackPanel IsItemsHost="True"/>
                                     </Border>
                                 </Popup>
@@ -68,9 +66,9 @@
                                 <Setter TargetName="SubmenuArrow" Property="Visibility" Value="Visible"/>
                             </Trigger>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="ItemBorder" Property="Background" Value="{Binding DataContext.ThemeContextMenuHoverBgColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#EF44C3}"/>
-                                <Setter TargetName="HeaderPresenter" Property="TextElement.Foreground" Value="{Binding DataContext.ThemeContextMenuHoverColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
-                                <Setter TargetName="IconPresenter" Property="TextElement.Foreground" Value="{Binding DataContext.ThemeContextMenuHoverColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#F2F2F7}"/>
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Global.Menu.BgHover}"/>
+                                <Setter TargetName="HeaderPresenter" Property="TextElement.Foreground" Value="{DynamicResource Global.Menu.TextHover}"/>
+                                <Setter TargetName="IconPresenter" Property="TextElement.Foreground" Value="{DynamicResource Global.Menu.TextHover}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <!-- Dim only the content (icon + text), not the Border's own background -
@@ -84,15 +82,15 @@
             </Setter>
         </Style>
         <Style TargetType="ContextMenu">
-            <Setter Property="Background" Value="{Binding ThemeContextMenuBgColor, FallbackValue=#1C1C1E}"/>
-            <Setter Property="BorderBrush" Value="{Binding ThemeBorderColor, FallbackValue=#3A3A3C}"/>
+            <Setter Property="Background" Value="{DynamicResource Global.Menu.Bg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Global.Menu.BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
         <Style TargetType="Separator">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Separator">
-                        <Border BorderBrush="{Binding DataContext.ThemeBorderColor, RelativeSource={RelativeSource AncestorType=Window}, FallbackValue=#3A3A3C}" BorderThickness="0,1,0,0" Margin="34,4,4,4"/>
+                        <Border BorderBrush="{DynamicResource Global.Menu.BorderColor}" BorderThickness="0,1,0,0" Margin="34,4,4,4"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -293,9 +291,8 @@
                         <!-- [SECTION: TreeView Scrollbar Template] -->
                         <!-- TreeView's internal ScrollViewer (part of WPF's built-in TreeView template) can't be targeted
          by name, so this implicit BasedOn style is what actually applies the shared template here - do
-         not remove, GameTree's scrollbar will silently revert to default without it. ArcadeDarkScrollBarThemed/
-         ArcadeDarkScrollViewerThemed now live in App.xaml (Application.Resources) so both GameTree and
-         MediaPanelControl can reach them via StaticResource - see App.xaml. -->
+         not remove, GameTree's scrollbar will silently revert to default without it. ArcadeDarkScrollViewerThemed
+         lives in App.xaml (the only scrollbar template in the app) and reads the Global Scrollbars resources. -->
                         <Style TargetType="{x:Type ScrollViewer}" BasedOn="{StaticResource ArcadeDarkScrollViewerThemed}"/>
 
                         <!-- [SECTION: TreeView Folder/Game DataTemplates] -->

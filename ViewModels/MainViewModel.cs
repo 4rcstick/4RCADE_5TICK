@@ -600,7 +600,6 @@ namespace ArcadeStick.ViewModels
         // under the wallpaper (and alone when the wallpaper is disabled), and also its own popups, the no-art banner
         // and the spin card.
         public string ThemeMainColor => GetLayerEntry(LayerRegistry.MainBackground).BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex;
-        public string ThemeBorderColor => Configuration.BorderColorFramework;
         public double ThemeBorderWidth => Configuration.BorderWidthValue;
         public double ThemeBorderCurve => Configuration.BorderCurveValue;
         public string ThemeSeparatorColor => Configuration.SeparatorColorHex;
@@ -1115,7 +1114,6 @@ namespace ArcadeStick.ViewModels
             ResolveMarqueeImage();
 
             OnPropertyChanged(nameof(ThemeMainColor));
-            OnPropertyChanged(nameof(ThemeBorderColor));
             OnPropertyChanged(nameof(ThemeBorderWidth));
             OnPropertyChanged(nameof(ThemeBorderCurve));
             OnPropertyChanged(nameof(ThemeSeparatorColor));
@@ -1332,12 +1330,12 @@ namespace ArcadeStick.ViewModels
 
             // Map ThemeSettings DTO properties back to the main ConfigurationSettings object
             Configuration.OptionsBg = themeData.OptionsBg;
-            Configuration.BorderColorFramework = themeData.BorderColorFramework;
             Configuration.ScrollTrackColor = themeData.ScrollTrackColor;
             Configuration.ScrollTrackHoverColor = themeData.ScrollTrackHoverColor;
             Configuration.ScrollThumbColor = themeData.ScrollThumbColor;
             Configuration.ScrollThumbHoverColor = themeData.ScrollThumbHoverColor;
             Configuration.ScrollThumbDragColor = themeData.ScrollThumbDragColor;
+            Configuration.ScrollbarWidth = themeData.ScrollbarWidth;
             Configuration.BorderWidthValue = themeData.BorderWidthValue;
             Configuration.BorderCurveValue = themeData.BorderCurveValue;
             Configuration.SeparatorColorHex = themeData.SeparatorColorHex;
@@ -1357,6 +1355,7 @@ namespace ArcadeStick.ViewModels
             Configuration.ContextMenuBgColorHex = themeData.ContextMenuBgColorHex;
             Configuration.ContextMenuHoverColorHex = themeData.ContextMenuHoverColorHex;
             Configuration.ContextMenuHoverBgColorHex = themeData.ContextMenuHoverBgColorHex;
+            Configuration.ContextMenuBorderColorHex = themeData.ContextMenuBorderColorHex;
             Configuration.SubTextFontSize = themeData.SubTextFontSize;
             Configuration.SubTextColorHex = themeData.SubTextColorHex;
             Configuration.OptionsMenuBgColorHex = themeData.OptionsMenuBgColorHex;

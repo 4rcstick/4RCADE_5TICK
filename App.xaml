@@ -79,32 +79,46 @@
         <SolidColorBrush x:Key="Global.Scroll.ThumbDrag" Color="#FF00D4FF"/>
         <SolidColorBrush x:Key="Global.Scroll.Track" Color="#FF000000"/>
         <SolidColorBrush x:Key="Global.Scroll.TrackHover" Color="#FF1C1C1E"/>
+        <sys:Double x:Key="Global.Scroll.Width">10</sys:Double>
+        <sys:Double x:Key="Global.Scroll.HitWidth">10</sys:Double>
 
         <SolidColorBrush x:Key="Global.Menu.Text" Color="#FFF2F2F7"/>
         <SolidColorBrush x:Key="Global.Menu.Icon" Color="#FF00D4FF"/>
         <SolidColorBrush x:Key="Global.Menu.Bg" Color="#FF1C1C1E"/>
         <SolidColorBrush x:Key="Global.Menu.TextHover" Color="#FFFFFFFF"/>
         <SolidColorBrush x:Key="Global.Menu.BgHover" Color="#FF2C2C2E"/>
+        <SolidColorBrush x:Key="Global.Menu.BorderColor" Color="#FF3A3A3C"/>
         <!-- [END SECTION: Global Theme Resources] -->
         
 
         <!-- [SECTION: ArcadeDarkScrollBar Style] -->
-        <!-- Global reusable dark scrollbar (track/thumb/repeat buttons), themed via ScrollTrack*/ScrollThumb* bindings.
-             Used across Options window tabs; MainWindow.xaml has its own local copy keyed the same way. -->
+        <!-- The shared dark scrollbar (track, thumb, page repeat buttons). Colors are the Global Scrollbars resources
+             (Global.Scroll.*). The drawn width is Global.Scroll.Width; the two ScrollViewer styles below size the bar to
+             Global.Scroll.HitWidth (the same value, but at least 8, so a thin bar is still easy to grab). Used by
+             ArcadeDarkScrollViewer: the Options window tabs, Sorting, the Theme Builder's Basic and Global tabs, and the
+             Chrome Palette lists and combo dropdowns. App.xaml is the only scrollbar template in the app. -->
         <Style x:Key="ArcadeDarkScrollBar" TargetType="{x:Type ScrollBar}">
+            <!-- The Windows theme style still applies under this one and sets MinWidth to the system scrollbar width
+                 (17), which made any width below 17 draw at 17. -->
+            <Setter Property="MinWidth" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ScrollBar}">
-                        <Grid x:Name="Bg" Background="{Binding ScrollTrackColor, FallbackValue=#000000}" SnapsToDevicePixels="true">
+                        <!-- The bar is Global.Scroll.HitWidth wide (never under 8, so it stays easy to grab); the track and thumb are
+                             drawn Global.Scroll.Width wide at its right edge. The rest of the hit area is transparent. -->
+                        <Grid x:Name="Bg" Background="Transparent" SnapsToDevicePixels="true">
+                            <Rectangle Width="{DynamicResource Global.Scroll.Width}" HorizontalAlignment="Right" Fill="{DynamicResource Global.Scroll.Track}"/>
                             <Track x:Name="PART_Track" IsDirectionReversed="true" IsEnabled="{TemplateBinding IsEnabled}">
                                 <Track.DecreaseRepeatButton>
                                     <RepeatButton Command="ScrollBar.PageUpCommand" Background="Transparent" BorderBrush="Transparent">
                                         <RepeatButton.Template>
                                             <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                                <Rectangle x:Name="TrackRect" Fill="Transparent"/>
+                                                <Grid Background="Transparent">
+                                                    <Rectangle x:Name="TrackRect" Width="{DynamicResource Global.Scroll.Width}" HorizontalAlignment="Right" Fill="Transparent"/>
+                                                </Grid>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{Binding ScrollTrackHoverColor, FallbackValue=#1C1C1E}"/>
+                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{DynamicResource Global.Scroll.TrackHover}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -115,10 +129,12 @@
                                     <RepeatButton Command="ScrollBar.PageDownCommand" Background="Transparent" BorderBrush="Transparent">
                                         <RepeatButton.Template>
                                             <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                                <Rectangle x:Name="TrackRect" Fill="Transparent"/>
+                                                <Grid Background="Transparent">
+                                                    <Rectangle x:Name="TrackRect" Width="{DynamicResource Global.Scroll.Width}" HorizontalAlignment="Right" Fill="Transparent"/>
+                                                </Grid>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{Binding ScrollTrackHoverColor, FallbackValue=#1C1C1E}"/>
+                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{DynamicResource Global.Scroll.TrackHover}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -129,13 +145,15 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="{x:Type Thumb}">
-                                                <Rectangle x:Name="ThumbRect" Fill="{Binding ScrollThumbColor, FallbackValue=#2C2C2E}" RadiusX="4" RadiusY="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                                                <Grid Background="Transparent">
+                                                    <Rectangle x:Name="ThumbRect" Width="{DynamicResource Global.Scroll.Width}" Fill="{DynamicResource Global.Scroll.Thumb}" RadiusX="4" RadiusY="4" HorizontalAlignment="Right" VerticalAlignment="Stretch"/>
+                                                </Grid>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{Binding ScrollThumbHoverColor, FallbackValue=#3A3A3C}"/>
+                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{DynamicResource Global.Scroll.ThumbHover}"/>
                                                     </Trigger>
                                                     <Trigger Property="IsDragging" Value="True">
-                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{Binding ScrollThumbDragColor, FallbackValue=#00D4FF}"/>
+                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{DynamicResource Global.Scroll.ThumbDrag}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -151,24 +169,33 @@
         <!-- [END SECTION: ArcadeDarkScrollBar Style] -->
 
         <!-- [SECTION: ArcadeDarkScrollBarThemed / ArcadeDarkScrollViewerThemed Style] -->
-        <!-- Theme*-prefixed sibling of the pair above, for anything bound to MainViewModel instead of
-             ConfigurationSettings (MainWindow.xaml's GameTree, MediaPanelControl.xaml). Must live at the
-             App level (not MainWindow's Window.Resources) since MediaPanelControl is a separately-compiled
-             UserControl - StaticResource can't reach into whatever Window happens to host it at runtime. -->
+        <!-- Sibling of the pair around it, on the same Global Scrollbars resources (it used to bind the MainViewModel
+             ThemeScroll* forwarders, which failed silently on the Advanced tab). Used by the Games List (MainWindow.xaml's
+             implicit ScrollViewer style in GameTree), GameInfoLayerControl and the Advanced tab. It differs from
+             ArcadeDarkScrollViewer only by CanContentScroll="True". Lives at the App level so separately compiled
+             UserControls can reach it with StaticResource. -->
         <Style x:Key="ArcadeDarkScrollBarThemed" TargetType="{x:Type ScrollBar}">
+            <!-- The Windows theme style still applies under this one and sets MinWidth to the system scrollbar width
+                 (17), which made any width below 17 draw at 17. -->
+            <Setter Property="MinWidth" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ScrollBar}">
-                        <Grid x:Name="Bg" Background="{Binding ThemeScrollTrackColor, FallbackValue=#000000}" SnapsToDevicePixels="true">
+                        <!-- The bar is Global.Scroll.HitWidth wide (never under 8, so it stays easy to grab); the track and thumb are
+                             drawn Global.Scroll.Width wide at its right edge. The rest of the hit area is transparent. -->
+                        <Grid x:Name="Bg" Background="Transparent" SnapsToDevicePixels="true">
+                            <Rectangle Width="{DynamicResource Global.Scroll.Width}" HorizontalAlignment="Right" Fill="{DynamicResource Global.Scroll.Track}"/>
                             <Track x:Name="PART_Track" IsDirectionReversed="true" IsEnabled="{TemplateBinding IsEnabled}">
                                 <Track.DecreaseRepeatButton>
                                     <RepeatButton Command="ScrollBar.PageUpCommand" Background="Transparent" BorderBrush="Transparent">
                                         <RepeatButton.Template>
                                             <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                                <Rectangle x:Name="TrackRect" Fill="Transparent"/>
+                                                <Grid Background="Transparent">
+                                                    <Rectangle x:Name="TrackRect" Width="{DynamicResource Global.Scroll.Width}" HorizontalAlignment="Right" Fill="Transparent"/>
+                                                </Grid>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{Binding ThemeScrollTrackHoverColor, FallbackValue=#1C1C1E}"/>
+                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{DynamicResource Global.Scroll.TrackHover}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -179,10 +206,12 @@
                                     <RepeatButton Command="ScrollBar.PageDownCommand" Background="Transparent" BorderBrush="Transparent">
                                         <RepeatButton.Template>
                                             <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                                <Rectangle x:Name="TrackRect" Fill="Transparent"/>
+                                                <Grid Background="Transparent">
+                                                    <Rectangle x:Name="TrackRect" Width="{DynamicResource Global.Scroll.Width}" HorizontalAlignment="Right" Fill="Transparent"/>
+                                                </Grid>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{Binding ThemeScrollTrackHoverColor, FallbackValue=#1C1C1E}"/>
+                                                        <Setter TargetName="TrackRect" Property="Fill" Value="{DynamicResource Global.Scroll.TrackHover}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -193,13 +222,15 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="{x:Type Thumb}">
-                                                <Rectangle x:Name="ThumbRect" Fill="{Binding ThemeScrollThumbColor, FallbackValue=#2C2C2E}" RadiusX="4" RadiusY="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                                                <Grid Background="Transparent">
+                                                    <Rectangle x:Name="ThumbRect" Width="{DynamicResource Global.Scroll.Width}" Fill="{DynamicResource Global.Scroll.Thumb}" RadiusX="4" RadiusY="4" HorizontalAlignment="Right" VerticalAlignment="Stretch"/>
+                                                </Grid>
                                                 <ControlTemplate.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{Binding ThemeScrollThumbHoverColor, FallbackValue=#3A3A3C}"/>
+                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{DynamicResource Global.Scroll.ThumbHover}"/>
                                                     </Trigger>
                                                     <Trigger Property="IsDragging" Value="True">
-                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{Binding ThemeScrollThumbDragColor, FallbackValue=#00D4FF}"/>
+                                                        <Setter TargetName="ThumbRect" Property="Fill" Value="{DynamicResource Global.Scroll.ThumbDrag}"/>
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -228,7 +259,7 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <ScrollContentPresenter Grid.Column="0" Grid.Row="0"/>
-                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Grid.Row="0" Width="10" Style="{StaticResource ArcadeDarkScrollBarThemed}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Grid.Row="0" Width="{DynamicResource Global.Scroll.HitWidth}" Style="{StaticResource ArcadeDarkScrollBarThemed}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
@@ -237,7 +268,8 @@
         <!-- [END SECTION: ArcadeDarkScrollBarThemed / ArcadeDarkScrollViewerThemed Style] -->
 
         <!-- [SECTION: ArcadeDarkScrollViewer Style] -->
-        <!-- Pairs with ArcadeDarkScrollBar above: routes the ScrollViewer's vertical scrollbar through the themed style. -->
+        <!-- Pairs with ArcadeDarkScrollBar above: routes the ScrollViewer's vertical scrollbar through the themed style,
+             at the Global Scrollbar Width. -->
         <Style x:Key="ArcadeDarkScrollViewer" TargetType="{x:Type ScrollViewer}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -252,7 +284,7 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <ScrollContentPresenter Grid.Column="0" Grid.Row="0"/>
-                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Grid.Row="0" Width="10" Style="{StaticResource ArcadeDarkScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Grid.Row="0" Width="{DynamicResource Global.Scroll.HitWidth}" Style="{StaticResource ArcadeDarkScrollBar}" Maximum="{TemplateBinding ScrollableHeight}" Value="{TemplateBinding VerticalOffset}" ViewportSize="{TemplateBinding ViewportHeight}" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>

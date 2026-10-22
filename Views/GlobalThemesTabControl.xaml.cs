@@ -33,10 +33,12 @@ namespace ArcadeStick.Views
         private readonly Dictionary<object, ColorField> _colorFields = new();
         private readonly Dictionary<TextBox, NumberField> _numberFields = new();
 
-        // Font sizes (fonts, tabs, buttons) use the Games List range; border sizes and radii the Advanced tab's Border tab ranges.
+        // Font sizes (fonts, tabs, buttons) use the Games List range; border sizes and radii the Advanced tab's Border tab ranges;
+        // the scrollbar width may be very thin (its grab area stays at least 8 wide, GlobalThemeResources) but not crowd the lists.
         private const double MinFontSize = 6, MaxFontSize = 72;
         private const double MinBorderSize = 0, MaxBorderSize = 50;
         private const double MinBorderRadius = 0, MaxBorderRadius = 200;
+        private const double MinScrollWidth = 2, MaxScrollWidth = 40;
 
         public GlobalThemesTabControl()
         {
@@ -44,7 +46,7 @@ namespace ArcadeStick.Views
             BuildFieldTables();
         }
 
-        // Registers every Fonts, Backgrounds, Tabs and Buttons control with its ConfigurationSettings property
+        // Registers every Fonts, Backgrounds, Tabs, Buttons, Scrollbars and Context Menus control with its ConfigurationSettings property
         private void BuildFieldTables()
         {
             AddColor(GlobalHeaderColorPicker, GlobalHeaderColorHex, s => s.HeaderColorHex, (s, v) => s.HeaderColorHex = v);
@@ -79,6 +81,20 @@ namespace ArcadeStick.Views
             AddColor(GlobalButtonBorderColorPicker, GlobalButtonBorderColorHex, s => s.BtnBorderColorHex, (s, v) => s.BtnBorderColorHex = v);
             AddNumber(GlobalButtonBorderSize, s => s.OptionsBtnBorderSize, (s, v) => s.OptionsBtnBorderSize = v, MinBorderSize, MaxBorderSize, false);
             AddNumber(GlobalButtonBorderRadius, s => s.OptionsBtnBorderRadius, (s, v) => s.OptionsBtnBorderRadius = v, MinBorderRadius, MaxBorderRadius, false);
+
+            AddNumber(GlobalScrollWidth, s => s.ScrollbarWidth, (s, v) => s.ScrollbarWidth = v, MinScrollWidth, MaxScrollWidth, false);
+            AddColor(GlobalScrollThumbColorPicker, GlobalScrollThumbColorHex, s => s.ScrollThumbColor, (s, v) => s.ScrollThumbColor = v);
+            AddColor(GlobalScrollThumbHoverColorPicker, GlobalScrollThumbHoverColorHex, s => s.ScrollThumbHoverColor, (s, v) => s.ScrollThumbHoverColor = v);
+            AddColor(GlobalScrollThumbDragColorPicker, GlobalScrollThumbDragColorHex, s => s.ScrollThumbDragColor, (s, v) => s.ScrollThumbDragColor = v);
+            AddColor(GlobalScrollTrackColorPicker, GlobalScrollTrackColorHex, s => s.ScrollTrackColor, (s, v) => s.ScrollTrackColor = v);
+            AddColor(GlobalScrollTrackHoverColorPicker, GlobalScrollTrackHoverColorHex, s => s.ScrollTrackHoverColor, (s, v) => s.ScrollTrackHoverColor = v);
+
+            AddColor(GlobalMenuTextColorPicker, GlobalMenuTextColorHex, s => s.ContextMenuFontColorHex, (s, v) => s.ContextMenuFontColorHex = v);
+            AddColor(GlobalMenuBgColorPicker, GlobalMenuBgColorHex, s => s.ContextMenuBgColorHex, (s, v) => s.ContextMenuBgColorHex = v);
+            AddColor(GlobalMenuHoverTextColorPicker, GlobalMenuHoverTextColorHex, s => s.ContextMenuHoverColorHex, (s, v) => s.ContextMenuHoverColorHex = v);
+            AddColor(GlobalMenuHoverBgColorPicker, GlobalMenuHoverBgColorHex, s => s.ContextMenuHoverBgColorHex, (s, v) => s.ContextMenuHoverBgColorHex = v);
+            AddColor(GlobalMenuIconColorPicker, GlobalMenuIconColorHex, s => s.ContextMenuIconColorHex, (s, v) => s.ContextMenuIconColorHex = v);
+            AddColor(GlobalMenuBorderColorPicker, GlobalMenuBorderColorHex, s => s.ContextMenuBorderColorHex, (s, v) => s.ContextMenuBorderColorHex = v);
         }
 
         // Adds one color field to the table, keyed by both its picker and its hex box

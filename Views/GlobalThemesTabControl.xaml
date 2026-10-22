@@ -21,7 +21,7 @@
         <!-- [SECTION: Guide] -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
             <TextBlock Text="GLOBAL" Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}" Margin="0,0,0,10"/>
-            <TextBlock Text="Theme-wide values, the same at every size: the fonts, backgrounds, tabs and buttons of the Options window, the Sorting window, this Theme Builder and the other dialogs. Values apply when you press Enter or leave the field; colors apply as you pick them. Save Adjustments writes them to settings.json; Save Changes on the Basic Themes tab writes them into the theme file. Closing without saving puts them back."
+            <TextBlock Text="Theme-wide values, the same at every size: the fonts, backgrounds, tabs and buttons of the Options window, the Sorting window, this Theme Builder and the other dialogs, plus the scrollbars and context menus everywhere. Values apply when you press Enter or leave the field; colors apply as you pick them. Save Adjustments writes them to settings.json; Save Changes on the Basic Themes tab writes them into the theme file. Closing without saving puts them back."
                        Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" TextWrapping="Wrap"/>
         </StackPanel>
         <!-- [END SECTION: Guide] -->
@@ -436,6 +436,208 @@
                 </ScrollViewer>
             </TabItem>
             <!-- [END SECTION: Buttons Tab] -->
+
+            <!-- [SECTION: Scrollbars Tab] -->
+            <!-- Scrollbar width (2 to 40), the thumb color resting, on hover and while dragged, and the track background resting and on hover. -->
+            <TabItem x:Name="TabGlobalScrollbars" Header="SCROLLBARS" Tag="Scrollbars">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Width -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Width:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <TextBox x:Name="GlobalScrollWidth" Grid.Row="0" Grid.Column="2" Width="48" HorizontalAlignment="Left" Margin="0,0,0,8" HorizontalContentAlignment="Center"
+                                     Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalField_LostFocus" KeyDown="GlobalField_KeyDown"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="Thumb:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <TextBlock Grid.Row="1" Grid.Column="4" Text="Track:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+
+                            <!-- Resting -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Resting:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalScrollThumbColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalScrollThumbColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalScrollTrackColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalScrollTrackColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Hover -->
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Hover:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalScrollThumbHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalScrollThumbHoverColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="3" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalScrollTrackHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalScrollTrackHoverColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Drag (thumb only) -->
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Dragging:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalScrollThumbDragColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalScrollThumbDragColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,15,0,0"
+                                   Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"
+                                   Text="Scrollbars are the vertical scrollbars of the Games List, the Options, Sorting and Theme Builder windows, and the lists and dropdowns. The thumb is the part you drag; the track is the strip behind it. Hover on the track shows above or below the thumb."/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- [END SECTION: Scrollbars Tab] -->
+
+            <!-- [SECTION: Context Menus Tab] -->
+            <!-- Context menus and the hamburger menu: font and background color resting and on hover, the icon color, and the border color (also the separator lines). -->
+            <TabItem x:Name="TabGlobalContextMenus" Header="CONTEXT MENUS" Tag="ContextMenus">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="14"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Font color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                            <TextBlock Grid.Row="0" Grid.Column="4" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+
+                            <!-- Resting -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Resting:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalMenuTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalMenuTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalMenuBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalMenuBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Hover (the font color also colors the icon) -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Hover:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalMenuHoverTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalMenuHoverTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalMenuHoverBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalMenuHoverBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Icons -->
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Icons:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalMenuIconColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalMenuIconColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+
+                            <!-- Border and separators -->
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Border:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
+                                <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <colorpicker:PortableColorPicker x:Name="GlobalMenuBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GlobalColorPicker_ColorChanged">
+                                        <colorpicker:PortableColorPicker.Resources>
+                                            <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                        </colorpicker:PortableColorPicker.Resources>
+                                    </colorpicker:PortableColorPicker>
+                                </Border>
+                                <TextBox x:Name="GlobalMenuBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GlobalColorHex_LostFocus"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,15,0,0"
+                                   Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"
+                                   Text="Context menus are the right-click menus of the Games List (folders, games and empty space) and the hamburger menu, with their submenus. On hover the font color also colors the icon and submenu arrow. The border color frames each menu and submenu and draws the separator lines."/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- [END SECTION: Context Menus Tab] -->
         </TabControl>
         <!-- [END SECTION: Global Subtabs] -->
 

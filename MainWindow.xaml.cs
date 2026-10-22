@@ -1374,7 +1374,7 @@ namespace ArcadeStick
 
             // Favorites' star icon deliberately has no local Foreground set, same as every other context
             // menu icon (e.g. "Create folder") - that lets it inherit the MenuItem template's
-            // TextElement.Foreground (ThemeContextMenuIconColor normally, ThemeContextMenuHoverColor on
+            // TextElement.Foreground (Global.Menu.Icon normally, Global.Menu.TextHover on
             // hover) instead of fighting it. A local Foreground value always wins over an inherited/
             // triggered one, which is exactly why the old hardcoded color here never responded to hover.
             var favoritesItem = new MenuItem

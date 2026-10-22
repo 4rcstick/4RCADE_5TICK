@@ -20,21 +20,6 @@ namespace ArcadeStick.Views
         public void SetThemeSavedCallback(Action callback) => _themeSavedCallback = callback;
         private System.Windows.Threading.DispatcherTimer _themeSavedFlashTimer;
 
-        // TEMPLATE for Claude Code: this field plus the sync block below are the pattern to replicate
-        // per Theme*ColorHex field (rename to match, e.g. _suppressGameColorSync). Prevents the picker's
-        // ColorChanged and the hex textbox's LostFocus from re-triggering each other.
-        private bool _suppressFrameworkBorderColorSync;
-        private bool _suppressScrollThumbColorSync;
-        private bool _suppressScrollThumbHoverColorSync;
-        private bool _suppressScrollThumbDragColorSync;
-        private bool _suppressScrollTrackColorSync;
-        private bool _suppressScrollTrackHoverColorSync;
-        private bool _suppressContextMenuFontColorSync;
-        private bool _suppressContextMenuIconColorSync;
-        private bool _suppressContextMenuBgColorSync;
-        private bool _suppressContextMenuHoverColorSync;
-        private bool _suppressContextMenuHoverBgColorSync;
-
         public ThemesTabControl()
         {
             InitializeComponent();
@@ -116,220 +101,6 @@ namespace ArcadeStick.Views
 
         
 
-        private void ContextMenuFontColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuFontColorSync) return;
-            var newColor = ContextMenuFontColorPicker.SelectedColor;
-            _suppressContextMenuFontColorSync = true;
-            TxtContextMenuFontColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressContextMenuFontColorSync = false;
-        }
-
-        private void TxtContextMenuFontColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuFontColorSync) return;
-            var parsedColor = TryParseColor(TxtContextMenuFontColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressContextMenuFontColorSync = true;
-                ContextMenuFontColorPicker.SelectedColor = parsedColor.Value;
-                _suppressContextMenuFontColorSync = false;
-            }
-        }
-
-        private void ContextMenuIconColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuIconColorSync) return;
-            var newColor = ContextMenuIconColorPicker.SelectedColor;
-            _suppressContextMenuIconColorSync = true;
-            TxtContextMenuIconColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressContextMenuIconColorSync = false;
-        }
-
-        private void TxtContextMenuIconColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuIconColorSync) return;
-            var parsedColor = TryParseColor(TxtContextMenuIconColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressContextMenuIconColorSync = true;
-                ContextMenuIconColorPicker.SelectedColor = parsedColor.Value;
-                _suppressContextMenuIconColorSync = false;
-            }
-        }
-
-        private void ContextMenuBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuBgColorSync) return;
-            var newColor = ContextMenuBgColorPicker.SelectedColor;
-            _suppressContextMenuBgColorSync = true;
-            TxtContextMenuBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressContextMenuBgColorSync = false;
-        }
-
-        private void TxtContextMenuBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuBgColorSync) return;
-            var parsedColor = TryParseColor(TxtContextMenuBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressContextMenuBgColorSync = true;
-                ContextMenuBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressContextMenuBgColorSync = false;
-            }
-        }
-
-        private void ContextMenuHoverColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuHoverColorSync) return;
-            var newColor = ContextMenuHoverColorPicker.SelectedColor;
-            _suppressContextMenuHoverColorSync = true;
-            TxtContextMenuHoverColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressContextMenuHoverColorSync = false;
-        }
-
-        private void TxtContextMenuHoverColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuHoverColorSync) return;
-            var parsedColor = TryParseColor(TxtContextMenuHoverColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressContextMenuHoverColorSync = true;
-                ContextMenuHoverColorPicker.SelectedColor = parsedColor.Value;
-                _suppressContextMenuHoverColorSync = false;
-            }
-        }
-
-        private void ContextMenuHoverBgColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuHoverBgColorSync) return;
-            var newColor = ContextMenuHoverBgColorPicker.SelectedColor;
-            _suppressContextMenuHoverBgColorSync = true;
-            TxtContextMenuHoverBgColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressContextMenuHoverBgColorSync = false;
-        }
-
-        private void TxtContextMenuHoverBgColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressContextMenuHoverBgColorSync) return;
-            var parsedColor = TryParseColor(TxtContextMenuHoverBgColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressContextMenuHoverBgColorSync = true;
-                ContextMenuHoverBgColorPicker.SelectedColor = parsedColor.Value;
-                _suppressContextMenuHoverBgColorSync = false;
-            }
-        }
-
-        // BorderColorFramework has no field: the chrome borders it drove now use the fixed ChromeBorder palette
-        // color. Only the main window's context menu border still reads it (through ThemeBorderColor) until the
-        // Global tab's Context Menus pass gives the menus their own border color.
-
-        private void ScrollThumbColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollThumbColorSync) return;
-            var newColor = ScrollThumbColorPicker.SelectedColor;
-            _suppressScrollThumbColorSync = true;
-            TxtScrollThumbColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressScrollThumbColorSync = false;
-        }
-
-        private void TxtScrollThumbColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollThumbColorSync) return;
-            var parsedColor = TryParseColor(TxtScrollThumbColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressScrollThumbColorSync = true;
-                ScrollThumbColorPicker.SelectedColor = parsedColor.Value;
-                _suppressScrollThumbColorSync = false;
-            }
-        }
-
-        private void ScrollThumbHoverColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollThumbHoverColorSync) return;
-            var newColor = ScrollThumbHoverColorPicker.SelectedColor;
-            _suppressScrollThumbHoverColorSync = true;
-            TxtScrollThumbHoverColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressScrollThumbHoverColorSync = false;
-        }
-
-        private void TxtScrollThumbHoverColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollThumbHoverColorSync) return;
-            var parsedColor = TryParseColor(TxtScrollThumbHoverColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressScrollThumbHoverColorSync = true;
-                ScrollThumbHoverColorPicker.SelectedColor = parsedColor.Value;
-                _suppressScrollThumbHoverColorSync = false;
-            }
-        }
-
-        private void ScrollThumbDragColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollThumbDragColorSync) return;
-            var newColor = ScrollThumbDragColorPicker.SelectedColor;
-            _suppressScrollThumbDragColorSync = true;
-            TxtScrollThumbDragColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressScrollThumbDragColorSync = false;
-        }
-
-        private void TxtScrollThumbDragColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollThumbDragColorSync) return;
-            var parsedColor = TryParseColor(TxtScrollThumbDragColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressScrollThumbDragColorSync = true;
-                ScrollThumbDragColorPicker.SelectedColor = parsedColor.Value;
-                _suppressScrollThumbDragColorSync = false;
-            }
-        }
-
-        private void ScrollTrackColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollTrackColorSync) return;
-            var newColor = ScrollTrackColorPicker.SelectedColor;
-            _suppressScrollTrackColorSync = true;
-            TxtScrollTrackColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressScrollTrackColorSync = false;
-        }
-
-        private void TxtScrollTrackColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollTrackColorSync) return;
-            var parsedColor = TryParseColor(TxtScrollTrackColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressScrollTrackColorSync = true;
-                ScrollTrackColorPicker.SelectedColor = parsedColor.Value;
-                _suppressScrollTrackColorSync = false;
-            }
-        }
-
-        private void ScrollTrackHoverColorPicker_ColorChanged(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollTrackHoverColorSync) return;
-            var newColor = ScrollTrackHoverColorPicker.SelectedColor;
-            _suppressScrollTrackHoverColorSync = true;
-            TxtScrollTrackHoverColorHex.Text = newColor.A == 0 ? "Transparent" : $"#{newColor.A:X2}{newColor.R:X2}{newColor.G:X2}{newColor.B:X2}";
-            _suppressScrollTrackHoverColorSync = false;
-        }
-
-        private void TxtScrollTrackHoverColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressScrollTrackHoverColorSync) return;
-            var parsedColor = TryParseColor(TxtScrollTrackHoverColorHex.Text.Trim());
-            if (parsedColor.HasValue)
-            {
-                _suppressScrollTrackHoverColorSync = true;
-                ScrollTrackHoverColorPicker.SelectedColor = parsedColor.Value;
-                _suppressScrollTrackHoverColorSync = false;
-            }
-        }
-
         // Normalizes a hex color string to #RRGGBB (uppercase, # prefix, stripping alpha if present).
         // Any recognized WPF named color (Transparent, Red, DodgerBlue, etc.) passes through as its proper
         // canonical name instead of getting a "#" incorrectly prepended - mirrors SafeConvertToBrush's
@@ -396,118 +167,8 @@ namespace ArcadeStick.Views
         // sync points (this method, the themeDto builder in BtnSaveTheme_Click, and BtnLoadTheme_Click).
         private void LoadCurrentThemeValuesIntoUi()
         {
-
-            // Color System Enforcements (Filtered through Gatekeeper)
-            
-            // BorderColorFramework has no field (see the note above ScrollThumbColorPicker_ColorChanged).
-            
-                        
-            TxtContextMenuFontColorHex.Text = FormatHexCode(_settings.ContextMenuFontColorHex);
-            {
-                var parsedColor = TryParseColor(TxtContextMenuFontColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressContextMenuFontColorSync = true;
-                    ContextMenuFontColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressContextMenuFontColorSync = false;
-                }
-            }
-            TxtContextMenuIconColorHex.Text = FormatHexCode(_settings.ContextMenuIconColorHex);
-            {
-                var parsedColor = TryParseColor(TxtContextMenuIconColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressContextMenuIconColorSync = true;
-                    ContextMenuIconColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressContextMenuIconColorSync = false;
-                }
-            }
-            TxtContextMenuBgColorHex.Text = FormatHexCode(_settings.ContextMenuBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtContextMenuBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressContextMenuBgColorSync = true;
-                    ContextMenuBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressContextMenuBgColorSync = false;
-                }
-            }
-            TxtContextMenuHoverColorHex.Text = FormatHexCode(_settings.ContextMenuHoverColorHex);
-            {
-                var parsedColor = TryParseColor(TxtContextMenuHoverColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressContextMenuHoverColorSync = true;
-                    ContextMenuHoverColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressContextMenuHoverColorSync = false;
-                }
-            }
-            TxtContextMenuHoverBgColorHex.Text = FormatHexCode(_settings.ContextMenuHoverBgColorHex);
-            {
-                var parsedColor = TryParseColor(TxtContextMenuHoverBgColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressContextMenuHoverBgColorSync = true;
-                    ContextMenuHoverBgColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressContextMenuHoverBgColorSync = false;
-                }
-            }
-            
-            TxtScrollTrackColorHex.Text = FormatHexCode(_settings.ScrollTrackColor);
-            {
-                var parsedColor = TryParseColor(TxtScrollTrackColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressScrollTrackColorSync = true;
-                    ScrollTrackColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressScrollTrackColorSync = false;
-                }
-            }
-            TxtScrollTrackHoverColorHex.Text = FormatHexCode(_settings.ScrollTrackHoverColor);
-            {
-                var parsedColor = TryParseColor(TxtScrollTrackHoverColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressScrollTrackHoverColorSync = true;
-                    ScrollTrackHoverColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressScrollTrackHoverColorSync = false;
-                }
-            }
-            TxtScrollThumbColorHex.Text = FormatHexCode(_settings.ScrollThumbColor);
-            {
-                var parsedColor = TryParseColor(TxtScrollThumbColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressScrollThumbColorSync = true;
-                    ScrollThumbColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressScrollThumbColorSync = false;
-                }
-            }
-            TxtScrollThumbHoverColorHex.Text = FormatHexCode(_settings.ScrollThumbHoverColor);
-            {
-                var parsedColor = TryParseColor(TxtScrollThumbHoverColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressScrollThumbHoverColorSync = true;
-                    ScrollThumbHoverColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressScrollThumbHoverColorSync = false;
-                }
-            }
-            TxtScrollThumbDragColorHex.Text = FormatHexCode(_settings.ScrollThumbDragColor);
-            {
-                var parsedColor = TryParseColor(TxtScrollThumbDragColorHex.Text);
-                if (parsedColor.HasValue)
-                {
-                    _suppressScrollThumbDragColorSync = true;
-                    ScrollThumbDragColorPicker.SelectedColor = parsedColor.Value;
-                    _suppressScrollThumbDragColorSync = false;
-                }
-            }
-
-            // Framework Border Color / Border Width / Border Curve sync removed - no UI fields exist for
-            // any of these anymore (BorderWidthValue/BorderCurveValue retired entirely; BorderColorFramework
-            // has no field, see the earlier note).
-
+            // Nothing left to load: every flat theme value moved to the Global tab (Global tab migration Passes 3 to 5),
+            // which loads its own fields. Kept until the Basic tab is reduced to the Themes Manager (Pass 6).
         }
         // [END SECTION: Load Current Values Into UI - SYNC POINT 3 of 3]
 
@@ -621,12 +282,12 @@ namespace ArcadeStick.Views
                 var themeDto = new ArcadeStick.Models.ThemeSettings
                 {
                     OptionsBg = _settings.OptionsBg,
-                    BorderColorFramework = _settings.BorderColorFramework,
                     ScrollTrackColor = _settings.ScrollTrackColor,
                     ScrollTrackHoverColor = _settings.ScrollTrackHoverColor,
                     ScrollThumbColor = _settings.ScrollThumbColor,
                     ScrollThumbHoverColor = _settings.ScrollThumbHoverColor,
                     ScrollThumbDragColor = _settings.ScrollThumbDragColor,
+                    ScrollbarWidth = _settings.ScrollbarWidth,
                     BorderWidthValue = _settings.BorderWidthValue,
                     BorderCurveValue = _settings.BorderCurveValue,
                     SeparatorColorHex = _settings.SeparatorColorHex,
@@ -646,6 +307,7 @@ namespace ArcadeStick.Views
                     ContextMenuBgColorHex = _settings.ContextMenuBgColorHex,
                     ContextMenuHoverColorHex = _settings.ContextMenuHoverColorHex,
                     ContextMenuHoverBgColorHex = _settings.ContextMenuHoverBgColorHex,
+                    ContextMenuBorderColorHex = _settings.ContextMenuBorderColorHex,
                     SubTextFontSize = _settings.SubTextFontSize,
                     SubTextColorHex = _settings.SubTextColorHex,
                     OptionsMenuBgColorHex = _settings.OptionsMenuBgColorHex,
@@ -818,33 +480,8 @@ namespace ArcadeStick.Views
         // existing setting unchanged rather than throwing.
         private void SyncUiEntriesToSettingsLayer()
         {
-            
-
-            
-            // BorderColorFramework sync removed (both occurrences) - no UI field exists yet.
-            // BorderWidthValue/BorderCurveValue sync removed - properties retired entirely.
-            _settings.ScrollTrackColor = NormalizeHexInput(TxtScrollTrackColorHex.Text);
-            _settings.ScrollTrackHoverColor = NormalizeHexInput(TxtScrollTrackHoverColorHex.Text);
-            _settings.ScrollThumbColor = NormalizeHexInput(TxtScrollThumbColorHex.Text);
-            _settings.ScrollThumbHoverColor = NormalizeHexInput(TxtScrollThumbHoverColorHex.Text);
-            _settings.ScrollThumbDragColor = NormalizeHexInput(TxtScrollThumbDragColorHex.Text);
-
-            
-
-            
-
-
-
-            
-
-            _settings.ContextMenuFontColorHex = NormalizeHexInput(TxtContextMenuFontColorHex.Text);
-            _settings.ContextMenuIconColorHex = NormalizeHexInput(TxtContextMenuIconColorHex.Text);
-            _settings.ContextMenuBgColorHex = NormalizeHexInput(TxtContextMenuBgColorHex.Text);
-            _settings.ContextMenuHoverColorHex = NormalizeHexInput(TxtContextMenuHoverColorHex.Text);
-            _settings.ContextMenuHoverBgColorHex = NormalizeHexInput(TxtContextMenuHoverBgColorHex.Text);
-
-            
-
+            // Nothing left to sync: the Global tab writes its values into _settings as they are edited (Global tab
+            // migration Passes 3 to 5). Kept until the Basic tab is reduced to the Themes Manager (Pass 6).
         }
         // [END SECTION: Sync UI to Settings]
     }

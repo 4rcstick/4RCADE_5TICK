@@ -66,12 +66,17 @@ namespace ArcadeStick.Services
         public const string ScrollThumbDrag = "Global.Scroll.ThumbDrag";
         public const string ScrollTrack = "Global.Scroll.Track";
         public const string ScrollTrackHover = "Global.Scroll.TrackHover";
+        public const string ScrollWidth = "Global.Scroll.Width";
+        public const string ScrollHitWidth = "Global.Scroll.HitWidth";
 
         public const string MenuText = "Global.Menu.Text";
         public const string MenuIcon = "Global.Menu.Icon";
         public const string MenuBg = "Global.Menu.Bg";
         public const string MenuTextHover = "Global.Menu.TextHover";
         public const string MenuBgHover = "Global.Menu.BgHover";
+        public const string MenuBorderColor = "Global.Menu.BorderColor";
+        // The scrollbar's grab area never gets narrower than this; a narrower Scrollbar Width is drawn inside it.
+        private const double MinScrollHitWidth = 8;
         // [END SECTION: Resource Keys]
 
         // [SECTION: Apply]
@@ -121,12 +126,15 @@ namespace ArcadeStick.Services
             SetBrush(ScrollThumbDrag, s.ScrollThumbDragColor, d.ScrollThumbDragColor);
             SetBrush(ScrollTrack, s.ScrollTrackColor, d.ScrollTrackColor);
             SetBrush(ScrollTrackHover, s.ScrollTrackHoverColor, d.ScrollTrackHoverColor);
+            SetValue(ScrollWidth, s.ScrollbarWidth);
+            SetValue(ScrollHitWidth, Math.Max(s.ScrollbarWidth, MinScrollHitWidth));
 
             SetBrush(MenuText, s.ContextMenuFontColorHex, d.ContextMenuFontColorHex);
             SetBrush(MenuIcon, s.ContextMenuIconColorHex, d.ContextMenuIconColorHex);
             SetBrush(MenuBg, s.ContextMenuBgColorHex, d.ContextMenuBgColorHex);
             SetBrush(MenuTextHover, s.ContextMenuHoverColorHex, d.ContextMenuHoverColorHex);
             SetBrush(MenuBgHover, s.ContextMenuHoverBgColorHex, d.ContextMenuHoverBgColorHex);
+            SetBrush(MenuBorderColor, s.ContextMenuBorderColorHex, d.ContextMenuBorderColorHex);
         }
 
         // Replaces a brush resource with a frozen brush of the given color, unless the current one already has that color.
@@ -208,12 +216,14 @@ namespace ArcadeStick.Services
                 ScrollThumbDragColor = s.ScrollThumbDragColor,
                 ScrollTrackColor = s.ScrollTrackColor,
                 ScrollTrackHoverColor = s.ScrollTrackHoverColor,
+                ScrollbarWidth = s.ScrollbarWidth,
 
                 ContextMenuFontColorHex = s.ContextMenuFontColorHex,
                 ContextMenuIconColorHex = s.ContextMenuIconColorHex,
                 ContextMenuBgColorHex = s.ContextMenuBgColorHex,
                 ContextMenuHoverColorHex = s.ContextMenuHoverColorHex,
-                ContextMenuHoverBgColorHex = s.ContextMenuHoverBgColorHex
+                ContextMenuHoverBgColorHex = s.ContextMenuHoverBgColorHex,
+                ContextMenuBorderColorHex = s.ContextMenuBorderColorHex
             };
         }
 
@@ -274,6 +284,7 @@ namespace ArcadeStick.Services
                 s.ScrollThumbDragColor = snapshot.ScrollThumbDragColor;
                 s.ScrollTrackColor = snapshot.ScrollTrackColor;
                 s.ScrollTrackHoverColor = snapshot.ScrollTrackHoverColor;
+                s.ScrollbarWidth = snapshot.ScrollbarWidth;
             }
 
             if (areas.HasFlag(GlobalArea.ContextMenus))
@@ -283,6 +294,7 @@ namespace ArcadeStick.Services
                 s.ContextMenuBgColorHex = snapshot.ContextMenuBgColorHex;
                 s.ContextMenuHoverColorHex = snapshot.ContextMenuHoverColorHex;
                 s.ContextMenuHoverBgColorHex = snapshot.ContextMenuHoverBgColorHex;
+                s.ContextMenuBorderColorHex = snapshot.ContextMenuBorderColorHex;
             }
         }
 

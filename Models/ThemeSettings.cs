@@ -22,12 +22,12 @@ namespace ArcadeStick.Models
         // so a theme saved without a key loads the same value Restore Defaults gives.
         // GlobalThemeResources also reuses this class as the Theme Builder's close-revert snapshot of the Global values.
         public string OptionsBg { get; set; } = "#FF000000";
-        public string BorderColorFramework { get; set; } = "#FF3A3A3C";
         public string ScrollTrackColor { get; set; } = "#FF000000";
         public string ScrollTrackHoverColor { get; set; } = "#FF1C1C1E";
         public string ScrollThumbColor { get; set; } = "#FF2C2C2E";
         public string ScrollThumbHoverColor { get; set; } = "#FF3A3A3C";
         public string ScrollThumbDragColor { get; set; } = "#FF00D4FF";
+        public double ScrollbarWidth { get; set; } = 10;
         public int TabFontSize { get; set; } = 12;
         public string TabColorHex { get; set; } = "#FFA0A0A2";
         public string TabBgColorHex { get; set; } = "Transparent";
@@ -48,6 +48,7 @@ namespace ArcadeStick.Models
         public string ContextMenuBgColorHex { get; set; } = "#FF1C1C1E";
         public string ContextMenuHoverColorHex { get; set; } = "#FFFFFFFF";
         public string ContextMenuHoverBgColorHex { get; set; } = "#FF2C2C2E";
+        public string ContextMenuBorderColorHex { get; set; } = "#FF3A3A3C";
         public int SubTextFontSize { get; set; } = 12;
         public string SubTextColorHex { get; set; } = "#FFA0A0A2";
         public string OptionsMenuBgColorHex { get; set; } = "#FF1C1C1E";
