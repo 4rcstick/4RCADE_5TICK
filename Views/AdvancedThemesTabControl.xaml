@@ -121,7 +121,8 @@
             <!-- [SECTION: Layer Property Tabs] -->
             <!-- Selected layer: its name, a tab frame, and the layer-wide buttons pinned below it. Position is
                  always present; the other tabs are shown per layer type from code-behind (ApplyLayerTabs).
-                 Each tab scrolls on its own, but the window is sized so nothing scrolls unless it is shrunk. -->
+                 Each tab scrolls on its own: long tabs (for example Search, Info, Position on groups and the
+                 Random Game Display Text tab) show a vertical scrollbar at the current window size. -->
             <Grid Grid.Column="2" x:Name="PnlLayerFields" Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -1250,6 +1251,7 @@
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="6"/>
                                         <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -1260,7 +1262,7 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Image previews shadow" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Glow: set Depth to 0 and pick a bright color." TextWrapping="Wrap"
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Text="Glow: set Depth to 0 and pick a bright color." TextWrapping="Wrap"
                                                Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
@@ -1335,7 +1337,7 @@
                     <TabItem x:Name="TabSplashImage" Header="IMAGE" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
-                                <TextBlock Text="Splash image or video (png, jpg, gif, mp4), shown when no game is selected:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <TextBlock Text="Splash image or video (png, jpg, gif, mp4), shown when no game is selected:" TextWrapping="Wrap" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -1474,7 +1476,7 @@
                     <TabItem x:Name="TabRGBackground" Header="BACKGROUND" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
-                                <TextBlock Text="Image or video (png, jpg, gif, mp4), drawn over the color and under the message:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <TextBlock Text="Image or video (png, jpg, gif, mp4), drawn over the color and under the message:" TextWrapping="Wrap" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <Grid Margin="0,0,0,16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -1603,7 +1605,7 @@
                     <TabItem x:Name="TabVideoFallback" Header="FALLBACK IMAGE" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
-                                <TextBlock Text="Image (png, jpg, bmp), shown when the selected game has no preview:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <TextBlock Text="Image (png, jpg, bmp), shown when the selected game has no preview:" TextWrapping="Wrap" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -1661,6 +1663,7 @@
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="6"/>
                                         <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -1673,7 +1676,7 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Logo and marquee image shadow" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Glow: set Depth to 0 and pick a bright color." TextWrapping="Wrap"
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Text="Glow: set Depth to 0 and pick a bright color." TextWrapping="Wrap"
                                                Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
@@ -1890,7 +1893,7 @@
                         FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
                                 <TextBlock Text="Leave empty to use the built-in background image." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
-                                <CheckBox x:Name="ChkMainBgImageDisabled" Content="Disable Main Window Background Image (use solid Main Window Background Color only)"
+                                <CheckBox x:Name="ChkMainBgImageDisabled" Content="Disable background image (use the color only)"
                                           HorizontalAlignment="Left" Margin="0,12,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="ChkMainBgImageDisabled_Click"/>
                             </StackPanel>
                         </ScrollViewer>
