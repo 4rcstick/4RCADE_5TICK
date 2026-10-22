@@ -224,12 +224,7 @@ namespace ArcadeStick.Views
                 .Select(key =>
                 {
                     var group = GetGroup(key);
-                    var entry = GetEntry(key);
-                    string name = group != null
-                        ? group.DisplayName
-                        : (entry != null && LayerRegistry.IsCustomId(key)
-                            ? (string.IsNullOrWhiteSpace(entry.Name) ? "Custom Layer" : entry.Name)
-                            : (LayerRegistry.GetDefinition(key)?.DisplayName ?? key));
+                    string name = group != null ? group.DisplayName : GetLayerDisplayName(key);
                     return new LayerListItem { Id = key, DisplayName = name };
                 })
                 .ToList();
@@ -249,6 +244,89 @@ namespace ArcadeStick.Views
             if (_loading) return;
             LoadSelectedLayerIntoFields();
         }
+
+        // Does the name shown for a single layer (list row and heading). Custom layers: their own Name.
+        // Shape layers: this resolution's Name, else the first Name set at any resolution, else the registry
+        // name. Every other layer: the registry name.
+        private string GetLayerDisplayName(string id)
+        {
+            if (LayerRegistry.IsCustomId(id))
+            {
+                string? customName = GetEntry(id)?.Name;
+                return string.IsNullOrWhiteSpace(customName) ? "Custom Layer" : customName;
+            }
+
+            if (LayerRegistry.IsShapeId(id))
+            {
+                string? currentName = GetEntry(id)?.Name;
+                if (!string.IsNullOrWhiteSpace(currentName)) return currentName;
+
+                string? anyName = _settings.Layouts
+                    .Select(layout => layout.Layers.FirstOrDefault(l => l.Id == id)?.Name)
+                    .FirstOrDefault(n => !string.IsNullOrWhiteSpace(n));
+                if (anyName != null) return anyName;
+            }
+
+            return LayerRegistry.GetDefinition(id)?.DisplayName ?? id;
+        }
+
+        // [SECTION: Layer Rename]
+        // Does the Rename button: renames the selected shape or custom layer
+        private void BtnRenameLayer_Click(object sender, RoutedEventArgs e) => RenameSelectedLayer();
+
+        // Does the double-click rename: only when the click landed on the selected, renameable row
+        private void LstLayers_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var source = e.OriginalSource as DependencyObject;
+            while (source != null && source is not ListBoxItem) source = VisualTreeHelper.GetParent(source);
+            if (source is not ListBoxItem row) return;
+
+            if (row.DataContext is not LayerListItem item || !ReferenceEquals(item, LstLayers.SelectedItem)) return;
+            if (!LayerRegistry.IsBoxId(item.Id)) return;
+
+            RenameSelectedLayer();
+        }
+
+        // Does the rename: custom layers at this resolution only (empty = cancel); shape layers at every
+        // resolution (empty clears the name everywhere, back to the registry name)
+        private void RenameSelectedLayer()
+        {
+            if (LstLayers.SelectedItem is not LayerListItem selected || !LayerRegistry.IsBoxId(selected.Id)) return;
+            if (GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
+
+            bool isCustom = LayerRegistry.IsCustomId(selected.Id);
+            string? newName = PromptForLayerName("Rename Layer", "Name for this layer:", GetLayerDisplayName(selected.Id), allowEmpty: !isCustom);
+            if (newName == null) return;
+
+            if (isCustom)
+            {
+                entry.Name = newName;
+            }
+            else
+            {
+                // _settings.Layouts holds the current layout too
+                foreach (var layout in _settings.Layouts)
+                {
+                    foreach (var layer in layout.Layers.Where(l => l.Id == selected.Id)) layer.Name = newName;
+                }
+            }
+
+            RebuildLayerList(selected.Id);
+        }
+
+        // Does the name capture for the layout resets: each shape layer's Name at this resolution
+        private Dictionary<string, string> CaptureShapeNames() =>
+            _currentLayout.Layers.Where(l => LayerRegistry.IsShapeId(l.Id)).ToDictionary(l => l.Id, l => l.Name);
+
+        // Does the name restore after a layout reset: puts the captured shape layer names back
+        private void RestoreShapeNames(Dictionary<string, string> names)
+        {
+            foreach (var layer in _currentLayout.Layers)
+            {
+                if (names.TryGetValue(layer.Id, out string? name)) layer.Name = name;
+            }
+        }
+        // [END SECTION: Layer Rename]
 
         private void BtnLayerUp_Click(object sender, RoutedEventArgs e) => MoveSelectedLayer(-1);
         private void BtnLayerDown_Click(object sender, RoutedEventArgs e) => MoveSelectedLayer(1);
@@ -332,7 +410,7 @@ namespace ArcadeStick.Views
                 return;
             }
 
-            string? layerName = PromptForLayerName();
+            string? layerName = PromptForLayerName("Add Layer", "Name for the new layer:", "", allowEmpty: false);
             if (layerName == null) return;
 
             int topZ = _currentLayout.Layers.Max(l => l.Z);
@@ -359,11 +437,11 @@ namespace ArcadeStick.Views
             RebuildLayerList(entry.Id);
         }
 
-        // Small name prompt built in code (OK / Cancel, Enter confirms, Esc cancels). Returns null if cancelled
-        // or left empty.
-        private string? PromptForLayerName()
+        // Small name prompt built in code (OK / Cancel, Enter confirms, Esc cancels), pre-filled with initialText
+        // (selected). Returns null if cancelled; an empty result is "" when allowEmpty, otherwise null.
+        private string? PromptForLayerName(string title, string label, string initialText, bool allowEmpty)
         {
-            var nameBox = new TextBox { Margin = new Thickness(0, 6, 0, 12), Padding = new Thickness(4), MaxLength = 40 };
+            var nameBox = new TextBox { Margin = new Thickness(0, 6, 0, 12), Padding = new Thickness(4), MaxLength = 24, Text = initialText };
             var okButton = new Button { Content = "OK", Width = 70, IsDefault = true, Margin = new Thickness(0, 0, 8, 0), Padding = new Thickness(0, 3, 0, 3) };
             var cancelButton = new Button { Content = "Cancel", Width = 70, IsCancel = true, Padding = new Thickness(0, 3, 0, 3) };
 
@@ -372,13 +450,13 @@ namespace ArcadeStick.Views
             buttons.Children.Add(cancelButton);
 
             var panel = new StackPanel { Margin = new Thickness(14) };
-            panel.Children.Add(new TextBlock { Text = "Name for the new layer:" });
+            panel.Children.Add(new TextBlock { Text = label });
             panel.Children.Add(nameBox);
             panel.Children.Add(buttons);
 
             var prompt = new Window
             {
-                Title = "Add Layer",
+                Title = title,
                 Content = panel,
                 Width = 320,
                 SizeToContent = SizeToContent.Height,
@@ -389,12 +467,16 @@ namespace ArcadeStick.Views
             };
 
             okButton.Click += (s, args) => prompt.DialogResult = true;
-            prompt.Loaded += (s, args) => nameBox.Focus();
+            prompt.Loaded += (s, args) =>
+            {
+                nameBox.Focus();
+                nameBox.SelectAll();
+            };
 
             if (prompt.ShowDialog() != true) return null;
 
             string name = nameBox.Text.Trim();
-            return string.IsNullOrEmpty(name) ? null : name;
+            return string.IsNullOrEmpty(name) && !allowEmpty ? null : name;
         }
 
         // Remove: deletes the selected custom layer at this resolution only (other resolutions are untouched).
@@ -532,6 +614,7 @@ namespace ArcadeStick.Views
             // A group row shows every part's fields at once on its own page
             if (LstLayers.SelectedItem is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition selectedGroup)
             {
+                BtnRenameLayer.Visibility = Visibility.Collapsed;
                 LoadGroupIntoFields(selectedGroup);
                 return;
             }
@@ -558,10 +641,10 @@ namespace ArcadeStick.Views
             _loading = true;
             PnlLayerFields.Visibility = Visibility.Visible;
             bool isCustom = LayerRegistry.IsCustomId(entry.Id);
-            TxtLayerName.Text = isCustom
-                ? (string.IsNullOrWhiteSpace(entry.Name) ? "Custom Layer" : entry.Name)
-                : (def?.DisplayName ?? entry.Id);
+            TxtLayerName.Text = GetLayerDisplayName(entry.Id);
             BtnRemoveLayer.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
+            // Rename: shape layers and custom layers only
+            BtnRenameLayer.Visibility = LayerRegistry.IsBoxId(entry.Id) ? Visibility.Visible : Visibility.Collapsed;
 
             PnlRectFields.Visibility = positionable ? Visibility.Visible : Visibility.Collapsed;
             bool isShape = LayerRegistry.IsBoxId(entry.Id);
@@ -2615,6 +2698,7 @@ namespace ArcadeStick.Views
                         var copy = new LayerLayoutEntry
                         {
                             Id = l.Id,
+                            Name = l.Name,
                             X = l.X,
                             Y = l.Y,
                             Width = l.Width,
@@ -2952,8 +3036,10 @@ namespace ArcadeStick.Views
             if (result != MessageBoxResult.Yes) return;
 
             string? selectedId = (LstLayers.SelectedItem as LayerListItem)?.Id;
+            var shapeNames = CaptureShapeNames(); // names are not style: they survive the reset
 
             _currentLayout = GetRestoreLayout(_currentLayout.Width, _currentLayout.Height);
+            RestoreShapeNames(shapeNames);
             StoreLayout(_currentLayout);
             NormalizeZ(GetAscendingOrder());
 
@@ -2969,8 +3055,10 @@ namespace ArcadeStick.Views
             if (result != MessageBoxResult.Yes) return;
 
             string? selectedId = (LstLayers.SelectedItem as LayerListItem)?.Id;
+            var shapeNames = CaptureShapeNames(); // names are not style: they survive the reset
 
             _currentLayout = LayerRegistry.BuildDefaultLayout(_currentLayout.Width, _currentLayout.Height);
+            RestoreShapeNames(shapeNames);
             StoreLayout(_currentLayout);
             NormalizeZ(GetAscendingOrder());
 
