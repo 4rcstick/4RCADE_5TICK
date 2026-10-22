@@ -1681,9 +1681,13 @@
                                               Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <!-- Which images get the shadow: Both, Logo only, Marquees only (game marquee and spin frames) -->
                                     <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Text="Apply shadow to:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <ComboBox x:Name="GIMarqueeShadowTarget" Tag="Marquee" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Width="130" Height="25" HorizontalAlignment="Left"
-                                              IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIShadowTarget_SelectionChanged"/>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5">
+                                        <ComboBox x:Name="GIMarqueeShadowTarget" Tag="Marquee" Width="130" Height="25" HorizontalAlignment="Left"
+                                                  IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIShadowTarget_SelectionChanged"/>
+                                        <TextBlock Text="Marquees includes the no-art title card." TextWrapping="Wrap" Margin="0,4,0,0"
+                                                   Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
+                                    </StackPanel>
                                     <TextBlock Grid.Row="5" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
                                     <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
                                     <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
@@ -1706,6 +1710,148 @@
                         </ScrollViewer>
                     </TabItem>
                     <!-- [END SECTION: Marquee - Shadow Tab] -->
+
+                    <!-- [SECTION: Marquee - Banner Tab] -->
+                    <!-- The no-art title card (the idle banner and the spin's no-marquee card share it), stored on the
+                         MarqueePanel entry: font + bold; max size and color; wrap; background; the title's drop shadow
+                         (BannerShadow*); the card's border. Preview banner is session-only. -->
+                    <TabItem x:Name="TabMarqueeBanner" Header="BANNER" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <Grid Margin="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="52"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Session-only: shows the banner on the main window without a game that has no marquee art -->
+                                <CheckBox x:Name="ChkBannerPreview" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Content="Preview banner"
+                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerPreview_Click"/>
+
+                                <!-- Font family + bold -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                    <ComboBox x:Name="CboBannerFont" Width="160" Height="25"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboBannerFont_SelectionChanged"/>
+                                    <CheckBox x:Name="ChkBannerBold" Content="Bold" Margin="12,0,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerBold_Click"/>
+                                </StackPanel>
+
+                                <!-- Max size (6 to 200, inside the card's 400x100 reference box), then color -->
+                                <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="64"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Max size:" Style="{StaticResource GLLabelStyle}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
+                                    <TextBox x:Name="TxtBannerFontSize" Grid.Row="1" Grid.Column="0" Width="48" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="BannerColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtBannerColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBannerColorHex_LostFocus"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Wrap at the card's width (on: the block shrinks only when taller than the card) -->
+                                <CheckBox x:Name="ChkBannerWrap" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Content="Wrap text" Margin="0,8,0,0"
+                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerWrap_Click"/>
+
+                                <!-- Background color (alpha shows the marquee panel behind the card) -->
+                                <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="BannerBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtBannerBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBannerBgColorHex_LostFocus"/>
+                                </StackPanel>
+
+                                <!-- Title drop shadow (its own; the card's shadow is the Shadow tab's) -->
+                                <CheckBox x:Name="ChkBannerShadow" Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow (text)" Margin="0,12,0,0"
+                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerShadow_Click"/>
+                                <Grid Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkBannerShadow}">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="BannerShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtBannerShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBannerShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="TxtBannerShadowBlur" Grid.Row="1" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkBannerShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
+                                    <TextBox x:Name="TxtBannerShadowDepth" Grid.Row="1" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkBannerShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
+                                </Grid>
+
+                                <!-- Card border: color, size (0 to 50), radius (0 to 200); never scales with the marquee box -->
+                                <TextBlock Grid.Row="9" Grid.Column="0" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
+                                <TextBlock Grid.Row="9" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
+                                <TextBlock Grid.Row="9" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
+                                <StackPanel Grid.Row="10" Grid.Column="0" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <colorpicker:PortableColorPicker x:Name="BannerBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerBorderColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtBannerBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBannerBorderColorHex_LostFocus"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtBannerBorderSize" Grid.Row="10" Grid.Column="2" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
+                                <TextBox x:Name="TxtBannerCornerRadius" Grid.Row="10" Grid.Column="4" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Marquee - Banner Tab] -->
 
                     <!-- [SECTION: Main Window Background - Image Tab] -->
                     <!-- The Main Window Background layer (per resolution): the background color (BgColorHex), then the wallpaper,

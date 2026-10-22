@@ -184,6 +184,7 @@ namespace ArcadeStick
         private string? _lastSearchButtonsStyleKey;
         private string? _lastGameInfoStyleKey;
         private string? _lastRandomDisplayStyleKey;
+        private string? _lastMarqueeBannerStyleKey;
         private string? _lastMainBackgroundKey;
         private string? _lastMainBackgroundColor;
 
@@ -302,6 +303,16 @@ namespace ArcadeStick
                 _viewModel.RefreshMarqueeBindings();
             }
 
+            // Marquee no-art banner: re-raise the shared title card's bindings only when one of its values changed
+            string marqueeBannerStyleKey = $"{marqueeEntry?.TextFontFamily}|{marqueeEntry?.TextBold}|{marqueeEntry?.TextFontSize}|{marqueeEntry?.TextColorHex}|{marqueeEntry?.TextWrap}"
+                + $"|{marqueeEntry?.BgColorHex}|{marqueeEntry?.BorderColorHex}|{marqueeEntry?.BorderSize}|{marqueeEntry?.CornerRadius}"
+                + $"|{marqueeEntry?.BannerShadowEnabled}|{marqueeEntry?.BannerShadowColorHex}|{marqueeEntry?.BannerShadowBlur}|{marqueeEntry?.BannerShadowDepth}";
+            if (marqueeBannerStyleKey != _lastMarqueeBannerStyleKey)
+            {
+                _lastMarqueeBannerStyleKey = marqueeBannerStyleKey;
+                _viewModel.RefreshMarqueeBannerBindings();
+            }
+
             // Boot splash: re-raise the splash bindings only when the Splash Image layer's file changed. Raising
             // IsBootSplashVideo makes ViewModel_PropertyChanged reload the splash video (it skips an unchanged path).
             string splashPath = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SplashImage)?.ImagePath ?? "";
@@ -332,7 +343,7 @@ namespace ArcadeStick
             }
 
             // Main window background color: kept apart from the wallpaper key so a color change never touches the video.
-            // Re-raises ThemeMainColor (main window fill, its popups, the no-art banner and spin card).
+            // Re-raises ThemeMainColor (main window fill and its popups).
             string mainBackgroundColor = mainBackgroundEntry?.BgColorHex ?? Models.LayerRegistry.DefaultMainBackgroundColorHex;
             if (mainBackgroundColor != _lastMainBackgroundColor)
             {
@@ -737,6 +748,40 @@ namespace ArcadeStick
 
             ApplyRandomGameDisplayRect();
             UpdateRandomGameDisplayPlayback();
+        }
+
+        // Session-only banner preview from the Theme Builder (Marquee layer, BANNER tab): shows the no-art title card
+        // regardless of MarqueeMissing, with the logo and the marquee image hidden so a translucent background shows the
+        // panel behind. Local Visibility values beat the style triggers; clearing them hands visibility back.
+        private bool _bannerPreview;
+
+        // Turns the banner preview on or off. Selection and media state are untouched. Ignored while a real spin runs.
+        public void SetBannerPreview(bool on)
+        {
+            if (_viewModel == null || _viewModel.IsRandomizerSpinning) return;
+
+            _bannerPreview = on;
+            if (on)
+            {
+                NoMarqueeBanner.Visibility = Visibility.Visible;
+                MarqueeLogoImage.Visibility = Visibility.Collapsed;
+                MarqueeDisplay.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                NoMarqueeBanner.ClearValue(VisibilityProperty);
+                MarqueeLogoImage.ClearValue(VisibilityProperty);
+                MarqueeDisplay.ClearValue(VisibilityProperty);
+            }
+        }
+
+        // Ends the banner preview because a real spin is starting, and tells the Theme Builder so its checkbox unchecks
+        private void EndBannerPreviewForSpin()
+        {
+            if (!_bannerPreview) return;
+
+            SetBannerPreview(false);
+            _themeBuilderWindow?.BannerPreviewEndedBySpin();
         }
 
         // Ends the card preview because a real spin is starting, and tells the Theme Builder so its checkbox unchecks
@@ -2690,8 +2735,9 @@ namespace ArcadeStick
                 return;
             }
 
-            // A real spin wins over the Theme Builder's card preview
+            // A real spin wins over the Theme Builder's card and banner previews
             EndRandomCardPreviewForSpin();
+            EndBannerPreviewForSpin();
 
             // Which of the layer's two rects applies is decided now and stays fixed for the whole spin. Both states
             // draw over what is behind them; the card's background alpha decides how much shows through.

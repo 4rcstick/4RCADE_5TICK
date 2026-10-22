@@ -197,13 +197,28 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? TextNudgeY { get; set; }
 
-        // Random Game Display only (its first part, RandomGameDisplay): the spin card's message and whether it wraps
-        // at the box width. An empty message means no text; null fills from the default. Same rules as above.
+        // Random Game Display only (its first part, RandomGameDisplay): the spin card's message. An empty message means
+        // no text; null fills from the default. TextWrap (whether the text wraps at the box width) is used by that part
+        // and by the Marquee layer's no-art banner. Same rules as above.
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? TextMessage { get; set; }
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool? TextWrap { get; set; }
+
+        // Marquee layer only (MarqueePanel): the no-art banner title's own drop shadow. Its TextShadow* fields are
+        // already the shared Marquee image shadow. Same rules as above.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? BannerShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? BannerShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? BannerShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? BannerShadowDepth { get; set; }
 
         // Game Info section headers (the Game Info Body entry only; its body text uses the generic Text* fields
         // above). A second block of text styling because the generic fields only fit one block per entry.
@@ -296,6 +311,10 @@ namespace ArcadeStick.Models
             TextNudgeY = source.TextNudgeY;
             TextMessage = source.TextMessage;
             TextWrap = source.TextWrap;
+            BannerShadowEnabled = source.BannerShadowEnabled;
+            BannerShadowColorHex = source.BannerShadowColorHex;
+            BannerShadowBlur = source.BannerShadowBlur;
+            BannerShadowDepth = source.BannerShadowDepth;
             SectionHeaderFontSize = source.SectionHeaderFontSize;
             SectionHeaderColorHex = source.SectionHeaderColorHex;
             SectionHeaderFontFamily = source.SectionHeaderFontFamily;
@@ -599,6 +618,9 @@ namespace ArcadeStick.Models
                 // Random Game Display: the spin card's text, background and border, and each state's max text size
                 FillRandomGameDisplayStyle(entry);
 
+                // Marquee no-art banner: the title card's font, colors, wrap, border and text shadow
+                FillMarqueeBannerStyle(entry);
+
                 layout.Layers.Add(entry);
             }
             return layout;
@@ -726,6 +748,28 @@ namespace ArcadeStick.Models
             }
         }
 
+        // Fills the Marquee layer's no-art banner style (the idle banner and the spin's no-marquee card share it) on the
+        // MarqueePanel entry: font, bold, max size, text color, wrap, background, border and the title's own shadow.
+        // Saved values are kept, a saved false included.
+        private static void FillMarqueeBannerStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id != MarqueePanel) return;
+
+            if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
+            entry.TextBold ??= DefaultBannerBold;
+            entry.TextFontSize ??= DefaultBannerFontSize;
+            if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultBannerColorHex;
+            entry.TextWrap ??= DefaultBannerWrap;
+            if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultBannerBgColorHex;
+            if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = DefaultBannerBorderColorHex;
+            entry.BorderSize ??= DefaultBannerBorderSize;
+            entry.CornerRadius ??= DefaultBannerCornerRadius;
+            entry.BannerShadowEnabled ??= DefaultShadowEnabled;
+            if (string.IsNullOrWhiteSpace(entry.BannerShadowColorHex)) entry.BannerShadowColorHex = DefaultShadowColorHex;
+            entry.BannerShadowBlur ??= DefaultShadowBlur;
+            entry.BannerShadowDepth ??= DefaultShadowDepth;
+        }
+
         // Fills one Random Game Display state's background color and border (black, unbordered, square; saved values kept)
         private static void FillRandomDisplayCardDefaults(LayerLayoutEntry entry)
         {
@@ -832,6 +876,9 @@ namespace ArcadeStick.Models
 
                 // Random Game Display: fill any missing card style value or per-state max text size
                 FillRandomGameDisplayStyle(entry);
+
+                // Marquee no-art banner: fill any missing banner style value
+                FillMarqueeBannerStyle(entry);
 
                 // Main Window Background: the Disable flag and the background color fill in when missing (saved values kept)
                 if (entry.Id == MainBackground)
@@ -944,6 +991,19 @@ namespace ArcadeStick.Models
         public const int DefaultRandomDisplaySplashFontSize = 100;
         public const int MinRandomDisplayFontSize = 6;
         public const int MaxRandomDisplayFontSize = 200;
+
+        // Marquee no-art banner defaults (the old look as fixed constants: the old Global Header and Main Window
+        // Background defaults, a 2px border, square). The size is the max inside the card's 400x100 reference box.
+        public const int DefaultBannerFontSize = 30;
+        public const bool DefaultBannerBold = true;
+        public const string DefaultBannerColorHex = "#FFEF44C3";
+        public const bool DefaultBannerWrap = true;
+        public const string DefaultBannerBgColorHex = "#FF1C1C1E";
+        public const string DefaultBannerBorderColorHex = "#FFEF44C3";
+        public const int DefaultBannerBorderSize = 2;
+        public const int DefaultBannerCornerRadius = 0;
+        public const int MinBannerFontSize = 6;
+        public const int MaxBannerFontSize = 200;
 
         // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
         // Segoe UI is also the fallback when a theme has no saved family.

@@ -48,6 +48,10 @@ namespace ArcadeStick.Views
         // forwards it to MainWindow.SetRandomCardPreview. Session-only, never stored.
         public event Action<bool, bool>? RandomPreviewChanged;
 
+        // Raised when the Marquee banner preview turns on or off. ThemeBuilderWindow forwards it to
+        // MainWindow.SetBannerPreview. Session-only, never stored.
+        public event Action<bool>? BannerPreviewChanged;
+
         // Raised after any committed layout edit so the main window can re-apply the layout live.
         // Nothing is written to disk here - Save Adjustments / Save Changes still do that.
         public event Action? LayoutChanged;
@@ -131,7 +135,7 @@ namespace ArcadeStick.Views
             _loading = true;
 
             _pendingSize = null; // a theme load or reload starts clean
-            StopRandomPreview();
+            StopPreviews();
 
             // No theme loaded or saved this session yet: the size the window opened at is the best
             // available "saved" size for Delete Size to return to.
@@ -306,7 +310,7 @@ namespace ArcadeStick.Views
         {
             // Returning to one row then re-selects that layer's first tab
             _tabsUnitKey = null;
-            StopRandomPreview();
+            StopPreviews();
             PnlRandomPreview.Visibility = Visibility.Collapsed;
 
             PnlLayerFields.Visibility = Visibility.Visible;
@@ -647,7 +651,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -667,8 +671,9 @@ namespace ArcadeStick.Views
             // (mapped to the RandomGameDisplay entry by GetSelectedBorderEntry)
             if (unitKey == LayerRegistry.RandomGameGroup) return new[] { TabRGText, TabRGBackground, TabShapeBorder };
 
-            // Marquee gets the Logo tab (the logo shown when no game is selected) and the shared image shadow
-            if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo, TabMarqueeShadow };
+            // Marquee gets the Logo tab (the logo shown when no game is selected), the shared image shadow and the
+            // no-art title card's Banner tab
+            if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo, TabMarqueeShadow, TabMarqueeBanner };
 
             // Shape Layers 01 to 04 share one tab set
             if (unitKey != null && LayerRegistry.IsBoxId(unitKey)) return new[] { TabShapeBackground, TabShapeBorder };
@@ -702,7 +707,7 @@ namespace ArcadeStick.Views
             {
                 _tabsUnitKey = unitKey;
                 _rgStatePartId = LayerRegistry.RandomGameDisplay; // the State combo starts on the first state each time
-                StopRandomPreview(); // the card preview belongs to the layer it was turned on for
+                StopPreviews(); // the card and banner previews belong to the layer they were turned on for
                 TabsLayer.SelectedItem = TabsLayer.Items.OfType<TabItem>().FirstOrDefault(t => t.Visibility == Visibility.Visible) ?? TabPosition;
             }
         }
@@ -748,6 +753,9 @@ namespace ArcadeStick.Views
 
             // Marquee image shadow (SHADOW tab): filled when the Marquee layer is selected
             LoadMarqueeShadowFields();
+
+            // Marquee no-art banner (BANNER tab): filled when the Marquee layer is selected
+            LoadMarqueeBannerFields();
 
             // Splash Image file field: filled when the Splash Image layer is selected
             if (SingleSelectedLayer is LayerListItem splashSel && splashSel.Id == LayerRegistry.SplashImage)
@@ -2686,6 +2694,13 @@ namespace ArcadeStick.Views
             RandomPreviewChanged?.Invoke(ChkRandomPreview.IsChecked == true, fromSplash);
         }
 
+        // Turns both Theme Builder previews off (the Random Game Display card and the Marquee banner)
+        public void StopPreviews()
+        {
+            StopRandomPreview();
+            StopBannerPreview();
+        }
+
         // Turns the card preview off (unchecks the box and tells the main window). Safe to call when it is already off.
         public void StopRandomPreview()
         {
@@ -2851,6 +2866,151 @@ namespace ArcadeStick.Views
             LoadSelectedLayerIntoFields();
         }
         // [END SECTION: Random Game Display Styling Fields]
+
+        // [SECTION: Marquee Banner Styling Fields]
+        // Shown while the Marquee layer is selected (BANNER tab). The no-art title card's style lives on the MarqueePanel
+        // entry: font, bold, max size, color, wrap, background, border and the title's own shadow (BannerShadow*).
+        // Colors, checkboxes and combos apply immediately; number fields apply on Enter or focus loss and revert invalid input.
+        private LayerLayoutEntry? BannerEntry => SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.MarqueePanel ? GetEntry(LayerRegistry.MarqueePanel) : null;
+
+        // Fills the Banner tab from the Marquee entry
+        private void LoadMarqueeBannerFields()
+        {
+            if (BannerEntry is not LayerLayoutEntry entry) return;
+
+            _loading = true;
+
+            if (CboBannerFont.Items.Count == 0)
+            {
+                foreach (string font in LayerRegistry.AvailableFonts) CboBannerFont.Items.Add(font);
+            }
+            string family = string.IsNullOrWhiteSpace(entry.TextFontFamily) ? LayerRegistry.DefaultFontFamily : entry.TextFontFamily;
+            CboBannerFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
+            ChkBannerBold.IsChecked = entry.TextBold ?? LayerRegistry.DefaultBannerBold;
+
+            TxtBannerFontSize.Text = (entry.TextFontSize ?? LayerRegistry.DefaultBannerFontSize).ToString(CultureInfo.InvariantCulture);
+            ShowColor(BannerColorPicker, TxtBannerColorHex, entry.TextColorHex ?? LayerRegistry.DefaultBannerColorHex);
+            ChkBannerWrap.IsChecked = entry.TextWrap ?? LayerRegistry.DefaultBannerWrap;
+            ShowColor(BannerBgColorPicker, TxtBannerBgColorHex, entry.BgColorHex ?? LayerRegistry.DefaultBannerBgColorHex);
+
+            ChkBannerShadow.IsChecked = entry.BannerShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            ShowColor(BannerShadowColorPicker, TxtBannerShadowColorHex, entry.BannerShadowColorHex ?? LayerRegistry.DefaultShadowColorHex);
+            TxtBannerShadowBlur.Text = (entry.BannerShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtBannerShadowDepth.Text = (entry.BannerShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            ShowColor(BannerBorderColorPicker, TxtBannerBorderColorHex, entry.BorderColorHex ?? LayerRegistry.DefaultBannerBorderColorHex);
+            TxtBannerBorderSize.Text = (entry.BorderSize ?? LayerRegistry.DefaultBannerBorderSize).ToString(CultureInfo.InvariantCulture);
+            TxtBannerCornerRadius.Text = (entry.CornerRadius ?? LayerRegistry.DefaultBannerCornerRadius).ToString(CultureInfo.InvariantCulture);
+
+            _loading = false;
+        }
+
+        // Banner preview: the checkbox turns it on or off on the main window (session-only)
+        private void ChkBannerPreview_Click(object sender, RoutedEventArgs e) => BannerPreviewChanged?.Invoke(ChkBannerPreview.IsChecked == true);
+
+        // Turns the banner preview off (unchecks the box and tells the main window). Safe to call when it is already off.
+        public void StopBannerPreview()
+        {
+            if (ChkBannerPreview.IsChecked != true) return;
+            ChkBannerPreview.IsChecked = false;
+            BannerPreviewChanged?.Invoke(false);
+        }
+
+        // Unchecks the box after the main window already ended the preview (a real spin started); raises nothing
+        public void ClearBannerPreview()
+        {
+            ChkBannerPreview.IsChecked = false;
+        }
+
+        // Font, bold, wrap and shadow toggle
+        private void CboBannerFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboBannerFont.SelectedItem is not string family || BannerEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextFontFamily = family;
+            RaiseGuides();
+        }
+
+        private void ChkBannerBold_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || BannerEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextBold = ChkBannerBold.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void ChkBannerWrap_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || BannerEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextWrap = ChkBannerWrap.IsChecked == true;
+            RaiseGuides();
+        }
+
+        private void ChkBannerShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || BannerEntry is not LayerLayoutEntry entry) return;
+
+            entry.BannerShadowEnabled = ChkBannerShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        // Color pickers and hex boxes (text, background, text shadow, border)
+        private void BannerColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(BannerColorPicker, TxtBannerColorHex, BannerEntry, (en, hex) => en.TextColorHex = hex);
+        private void TxtBannerColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(BannerColorPicker, TxtBannerColorHex, BannerEntry, en => en.TextColorHex ?? LayerRegistry.DefaultBannerColorHex, (en, hex) => en.TextColorHex = hex);
+
+        private void BannerBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(BannerBgColorPicker, TxtBannerBgColorHex, BannerEntry, (en, hex) => en.BgColorHex = hex);
+        private void TxtBannerBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(BannerBgColorPicker, TxtBannerBgColorHex, BannerEntry, en => en.BgColorHex ?? LayerRegistry.DefaultBannerBgColorHex, (en, hex) => en.BgColorHex = hex);
+
+        private void BannerShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(BannerShadowColorPicker, TxtBannerShadowColorHex, BannerEntry, (en, hex) => en.BannerShadowColorHex = hex);
+        private void TxtBannerShadowColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(BannerShadowColorPicker, TxtBannerShadowColorHex, BannerEntry, en => en.BannerShadowColorHex ?? LayerRegistry.DefaultShadowColorHex, (en, hex) => en.BannerShadowColorHex = hex);
+
+        private void BannerBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(BannerBorderColorPicker, TxtBannerBorderColorHex, BannerEntry, (en, hex) => en.BorderColorHex = hex);
+        private void TxtBannerBorderColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(BannerBorderColorPicker, TxtBannerBorderColorHex, BannerEntry, en => en.BorderColorHex ?? LayerRegistry.DefaultBannerBorderColorHex, (en, hex) => en.BorderColorHex = hex);
+
+        // One shared handler pair for the number fields: max size (6-200), shadow blur (0-30) and depth (0-20), border size (0-50) and radius (0-200)
+        private void BannerField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyBannerFields();
+        }
+
+        private void BannerField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyBannerFields();
+        }
+
+        // Stores each valid number field on the Marquee entry; an invalid one keeps its stored value
+        private void ApplyBannerFields()
+        {
+            if (_loading || _settings == null || BannerEntry is not LayerLayoutEntry entry) return;
+
+            if (int.TryParse(TxtBannerFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int size)
+                && size >= LayerRegistry.MinBannerFontSize && size <= LayerRegistry.MaxBannerFontSize)
+                entry.TextFontSize = size;
+            if (int.TryParse(TxtBannerShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int blur) && blur >= 0 && blur <= 30)
+                entry.BannerShadowBlur = blur;
+            if (int.TryParse(TxtBannerShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth) && depth >= 0 && depth <= 20)
+                entry.BannerShadowDepth = depth;
+            if (int.TryParse(TxtBannerBorderSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int border) && border >= 0 && border <= 50)
+                entry.BorderSize = border;
+            if (int.TryParse(TxtBannerCornerRadius.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int radius) && radius >= 0 && radius <= 200)
+                entry.CornerRadius = radius;
+
+            // Re-display the stored values (reverts invalid input) and re-apply the layout
+            LoadSelectedLayerIntoFields();
+        }
+        // [END SECTION: Marquee Banner Styling Fields]
 
         // [SECTION: Game Info Styling Fields]
         // Six Game Info text blocks and two image-shadow blocks share one set of handlers: each control is named
@@ -3224,7 +3384,7 @@ namespace ArcadeStick.Views
                 }
             }
 
-            StopRandomPreview();
+            StopPreviews();
             _settings.ActiveResolutionWidth = preset.Width;
             _settings.ActiveResolutionHeight = preset.Height;
             _currentLayout = ResolveAndStoreFrom(saved, preset.Width, preset.Height);
@@ -3334,7 +3494,7 @@ namespace ArcadeStick.Views
                 }
             }
 
-            StopRandomPreview();
+            StopPreviews();
             _settings.ActiveResolutionWidth = width;
             _settings.ActiveResolutionHeight = height;
             _currentLayout = ResolveAndStoreFrom(saved, width, height);

@@ -592,13 +592,12 @@ namespace ArcadeStick.ViewModels
         // [END SECTION: Selection & Media State Properties]
 
         // [SECTION: Theme Property Forwarders]
-        // DANGER - SYNC POINT 1 of 3: these are pass-through bindings from layer entries (and the one flat
-        // ThemeHeaderColor) to XAML. Global theme values do not use forwarders: they are DynamicResources published
+        // DANGER - SYNC POINT 1 of 3: these are pass-through bindings from layer entries to XAML. Global theme
+        // values do not use forwarders: they are DynamicResources published
         // by GlobalThemeResources. A forwarder must also be raised in RefreshThemeBindings() below (sync point 2) -
         // one added here but missing there won't update live after Theme Builder saves.
         // The Main Window Background layer's color for the active resolution (its BgColorHex). Fills the main window
-        // under the wallpaper (and alone when the wallpaper is disabled), and also its own popups, the no-art banner
-        // and the spin card.
+        // under the wallpaper (and alone when the wallpaper is disabled), and also its own popups.
         public string ThemeMainColor => GetLayerEntry(LayerRegistry.MainBackground).BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex;
         // Returns one layer's entry for the active resolution, where its styling lives (per resolution).
         // Resolved with registry defaults filling any gaps, so it is never null for a registry layer.
@@ -870,10 +869,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeRandomDisplayCornerRadius));
         }
         // [END SECTION: Random Game Display Forwarders]
-
-        // The Global Header font color, still read through a binding by the no-art banner and the spin card
-        // (they move to their own Marquee-layer settings in a later pass).
-        public string ThemeHeaderColor => Configuration.HeaderColorHex;
         // [END SECTION: Theme Property Forwarders]
 
         // [SECTION: Theme Wallpaper & Asset Loading]
@@ -932,7 +927,7 @@ namespace ArcadeStick.ViewModels
         }
 
         // The Marquee layer's one shadow/glow (its TextShadow* fields), split by ShadowTarget ("Both", "Logo",
-        // "Marquees"; unknown or blank = "Both"). The no-art banner and the spin's no-marquee card have none.
+        // "Marquees"; unknown or blank = "Both"). The no-art banner and the spin's no-marquee card take the "Marquees" side.
         private string MarqueeShadowTarget
         {
             get
@@ -942,7 +937,7 @@ namespace ArcadeStick.ViewModels
             }
         }
 
-        // The game's marquee image and the spin frames (null when the target is Logo only)
+        // The game's marquee image, the spin frames and the no-art title card (null when the target is Logo only)
         public System.Windows.Media.Effects.Effect? ThemeMarqueeEffect =>
             MarqueeShadowTarget != LayerRegistry.ShadowTargetLogo ? BuildTextShadowEffect(GetLayerEntry(LayerRegistry.MarqueePanel)) : null;
 
@@ -957,6 +952,49 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMarqueeEffect));
             OnPropertyChanged(nameof(ThemeMarqueeLogoEffect));
         }
+
+        // [SECTION: Marquee Banner Forwarders]
+        // The no-art title card's style (the idle banner and the spin's no-marquee card share it), read from the
+        // MarqueePanel entry. The card also takes ThemeMarqueeEffect (the shared image shadow, "Marquees" side).
+        private LayerLayoutEntry MarqueeBannerEntry => GetLayerEntry(LayerRegistry.MarqueePanel);
+
+        // Width of the card's reference box in MainWindow.xaml (400x100); a wrapped title wraps at this width
+        private const double MarqueeBannerBoxWidth = 400;
+
+        public FontFamily ThemeMarqueeBannerFontFamily => ToFontFamily(MarqueeBannerEntry.TextFontFamily);
+        public FontWeight ThemeMarqueeBannerFontWeight => (MarqueeBannerEntry.TextBold ?? LayerRegistry.DefaultBannerBold) ? FontWeights.Bold : FontWeights.Normal;
+        public double ThemeMarqueeBannerFontSize => MarqueeBannerEntry.TextFontSize ?? LayerRegistry.DefaultBannerFontSize;
+        public string ThemeMarqueeBannerColor => MarqueeBannerEntry.TextColorHex ?? LayerRegistry.DefaultBannerColorHex;
+        public TextWrapping ThemeMarqueeBannerTextWrapping => (MarqueeBannerEntry.TextWrap ?? LayerRegistry.DefaultBannerWrap) ? TextWrapping.Wrap : TextWrapping.NoWrap;
+        public double ThemeMarqueeBannerTextWidth => (MarqueeBannerEntry.TextWrap ?? LayerRegistry.DefaultBannerWrap) ? MarqueeBannerBoxWidth : double.NaN;
+        public string ThemeMarqueeBannerBgColor => MarqueeBannerEntry.BgColorHex ?? LayerRegistry.DefaultBannerBgColorHex;
+        public string ThemeMarqueeBannerBorderColor => MarqueeBannerEntry.BorderColorHex ?? LayerRegistry.DefaultBannerBorderColorHex;
+        public Thickness ThemeMarqueeBannerBorderThickness => new Thickness(MarqueeBannerEntry.BorderSize ?? LayerRegistry.DefaultBannerBorderSize);
+        public CornerRadius ThemeMarqueeBannerCornerRadius => new CornerRadius(MarqueeBannerEntry.CornerRadius ?? LayerRegistry.DefaultBannerCornerRadius);
+        public System.Windows.Media.Effects.Effect? ThemeMarqueeBannerTextEffect =>
+            BuildShadowEffect(
+                MarqueeBannerEntry.BannerShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                MarqueeBannerEntry.BannerShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                MarqueeBannerEntry.BannerShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                MarqueeBannerEntry.BannerShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+
+        // Re-raises the banner forwarders after their entry values changed (RefreshThemeBindings and MainWindow.ApplyLayout's
+        // banner style key)
+        public void RefreshMarqueeBannerBindings()
+        {
+            OnPropertyChanged(nameof(ThemeMarqueeBannerFontFamily));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerFontWeight));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerFontSize));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerColor));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerTextWrapping));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerTextWidth));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerBgColor));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerBorderColor));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerBorderThickness));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerCornerRadius));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerTextEffect));
+        }
+        // [END SECTION: Marquee Banner Forwarders]
 
         // The splash file set on the Splash Image layer for the active resolution (empty = the built-in splash).
         // MainWindow compares this between ApplyLayout runs to know when the splash needs refreshing.
@@ -1159,11 +1197,11 @@ namespace ArcadeStick.ViewModels
             RefreshGameInfoBindings();
             RefreshRandomDisplayBindings();
             RefreshMarqueeBindings();
+            RefreshMarqueeBannerBindings();
             RefreshSearchButtonBindings();
             OnPropertyChanged(nameof(ThemeFolderFontSize));
             OnPropertyChanged(nameof(ThemeArrowColor));
             OnPropertyChanged(nameof(ThemeFolderColor));
-            OnPropertyChanged(nameof(ThemeHeaderColor));
             OnPropertyChanged(nameof(ThemeMainWallpaper));
             OnPropertyChanged(nameof(IsMainWallpaperVideo));
             OnPropertyChanged(nameof(ThemeMainWallpaperVideoPath));

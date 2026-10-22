@@ -61,12 +61,15 @@ namespace ArcadeStick.Views
                 else
                 {
                     (Owner as MainWindow)?.ShowGuides(null);
-                    AdvancedTab.StopRandomPreview(); // leaving THEME BUILDER turns the card preview off
+                    AdvancedTab.StopPreviews(); // leaving THEME BUILDER turns the card and banner previews off
                 }
             };
 
             // Random Game Display card preview: forwarded to the main window like the guides
             AdvancedTab.RandomPreviewChanged += (on, fromSplash) => (Owner as MainWindow)?.SetRandomCardPreview(on, fromSplash);
+
+            // Marquee banner preview: forwarded the same way
+            AdvancedTab.BannerPreviewChanged += on => (Owner as MainWindow)?.SetBannerPreview(on);
 
             // Live layout: every committed Advanced edit re-applies the layout on the main window.
             // Nothing is written to disk here - only Save Adjustments / Save Changes do that.
@@ -91,7 +94,8 @@ namespace ArcadeStick.Views
 
                 var main = Owner as MainWindow;
                 main?.ShowGuides(null);
-                main?.SetRandomCardPreview(false, false); // closing turns the card preview off
+                main?.SetRandomCardPreview(false, false); // closing turns the card and banner previews off
+                main?.SetBannerPreview(false);
                 main?.ApplyLayoutNow();
             };
         }
@@ -125,6 +129,12 @@ namespace ArcadeStick.Views
         public void RandomCardPreviewEndedBySpin()
         {
             AdvancedTab.ClearRandomPreview();
+        }
+
+        // Called by MainWindow when a real spin ended the banner preview, so the checkbox unchecks
+        public void BannerPreviewEndedBySpin()
+        {
+            AdvancedTab.ClearBannerPreview();
         }
 
         // Called by MainWindow after the layout size is switched from the hamburger menu. Only the Advanced

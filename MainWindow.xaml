@@ -17,6 +17,34 @@
         SnapsToDevicePixels="True">
 
     <Window.Resources>
+        <!-- [SECTION: Marquee Banner Card Template] -->
+        <!-- The no-art title card, shared by the idle banner (NoMarqueeBanner) and the spin's no-marquee card
+             (RandomizerNoMarqueeFallback); the title comes in as Content. The outer Border (background, border, radius,
+             the shared Marquee shadow) is centered and takes its size from its Viewbox, so the card stays 4:1 and its
+             border never scales. Inside, the 400x100 reference box scales with the marquee box as before, and a
+             shrink-only Viewbox holds the title: the size is a max, and the title shrinks only when it does not fit. -->
+        <ControlTemplate x:Key="MarqueeBannerCardTemplate" TargetType="ContentControl">
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{Binding ThemeMarqueeBannerBgColor, FallbackValue=#FF1C1C1E}"
+                    BorderBrush="{Binding ThemeMarqueeBannerBorderColor, FallbackValue=#FFEF44C3}"
+                    BorderThickness="{Binding ThemeMarqueeBannerBorderThickness}" CornerRadius="{Binding ThemeMarqueeBannerCornerRadius}"
+                    Effect="{Binding ThemeMarqueeEffect}">
+                <Viewbox Stretch="Uniform">
+                    <Grid Width="400" Height="100">
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                            <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                       FontFamily="{Binding ThemeMarqueeBannerFontFamily}" FontWeight="{Binding ThemeMarqueeBannerFontWeight}"
+                                       FontSize="{Binding ThemeMarqueeBannerFontSize, FallbackValue=30}"
+                                       Foreground="{Binding ThemeMarqueeBannerColor, FallbackValue=#FFEF44C3}" Effect="{Binding ThemeMarqueeBannerTextEffect}"
+                                       TextWrapping="{Binding ThemeMarqueeBannerTextWrapping}" Width="{Binding ThemeMarqueeBannerTextWidth}"
+                                       TextAlignment="Center"/>
+                        </Viewbox>
+                    </Grid>
+                </Viewbox>
+            </Border>
+        </ControlTemplate>
+        <!-- [END SECTION: Marquee Banner Card Template] -->
+
         <!-- Background menu for right-clicking empty space in the game tree (below the last row, or any
              area not covered by a folder/game row's own ContextMenu). Defined here at the Window level
              rather than inside TreeView.Resources, since an element's ContextMenu attribute is evaluated
@@ -550,7 +578,7 @@
                     <!-- Default logo, hidden once a game is selected -->
                     <!-- The Marquee layer's shadow: the logo binds ThemeMarqueeLogoEffect, MarqueeDisplay and the spin frames
                          bind ThemeMarqueeEffect (each is null when the layer's "Apply shadow to" choice leaves it out) -->
-                    <Image Source="{Binding ThemeLogoAsset}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Effect="{Binding ThemeMarqueeLogoEffect}">
+                    <Image x:Name="MarqueeLogoImage" Source="{Binding ThemeLogoAsset}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Effect="{Binding ThemeMarqueeLogoEffect}">
                         <Image.Style>
                             <Style TargetType="Image">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -579,11 +607,13 @@
                         </Image.Style>
                     </Image>
 
-                    <!-- No-art banner: shown when the selected game has no marquee file (and no spin is running).
-     Same ~4:1 card as the spin's no-marquee fallback below, so it letterboxes the same way. -->
-                    <Viewbox x:Name="NoMarqueeBanner" Stretch="Uniform">
-                        <Viewbox.Style>
-                            <Style TargetType="Viewbox">
+                    <!-- No-art banner: shown when the selected game has no marquee file (and no spin is running). The shared
+                         title card (MarqueeBannerCardTemplate), the same card as the spin's no-marquee fallback below. The
+                         Theme Builder's banner preview overrides the Visibility locally (MainWindow.SetBannerPreview). -->
+                    <ContentControl x:Name="NoMarqueeBanner" Template="{StaticResource MarqueeBannerCardTemplate}"
+                                    Content="{Binding SelectedGame.DisplayTitle, FallbackValue='Game Title', TargetNullValue='Game Title'}">
+                        <ContentControl.Style>
+                            <Style TargetType="ContentControl">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
                                     <MultiDataTrigger>
@@ -595,11 +625,8 @@
                                     </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </Viewbox.Style>
-                        <Border Width="400" Height="100" Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" BorderThickness="2">
-                            <TextBlock Text="{Binding SelectedGame.DisplayTitle}" FontSize="30" FontWeight="Bold" Foreground="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" TextAlignment="Center" TextWrapping="Wrap" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </Viewbox>
+                        </ContentControl.Style>
+                    </ContentControl>
 
                     <!-- Play Random Game spin overlay - sits on top of the logo/MarqueeDisplay above and only shows during
              a spin. The layer is transparent now (background and border come from separate layers), so the logo
@@ -632,8 +659,7 @@
                             <Image x:Name="RandomizerSpinMarqueeImage" Source="{Binding RandomizerFrameMarqueeImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Effect="{Binding ThemeMarqueeEffect}"/>
 
                             <!-- No-marquee fallback - shown whenever the current frame's game has no real marquee file.
-                     A fixed-aspect card (~4:1) inside a Viewbox, so it letterboxes like a real marquee image.
-                     Card colors reuse ThemeMainColor/ThemeHeaderColor, which always contrast by design. -->
+                     The shared title card (MarqueeBannerCardTemplate), the same card and style as the idle banner. -->
                             <Border x:Name="RandomizerNoMarqueeFallback">
                                 <Border.Style>
                                     <Style TargetType="Border">
@@ -645,11 +671,7 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <Viewbox Stretch="Uniform">
-                                    <Border Width="400" Height="100" Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" BorderThickness="2">
-                                        <TextBlock Text="{Binding RandomizerCurrentFrameGame.DisplayTitle}" FontSize="30" FontWeight="Bold" Foreground="{Binding ThemeHeaderColor, FallbackValue=#EF44C3}" TextAlignment="Center" TextWrapping="Wrap" Margin="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </Viewbox>
+                                <ContentControl Template="{StaticResource MarqueeBannerCardTemplate}" Content="{Binding RandomizerCurrentFrameGame.DisplayTitle}"/>
                             </Border>
                         </Grid>
                     </Border>
