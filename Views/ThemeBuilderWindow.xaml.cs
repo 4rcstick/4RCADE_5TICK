@@ -97,6 +97,9 @@ namespace ArcadeStick.Views
                 main?.SetRandomCardPreview(false, false); // closing turns the card and banner previews off
                 main?.SetBannerPreview(false);
                 main?.ApplyLayoutNow();
+
+                // Closing can leave the launcher behind other programs' windows
+                main?.BringToFrontAfterChildClose();
             };
         }
 

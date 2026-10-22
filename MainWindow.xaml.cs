@@ -2299,6 +2299,7 @@ namespace ArcadeStick
                 {
                     var customFoldersDialog = new Views.ManagePlayListsWindow(_viewModel) { Owner = this };
                     customFoldersDialog.ShowDialog();
+                    BringToFrontAfterChildClose();
                 }
                 return;
             }
@@ -2348,6 +2349,7 @@ namespace ArcadeStick
                 e.Handled = true;
                 var pathDialog = new Views.RomCopyPathWindow(_viewModel) { Owner = this };
                 pathDialog.ShowDialog();
+                BringToFrontAfterChildClose();
                 return;
             }
 
@@ -2387,6 +2389,7 @@ namespace ArcadeStick
             }
 
             adjustmentsPanel.ShowDialog();
+            BringToFrontAfterChildClose();
 
             _isOptionsWindowOpen = false;
             _viewModel.IsOptionsWindowOpen = false;
@@ -2417,8 +2420,24 @@ namespace ArcadeStick
         {
             var sortingWindow = new Views.SortingWindow(_viewModel) { Owner = this };
             sortingWindow.ShowDialog();
+            BringToFrontAfterChildClose();
         }
         // [END SECTION: Sorting Window]
+
+        // [SECTION: Child Window Re-activation]
+        // Closing an owned window can leave the launcher behind other programs' windows. Deferred to Background
+        // priority so it runs after the close and its own activation churn have finished. Not Topmost.
+        // Does the restore / Activate / Focus on this window after a child window closes
+        public void BringToFrontAfterChildClose()
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+            {
+                if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+                Activate();
+                Focus();
+            }));
+        }
+        // [END SECTION: Child Window Re-activation]
 
         // [SECTION: Preview Player Shutdown]
         // The first Closing is cancelled while the FFmpeg player stops and joins its workers (the native DLLs
@@ -2624,6 +2643,7 @@ namespace ArcadeStick
             {
                 var sortingWindow = new Views.SortingWindow(_viewModel) { Owner = this };
                 sortingWindow.ShowDialog();
+                BringToFrontAfterChildClose();
             }));
         }
 
