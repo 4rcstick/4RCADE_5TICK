@@ -79,10 +79,11 @@ namespace ArcadeStick.Views
                     return;
                 }
 
-                double minX = moving.Min(e => e.X);
-                double minY = moving.Min(e => e.Y);
-                double maxRight = moving.Max(e => e.X + e.Width);
-                double maxBottom = moving.Max(e => e.Y + e.Height);
+                var rects = moving.Select(GetGuideRect).ToList();
+                double minX = rects.Min(r => r.X);
+                double minY = rects.Min(r => r.Y);
+                double maxRight = rects.Max(r => r.Right);
+                double maxBottom = rects.Max(r => r.Bottom);
                 GuidesChanged?.Invoke(new GuideInfo(minX, minY, maxRight - minX, maxBottom - minY, _settings.GuideLineColorHex, showRect, showCenter));
                 return;
             }
@@ -104,7 +105,16 @@ namespace ArcadeStick.Views
                 return;
             }
 
-            GuidesChanged?.Invoke(new GuideInfo(entry.X, entry.Y, entry.Width, entry.Height, _settings.GuideLineColorHex, showRect, showCenter));
+            var guideRect = GetGuideRect(entry);
+            GuidesChanged?.Invoke(new GuideInfo(guideRect.X, guideRect.Y, guideRect.Width, guideRect.Height, _settings.GuideLineColorHex, showRect, showCenter));
+        }
+
+        // Returns the rect the guides use for an entry: its own rect, except the Video Preview, whose border draws
+        // outside the video area, so its guides use the video area inflated by BorderSize.
+        private static Rect GetGuideRect(LayerLayoutEntry entry)
+        {
+            double border = entry.Id == LayerRegistry.VideoPreview ? Math.Max(0, entry.BorderSize ?? 0) : 0;
+            return new Rect(entry.X - border, entry.Y - border, entry.Width + (border * 2), entry.Height + (border * 2));
         }
 
         private class LayerListItem

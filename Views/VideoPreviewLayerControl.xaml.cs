@@ -5,8 +5,10 @@ using System.Windows.Media;
 
 namespace ArcadeStick.Views
 {
-    // Video Preview layer: fallback image, static preview image and the MediaElement player, all fitting
-    // inside this control's rect. MainWindow.xaml.cs reaches MediaElementPreview through the public field.
+    // Video Preview layer: fallback image, static preview image and the preview video surface, all fitting
+    // inside the border ring. ApplyLayout sizes this control to the entry's rect (the video area) inflated by
+    // BorderSize, so the ring draws outside the video area. MainWindow.xaml.cs reaches PreviewVideoSurface
+    // through the public field.
     // The border (size, color, corner radius) and the background color come from the layer's entry, pushed in
     // by ApplyBorder and ApplyBackground.
     public partial class VideoPreviewLayerControl : UserControl

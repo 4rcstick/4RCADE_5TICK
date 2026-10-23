@@ -450,6 +450,12 @@ namespace ArcadeStick
             var videoEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview);
             if (videoEntry != null)
             {
+                // The entry's rect is the video area; the border grows outward, so the control is that rect inflated by BorderSize
+                double videoBorder = Math.Max(0, videoEntry.BorderSize ?? 0);
+                Canvas.SetLeft(VideoPreviewLayer, videoEntry.X - videoBorder);
+                Canvas.SetTop(VideoPreviewLayer, videoEntry.Y - videoBorder);
+                VideoPreviewLayer.Width = videoEntry.Width + (videoBorder * 2);
+                VideoPreviewLayer.Height = videoEntry.Height + (videoBorder * 2);
                 VideoPreviewLayer.ApplyBorder(videoEntry.BorderSize ?? 0, videoEntry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, videoEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
                 VideoPreviewLayer.ApplyBackground(videoEntry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
             }
@@ -1289,21 +1295,23 @@ namespace ArcadeStick
             VideoPreviewLayer.PreviewVideoSurface.Visibility = Visibility.Collapsed;
         }
 
-        // Tells the decoder how many pixels the Video Preview layer occupies (the theme's layer size,
+        // Tells the decoder how many pixels the Video Preview's media slot occupies (from the layer entry,
         // scaled by the screen DPI), so the picture is decoded at the size it is shown at.
         private void UpdatePreviewTargetSize()
         {
             if (_previewPlayer == null) return;
 
-            // The video slot sits inside the border ring, pulled in by (border thickness - 1) on each side
-            // (same rule as VideoPreviewLayerControl.ApplyClip), so decode to that inner size.
+            // The entry's rect is the video area and the border sits outside it. The media slot reaches 1px under the
+            // ring on each side when there is a border (same rule as VideoPreviewLayerControl.ApplyClip), so decode to that size.
             var config = _viewModel.Configuration;
             var savedLayout = config.Layouts.FirstOrDefault(l => l.Width == config.ActiveResolutionWidth && l.Height == config.ActiveResolutionHeight);
             var resolvedLayout = Models.LayerRegistry.ResolveLayout(savedLayout, config.ActiveResolutionWidth, config.ActiveResolutionHeight);
-            double videoBorderSize = resolvedLayout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview)?.BorderSize ?? 0;
-            double inset = Math.Max(0, videoBorderSize - 1);
-            double width = VideoPreviewLayer.Width - (inset * 2);
-            double height = VideoPreviewLayer.Height - (inset * 2);
+            var videoEntry = resolvedLayout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview);
+            if (videoEntry == null) return;
+            double videoBorderSize = Math.Max(0, videoEntry.BorderSize ?? 0);
+            double overlap = videoBorderSize - Math.Max(0, videoBorderSize - 1);
+            double width = videoEntry.Width + (overlap * 2);
+            double height = videoEntry.Height + (overlap * 2);
             if (double.IsNaN(width) || double.IsNaN(height) || width < 1 || height < 1) return;
 
             var dpi = VisualTreeHelper.GetDpi(this);
