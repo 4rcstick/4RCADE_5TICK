@@ -58,7 +58,8 @@
                           Style="{StaticResource ChromeComboBoxStyle}"
                           SelectionChanged="CboResolution_SelectionChanged"/>
 
-                <!-- Alignment guides: editor preferences (not saved in the theme). Handlers live in code-behind. -->
+                <!-- Alignment guides and background grid: editor aids (not saved in the theme; the grid and its spacing are
+                     session-only). Handlers live in code-behind. -->
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,10,0,0">
                     <CheckBox x:Name="ChkShowGuides" Content="Edge guides" Click="ChkShowGuides_Click" Margin="0,0,15,0"
                               Style="{StaticResource GLCheckBoxStyle}"/>
@@ -73,6 +74,10 @@
                         </colorpicker:PortableColorPicker>
                     </Border>
                     <TextBox x:Name="TxtGuideColorHex" Width="100" Margin="5,0,0,0" Text="#FF00FFFF" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtGuideColorHex_LostFocus"/>
+                    <CheckBox x:Name="ChkBgGrid" Content="Grid" Click="ChkBgGrid_Click" Margin="15,0,0,0"
+                              Style="{StaticResource GLCheckBoxStyle}"/>
+                    <TextBox x:Name="TxtGridSpacing" Width="52" Margin="5,0,0,0" Text="20" HorizontalContentAlignment="Center" ToolTip="Grid spacing (px)"
+                             Style="{StaticResource GLTextBoxStyle}" KeyDown="TxtGridSpacing_KeyDown" LostFocus="TxtGridSpacing_LostFocus"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Left">

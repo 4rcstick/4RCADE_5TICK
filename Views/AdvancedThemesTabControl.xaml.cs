@@ -52,6 +52,11 @@ namespace ArcadeStick.Views
         // MainWindow.SetBannerPreview. Session-only, never stored.
         public event Action<bool>? BannerPreviewChanged;
 
+        // Raised when the background grid turns on or off or its spacing changes (on, spacing in px). ThemeBuilderWindow
+        // forwards it to MainWindow.SetBackgroundGrid. Session-only: the checkbox and _gridSpacing are never stored.
+        public event Action<bool, double>? GridChanged;
+        private double _gridSpacing = 20;
+
         // Raised after any committed layout edit so the main window can re-apply the layout live.
         // Nothing is written to disk here - Save Adjustments / Save Changes still do that.
         public event Action? LayoutChanged;
@@ -3333,6 +3338,53 @@ namespace ArcadeStick.Views
             }
         }
         // [END SECTION: Alignment Guide Preferences]
+
+        // [SECTION: Background Grid]
+        // Tells the main window the grid's state: on when the Grid box is checked, at the stored spacing
+        public void RaiseGrid()
+        {
+            GridChanged?.Invoke(ChkBgGrid.IsChecked == true, _gridSpacing);
+        }
+
+        // Turns the background grid on or off
+        private void ChkBgGrid_Click(object sender, RoutedEventArgs e)
+        {
+            RaiseGrid();
+        }
+
+        // Applies the spacing box on Enter
+        private void TxtGridSpacing_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyGridSpacing();
+        }
+
+        // Applies the spacing box on focus loss
+        private void TxtGridSpacing_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyGridSpacing();
+        }
+
+        // Stores a valid spacing (greater than 0, rounded to 2 decimals so it matches what the box shows), re-displays
+        // the stored value (reverts invalid input) and redraws the grid
+        private void ApplyGridSpacing()
+        {
+            if (_loading) return;
+
+            if (double.TryParse(TxtGridSpacing.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value)
+                && double.IsFinite(value))
+            {
+                double rounded = Math.Round(value, 2, MidpointRounding.AwayFromZero);
+                if (rounded > 0) _gridSpacing = rounded;
+            }
+
+            _loading = true;
+            TxtGridSpacing.Text = Fmt(_gridSpacing);
+            _loading = false;
+            RaiseGrid();
+        }
+        // [END SECTION: Background Grid]
 
         // [SECTION: Resolution & Reset]
         // Switching resolution: a size with no saved layout starts as a copy of the layout that was just

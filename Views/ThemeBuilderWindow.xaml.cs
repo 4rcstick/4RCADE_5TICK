@@ -57,12 +57,25 @@ namespace ArcadeStick.Views
                 // SelectionChanged bubbles up from the ListBox and ComboBox inside the tabs - only react to the tab strip itself
                 if (!ReferenceEquals(e.OriginalSource, ThemeBuilderTabControl)) return;
 
-                if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBuilderPage)) AdvancedTab.RaiseGuides();
+                if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBuilderPage))
+                {
+                    AdvancedTab.RaiseGuides();
+                    AdvancedTab.RaiseGrid();
+                }
                 else
                 {
                     (Owner as MainWindow)?.ShowGuides(null);
+                    (Owner as MainWindow)?.SetBackgroundGrid(false, 0); // hidden, not unchecked: it returns with THEME BUILDER
                     AdvancedTab.StopPreviews(); // leaving THEME BUILDER turns the card and banner previews off
                 }
+            };
+
+            // Background grid: forwarded like the guides, and only shown while THEME BUILDER is selected. Not part of
+            // StopPreviews, so a layer, resolution or theme change never turns it off.
+            AdvancedTab.GridChanged += (on, spacing) =>
+            {
+                bool onBuilder = ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBuilderPage);
+                (Owner as MainWindow)?.SetBackgroundGrid(on && onBuilder, spacing);
             };
 
             // Random Game Display card preview: forwarded to the main window like the guides
@@ -94,6 +107,7 @@ namespace ArcadeStick.Views
 
                 var main = Owner as MainWindow;
                 main?.ShowGuides(null);
+                main?.SetBackgroundGrid(false, 0); // closing hides the grid and gives the wallpaper back
                 main?.SetRandomCardPreview(false, false); // closing turns the card and banner previews off
                 main?.SetBannerPreview(false);
                 main?.ApplyLayoutNow();

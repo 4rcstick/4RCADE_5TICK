@@ -251,6 +251,66 @@ namespace ArcadeStick
         }
         // [END SECTION: Theme Builder Alignment Guides]
 
+        // [SECTION: Theme Builder Background Grid]
+        // Session-only editor aid (never saved): ThemeBuilderWindow forwards the Advanced tab's Grid checkbox and spacing
+        // here, on only while THEME BUILDER is the selected tab. The line color is derived from the Main Window
+        // Background color, blended toward white on a dark color and toward black on a light one.
+        private bool _backgroundGridOn;
+        private double _backgroundGridSpacing = 20;
+        private const double BackgroundGridContrastOnDark = 0.18; // blend toward white
+        private const double BackgroundGridContrastOnLight = 0.30; // blend toward black
+        private SolidColorBrush? _backgroundGridCover; // frozen; rebuilt only when the background color changes
+
+        // Stores the grid state and redraws; safe to call before the window has loaded
+        public void SetBackgroundGrid(bool on, double spacing)
+        {
+            _backgroundGridOn = on;
+            _backgroundGridSpacing = spacing;
+            UpdateBackgroundGrid();
+        }
+
+        // Shows the grid over a solid Main Window Background fill (wallpaper image and video hidden), or hides it and
+        // hands the background back to the root grid's Style and the video host
+        private void UpdateBackgroundGrid()
+        {
+            if (!_backgroundGridOn || !(_backgroundGridSpacing > 0))
+            {
+                BackgroundGridLayer.Visibility = Visibility.Collapsed;
+                RootLayoutGrid.ClearValue(Grid.BackgroundProperty);
+                MainBgVideoHost.ClearValue(UIElement.VisibilityProperty);
+                return;
+            }
+
+            // A local Background beats the Style's wallpaper ImageBrush, the same look as "Disable background image"
+            Color background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainColor).Color;
+            if (_backgroundGridCover == null || _backgroundGridCover.Color != background)
+            {
+                var cover = new SolidColorBrush(background);
+                cover.Freeze();
+                _backgroundGridCover = cover;
+            }
+            RootLayoutGrid.Background = _backgroundGridCover;
+
+            // The host, not MainBgVideo itself, so RefreshMainBgVideo keeps owning the player's own visibility
+            MainBgVideoHost.Visibility = Visibility.Collapsed;
+
+            BackgroundGridLayer.SetGrid(_backgroundGridSpacing, GetBackgroundGridLineColor(background));
+            BackgroundGridLayer.Visibility = Visibility.Visible;
+        }
+
+        // Returns the opaque line color: the background's RGB (alpha ignored) blended BackgroundGridContrastOnDark toward
+        // white when its luminance is under 128, otherwise BackgroundGridContrastOnLight toward black
+        private static Color GetBackgroundGridLineColor(Color background)
+        {
+            double luminance = (0.2126 * background.R) + (0.7152 * background.G) + (0.0722 * background.B);
+            bool dark = luminance < 128;
+            double target = dark ? 255 : 0;
+            double contrast = dark ? BackgroundGridContrastOnDark : BackgroundGridContrastOnLight;
+            byte Blend(byte channel) => (byte)Math.Round(channel + ((target - channel) * contrast));
+            return Color.FromRgb(Blend(background.R), Blend(background.G), Blend(background.B));
+        }
+        // [END SECTION: Theme Builder Background Grid]
+
         // [SECTION: Layout Application]
         // Positions every layer on LayoutCanvas from the active resolution's layout (saved entries plus
         // registry defaults for anything missing). Runs at startup and on every ThemeBindingsRefreshed,
@@ -343,12 +403,14 @@ namespace ArcadeStick
             }
 
             // Main window background color: kept apart from the wallpaper key so a color change never touches the video.
-            // Re-raises ThemeMainColor (main window fill and its popups).
+            // Re-raises ThemeMainColor (main window fill and its popups), and re-derives the background grid's
+            // cover and line colors while the grid is on.
             string mainBackgroundColor = mainBackgroundEntry?.BgColorHex ?? Models.LayerRegistry.DefaultMainBackgroundColorHex;
             if (mainBackgroundColor != _lastMainBackgroundColor)
             {
                 _lastMainBackgroundColor = mainBackgroundColor;
                 _viewModel.RefreshMainBackgroundColor();
+                if (_backgroundGridOn) UpdateBackgroundGrid();
             }
 
             // Search & Buttons: re-raise the label, box and button bindings and repaint the buttons' resting

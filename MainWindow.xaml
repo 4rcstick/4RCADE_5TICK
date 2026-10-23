@@ -205,6 +205,13 @@
         </Canvas>
         <!-- [END SECTION: Main Background Video] -->
 
+        <!-- [SECTION: Theme Builder Background Grid] -->
+        <!-- Full-window 1px grid above the background (color, wallpaper, video) and below LayoutCanvas, so it never covers
+             a layer, never hit-testable. Drawn by the BackgroundGridLayer class; shown, spaced and colored by
+             SetBackgroundGrid() in code-behind, which also hides the wallpaper image and video while it is on. -->
+        <views:BackgroundGridLayer x:Name="BackgroundGridLayer" IsHitTestVisible="False" Visibility="Collapsed" SnapsToDevicePixels="True" UseLayoutRounding="True"/>
+        <!-- [END SECTION: Theme Builder Background Grid] -->
+
         <!-- [SECTION: Left Column - Search + Game TreeView] -->
         <!-- Fixed-size layout surface, anchored top-left. Width/Height here are the 1280x720 defaults;
              ApplyLayout() in code-behind sets them (and every child's position, size, Z and visibility)
