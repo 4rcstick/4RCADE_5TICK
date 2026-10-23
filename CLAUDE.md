@@ -102,7 +102,7 @@ Earlier betas used LibVLCSharp for previews. Two incidents from that era: an RTS
 
 Built: Main Window Background (color, wallpaper), Games List (folders, game titles), Shape Layers 01 to 04 and custom layers, Marquee (logo, shadow, no-art banner with one shared card for the idle banner and the spin's no-marquee card), Splash Image, Video Preview (border, background, fallback image), Search & Buttons, Game Info (title, publisher, info headers and body, navs, previews shadow), Random Game Display (text, background, border, overlay card in both states, per-part ratio lock). Also: layer rename, multi-select nudge, group move, alignment guides. **Global tab** (theme-wide, not per resolution): Fonts, Backgrounds, Tabs, Buttons, Scrollbars (colors and width), Context Menus (colors and border), each with Restore Defaults, live through Global resources, reverted on close without saving. The input chrome (text boxes, combos, lists, checkboxes, sliders, picker popups, small dialogs) uses the fixed Chrome Palette in App.xaml. The Themes Manager (theme load/save/delete) is a row at the top of THEME BUILDER; THEME BROWSER is an empty Grid placeholder awaiting the theme browser (Global tab migration Passes 1 to 6, `global-tab-plan.md`, then 2026-10-22).
 
-Remaining: Footer, a theme browser on the THEME BROWSER tab, then replacing registry defaults with the finished default theme. A WYSIWYG edit mode is planned for beta.5 (no drag handles in beta.4).
+Remaining: a theme browser on the THEME BROWSER tab, then replacing registry defaults with the finished default theme. The Footer is intentionally not themed (it stays as is). A WYSIWYG edit mode is planned for beta.5 (no drag handles in beta.4).
 
 ## Current Scope Boundaries
 

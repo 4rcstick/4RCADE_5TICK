@@ -437,7 +437,7 @@ Resolved: per-resolution storage on the entry; effect set shape; font list; arro
 | Game Info (6 parts) | Built | **Styling built** (Pass 1, 2026-10-21) | Title, Publisher, Info, Nav and Previews tabs (Previews: image shadow); text styling on the entries, headers in SectionHeader* (3.12); tab labels/layout to tweak; ratio lock for parts to add; group move works |
 | Search & Buttons (6 parts) | Built | **Built** | Search, Buttons and Border tabs; shared button style on RandomButton; group move (3.10) |
 | Random Game Display (2 states) | Built | **Text, Background and Border tabs built** (2026-10-22) | Overlay card in both states (background alpha shows what is behind), message / font / color / alignment / wrap / shadow, max size per state, file under the text, per-part ratio lock (3.16) |
-| Footer | Built | Not started | |
+| Footer | Built | Not themed (the footer stays as is) | |
 | Theme Browser (top-level tab) | n/a | Not started | Empty `ThemeBrowserTab` Grid placeholder; its own future project, not a layer |
 | Global tab | n/a | **All six subtabs built** (Fonts and Backgrounds Pass 3, Tabs and Buttons Pass 4, Scrollbars and Context Menus Pass 5) | Theme-wide, not per resolution (3.15). The builder chrome is the fixed Chrome Palette (3.14). Cleanup done (Pass 6): the Basic tab is the Themes Manager only, dead forwarders and retired properties removed |
 | Layer list (editor) | Multi-select nudge built | n/a | Ctrl/Shift multi-select with Move X / Move Y nudge for every selected layer (3.7, decision 40); rename for shape and custom layers (decision 37) |
