@@ -24,7 +24,7 @@ This is a solo-developer project, converted from a ~1600-line PowerShell prototy
 ## Environment and Editing Rules (read first)
 
 - Windows, Visual Studio, PowerShell. Python 3.12 is installed: call it as `python` (not `py`, because a 3.13 is also installed and the py launcher may pick it). Use it for large scripted or generated edits instead of sed.
-- **Source files (`.cs`, `.xaml`, `.md`) use CRLF line endings.** Use the Edit tool for normal changes. When a Python script reads or writes a source file, open it with `newline=''` and `encoding='utf-8'` so line endings pass through unchanged, and make any inserted multi-line text CRLF. Do not use `sed -i` or other whole-file rewrites that normalize line endings. After edits run `git diff --stat` and check that no file shows a whole-file change.
+- **`.cs` and `.xaml` files are CRLF; `.md` files (CLAUDE.md, themes.md and the spec files) are LF, enforced by `.gitattributes` (`*.md text eol=lf`).** Use the Edit tool for normal changes. When a Python script reads or writes a source file, open it with `newline=''` and `encoding='utf-8'` so line endings pass through unchanged, and make any inserted multi-line text match the file's endings (CRLF in `.cs` / `.xaml`, LF in `.md`). Do not use `sed -i` or other whole-file rewrites that normalize line endings. After edits run `git diff --stat` and check that no file shows a whole-file change.
 - **Never commit.** The user commits after testing each pass.
 - After every pass the project must build with **0 errors** (the existing ~50 warnings are known). If a multi-file edit will have transient errors, order the edits so the end state is clean, and say so.
 - Keep comment fencing and style:

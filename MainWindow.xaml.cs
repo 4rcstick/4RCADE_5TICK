@@ -252,20 +252,24 @@ namespace ArcadeStick
         // [END SECTION: Theme Builder Alignment Guides]
 
         // [SECTION: Theme Builder Background Grid]
-        // Session-only editor aid (never saved): ThemeBuilderWindow forwards the Advanced tab's Grid checkbox and spacing
-        // here, on only while THEME BUILDER is the selected tab. The line color is derived from the Main Window
+        // Session-only editor aid (never saved): ThemeBuilderWindow forwards the Advanced tab's Grid checkbox, spacing and
+        // offsets here, on only while THEME BUILDER is the selected tab. The line color is derived from the Main Window
         // Background color, blended toward white on a dark color and toward black on a light one.
         private bool _backgroundGridOn;
         private double _backgroundGridSpacing = 20;
+        private double _backgroundGridOffsetX;
+        private double _backgroundGridOffsetY;
         private const double BackgroundGridContrastOnDark = 0.18; // blend toward white
         private const double BackgroundGridContrastOnLight = 0.30; // blend toward black
         private SolidColorBrush? _backgroundGridCover; // frozen; rebuilt only when the background color changes
 
         // Stores the grid state and redraws; safe to call before the window has loaded
-        public void SetBackgroundGrid(bool on, double spacing)
+        public void SetBackgroundGrid(bool on, double spacing, double offsetX = 0, double offsetY = 0)
         {
             _backgroundGridOn = on;
             _backgroundGridSpacing = spacing;
+            _backgroundGridOffsetX = offsetX;
+            _backgroundGridOffsetY = offsetY;
             UpdateBackgroundGrid();
         }
 
@@ -294,7 +298,7 @@ namespace ArcadeStick
             // The host, not MainBgVideo itself, so RefreshMainBgVideo keeps owning the player's own visibility
             MainBgVideoHost.Visibility = Visibility.Collapsed;
 
-            BackgroundGridLayer.SetGrid(_backgroundGridSpacing, GetBackgroundGridLineColor(background));
+            BackgroundGridLayer.SetGrid(_backgroundGridSpacing, _backgroundGridOffsetX, _backgroundGridOffsetY, GetBackgroundGridLineColor(background));
             BackgroundGridLayer.Visibility = Visibility.Visible;
         }
 

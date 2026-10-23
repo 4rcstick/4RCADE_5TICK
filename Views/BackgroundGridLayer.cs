@@ -8,17 +8,21 @@ namespace ArcadeStick.Views
     // [SECTION: Background Grid Layer]
     // Theme Builder editor aid: a full-window grid of 1px lines drawn behind every layer (MainWindow's
     // BackgroundGridLayer, driven by MainWindow.SetBackgroundGrid). Every line is snapped to a device pixel,
-    // at round(k * spacing * scale) / scale and 1 / scale thick, so it stays one sharp screen pixel at any
-    // spacing (whole or decimal) and any display scaling. Each line is its own DrawRectangle with one frozen opaque
-    // brush: a single combined geometry (thousands of overlapping crossings) broke up into missing-line wedges in
-    // the hardware renderer at spacings of 10 and below. The snapped positions are cached and rebuilt only when
-    // the size, spacing or DPI changes; a color change only swaps the frozen brush.
+    // at round((start + k * spacing) * scale) / scale and 1 / scale thick, so it stays one sharp screen pixel at any
+    // spacing (whole or decimal) and any display scaling. start is the offset reduced into one cell, so the lines pass
+    // through the offset point and still fill the whole window on both sides of it. Each line is its own
+    // DrawRectangle with one frozen opaque brush: a single combined geometry (thousands of overlapping crossings)
+    // broke up into missing-line wedges in the hardware renderer at spacings of 10 and below. The snapped positions
+    // are cached and rebuilt only when the size, spacing, offsets or DPI change; a color change only swaps the frozen
+    // brush.
     public class BackgroundGridLayer : FrameworkElement
     {
         // Below this spacing in screen pixels the lines would touch, so the layer is a solid line-color fill
         private const double MinSpacingDevicePixels = 2;
 
         private double _spacing = 20;
+        private double _offsetX;
+        private double _offsetY;
         private Color _lineColor;
         private SolidColorBrush? _lineBrush;
 
@@ -34,13 +38,16 @@ namespace ArcadeStick.Views
             RenderOptions.SetEdgeMode(this, EdgeMode.Aliased);
         }
 
-        // Sets the spacing (DIPs, from the window's top-left) and the solid line color; redraws only when one changed
-        public void SetGrid(double spacing, Color lineColor)
+        // Sets the spacing and offsets (DIPs, from the window's top-left) and the solid line color; redraws only when
+        // one changed
+        public void SetGrid(double spacing, double offsetX, double offsetY, Color lineColor)
         {
             bool changed = false;
-            if (spacing != _spacing)
+            if (spacing != _spacing || offsetX != _offsetX || offsetY != _offsetY)
             {
                 _spacing = spacing;
+                _offsetX = offsetX;
+                _offsetY = offsetY;
                 _lineXs = null;
                 changed = true;
             }
@@ -86,8 +93,8 @@ namespace ArcadeStick.Views
 
             if (_lineXs == null || _lineYs == null || _builtScaleX != dpi.DpiScaleX || _builtScaleY != dpi.DpiScaleY)
             {
-                _lineXs = BuildPositions(ActualWidth, _spacing, dpi.DpiScaleX);
-                _lineYs = BuildPositions(ActualHeight, _spacing, dpi.DpiScaleY);
+                _lineXs = BuildPositions(ActualWidth, _spacing, _offsetX, dpi.DpiScaleX);
+                _lineYs = BuildPositions(ActualHeight, _spacing, _offsetY, dpi.DpiScaleY);
                 _builtScaleX = dpi.DpiScaleX;
                 _builtScaleY = dpi.DpiScaleY;
             }
@@ -100,12 +107,20 @@ namespace ArcadeStick.Views
                 dc.DrawRectangle(_lineBrush, null, new Rect(0, y, ActualWidth, lineHeight));
         }
 
-        // Returns the device-pixel-snapped line positions every spacing DIPs from 0 up to length
-        private static List<double> BuildPositions(double length, double spacing, double scale)
+        // Returns the device-pixel-snapped line positions every spacing DIPs through the offset, from 0 up to length.
+        // The offset is first reduced into [0, spacing) so a huge or negative offset never walks millions of lines. The
+        // line one cell before start is kept when it snaps to 0, which covers a reduced offset that lands a hair under
+        // spacing through floating-point error (its line belongs at 0, not one cell later).
+        private static List<double> BuildPositions(double length, double spacing, double offset, double scale)
         {
+            double start = ((offset % spacing) + spacing) % spacing;
             var positions = new List<double>();
-            for (int k = 0; k * spacing < length; k++)
-                positions.Add(Math.Round(k * spacing * scale) / scale);
+            for (int k = -1; start + k * spacing < length; k++)
+            {
+                // Ties always round up (not to even), so a whole spacing with a half-pixel offset keeps even gaps
+                double snapped = Math.Floor((start + k * spacing) * scale + 0.5) / scale;
+                if (snapped >= 0) positions.Add(snapped);
+            }
             return positions;
         }
     }

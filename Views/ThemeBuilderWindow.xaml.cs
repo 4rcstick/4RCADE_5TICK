@@ -72,10 +72,10 @@ namespace ArcadeStick.Views
 
             // Background grid: forwarded like the guides, and only shown while THEME BUILDER is selected. Not part of
             // StopPreviews, so a layer, resolution or theme change never turns it off.
-            AdvancedTab.GridChanged += (on, spacing) =>
+            AdvancedTab.GridChanged += (on, spacing, offsetX, offsetY) =>
             {
                 bool onBuilder = ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBuilderPage);
-                (Owner as MainWindow)?.SetBackgroundGrid(on && onBuilder, spacing);
+                (Owner as MainWindow)?.SetBackgroundGrid(on && onBuilder, spacing, offsetX, offsetY);
             };
 
             // Random Game Display card preview: forwarded to the main window like the guides

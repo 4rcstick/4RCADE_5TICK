@@ -52,10 +52,13 @@ namespace ArcadeStick.Views
         // MainWindow.SetBannerPreview. Session-only, never stored.
         public event Action<bool>? BannerPreviewChanged;
 
-        // Raised when the background grid turns on or off or its spacing changes (on, spacing in px). ThemeBuilderWindow
-        // forwards it to MainWindow.SetBackgroundGrid. Session-only: the checkbox and _gridSpacing are never stored.
-        public event Action<bool, double>? GridChanged;
+        // Raised when the background grid turns on or off or its spacing or offsets change (on, spacing, offset X,
+        // offset Y in px). ThemeBuilderWindow forwards it to MainWindow.SetBackgroundGrid. Session-only: the checkbox,
+        // _gridSpacing and the offsets are never stored.
+        public event Action<bool, double, double, double>? GridChanged;
         private double _gridSpacing = 20;
+        private double _gridOffsetX;
+        private double _gridOffsetY;
 
         // Raised after any committed layout edit so the main window can re-apply the layout live.
         // Nothing is written to disk here - Save Adjustments / Save Changes still do that.
@@ -165,7 +168,6 @@ namespace ArcadeStick.Views
             // Guide preferences (editor settings, not part of the theme)
             ChkShowGuides.IsChecked = _settings.ShowGuideLines;
             ChkCenterGuides.IsChecked = _settings.ShowCenterGuide;
-            TxtGuideColorHex.Text = _settings.GuideLineColorHex;
             try
             {
                 var guideColor = (Color)ColorConverter.ConvertFromString(_settings.GuideLineColorHex);
@@ -3303,47 +3305,23 @@ namespace ArcadeStick.Views
             RaiseGuides();
         }
 
-        // Picker -> hex box and settings
+        // Stores the picked guide color in settings and redraws the guides
         private void GuideColorPicker_ColorChanged(object sender, RoutedEventArgs e)
         {
             if (_suppressGuideSync || _settings == null) return;
 
             var c = GuideColorPicker.SelectedColor;
             string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
-            TxtGuideColorHex.Text = hex;
             _settings.GuideLineColorHex = hex;
             RaiseGuides();
-        }
-
-        // Hex box -> picker and settings (invalid text is reverted)
-        private void TxtGuideColorHex_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (_suppressGuideSync || _settings == null) return;
-
-            try
-            {
-                var c = (Color)ColorConverter.ConvertFromString(TxtGuideColorHex.Text.Trim());
-                string hex = $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
-                _suppressGuideSync = true;
-                GuideColorPicker.SelectedColor = c;
-                _suppressGuideSync = false;
-                TxtGuideColorHex.Text = hex;
-                _settings.GuideLineColorHex = hex;
-                RaiseGuides();
-            }
-            catch
-            {
-                _suppressGuideSync = false;
-                TxtGuideColorHex.Text = _settings.GuideLineColorHex;
-            }
         }
         // [END SECTION: Alignment Guide Preferences]
 
         // [SECTION: Background Grid]
-        // Tells the main window the grid's state: on when the Grid box is checked, at the stored spacing
+        // Tells the main window the grid's state: on when the Grid box is checked, at the stored spacing and offsets
         public void RaiseGrid()
         {
-            GridChanged?.Invoke(ChkBgGrid.IsChecked == true, _gridSpacing);
+            GridChanged?.Invoke(ChkBgGrid.IsChecked == true, _gridSpacing, _gridOffsetX, _gridOffsetY);
         }
 
         // Turns the background grid on or off
@@ -3383,6 +3361,62 @@ namespace ArcadeStick.Views
             TxtGridSpacing.Text = Fmt(_gridSpacing);
             _loading = false;
             RaiseGrid();
+        }
+
+        // Applies an offset box on Enter
+        private void TxtGridOffset_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyGridOffsets();
+        }
+
+        // Applies an offset box on focus loss
+        private void TxtGridOffset_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyGridOffsets();
+        }
+
+        // Shows an offset box's muted X / Y letter only while the box is empty
+        private void TxtGridOffset_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            RefreshGridOffsetPlaceholders();
+        }
+
+        // Stores both offsets (empty = 0, any finite number rounded to 2 decimals; invalid input keeps the stored
+        // value), re-displays them (0 as an empty box) and redraws the grid
+        private void ApplyGridOffsets()
+        {
+            if (_loading) return;
+
+            _gridOffsetX = ParseGridOffset(TxtGridOffsetX.Text, _gridOffsetX);
+            _gridOffsetY = ParseGridOffset(TxtGridOffsetY.Text, _gridOffsetY);
+
+            _loading = true;
+            TxtGridOffsetX.Text = _gridOffsetX == 0 ? string.Empty : Fmt(_gridOffsetX);
+            TxtGridOffsetY.Text = _gridOffsetY == 0 ? string.Empty : Fmt(_gridOffsetY);
+            _loading = false;
+            RefreshGridOffsetPlaceholders();
+            RaiseGrid();
+        }
+
+        // Returns an offset box's value: 0 when empty, the rounded number when valid, otherwise the stored value
+        private static double ParseGridOffset(string text, double stored)
+        {
+            text = text.Trim();
+            if (text.Length == 0) return 0;
+            if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) && double.IsFinite(value))
+                return Math.Round(value, 2, MidpointRounding.AwayFromZero) + 0.0; // + 0.0 turns -0 into 0
+            return stored;
+        }
+
+        // Shows each offset placeholder while its box is empty (skipped while the controls are still being created)
+        private void RefreshGridOffsetPlaceholders()
+        {
+            if (PhGridOffsetX != null && TxtGridOffsetX != null)
+                PhGridOffsetX.Visibility = string.IsNullOrEmpty(TxtGridOffsetX.Text) ? Visibility.Visible : Visibility.Collapsed;
+            if (PhGridOffsetY != null && TxtGridOffsetY != null)
+                PhGridOffsetY.Visibility = string.IsNullOrEmpty(TxtGridOffsetY.Text) ? Visibility.Visible : Visibility.Collapsed;
         }
         // [END SECTION: Background Grid]
 
