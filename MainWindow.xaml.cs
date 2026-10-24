@@ -519,11 +519,7 @@ namespace ArcadeStick
             if (videoEntry != null)
             {
                 // The entry's rect is the video area; the border grows outward, so the control is that rect inflated by BorderSize
-                double videoBorder = Math.Max(0, videoEntry.BorderSize ?? 0);
-                Canvas.SetLeft(VideoPreviewLayer, videoEntry.X - videoBorder);
-                Canvas.SetTop(VideoPreviewLayer, videoEntry.Y - videoBorder);
-                VideoPreviewLayer.Width = videoEntry.Width + (videoBorder * 2);
-                VideoPreviewLayer.Height = videoEntry.Height + (videoBorder * 2);
+                PlaceOutsideBorder(VideoPreviewLayer, videoEntry, videoEntry.BorderSize ?? 0);
                 VideoPreviewLayer.ApplyBorder(videoEntry.BorderSize ?? 0, videoEntry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, videoEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
                 VideoPreviewLayer.ApplyBackground(videoEntry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
             }
