@@ -21,10 +21,11 @@
         <!-- The no-art title card, shared by the idle banner (NoMarqueeBanner) and the spin's no-marquee card
              (RandomizerNoMarqueeFallback); the title comes in as Content. The outer Border (background, border, radius,
              the shared Marquee shadow) is centered and takes its size from its Viewbox, so the card stays 4:1 and its
-             border never scales. Inside, the 400x100 reference box scales with the marquee box as before, and a
+             border never scales. Its margin is minus the border size, so the 4:1 content fits the Marquee rect and the
+             border draws outside it. Inside, the 400x100 reference box scales with the marquee box as before, and a
              shrink-only Viewbox holds the title: the size is a max, and the title shrinks only when it does not fit. -->
         <ControlTemplate x:Key="MarqueeBannerCardTemplate" TargetType="ContentControl">
-            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{Binding ThemeMarqueeBannerOutsideMargin}"
                     Background="{Binding ThemeMarqueeBannerBgColor, FallbackValue=#FF1C1C1E}"
                     BorderBrush="{Binding ThemeMarqueeBannerBorderColor, FallbackValue=#FFEF44C3}"
                     BorderThickness="{Binding ThemeMarqueeBannerBorderThickness}" CornerRadius="{Binding ThemeMarqueeBannerCornerRadius}"
@@ -291,19 +292,37 @@
             </Border>
 
 
-            <!-- Shape layers 01 to 04: background/border layers. Fill, border, corner radius, visibility and the image or
-     video (stretched to fill, shown inside the host Grid) are all set from the layer entry in ApplyLayout(). -->
+            <!-- Shape layers 01 to 04: background/border layers, built like the Video Preview (border ring outside the
+                 entry rect). The outer Border is the positioned box (entry rect inflated by BorderSize); inside it the fill
+                 and the host Grid (image or video, stretched to fill) are tucked 1px under the ring, and the ring sits on
+                 top. Every value is set from the layer entry in ApplyLayout() (ApplyShapeLayers). -->
             <Border x:Name="ShapeLayer01" IsHitTestVisible="False" Canvas.Left="20" Canvas.Top="60" Width="353" Height="640" ClipToBounds="True">
-                <Grid x:Name="ShapeLayer01Host"/>
+                <Grid>
+                    <Border x:Name="ShapeLayer01Fill"/>
+                    <Grid x:Name="ShapeLayer01Host"/>
+                    <Border x:Name="ShapeLayer01Ring" Background="Transparent"/>
+                </Grid>
             </Border>
             <Border x:Name="ShapeLayer02" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" ClipToBounds="True">
-                <Grid x:Name="ShapeLayer02Host"/>
+                <Grid>
+                    <Border x:Name="ShapeLayer02Fill"/>
+                    <Grid x:Name="ShapeLayer02Host"/>
+                    <Border x:Name="ShapeLayer02Ring" Background="Transparent"/>
+                </Grid>
             </Border>
             <Border x:Name="ShapeLayer03" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="20" Width="867" Height="137" ClipToBounds="True">
-                <Grid x:Name="ShapeLayer03Host"/>
+                <Grid>
+                    <Border x:Name="ShapeLayer03Fill"/>
+                    <Grid x:Name="ShapeLayer03Host"/>
+                    <Border x:Name="ShapeLayer03Ring" Background="Transparent"/>
+                </Grid>
             </Border>
             <Border x:Name="ShapeLayer04" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" ClipToBounds="True" Visibility="Collapsed">
-                <Grid x:Name="ShapeLayer04Host"/>
+                <Grid>
+                    <Border x:Name="ShapeLayer04Fill"/>
+                    <Grid x:Name="ShapeLayer04Host"/>
+                    <Border x:Name="ShapeLayer04Ring" Background="Transparent"/>
+                </Grid>
             </Border>
 
             <!-- Games List layer: its own positioned element above the BG. The TreeView and everything
@@ -704,10 +723,12 @@
             <!-- Random Game Display layer: its own positioned element, mapped in ApplyLayout(). The outer host is
                  what ApplyLayout shows/hides; the inner grid shows only while a spin runs (DataTrigger). Both states
                  (game selected, splash page) draw the same card over whatever is behind them: the background color
-                 (its alpha decides how much shows through), then the layer's file, then the message. The border sits
-                 on the card's Border, outside the Viewbox, so its size never scales with the box. The style comes
-                 from the ThemeRandomDisplay* forwarders; the per-state max text size, the wrapped text width and the
-                 file's rounded clip are set in ApplyRandomGameDisplayRect. -->
+                 (its alpha decides how much shows through), then the layer's file, then the message. The border is
+                 a ring on top, outside the Viewbox, so its size never scales with the box. Like the Video Preview, the
+                 state's rect is the content area and the layer is that rect inflated by the state's border; the card
+                 reaches 1px under the ring. The style comes from the ThemeRandomDisplay* forwarders; the placement, the
+                 card's inset and inner radius, the per-state max text size, the wrapped text width and the file's
+                 rounded clip are set in ApplyRandomGameDisplayRect. -->
             <Grid x:Name="RandomGameDisplayLayer" IsHitTestVisible="False" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523" ClipToBounds="True">
                 <Grid x:Name="RandomSpinContent">
                     <Grid.Style>
@@ -720,9 +741,8 @@
                             </Style.Triggers>
                         </Style>
                     </Grid.Style>
-                    <Border x:Name="RandomSpinCard" Background="{Binding ThemeRandomDisplayBgColor, FallbackValue=#FF000000}"
-                            BorderBrush="{Binding ThemeRandomDisplayBorderColor, FallbackValue=#FF3A3A3C}"
-                            BorderThickness="{Binding ThemeRandomDisplayBorderThickness}" CornerRadius="{Binding ThemeRandomDisplayCornerRadius}">
+                    <!-- The card's fill, file and message, tucked 1px under the ring (margin and corner radius set from code) -->
+                    <Border x:Name="RandomSpinCard" Background="{Binding ThemeRandomDisplayBgColor, FallbackValue=#FF000000}">
                         <Grid x:Name="RandomSpinInner">
                             <Grid x:Name="RandomSpinFileHost" Visibility="Collapsed"/>
                             <!-- Max text size is the cap: the shrink-only Viewbox scales the text down only when it does
@@ -736,6 +756,10 @@
                             </Viewbox>
                         </Grid>
                     </Border>
+
+                    <!-- Border ring on top: this state's border size, color and corner radius -->
+                    <Border Background="Transparent" BorderBrush="{Binding ThemeRandomDisplayBorderColor, FallbackValue=#FF3A3A3C}"
+                            BorderThickness="{Binding ThemeRandomDisplayBorderThickness}" CornerRadius="{Binding ThemeRandomDisplayCornerRadius}"/>
                 </Grid>
             </Grid>
 

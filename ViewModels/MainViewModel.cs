@@ -971,6 +971,9 @@ namespace ArcadeStick.ViewModels
         public string ThemeMarqueeBannerBorderColor => MarqueeBannerEntry.BorderColorHex ?? LayerRegistry.DefaultBannerBorderColorHex;
         public Thickness ThemeMarqueeBannerBorderThickness => new Thickness(MarqueeBannerEntry.BorderSize ?? LayerRegistry.DefaultBannerBorderSize);
         public CornerRadius ThemeMarqueeBannerCornerRadius => new CornerRadius(MarqueeBannerEntry.CornerRadius ?? LayerRegistry.DefaultBannerCornerRadius);
+
+        // The card's outer margin, minus the border size: the 4:1 content fits the Marquee rect and the border draws outside it
+        public Thickness ThemeMarqueeBannerOutsideMargin => new Thickness(-Math.Max(0, MarqueeBannerEntry.BorderSize ?? LayerRegistry.DefaultBannerBorderSize));
         public System.Windows.Media.Effects.Effect? ThemeMarqueeBannerTextEffect =>
             BuildShadowEffect(
                 MarqueeBannerEntry.BannerShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
@@ -992,6 +995,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMarqueeBannerBorderColor));
             OnPropertyChanged(nameof(ThemeMarqueeBannerBorderThickness));
             OnPropertyChanged(nameof(ThemeMarqueeBannerCornerRadius));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerOutsideMargin));
             OnPropertyChanged(nameof(ThemeMarqueeBannerTextEffect));
         }
         // [END SECTION: Marquee Banner Forwarders]

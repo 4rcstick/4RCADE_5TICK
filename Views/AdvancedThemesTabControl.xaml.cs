@@ -117,11 +117,11 @@ namespace ArcadeStick.Views
             GuidesChanged?.Invoke(new GuideInfo(guideRect.X, guideRect.Y, guideRect.Width, guideRect.Height, _settings.GuideLineColorHex, showRect, showCenter));
         }
 
-        // Returns the rect the guides use for an entry: its own rect, except the Video Preview, whose border draws
-        // outside the video area, so its guides use the video area inflated by BorderSize.
+        // Returns the rect the guides use for an entry: its own rect, inflated by BorderSize for the layers whose border
+        // draws outside their content area (LayerRegistry.HasOutsideBorder), so the guides frame the outer ring.
         private static Rect GetGuideRect(LayerLayoutEntry entry)
         {
-            double border = entry.Id == LayerRegistry.VideoPreview ? Math.Max(0, entry.BorderSize ?? 0) : 0;
+            double border = LayerRegistry.HasOutsideBorder(entry.Id) ? Math.Max(0, entry.BorderSize ?? 0) : 0;
             return new Rect(entry.X - border, entry.Y - border, entry.Width + (border * 2), entry.Height + (border * 2));
         }
 

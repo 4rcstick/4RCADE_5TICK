@@ -320,8 +320,8 @@ namespace ArcadeStick
         // registry defaults for anything missing). Runs at startup and on every ThemeBindingsRefreshed,
         // so Save Adjustments and theme loads reposition live. The window itself sizes to the canvas
         // (SizeToContent), so the client area always equals the layout resolution.
-        // Layers not mapped here yet (GamesList, SplashImage, VideoPreview, ImagePreviews, GameInfo) are
-        // handled in later stages. GamesListPanel temporarily stands in for GamesListBg and is never hidden.
+        // Bordered layers (shapes, custom layers, Splash Image, Video Preview, Random Game Display) treat the
+        // entry rect as the content area and are placed inflated by their border (PlaceOutsideBorder).
         private void ApplyLayout()
         {
             if (_viewModel == null) return;
@@ -507,10 +507,12 @@ namespace ArcadeStick
 
             ApplyShapeLayers(layout);
 
-            // Splash Image and Video Preview draw their own border from their entries (Video Preview also its background)
+            // Splash Image and Video Preview draw their own border from their entries (Video Preview also its background).
+            // Both entries' rects are the content area; the border grows outward, so each control is its rect inflated by BorderSize.
             var splashEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SplashImage);
             if (splashEntry != null)
             {
+                PlaceOutsideBorder(SplashLayer, splashEntry, splashEntry.BorderSize ?? 0);
                 SplashLayer.ApplyBorder(splashEntry.BorderSize ?? 0, splashEntry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, splashEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
             }
             var videoEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview);
@@ -564,41 +566,63 @@ namespace ArcadeStick
         private readonly Dictionary<string, (FrameworkElement Element, string Path)> _shapeFileElements = new();
         private readonly Dictionary<string, string> _shapeVisibilityModes = new();
 
+        // Does the shared border-ring placement (the Video Preview rule): the entry's rect is the content area, so the
+        // element sits at that rect inflated by the border size on every side and the ring draws outside the content.
+        private static void PlaceOutsideBorder(FrameworkElement element, Models.LayerLayoutEntry entry, double borderSize)
+        {
+            double border = Math.Max(0, borderSize);
+            Canvas.SetLeft(element, entry.X - border);
+            Canvas.SetTop(element, entry.Y - border);
+            element.Width = entry.Width + (border * 2);
+            element.Height = entry.Height + (border * 2);
+        }
+
+        // Does the shape / custom layer box styling, same as VideoPreviewLayerControl.ApplyClip: the ring (on top) takes the
+        // border, the fill and the file host are pulled in by the border minus 1px so they reach 1px under the ring, and
+        // their corner radius and the host's rounded clip shrink by the same inset to stay concentric.
+        private static void ApplyRingBox(Models.LayerLayoutEntry entry, Border fill, Grid host, Border ring)
+        {
+            double borderSize = Math.Max(0, entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize);
+            double radius = Math.Max(0, entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
+            double inset = Math.Max(0, borderSize - 1);
+            double innerRadius = Math.Max(0, radius - inset);
+
+            ring.BorderBrush = MainViewModel.SafeConvertToBrush(entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex);
+            ring.BorderThickness = new Thickness(borderSize);
+            ring.CornerRadius = new CornerRadius(radius);
+
+            fill.Background = MainViewModel.SafeConvertToBrush(entry.BgColorHex ?? Models.LayerRegistry.DefaultShapeBgColorHex);
+            fill.Margin = new Thickness(inset);
+            fill.CornerRadius = new CornerRadius(innerRadius);
+
+            // The host is the content rect plus the 1px under the ring on each side (ClipToBounds alone clips to a plain rectangle)
+            host.Margin = new Thickness(inset);
+            double overlap = borderSize - inset;
+            var clip = new RectangleGeometry(new Rect(0, 0, entry.Width + (overlap * 2), entry.Height + (overlap * 2)), innerRadius, innerRadius);
+            clip.Freeze();
+            host.Clip = clip;
+            host.Opacity = (entry.FileOpacity ?? Models.LayerRegistry.DefaultFileOpacity) / 100.0; // file opacity
+        }
+
+        // Places and styles Shape Layer 01 to 04 from their entries (border ring outside the rect) and loads their files.
         private void ApplyShapeLayers(Models.ThemeLayout layout)
         {
-            var shapes = new (string Id, Border Box, Grid Host)[]
+            var shapes = new (string Id, Border Box, Border Fill, Grid Host, Border Ring)[]
             {
-                (Models.LayerRegistry.ShapeLayer01, ShapeLayer01, ShapeLayer01Host),
-                (Models.LayerRegistry.ShapeLayer02, ShapeLayer02, ShapeLayer02Host),
-                (Models.LayerRegistry.ShapeLayer03, ShapeLayer03, ShapeLayer03Host),
-                (Models.LayerRegistry.ShapeLayer04, ShapeLayer04, ShapeLayer04Host)
+                (Models.LayerRegistry.ShapeLayer01, ShapeLayer01, ShapeLayer01Fill, ShapeLayer01Host, ShapeLayer01Ring),
+                (Models.LayerRegistry.ShapeLayer02, ShapeLayer02, ShapeLayer02Fill, ShapeLayer02Host, ShapeLayer02Ring),
+                (Models.LayerRegistry.ShapeLayer03, ShapeLayer03, ShapeLayer03Fill, ShapeLayer03Host, ShapeLayer03Ring),
+                (Models.LayerRegistry.ShapeLayer04, ShapeLayer04, ShapeLayer04Fill, ShapeLayer04Host, ShapeLayer04Ring)
             };
 
-            foreach (var (id, box, host) in shapes)
+            foreach (var (id, box, fill, host, ring) in shapes)
             {
                 var entry = layout.Layers.FirstOrDefault(e => e.Id == id);
                 if (entry == null) continue;
 
-                Canvas.SetLeft(box, entry.X);
-                Canvas.SetTop(box, entry.Y);
-                box.Width = entry.Width;
-                box.Height = entry.Height;
+                PlaceOutsideBorder(box, entry, entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize);
                 Panel.SetZIndex(box, entry.Z);
-
-                box.Background = MainViewModel.SafeConvertToBrush(entry.BgColorHex ?? Models.LayerRegistry.DefaultShapeBgColorHex);
-                box.BorderBrush = MainViewModel.SafeConvertToBrush(entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex);
-                box.BorderThickness = new Thickness(entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize);
-                box.CornerRadius = new CornerRadius(entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
-
-                // Round the image/video's clip to the border's inner edge (ClipToBounds alone clips to a plain rectangle)
-                double borderSize = entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize;
-                double innerWidth = Math.Max(0, entry.Width - (borderSize * 2));
-                double innerHeight = Math.Max(0, entry.Height - (borderSize * 2));
-                double innerRadius = Math.Max(0, (entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius) - borderSize);
-                var clip = new RectangleGeometry(new Rect(0, 0, innerWidth, innerHeight), innerRadius, innerRadius);
-                clip.Freeze();
-                host.Clip = clip;
-                host.Opacity = (entry.FileOpacity ?? Models.LayerRegistry.DefaultFileOpacity) / 100.0; // file opacity
+                ApplyRingBox(entry, fill, host, ring);
 
                 ApplyShapeFile(id, host, entry.ImagePath);
                 _shapeVisibilityModes[id] = entry.VisibilityMode ?? Models.LayerRegistry.DefaultVisibilityMode;
@@ -693,8 +717,10 @@ namespace ArcadeStick
 
         // Custom layers: one bordered box (fill, border, corner radius) per layer with a host Grid for the
         // image or video, created on demand and kept on LayoutCanvas. Same look and rules as the shape layers.
-        private readonly Dictionary<string, (Border Box, Grid Host)> _customBoxes = new();
+        private readonly Dictionary<string, (Border Box, Border Fill, Grid Host, Border Ring)> _customBoxes = new();
 
+        // Creates, places and styles the custom layer boxes from their entries (same ring structure as the shape layers),
+        // dropping boxes whose layer no longer exists at this resolution.
         private void ApplyCustomLayers(Models.ThemeLayout layout)
         {
             var wanted = layout.Layers.Where(e => Models.LayerRegistry.IsCustomId(e.Id)).ToList();
@@ -711,37 +737,25 @@ namespace ArcadeStick
 
             foreach (var entry in wanted)
             {
-                // Custom layer box
+                // Custom layer box: the positioned outer Border holding the fill, the file host and the ring on top
                 if (!_customBoxes.TryGetValue(entry.Id, out var parts))
                 {
+                    var fill = new Border();
                     var host = new Grid();
-                    var box = new Border { IsHitTestVisible = false, ClipToBounds = true, Child = host };
+                    var ring = new Border { Background = Brushes.Transparent };
+                    var content = new Grid();
+                    content.Children.Add(fill);
+                    content.Children.Add(host);
+                    content.Children.Add(ring);
+                    var box = new Border { IsHitTestVisible = false, ClipToBounds = true, Child = content };
                     LayoutCanvas.Children.Add(box);
-                    parts = (box, host);
+                    parts = (box, fill, host, ring);
                     _customBoxes[entry.Id] = parts;
                 }
 
-                var customBox = parts.Box;
-                Canvas.SetLeft(customBox, entry.X);
-                Canvas.SetTop(customBox, entry.Y);
-                customBox.Width = entry.Width;
-                customBox.Height = entry.Height;
-                Panel.SetZIndex(customBox, entry.Z);
-
-                customBox.Background = MainViewModel.SafeConvertToBrush(entry.BgColorHex ?? Models.LayerRegistry.DefaultShapeBgColorHex);
-                customBox.BorderBrush = MainViewModel.SafeConvertToBrush(entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex);
-                customBox.BorderThickness = new Thickness(entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize);
-                customBox.CornerRadius = new CornerRadius(entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
-
-                // Round clip for the image/video, matching the border's inner edge
-                double customBorder = entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize;
-                double customInnerWidth = Math.Max(0, entry.Width - (customBorder * 2));
-                double customInnerHeight = Math.Max(0, entry.Height - (customBorder * 2));
-                double customInnerRadius = Math.Max(0, (entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius) - customBorder);
-                var customClip = new RectangleGeometry(new Rect(0, 0, customInnerWidth, customInnerHeight), customInnerRadius, customInnerRadius);
-                customClip.Freeze();
-                parts.Host.Clip = customClip;
-                parts.Host.Opacity = (entry.FileOpacity ?? Models.LayerRegistry.DefaultFileOpacity) / 100.0; // file opacity
+                PlaceOutsideBorder(parts.Box, entry, entry.BorderSize ?? Models.LayerRegistry.DefaultShapeBorderSize);
+                Panel.SetZIndex(parts.Box, entry.Z);
+                ApplyRingBox(entry, parts.Fill, parts.Host, parts.Ring);
 
                 ApplyShapeFile(entry.Id, parts.Host, entry.ImagePath);
                 _shapeVisibilityModes[entry.Id] = entry.VisibilityMode ?? Models.LayerRegistry.DefaultVisibilityMode;
@@ -791,10 +805,8 @@ namespace ArcadeStick
             var entry = layout.Layers.FirstOrDefault(e => e.Id == id);
             if (entry == null) return;
 
-            Canvas.SetLeft(RandomGameDisplayLayer, entry.X);
-            Canvas.SetTop(RandomGameDisplayLayer, entry.Y);
-            RandomGameDisplayLayer.Width = entry.Width;
-            RandomGameDisplayLayer.Height = entry.Height;
+            // The state's rect is the card's content area; the layer is that rect inflated by this state's border
+            PlaceOutsideBorder(RandomGameDisplayLayer, entry, entry.BorderSize ?? 0);
             Panel.SetZIndex(RandomGameDisplayLayer, entry.Z);
             // The preview ignores the part's Hide flag
             RandomGameDisplayLayer.Visibility = (entry.Visible || _randomCardPreview) ? Visibility.Visible : Visibility.Collapsed;
@@ -865,9 +877,13 @@ namespace ArcadeStick
             _themeBuilderWindow?.RandomCardPreviewEndedBySpin();
         }
 
-        // Sets the parts of the spin card that depend on the active state: this state's max text size, the wrapped
-        // text width (the box inside this state's border and the 10px padding) and the file's rounded clip at this
-        // state's border inner edge. Only the wrap flag is shared, read from the RandomGameDisplay entry.
+        // Inner padding between the card's content edge and the message (the Viewbox's margin, measured from the visible edge)
+        private const double RandomSpinTextPadding = 10;
+
+        // Sets the parts of the spin card that depend on the active state, with the Video Preview rule: the card (fill,
+        // file, message) pulls in by this state's border minus 1px, so it reaches 1px under the ring, and its corner
+        // radius and the file's rounded clip shrink by the same inset. Also this state's max text size and the wrapped
+        // text width (the content width minus the padding). Only the wrap flag is shared, read from the RandomGameDisplay entry.
         private void ApplyRandomGameDisplayCardSize(Models.ThemeLayout layout, Models.LayerLayoutEntry stateEntry)
         {
             var style = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomGameDisplay) ?? stateEntry;
@@ -876,25 +892,24 @@ namespace ArcadeStick
                 : Models.LayerRegistry.DefaultRandomDisplayFontSize;
             RandomSpinText.FontSize = stateEntry.TextFontSize ?? defaultSize;
 
-            double borderSize = stateEntry.BorderSize ?? 0;
-            double innerWidth = Math.Max(0, stateEntry.Width - (borderSize * 2));
-            double innerHeight = Math.Max(0, stateEntry.Height - (borderSize * 2));
+            double borderSize = Math.Max(0, stateEntry.BorderSize ?? 0);
+            double radius = Math.Max(0, stateEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
+            double inset = Math.Max(0, borderSize - 1);
+            double overlap = borderSize - inset;
+            double innerRadius = Math.Max(0, radius - inset);
+
+            RandomSpinCard.Margin = new Thickness(inset);
+            RandomSpinCard.CornerRadius = new CornerRadius(innerRadius);
+
+            // The padding counts from the visible content edge, so the Viewbox also skips the 1px under the ring
+            RandomSpinTextBox.Margin = new Thickness(RandomSpinTextPadding + overlap);
 
             bool wrap = style.TextWrap ?? Models.LayerRegistry.DefaultRandomDisplayWrap;
-            RandomSpinText.Width = wrap ? Math.Max(1, innerWidth - (RandomSpinTextBox.Margin.Left + RandomSpinTextBox.Margin.Right)) : double.NaN;
+            RandomSpinText.Width = wrap ? Math.Max(1, stateEntry.Width - (RandomSpinTextPadding * 2)) : double.NaN;
 
-            double radius = stateEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius;
-            if (radius > 0)
-            {
-                double innerRadius = Math.Max(0, radius - borderSize);
-                var clip = new RectangleGeometry(new Rect(0, 0, innerWidth, innerHeight), innerRadius, innerRadius);
-                clip.Freeze();
-                RandomSpinFileHost.Clip = clip;
-            }
-            else
-            {
-                RandomSpinFileHost.Clip = null;
-            }
+            var clip = new RectangleGeometry(new Rect(0, 0, stateEntry.Width + (overlap * 2), stateEntry.Height + (overlap * 2)), innerRadius, innerRadius);
+            clip.Freeze();
+            RandomSpinFileHost.Clip = clip;
         }
 
         // Same layout resolution ApplyLayout uses - lets the die click re-apply just this layer's rect.

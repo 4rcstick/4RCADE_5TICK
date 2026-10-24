@@ -16,7 +16,7 @@ namespace ArcadeStick.Views
         public SplashLayerControl()
         {
             InitializeComponent();
-            SizeChanged += (s, e) => ApplyClip();
+            SplashContent.SizeChanged += (s, e) => ApplyClip();
         }
 
         // Loop: MediaElement has no built-in repeat, so rewind the boot splash and keep playing.
@@ -39,16 +39,19 @@ namespace ArcadeStick.Views
             ApplyClip();
         }
 
-        // The splash content sits inside the border ring, with a rounded clip matching the ring's inner edge.
+        // Same rule as VideoPreviewLayerControl.ApplyClip: the ring stays at the control's outer edge (ApplyLayout sizes the
+        // control to the entry rect inflated by BorderSize), and the splash content pulls in by the border minus 1px, so the
+        // ring covers 1px of the picture (hides any sub-pixel sliver). Corner radius and clip shrink by the same inset.
         private void ApplyClip()
         {
-            double width = ActualWidth - (_borderSize * 2);
-            double height = ActualHeight - (_borderSize * 2);
+            double inset = Math.Max(0, _borderSize - 1);
+            double innerRadius = Math.Max(0, _borderRadius - inset);
+            SplashContent.Margin = new Thickness(inset);
+
+            double width = SplashContent.ActualWidth;
+            double height = SplashContent.ActualHeight;
             if (width <= 0 || height <= 0) return;
 
-            double innerRadius = Math.Max(0, _borderRadius - _borderSize);
-
-            SplashContent.Margin = new Thickness(_borderSize);
             SplashContent.Clip = new RectangleGeometry(new Rect(0, 0, width, height), innerRadius, innerRadius);
         }
     }
