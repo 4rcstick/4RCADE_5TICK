@@ -947,7 +947,7 @@
                     <!-- [END SECTION: Game Info - Publisher Tab] -->
 
                     <!-- [SECTION: Game Info - Info Tab] -->
-                    <!-- Section headers (SectionHeader* fields) and body text (Text* fields), both on the Game Info entry. The Specs / Credits page uses these styles too. -->
+                    <!-- Section headers (SectionHeader* fields) and body text (Text* fields, the body's right margin included), both on the Game Info entry. The Specs / Credits page uses these styles too. -->
                     <TabItem x:Name="TabGIInfo" Header="INFO" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
@@ -1045,6 +1045,8 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Body Text" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
@@ -1103,6 +1105,12 @@
                                     <TextBox x:Name="GIInfoBodyShadowBlur" Tag="InfoBody" Grid.Row="6" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIInfoBodyShadow}"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                     <TextBox x:Name="GIInfoBodyShadowDepth" Tag="InfoBody" Grid.Row="6" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIInfoBodyShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+
+                                    <!-- Right margin: the gap between the body text and the scrollbar (or the panel's right edge), 0 to 100 px -->
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5" Text="Gap to scrollbar (px):" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
+                                    <TextBox x:Name="GIInfoBodyRightMargin" Tag="InfoBody" Grid.Row="8" Grid.Column="0" Width="48" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                             ToolTip="Space between the body text and the scrollbar; also applies when no scrollbar shows"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                 </Grid>
                             </StackPanel>
@@ -1746,6 +1754,7 @@
                                     <ColumnDefinition Width="52"/>
                                     <ColumnDefinition Width="6"/>
                                     <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -1801,9 +1810,15 @@
                                     </StackPanel>
                                 </Grid>
 
-                                <!-- Wrap at the card's width (on: the block shrinks only when taller than the card) -->
-                                <CheckBox x:Name="ChkBannerWrap" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Content="Wrap text" Margin="0,8,0,0"
-                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerWrap_Click"/>
+                                <!-- Wrap at the card's width (on: the block shrinks only when taller than the card), and the one-line
+                                     title's left and right inset in reference box units (0 to 100; disabled in code while wrap is on) -->
+                                <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" Margin="0,8,0,0">
+                                    <CheckBox x:Name="ChkBannerWrap" Content="Wrap text" VerticalAlignment="Center"
+                                              Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerWrap_Click"/>
+                                    <TextBlock Text="Text margin (units):" Style="{StaticResource GLLabelStyle}" Margin="24,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBox x:Name="TxtBannerTextMargin" Width="48" HorizontalContentAlignment="Center" ToolTip="One-line title only: the gap at each side of the card"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
+                                </StackPanel>
 
                                 <!-- Background color (alpha shows the marquee panel behind the card) -->
                                 <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>

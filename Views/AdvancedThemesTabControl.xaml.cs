@@ -2886,7 +2886,8 @@ namespace ArcadeStick.Views
 
         // [SECTION: Marquee Banner Styling Fields]
         // Shown while the Marquee layer is selected (BANNER tab). The no-art title card's style lives on the MarqueePanel
-        // entry: font, bold, max size, color, wrap, background, border and the title's own shadow (BannerShadow*).
+        // entry: font, bold, max size, color, wrap, the one-line text margin (BannerTextMargin), background, border and the
+        // title's own shadow (BannerShadow*).
         // Colors, checkboxes and combos apply immediately; number fields apply on Enter or focus loss and revert invalid input.
         private LayerLayoutEntry? BannerEntry => SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.MarqueePanel ? GetEntry(LayerRegistry.MarqueePanel) : null;
 
@@ -2908,6 +2909,8 @@ namespace ArcadeStick.Views
             TxtBannerFontSize.Text = (entry.TextFontSize ?? LayerRegistry.DefaultBannerFontSize).ToString(CultureInfo.InvariantCulture);
             ShowColor(BannerColorPicker, TxtBannerColorHex, entry.TextColorHex ?? LayerRegistry.DefaultBannerColorHex);
             ChkBannerWrap.IsChecked = entry.TextWrap ?? LayerRegistry.DefaultBannerWrap;
+            TxtBannerTextMargin.Text = (entry.BannerTextMargin ?? LayerRegistry.DefaultBannerTextMargin).ToString(CultureInfo.InvariantCulture);
+            UpdateBannerTextMarginEnabled();
             ShowColor(BannerBgColorPicker, TxtBannerBgColorHex, entry.BgColorHex ?? LayerRegistry.DefaultBannerBgColorHex);
 
             ChkBannerShadow.IsChecked = entry.BannerShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
@@ -2957,13 +2960,18 @@ namespace ArcadeStick.Views
             RaiseGuides();
         }
 
+        // Does the wrap toggle: stores it and enables the text margin box only for a one-line title
         private void ChkBannerWrap_Click(object sender, RoutedEventArgs e)
         {
             if (_loading || _settings == null || BannerEntry is not LayerLayoutEntry entry) return;
 
             entry.TextWrap = ChkBannerWrap.IsChecked == true;
+            UpdateBannerTextMarginEnabled();
             RaiseGuides();
         }
+
+        // Does the enable state of the text margin box: on only while Wrap text is off (the margin is one-line only)
+        private void UpdateBannerTextMarginEnabled() => TxtBannerTextMargin.IsEnabled = ChkBannerWrap.IsChecked != true;
 
         private void ChkBannerShadow_Click(object sender, RoutedEventArgs e)
         {
@@ -3023,6 +3031,9 @@ namespace ArcadeStick.Views
                 entry.BorderSize = border;
             if (int.TryParse(TxtBannerCornerRadius.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int radius) && radius >= 0 && radius <= 200)
                 entry.CornerRadius = radius;
+            if (int.TryParse(TxtBannerTextMargin.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int textMargin)
+                && textMargin >= LayerRegistry.MinBannerTextMargin && textMargin <= LayerRegistry.MaxBannerTextMargin)
+                entry.BannerTextMargin = textMargin;
 
             // Re-display the stored values (reverts invalid input) and re-apply the layout
             LoadSelectedLayerIntoFields();
@@ -3042,6 +3053,7 @@ namespace ArcadeStick.Views
         // SelectUnit is the list row that shows the block's tab; ShadowOnly blocks have no size or color controls.
         // DefaultAlign set = the block has a GI{Block}Align combo (Left / Center / Right, stored in Text* TextAlign).
         // HasShadowTarget = the block has a GI{Block}ShadowTarget combo (Both / Logo only / Marquees only, ShadowTarget).
+        // DefaultRightMargin set = the block has a GI{Block}RightMargin box (text to scrollbar gap, stored in Text* TextRightMargin).
         private sealed record GIBlockDef(string EntryId, bool UsesSectionHeader, bool HasFont, string DefaultFamily, bool DefaultBold,
             int DefaultSize, int MinSize, int MaxSize, bool DefaultShadowEnabled, string DefaultShadowColorHex, int DefaultShadowBlur, int DefaultShadowDepth)
         {
@@ -3049,6 +3061,7 @@ namespace ArcadeStick.Views
             public bool ShadowOnly { get; init; }
             public string? DefaultAlign { get; init; }
             public bool HasShadowTarget { get; init; }
+            public int? DefaultRightMargin { get; init; }
         }
 
         // The Marquee shadow target combo: stored value and the label shown for it, in combo order
@@ -3068,7 +3081,7 @@ namespace ArcadeStick.Views
             ["InfoHeader"] = new(LayerRegistry.GameInfoBody, true, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultInfoHeaderBold,
                 LayerRegistry.DefaultInfoHeaderFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             ["InfoBody"] = new(LayerRegistry.GameInfoBody, false, true, LayerRegistry.DefaultInfoBodyFontFamily, LayerRegistry.DefaultInfoBodyBold,
-                LayerRegistry.DefaultInfoBodyFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
+                LayerRegistry.DefaultInfoBodyFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { DefaultRightMargin = LayerRegistry.DefaultInfoBodyRightMargin },
             ["Nav"] = new(LayerRegistry.GameInfoNav, false, false, LayerRegistry.DefaultFontFamily, false,
                 LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             ["PreviewsNav"] = new(LayerRegistry.ImagePreviewsNav, false, false, LayerRegistry.DefaultFontFamily, false,
@@ -3099,6 +3112,8 @@ namespace ArcadeStick.Views
             public string? TextAlign { get => _e.TextAlign; set => _e.TextAlign = value; }
             // Marquee layer only: which images its shadow applies to
             public string? ShadowTarget { get => _e.ShadowTarget; set => _e.ShadowTarget = value; }
+            // Text* only (the Info body): the gap between the text and the scrollbar
+            public int? RightMargin { get => _e.TextRightMargin; set => _e.TextRightMargin = value; }
         }
 
         // Does the gating check: true while the block's list row (Game Info group or Marquee layer) is selected
@@ -3159,6 +3174,9 @@ namespace ArcadeStick.Views
                     int targetIndex = Array.FindIndex(ShadowTargetChoices, c => c.Value == style.ShadowTarget);
                     targetCombo.SelectedIndex = targetIndex >= 0 ? targetIndex : 0; // unknown or blank = Both
                 }
+
+                if (def.DefaultRightMargin is int defaultRightMargin && GIControl<TextBox>(block, "RightMargin") is TextBox rightMarginBox)
+                    rightMarginBox.Text = (style.RightMargin ?? defaultRightMargin).ToString(CultureInfo.InvariantCulture);
 
                 if (!def.ShadowOnly)
                 {
@@ -3283,6 +3301,10 @@ namespace ArcadeStick.Views
                     style.ShadowBlur = blur;
                 if (int.TryParse(GIControl<TextBox>(block, "ShadowDepth")!.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth) && depth >= 0 && depth <= 20)
                     style.ShadowDepth = depth;
+                if (def.DefaultRightMargin != null && GIControl<TextBox>(block, "RightMargin") is TextBox rightMarginBox
+                    && int.TryParse(rightMarginBox.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int rightMargin)
+                    && rightMargin >= LayerRegistry.MinInfoBodyRightMargin && rightMargin <= LayerRegistry.MaxInfoBodyRightMargin)
+                    style.RightMargin = rightMargin;
             }
 
             // Re-display the stored values (reverts invalid input) and re-apply the layout

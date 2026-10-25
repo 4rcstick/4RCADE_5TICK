@@ -96,7 +96,8 @@
             </Grid>
 
             <!-- Scrollable bodies, one visible at a time. RelativeSource AncestorType=UserControl inside the
-                 DataTemplate resolves to this control, whose DataContext is MainViewModel (inherited). -->
+                 DataTemplate resolves to this control, whose DataContext is MainViewModel (inherited). Each body's right
+                 margin (the gap to the scrollbar) is the Info tab's text margin (ThemeInfoBodyBlockMargin / PageMargin). -->
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="Column2BodyGameInfoScroll" VerticalScrollBarVisibility="Auto" Visibility="Visible" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                     <ItemsControl ItemsSource="{Binding GameInfoBlocks}">
@@ -132,17 +133,18 @@
                                                FontSize="{Binding DataContext.ThemeInfoBodyFontSize, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=16}"
                                                Foreground="{Binding DataContext.ThemeInfoBodyColor, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue=White}"
                                                Effect="{Binding DataContext.ThemeInfoBodyEffect, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                               TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,5"/>
+                                               TextWrapping="Wrap" TextAlignment="Justify"
+                                               Margin="{Binding DataContext.ThemeInfoBodyBlockMargin, RelativeSource={RelativeSource AncestorType=UserControl}, FallbackValue='0,0,20,5'}"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
                 <ScrollViewer x:Name="Column2BodyTriviaScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
-                    <TextBlock FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTrivia}"/>
+                    <TextBlock FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap" TextAlignment="Justify" Margin="{Binding ThemeInfoBodyPageMargin, FallbackValue='0,0,20,20'}" Text="{Binding HistoryTrivia}"/>
                 </ScrollViewer>
                 <ScrollViewer x:Name="Column2BodyTipsScroll" VerticalScrollBarVisibility="Auto" Visibility="Collapsed" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
-                    <TextBlock FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap" TextAlignment="Justify" Margin="0,0,20,20" Text="{Binding HistoryTipsAndTricks}"/>
+                    <TextBlock FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap" TextAlignment="Justify" Margin="{Binding ThemeInfoBodyPageMargin, FallbackValue='0,0,20,20'}" Text="{Binding HistoryTipsAndTricks}"/>
                 </ScrollViewer>
 
                 <!-- Specs & Credits: cabinet image in an Auto column (collapses when null), text scrolls beside it -->
@@ -167,7 +169,7 @@
 
                     <ScrollViewer x:Name="Column2BodySpecsCreditsScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                         <!-- Specs / Credits use the Info Headers and Info Body styles (no styles of their own) -->
-                        <StackPanel Margin="0,0,20,20">
+                        <StackPanel Margin="{Binding ThemeInfoBodyPageMargin, FallbackValue='0,0,20,20'}">
                             <TextBlock Text="SPECS" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Margin="0,0,0,10"/>
                             <TextBlock Text="{Binding HistoryTechnical}" FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap"/>
                             <TextBlock Text="CREDITS" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Margin="0,20,0,10"/>

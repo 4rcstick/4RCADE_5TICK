@@ -742,6 +742,13 @@ namespace ArcadeStick.ViewModels
         public FontWeight ThemeInfoBodyFontWeight => (GetLayerEntry(LayerRegistry.GameInfoBody).TextBold ?? LayerRegistry.DefaultInfoBodyBold) ? FontWeights.Bold : FontWeights.Normal;
         public System.Windows.Media.Effects.Effect? ThemeInfoBodyEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.GameInfoBody));
 
+        // The body text's right margin (gap to the scrollbar or the scroll area's edge), 0 to 100. Two Thicknesses because
+        // the containers keep their own bottom spacing: 5 under each Game Info block, 20 under the other pages.
+        private double InfoBodyRightMargin => Math.Clamp(GetLayerEntry(LayerRegistry.GameInfoBody).TextRightMargin ?? LayerRegistry.DefaultInfoBodyRightMargin,
+            LayerRegistry.MinInfoBodyRightMargin, LayerRegistry.MaxInfoBodyRightMargin);
+        public Thickness ThemeInfoBodyBlockMargin => new Thickness(0, 0, InfoBodyRightMargin, 5);
+        public Thickness ThemeInfoBodyPageMargin => new Thickness(0, 0, InfoBodyRightMargin, 20);
+
         public string ThemeGameInfoNavColor => GetLayerEntry(LayerRegistry.GameInfoNav).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
         public double ThemeGameInfoNavSize => GetLayerEntry(LayerRegistry.GameInfoNav).TextFontSize ?? LayerRegistry.DefaultNavSize;
         public System.Windows.Media.Effects.Effect? ThemeGameInfoNavEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.GameInfoNav));
@@ -789,6 +796,8 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeInfoBodyFontFamily));
             OnPropertyChanged(nameof(ThemeInfoBodyFontWeight));
             OnPropertyChanged(nameof(ThemeInfoBodyEffect));
+            OnPropertyChanged(nameof(ThemeInfoBodyBlockMargin));
+            OnPropertyChanged(nameof(ThemeInfoBodyPageMargin));
             OnPropertyChanged(nameof(ThemeGameInfoNavColor));
             OnPropertyChanged(nameof(ThemeGameInfoNavSize));
             OnPropertyChanged(nameof(ThemeGameInfoNavEffect));
@@ -967,6 +976,19 @@ namespace ArcadeStick.ViewModels
         public string ThemeMarqueeBannerColor => MarqueeBannerEntry.TextColorHex ?? LayerRegistry.DefaultBannerColorHex;
         public TextWrapping ThemeMarqueeBannerTextWrapping => (MarqueeBannerEntry.TextWrap ?? LayerRegistry.DefaultBannerWrap) ? TextWrapping.Wrap : TextWrapping.NoWrap;
         public double ThemeMarqueeBannerTextWidth => (MarqueeBannerEntry.TextWrap ?? LayerRegistry.DefaultBannerWrap) ? MarqueeBannerBoxWidth : double.NaN;
+
+        // The one-line title's left and right inset in reference box units (0 to 100), on the shrink-only Viewbox so a long
+        // title shrinks before it reaches it; none when wrapped, which keeps the wrapped look unchanged
+        public Thickness ThemeMarqueeBannerTextMargin
+        {
+            get
+            {
+                if (MarqueeBannerEntry.TextWrap ?? LayerRegistry.DefaultBannerWrap) return new Thickness(0);
+                double margin = Math.Clamp(MarqueeBannerEntry.BannerTextMargin ?? LayerRegistry.DefaultBannerTextMargin,
+                    LayerRegistry.MinBannerTextMargin, LayerRegistry.MaxBannerTextMargin);
+                return new Thickness(margin, 0, margin, 0);
+            }
+        }
         public string ThemeMarqueeBannerBgColor => MarqueeBannerEntry.BgColorHex ?? LayerRegistry.DefaultBannerBgColorHex;
         public string ThemeMarqueeBannerBorderColor => MarqueeBannerEntry.BorderColorHex ?? LayerRegistry.DefaultBannerBorderColorHex;
         public Thickness ThemeMarqueeBannerBorderThickness => new Thickness(MarqueeBannerEntry.BorderSize ?? LayerRegistry.DefaultBannerBorderSize);
@@ -991,6 +1013,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMarqueeBannerColor));
             OnPropertyChanged(nameof(ThemeMarqueeBannerTextWrapping));
             OnPropertyChanged(nameof(ThemeMarqueeBannerTextWidth));
+            OnPropertyChanged(nameof(ThemeMarqueeBannerTextMargin));
             OnPropertyChanged(nameof(ThemeMarqueeBannerBgColor));
             OnPropertyChanged(nameof(ThemeMarqueeBannerBorderColor));
             OnPropertyChanged(nameof(ThemeMarqueeBannerBorderThickness));

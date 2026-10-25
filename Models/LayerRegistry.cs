@@ -197,6 +197,11 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? TextNudgeY { get; set; }
 
+        // Game Info Body entry only: the gap in pixels between the body text and the right edge of its scroll area (the
+        // scrollbar when it shows), 0 to 100, on the Game Info, Trivia, Tips and Specs & Credits pages. Same rules as above.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TextRightMargin { get; set; }
+
         // Random Game Display only (its first part, RandomGameDisplay): the spin card's message. An empty message means
         // no text; null fills from the default. TextWrap (whether the text wraps at the box width) is used by that part
         // and by the Marquee layer's no-art banner. Same rules as above.
@@ -219,6 +224,11 @@ namespace ArcadeStick.Models
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? BannerShadowDepth { get; set; }
+
+        // Marquee layer only (MarqueePanel): the no-art banner title's left and right inset in the card's 400x100
+        // reference box units (it scales with the card), 0 to 100. Used only when the title is on one line (TextWrap off).
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? BannerTextMargin { get; set; }
 
         // Game Info section headers (the Game Info Body entry only; its body text uses the generic Text* fields
         // above). A second block of text styling because the generic fields only fit one block per entry.
@@ -309,12 +319,14 @@ namespace ArcadeStick.Models
             TextShadowDepth = source.TextShadowDepth;
             ShadowTarget = source.ShadowTarget;
             TextNudgeY = source.TextNudgeY;
+            TextRightMargin = source.TextRightMargin;
             TextMessage = source.TextMessage;
             TextWrap = source.TextWrap;
             BannerShadowEnabled = source.BannerShadowEnabled;
             BannerShadowColorHex = source.BannerShadowColorHex;
             BannerShadowBlur = source.BannerShadowBlur;
             BannerShadowDepth = source.BannerShadowDepth;
+            BannerTextMargin = source.BannerTextMargin;
             SectionHeaderFontSize = source.SectionHeaderFontSize;
             SectionHeaderColorHex = source.SectionHeaderColorHex;
             SectionHeaderFontFamily = source.SectionHeaderFontFamily;
@@ -669,7 +681,7 @@ namespace ArcadeStick.Models
         }
 
         // Fills any missing Game Info style value from defaults. Title text on GameTitle, publisher text on
-        // PublisherBlock, body text (Text*) and section headers (SectionHeader*) on GameInfoBody, and each nav's
+        // PublisherBlock, body text (Text*, its right margin included) and section headers (SectionHeader*) on GameInfoBody, and each nav's
         // size/color/shadow on its own nav entry. Other entries are left untouched; saved values are kept.
         private static void FillGameInfoStyle(LayerLayoutEntry entry)
         {
@@ -708,6 +720,7 @@ namespace ArcadeStick.Models
                 entry.TextBold ??= DefaultInfoBodyBold;
                 entry.TextFontSize ??= DefaultInfoBodyFontSize;
                 if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
+                entry.TextRightMargin ??= DefaultInfoBodyRightMargin;
                 FillTextShadowDefaults(entry);
             }
             else if (entry.Id == GameInfoNav || entry.Id == ImagePreviewsNav)
@@ -752,7 +765,8 @@ namespace ArcadeStick.Models
         }
 
         // Fills the Marquee layer's no-art banner style (the idle banner and the spin's no-marquee card share it) on the
-        // MarqueePanel entry: font, bold, max size, text color, wrap, background, border and the title's own shadow.
+        // MarqueePanel entry: font, bold, max size, text color, wrap, one-line text margin, background, border and the
+        // title's own shadow.
         // Saved values are kept, a saved false included.
         private static void FillMarqueeBannerStyle(LayerLayoutEntry entry)
         {
@@ -771,6 +785,7 @@ namespace ArcadeStick.Models
             if (string.IsNullOrWhiteSpace(entry.BannerShadowColorHex)) entry.BannerShadowColorHex = DefaultShadowColorHex;
             entry.BannerShadowBlur ??= DefaultShadowBlur;
             entry.BannerShadowDepth ??= DefaultShadowDepth;
+            entry.BannerTextMargin ??= DefaultBannerTextMargin;
         }
 
         // Fills one Random Game Display state's background color and border (black, unbordered, square; saved values kept)
@@ -977,6 +992,9 @@ namespace ArcadeStick.Models
         public const string DefaultInfoBodyFontFamily = "Georgia";
         public const int DefaultInfoBodyFontSize = 16;
         public const bool DefaultInfoBodyBold = false;
+        public const int DefaultInfoBodyRightMargin = 20; // the old hard-coded gap
+        public const int MinInfoBodyRightMargin = 0;
+        public const int MaxInfoBodyRightMargin = 100;
         public const int DefaultNavSize = 9;
         public const int MinNavSize = 4;
         public const int MaxNavSize = 40;
@@ -1007,6 +1025,9 @@ namespace ArcadeStick.Models
         public const int DefaultBannerCornerRadius = 0;
         public const int MinBannerFontSize = 6;
         public const int MaxBannerFontSize = 200;
+        public const int DefaultBannerTextMargin = 5;
+        public const int MinBannerTextMargin = 0;
+        public const int MaxBannerTextMargin = 100;
 
         // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
         // Segoe UI is also the fallback when a theme has no saved family.

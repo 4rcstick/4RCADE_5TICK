@@ -23,7 +23,8 @@
              the shared Marquee shadow) is centered and takes its size from its Viewbox, so the card stays 4:1 and its
              border never scales. Its margin is minus the border size, so the 4:1 content fits the Marquee rect and the
              border draws outside it. Inside, the 400x100 reference box scales with the marquee box as before, and a
-             shrink-only Viewbox holds the title: the size is a max, and the title shrinks only when it does not fit. -->
+             shrink-only Viewbox holds the title: the size is a max, and the title shrinks only when it does not fit. On one
+             line that Viewbox is inset left and right by the Banner tab's text margin, so the title shrinks before it reaches it. -->
         <ControlTemplate x:Key="MarqueeBannerCardTemplate" TargetType="ContentControl">
             <Border HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{Binding ThemeMarqueeBannerOutsideMargin}"
                     Background="{Binding ThemeMarqueeBannerBgColor, FallbackValue=#FF1C1C1E}"
@@ -32,7 +33,7 @@
                     Effect="{Binding ThemeMarqueeEffect}">
                 <Viewbox Stretch="Uniform">
                     <Grid Width="400" Height="100">
-                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="{Binding ThemeMarqueeBannerTextMargin}">
                             <TextBlock Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
                                        FontFamily="{Binding ThemeMarqueeBannerFontFamily}" FontWeight="{Binding ThemeMarqueeBannerFontWeight}"
                                        FontSize="{Binding ThemeMarqueeBannerFontSize, FallbackValue=30}"
