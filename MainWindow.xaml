@@ -94,10 +94,10 @@
                                 <Path x:Name="SubmenuArrow" Grid.Column="2" Data="M0,0 L4,4 L0,8" Stroke="{DynamicResource Global.Menu.Icon}"
                                       StrokeThickness="1.3" VerticalAlignment="Center" Margin="8,0,4,0" Visibility="Collapsed"/>
                                 <Popup x:Name="SubmenuPopup" Grid.Column="0" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False">
-                                    <!-- Each submenu is its own popup window, so it takes Smart fullscreen's scale itself -->
+                                    <!-- No LayoutTransform here: this Popup sits inside the parent menu, and a WPF Popup copies its ancestors' scale onto its own root, so the submenu already gets Smart fullscreen's scale once (a second one here doubled it). Rounding is set explicitly so it stays off while scaled. -->
                                     <Border Background="{DynamicResource Global.Menu.Bg}"
                                             BorderBrush="{DynamicResource Global.Menu.BorderColor}" BorderThickness="1"
-                                            LayoutTransform="{DynamicResource Launcher.PopupScale}" UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
+                                            UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
                                         <StackPanel IsItemsHost="True"/>
                                     </Border>
                                 </Popup>
