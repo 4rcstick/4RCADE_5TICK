@@ -23,6 +23,7 @@ namespace ArcadeStick.Views
         public ManagePlayListsWindow(MainViewModel viewModel)
         {
             InitializeComponent();
+            ArcadeStick.Services.WindowFit.KeepInWorkArea(this); // never taller than the monitor's work area
             _viewModel = viewModel;
             this.DataContext = _viewModel.Configuration;
 

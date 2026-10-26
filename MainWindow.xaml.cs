@@ -332,6 +332,16 @@ namespace ArcadeStick
         {
             if (_viewModel == null) return;
 
+            // Theme Builder on screen in Smart fullscreen: when the active size stops matching the smart layout (any size
+            // change in the builder, a theme load), drop to plain fullscreen at the active size. EndSmartFullscreen refreshes
+            // the theme bindings, which runs ApplyLayout again in full, so this call returns. Gated on IsVisible so the
+            // builder's own close (which restores its snapshot size and re-applies the layout after hiding) changes nothing.
+            if (_smartFullscreenActive && _themeBuilderWindow?.IsVisible == true && !SmartLayoutMatchesActiveSize())
+            {
+                EndSmartFullscreen();
+                return;
+            }
+
             // The displayed layout: the active resolution, or Smart fullscreen's session-only pick
             int width = _viewModel.DisplayLayoutWidth;
             int height = _viewModel.DisplayLayoutHeight;
@@ -2133,9 +2143,9 @@ namespace ArcadeStick
             FolderNameInputPlaceholder.Visibility = Visibility.Visible;
             FolderNameInputPopup.PlacementTarget = GameTree;
             FolderNameInputPopup.Placement = PlacementMode.MousePoint;
-            // Offsets are in unscaled units, so they follow Smart fullscreen's factor to keep the box under the cursor
-            FolderNameInputPopup.HorizontalOffset = -20 * _layoutScaleFactor;
-            FolderNameInputPopup.VerticalOffset = -18 * _layoutScaleFactor;
+            // Layout units: this Popup sits inside RootLayoutGrid, so WPF applies Smart fullscreen's inherited scale to the offsets too
+            FolderNameInputPopup.HorizontalOffset = -20;
+            FolderNameInputPopup.VerticalOffset = -18;
             FolderNameInputPopup.IsOpen = true;
 
             Dispatcher.BeginInvoke(new Action(() =>
@@ -2554,35 +2564,47 @@ namespace ArcadeStick
         // [END SECTION: Preview Player Shutdown]
 
         // [SECTION: Fullscreen Toggle]
-        // Shared by the F11 hotkey and the hamburger menu's "Toggle Fullscreen" item so the two can't drift apart.
-        // With Smart fullscreen on and the Theme Builder closed, entering also runs the size test (ApplySmartFullscreen).
+        // Shared by the F11 hotkey and the hamburger menu's "Toggle Fullscreen" item so the two can't drift apart. A manual
+        // toggle clears the auto-entered flag, so the launcher never undoes a fullscreen the user chose. With Smart
+        // fullscreen on, entering also runs the size test (ApplySmartFullscreen).
         private void ToggleFullscreen()
         {
-            if (WindowStyle != WindowStyle.None)
-            {
-                // SizeToContent has to be released while maximized, otherwise it fights the maximize.
-                // The layout canvas keeps its native size and stays anchored top-left; the root grid's
-                // background fills the rest of the screen.
-                SizeToContent = SizeToContent.Manual;
-                WindowState = WindowState.Normal;
-                WindowStyle = WindowStyle.None;
-                ResizeMode = ResizeMode.NoResize;
-                WindowState = WindowState.Maximized;
+            _smartFullscreenAutoEntered = false;
 
-                if (_viewModel.Configuration.SmartFullscreen && _themeBuilderWindow == null) ApplySmartFullscreen();
-            }
-            else
-            {
-                // Smart fullscreen's scale, size and black background go first, so SizeToContent sizes the window to the
-                // active layout again.
-                EndSmartFullscreen();
+            if (!IsFullscreen) EnterFullscreen(_viewModel.Configuration.SmartFullscreen);
+            else ExitFullscreen();
+        }
 
-                // Back to a normal window sized to the layout (client area = layout resolution).
-                WindowState = WindowState.Normal;
-                WindowStyle = WindowStyle.ThreeDBorderWindow;
-                ResizeMode = ResizeMode.NoResize;
-                SizeToContent = SizeToContent.WidthAndHeight;
-            }
+        private bool IsFullscreen => WindowStyle == WindowStyle.None;
+
+        // Enters fullscreen (the one enter path: the manual toggle and the Layout size auto-enter), then runs Smart
+        // fullscreen's size test when asked
+        private void EnterFullscreen(bool smart)
+        {
+            // SizeToContent has to be released while maximized, otherwise it fights the maximize.
+            // The layout canvas keeps its native size and stays anchored top-left; the root grid's
+            // background fills the rest of the screen.
+            SizeToContent = SizeToContent.Manual;
+            WindowState = WindowState.Normal;
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+            WindowState = WindowState.Maximized;
+
+            if (smart) ApplySmartFullscreen();
+        }
+
+        // Leaves fullscreen (the one exit path: the manual toggle and the auto-drop) for a normal window sized to the active layout
+        private void ExitFullscreen()
+        {
+            // Smart fullscreen's scale, size and black background go first, so SizeToContent sizes the window to the
+            // active layout again.
+            EndSmartFullscreen();
+
+            // Back to a normal window sized to the layout (client area = layout resolution).
+            WindowState = WindowState.Normal;
+            WindowStyle = WindowStyle.ThreeDBorderWindow;
+            ResizeMode = ResizeMode.NoResize;
+            SizeToContent = SizeToContent.WidthAndHeight;
         }
         // [END SECTION: Fullscreen Toggle]
 
@@ -2602,6 +2624,25 @@ namespace ArcadeStick
         private const string PopupScaleKey = "Launcher.PopupScale";
         private const string PopupLayoutRoundingKey = "Launcher.PopupLayoutRounding";
 
+        // Session-only (Pass 3): true while the launcher itself entered Smart fullscreen from an exact-fit Layout size pick.
+        // Only that fullscreen may be auto-dropped. Cleared by every manual toggle and by EndSmartFullscreen from any cause.
+        private bool _smartFullscreenAutoEntered;
+
+        // Returns true when the smart layout on screen is the active resolution (so Theme Builder edits are visible)
+        private bool SmartLayoutMatchesActiveSize()
+        {
+            var config = _viewModel.Configuration;
+            return _viewModel.DisplayLayoutWidth == config.ActiveResolutionWidth && _viewModel.DisplayLayoutHeight == config.ActiveResolutionHeight;
+        }
+
+        // Returns true when width x height is the window's monitor size in physical pixels (an exact 1x fit)
+        private bool IsExactFitForMonitor(int width, int height)
+        {
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            return Services.MonitorBounds.TryGetPhysicalSize(hwnd, out _, out int screenWidth, out int screenHeight)
+                && Services.SmartFullscreen.IsExactFit(screenWidth, screenHeight, width, height);
+        }
+
         // Does the size test for the window's monitor and applies the picked layout and scale; falls back to plain
         // fullscreen when the monitor cannot be read or no layout fits
         private void ApplySmartFullscreen()
@@ -2619,6 +2660,15 @@ namespace ArcadeStick
             var sizes = _viewModel.Configuration.SavedThemeLayouts.Select(l => (l.Width, l.Height)).Distinct().ToList();
             var result = Services.SmartFullscreen.Choose(screenWidth, screenHeight, dpi.DpiScaleX, sizes);
             if (!result.Fits)
+            {
+                EndSmartFullscreen();
+                return;
+            }
+
+            // With the Theme Builder open, Smart fullscreen only shows the active size (the one being edited); otherwise plain
+            var config = _viewModel.Configuration;
+            if (_themeBuilderWindow?.IsVisible == true
+                && (result.LayoutWidth != config.ActiveResolutionWidth || result.LayoutHeight != config.ActiveResolutionHeight))
             {
                 EndSmartFullscreen();
                 return;
@@ -2650,6 +2700,10 @@ namespace ArcadeStick
         // leaving plain fullscreen at the active size (or the normal window). Does nothing while Smart fullscreen is not scaling.
         private void EndSmartFullscreen()
         {
+            // Whatever ends it (exit, auto-drop, Theme Builder drop, preference off, no fit, monitor read failure), a fullscreen
+            // left behind is no longer one the launcher may auto-drop
+            _smartFullscreenAutoEntered = false;
+
             if (!_smartFullscreenActive) return;
 
             _smartFullscreenActive = false;
@@ -2674,6 +2728,50 @@ namespace ArcadeStick
         private void RecomputeSmartFullscreen()
         {
             if (_smartFullscreenActive) ApplySmartFullscreen();
+        }
+
+        // Does the Smart fullscreen part of a hamburger Layout size pick; the picked size is already the active size.
+        // Preference off: nothing. Windowed: an exact 1x fit for the window's monitor enters Smart fullscreen (auto-entered).
+        // Auto-entered: an exact fit reruns the size test, anything else drops to windowed at the picked size. A Smart
+        // fullscreen the user entered reruns the size test; plain fullscreen is left alone.
+        private void HandleLayoutSizePickForFullscreen(int width, int height)
+        {
+            if (!_viewModel.Configuration.SmartFullscreen) return;
+
+            if (!IsFullscreen)
+            {
+                if (!IsExactFitForMonitor(width, height)) return;
+
+                EnterFullscreen(true);
+                if (_smartFullscreenActive) _smartFullscreenAutoEntered = true;
+                else ExitFullscreen(); // the size test did not apply: never leave an auto-entered plain fullscreen
+                return;
+            }
+
+            if (!_smartFullscreenActive) return;
+
+            if (_smartFullscreenAutoEntered && !IsExactFitForMonitor(width, height))
+            {
+                ExitFullscreen();
+                return;
+            }
+
+            ApplySmartFullscreen();
+        }
+
+        // Does the Smart fullscreen part of a hamburger theme switch (the active size is now the new theme's saved size):
+        // an auto-entered fullscreen stays and reruns the size test only if that size is an exact fit, otherwise it drops
+        // to windowed at that size; any other Smart fullscreen reruns the size test. Never enters fullscreen.
+        private void HandleThemeSwitchForFullscreen()
+        {
+            var config = _viewModel.Configuration;
+            if (_smartFullscreenAutoEntered && !IsExactFitForMonitor(config.ActiveResolutionWidth, config.ActiveResolutionHeight))
+            {
+                ExitFullscreen();
+                return;
+            }
+
+            RecomputeSmartFullscreen();
         }
 
         // Reruns the size test when the window has moved to another monitor
@@ -2805,7 +2903,7 @@ namespace ArcadeStick
                     {
                         _viewModel.PersistConfigurationToDisk();
                         _themeBuilderWindow?.RefreshAfterExternalThemeSwitch();
-                        RecomputeSmartFullscreen(); // the new theme's sizes decide the fullscreen layout
+                        HandleThemeSwitchForFullscreen(); // the new theme's sizes decide the fullscreen layout
                     }
                 }
                 catch (Exception ex)
@@ -2842,7 +2940,7 @@ namespace ArcadeStick
                 ApplyLayout();
                 _viewModel.PersistConfigurationToDisk();
                 _themeBuilderWindow?.RefreshAfterExternalSizeSwitch();
-                RecomputeSmartFullscreen();
+                HandleLayoutSizePickForFullscreen(width, height);
             }));
         }
         // [END SECTION: Hamburger Theme & Layout Size Submenus]
@@ -2894,9 +2992,9 @@ namespace ArcadeStick
                 return;
             }
 
-            // The builder edits the active resolution, so Smart fullscreen drops to plain fullscreen at that size first
-            // (it stays plain after the builder closes, until fullscreen is toggled again)
-            EndSmartFullscreen();
+            // The builder edits the active resolution: Smart fullscreen stays only while it shows that size, otherwise it drops
+            // to plain fullscreen at the active size first (and stays plain after the builder closes, until toggled again)
+            if (_smartFullscreenActive && !SmartLayoutMatchesActiveSize()) EndSmartFullscreen();
 
             _themeBuilderWindow = new Views.ThemeBuilderWindow(_viewModel) { Owner = this };
             _themeBuilderWindow.Closed += (s, e) => _themeBuilderWindow = null;

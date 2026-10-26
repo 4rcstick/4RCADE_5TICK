@@ -13,6 +13,7 @@ namespace ArcadeStick.Views
         public RomCopyPathWindow(ViewModels.MainViewModel viewModel)
         {
             InitializeComponent();
+            ArcadeStick.Services.WindowFit.KeepInWorkArea(this); // never taller than the monitor's work area
             _viewModel = viewModel;
             DestinationPathTextBox.Text = _viewModel.Configuration.RomCopyDestinationPath;
         }

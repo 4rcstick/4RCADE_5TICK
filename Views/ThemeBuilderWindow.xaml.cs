@@ -23,6 +23,7 @@ namespace ArcadeStick.Views
         public ThemeBuilderWindow(ArcadeStick.ViewModels.MainViewModel viewModel)
         {
             InitializeComponent();
+            ArcadeStick.Services.WindowFit.KeepInWorkArea(this); // never taller than the monitor's work area
             _viewModel = viewModel;
             _settings = viewModel.Configuration;
 

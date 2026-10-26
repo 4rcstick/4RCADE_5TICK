@@ -19,8 +19,10 @@
 
     <Window.Resources>
         <!-- [SECTION: Smart Fullscreen Popup Scale] -->
-        <!-- Smart fullscreen's factor for the main window's menus, popups and tooltips, which are separate windows and do not
-             inherit RootLayoutGrid's LayoutTransform. Their root elements read both keys with DynamicResource. These are the
+        <!-- Smart fullscreen's factor for the main window's menus, popups and tooltips. Each is a separate window: one whose Popup
+             has no visual parent (a ContextMenu, a ToolTip) gets no transform, so its root reads PopupScale; a Popup declared in
+             a scaled tree (a submenu, the two folder popups inside RootLayoutGrid, the color picker's dropdown) copies its
+             ancestors' scale and reads only PopupLayoutRounding. Both keys are read with DynamicResource. These are the
              defaults (no scale, layout rounding on, the windowed and plain-fullscreen look); MainWindow.ApplySmartFullscreen
              replaces them and EndSmartFullscreen puts them back. Window resources only, so no sub-window can see them. -->
         <ScaleTransform x:Key="Launcher.PopupScale" ScaleX="1" ScaleY="1"/>
@@ -834,9 +836,10 @@
              filled, anchored under the folder row) - code-behind tracks whether a target folder name is
              set to route Enter to the right action. StaysOpen="False" gives click-away-cancels for free. -->
         <Popup x:Name="FolderNameInputPopup" StaysOpen="False" AllowsTransparency="True" Closed="FolderNameInputPopup_Closed">
-            <!-- Fill follows the Main Window Background layer; border, text and placeholder are Chrome Palette with a fixed size. -->
+            <!-- Fill follows the Main Window Background layer; border, text and placeholder are Chrome Palette with a fixed size.
+                 No LayoutTransform: this Popup sits inside RootLayoutGrid, so it already copies Smart fullscreen's scale. -->
             <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="8,6"
-                    LayoutTransform="{DynamicResource Launcher.PopupScale}" UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
+                    UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
                 <Grid>
                     <TextBox x:Name="FolderNameInputTextBox" Width="220" Height="20" VerticalContentAlignment="Center" FontSize="13" Foreground="{StaticResource ChromeText}" CaretBrush="{StaticResource ChromeText}" Background="Transparent" BorderThickness="0" PreviewKeyDown="FolderNameInputTextBox_PreviewKeyDown" TextChanged="FolderNameInputTextBox_TextChanged"/>
                     <!-- Placeholder text - visibility is driven explicitly from code-behind (Create/Rename
@@ -856,19 +859,21 @@
              the next rebuild. Anchored under the folder row. Live-updates the node's FolderColor as you
              pick; click-away commits to disk, Escape reverts and discards (handled in code-behind). -->
         <Popup x:Name="FolderColorPickerPopup" StaysOpen="False" AllowsTransparency="True" Closed="FolderColorPickerPopup_Closed">
-            <!-- Fill follows the Main Window Background layer; the borders, hex box and the picker's own popup are Chrome Palette. -->
+            <!-- Fill follows the Main Window Background layer; the borders, hex box and the picker's own popup are Chrome Palette.
+                 No LayoutTransform: this Popup sits inside RootLayoutGrid, so it already copies Smart fullscreen's scale. -->
             <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="6"
-                    LayoutTransform="{DynamicResource Launcher.PopupScale}" UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
+                    UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
                 <StackPanel Orientation="Horizontal">
                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="FolderColorPickerControl" Width="26" Height="26" ShowAlpha="False" ColorChanged="FolderColorPickerControl_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <!-- The picker's own dropdown is another popup window: its root Grid (MainGrid) takes Smart
-                                     fullscreen's scale here, in this window only (PickerPopupGridStyle itself is shared and untouched) -->
+                                <!-- No LayoutTransform here: the picker's dropdown Popup sits in the folder-color popup's tree, which
+                                     already carries Smart fullscreen's scale (inherited from RootLayoutGrid), so it copies that scale
+                                     onto its own root. Only rounding is set on its MainGrid, so it stays off while scaled. Local to
+                                     this window; PickerPopupGridStyle itself is shared and untouched. -->
                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}">
                                     <Style.Triggers>
                                         <Trigger Property="Name" Value="MainGrid">
-                                            <Setter Property="LayoutTransform" Value="{DynamicResource Launcher.PopupScale}"/>
                                             <Setter Property="UseLayoutRounding" Value="{DynamicResource Launcher.PopupLayoutRounding}"/>
                                         </Trigger>
                                     </Style.Triggers>

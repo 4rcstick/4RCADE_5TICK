@@ -50,6 +50,11 @@ namespace ArcadeStick.Services
             bool centered = bestWidth * bestScale != screenWidthPx || bestHeight * bestScale != screenHeightPx;
             return new SmartFullscreenResult(true, bestWidth, bestHeight, bestScale, centered, bestScale / dpiScale);
         }
+
+        // Does the exact-fit check (Pass 3 auto fullscreen): true when a layout of width x height fills the screen at exactly
+        // 1x in physical pixels, whatever the Windows scale
+        public static bool IsExactFit(int screenWidthPx, int screenHeightPx, int width, int height) =>
+            width > 0 && height > 0 && width == screenWidthPx && height == screenHeightPx;
     }
     // [END SECTION: Smart Fullscreen Size Test]
 }
