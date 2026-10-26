@@ -87,6 +87,10 @@ namespace ArcadeStick.Models
         public bool ShowCenterGuide { get; set; } = false;
         public string GuideLineColorHex { get; set; } = "#FF00FFFF";
 
+        // Smart fullscreen (editor preference, not part of any theme file): when on, toggling fullscreen picks the theme
+        // layout and whole-number scale that best fill the screen in physical pixels, cancelling the Windows scale.
+        public bool SmartFullscreen { get; set; } = false;
+
         // Snapshot of the active theme's layouts as last loaded from or saved to the theme file. Used as
         // the restore point for Reset Layer / Reset Layout. Never written to settings.json.
         [System.Text.Json.Serialization.JsonIgnore]

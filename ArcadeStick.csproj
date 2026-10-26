@@ -14,6 +14,7 @@
 		<IncludeNativeLibrariesForSelfContained>true</IncludeNativeLibrariesForSelfContained>
 
 		<ApplicationIcon>Assets\arcade.ico</ApplicationIcon>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AssemblyName>4RCADE5TICK</AssemblyName>
 	</PropertyGroup>
 

@@ -9,6 +9,7 @@
         xmlns:ViewModels="clr-namespace:ArcadeStick.ViewModels"
         xmlns:Models="clr-namespace:ArcadeStick.Models"
         xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         Title="4RCADE 5TICK" 
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
@@ -17,6 +18,15 @@
         SnapsToDevicePixels="True">
 
     <Window.Resources>
+        <!-- [SECTION: Smart Fullscreen Popup Scale] -->
+        <!-- Smart fullscreen's factor for the main window's menus, popups and tooltips, which are separate windows and do not
+             inherit RootLayoutGrid's LayoutTransform. Their root elements read both keys with DynamicResource. These are the
+             defaults (no scale, layout rounding on, the windowed and plain-fullscreen look); MainWindow.ApplySmartFullscreen
+             replaces them and EndSmartFullscreen puts them back. Window resources only, so no sub-window can see them. -->
+        <ScaleTransform x:Key="Launcher.PopupScale" ScaleX="1" ScaleY="1"/>
+        <sys:Boolean x:Key="Launcher.PopupLayoutRounding">True</sys:Boolean>
+        <!-- [END SECTION: Smart Fullscreen Popup Scale] -->
+
         <!-- [SECTION: Marquee Banner Card Template] -->
         <!-- The no-art title card, shared by the idle banner (NoMarqueeBanner) and the spin's no-marquee card
              (RandomizerNoMarqueeFallback); the title comes in as Content. The outer Border (background, border, radius,
@@ -84,8 +94,10 @@
                                 <Path x:Name="SubmenuArrow" Grid.Column="2" Data="M0,0 L4,4 L0,8" Stroke="{DynamicResource Global.Menu.Icon}"
                                       StrokeThickness="1.3" VerticalAlignment="Center" Margin="8,0,4,0" Visibility="Collapsed"/>
                                 <Popup x:Name="SubmenuPopup" Grid.Column="0" Placement="Right" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False">
+                                    <!-- Each submenu is its own popup window, so it takes Smart fullscreen's scale itself -->
                                     <Border Background="{DynamicResource Global.Menu.Bg}"
-                                            BorderBrush="{DynamicResource Global.Menu.BorderColor}" BorderThickness="1">
+                                            BorderBrush="{DynamicResource Global.Menu.BorderColor}" BorderThickness="1"
+                                            LayoutTransform="{DynamicResource Launcher.PopupScale}" UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
                                         <StackPanel IsItemsHost="True"/>
                                     </Border>
                                 </Popup>
@@ -115,6 +127,9 @@
             <Setter Property="Background" Value="{DynamicResource Global.Menu.Bg}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Global.Menu.BorderColor}"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <!-- Smart fullscreen's scale (the ContextMenu is its popup's root) -->
+            <Setter Property="LayoutTransform" Value="{DynamicResource Launcher.PopupScale}"/>
+            <Setter Property="UseLayoutRounding" Value="{DynamicResource Launcher.PopupLayoutRounding}"/>
         </Style>
         <Style TargetType="Separator">
             <Setter Property="Template">
@@ -124,6 +139,11 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+        <!-- Main window tooltips take Smart fullscreen's scale; only the scale and rounding are set, so the default look stays -->
+        <Style TargetType="ToolTip">
+            <Setter Property="LayoutTransform" Value="{DynamicResource Launcher.PopupScale}"/>
+            <Setter Property="UseLayoutRounding" Value="{DynamicResource Launcher.PopupLayoutRounding}"/>
         </Style>
 
         <ContextMenu x:Key="TreeViewBackgroundContextMenu">
@@ -168,6 +188,8 @@
                     <TextBlock Text="&#xE740;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
+            <!-- Editor preference (settings.json, default off); its check mark is set in PopulateHamburgerSubmenus -->
+            <MenuItem Header="Smart fullscreen" Tag="SmartFullscreenMenu" Click="HamburgerSmartFullscreenMenuItem_Click"/>
         </ContextMenu>
     </Window.Resources>
 
@@ -813,7 +835,8 @@
              set to route Enter to the right action. StaysOpen="False" gives click-away-cancels for free. -->
         <Popup x:Name="FolderNameInputPopup" StaysOpen="False" AllowsTransparency="True" Closed="FolderNameInputPopup_Closed">
             <!-- Fill follows the Main Window Background layer; border, text and placeholder are Chrome Palette with a fixed size. -->
-            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="8,6">
+            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="8,6"
+                    LayoutTransform="{DynamicResource Launcher.PopupScale}" UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
                 <Grid>
                     <TextBox x:Name="FolderNameInputTextBox" Width="220" Height="20" VerticalContentAlignment="Center" FontSize="13" Foreground="{StaticResource ChromeText}" CaretBrush="{StaticResource ChromeText}" Background="Transparent" BorderThickness="0" PreviewKeyDown="FolderNameInputTextBox_PreviewKeyDown" TextChanged="FolderNameInputTextBox_TextChanged"/>
                     <!-- Placeholder text - visibility is driven explicitly from code-behind (Create/Rename
@@ -834,12 +857,22 @@
              pick; click-away commits to disk, Escape reverts and discards (handled in code-behind). -->
         <Popup x:Name="FolderColorPickerPopup" StaysOpen="False" AllowsTransparency="True" Closed="FolderColorPickerPopup_Closed">
             <!-- Fill follows the Main Window Background layer; the borders, hex box and the picker's own popup are Chrome Palette. -->
-            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="6">
+            <Border Background="{Binding ThemeMainColor, FallbackValue=#1C1C1E}" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" Padding="6"
+                    LayoutTransform="{DynamicResource Launcher.PopupScale}" UseLayoutRounding="{DynamicResource Launcher.PopupLayoutRounding}">
                 <StackPanel Orientation="Horizontal">
                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                         <colorpicker:PortableColorPicker x:Name="FolderColorPickerControl" Width="26" Height="26" ShowAlpha="False" ColorChanged="FolderColorPickerControl_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
-                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                <!-- The picker's own dropdown is another popup window: its root Grid (MainGrid) takes Smart
+                                     fullscreen's scale here, in this window only (PickerPopupGridStyle itself is shared and untouched) -->
+                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}">
+                                    <Style.Triggers>
+                                        <Trigger Property="Name" Value="MainGrid">
+                                            <Setter Property="LayoutTransform" Value="{DynamicResource Launcher.PopupScale}"/>
+                                            <Setter Property="UseLayoutRounding" Value="{DynamicResource Launcher.PopupLayoutRounding}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
                             </colorpicker:PortableColorPicker.Resources>
                         </colorpicker:PortableColorPicker>
                     </Border>

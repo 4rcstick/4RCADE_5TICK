@@ -142,6 +142,12 @@ namespace ArcadeStick
             // forces WPF to recalculate placement against the current window position.
             LocationChanged += MainWindow_LocationChanged;
 
+            // Smart fullscreen reruns its size test when the window's DPI, monitor or the display settings change
+            DpiChanged += (s, e) => Dispatcher.BeginInvoke(new Action(RecomputeSmartFullscreen));
+            LocationChanged += SmartFullscreen_LocationChanged;
+            Microsoft.Win32.SystemEvents.DisplaySettingsChanged += SmartFullscreen_DisplaySettingsChanged;
+            Closed += (s, e) => Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= SmartFullscreen_DisplaySettingsChanged;
+
             // Post-load startup sequence: sync ROM paths, load the database, set idle media state, start gamepad polling
             Loaded += async (s, e) =>
             {
@@ -326,12 +332,10 @@ namespace ArcadeStick
         {
             if (_viewModel == null) return;
 
-            var config = _viewModel.Configuration;
-            int width = config.ActiveResolutionWidth;
-            int height = config.ActiveResolutionHeight;
-
-            var saved = config.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
-            var layout = Models.LayerRegistry.ResolveLayout(saved, width, height);
+            // The displayed layout: the active resolution, or Smart fullscreen's session-only pick
+            int width = _viewModel.DisplayLayoutWidth;
+            int height = _viewModel.DisplayLayoutHeight;
+            var layout = _viewModel.ResolveDisplayLayout();
 
             // Repaint the Games List rows only when its style values changed since the last paint
             var gamesListEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.GamesList);
@@ -531,16 +535,16 @@ namespace ArcadeStick
             // The decoder follows the Video Preview layer's size, so a theme or layout-size change re-targets it.
             UpdatePreviewTargetSize();
 
-            // Flyers are decoded near the size of the Image Previews part (device pixels), so a theme or
-            // layout-size change tells the view model the new slot size. It only reloads when the size changed.
+            // Flyers are decoded near the size of the Image Previews part (device pixels, Smart fullscreen's factor included),
+            // so a theme or layout-size change tells the view model the new slot size. It only reloads when the size changed.
             var previewsDpi = VisualTreeHelper.GetDpi(this);
             double previewsWidth = GameInfoLayer.PartPreviewsBody.Width;
             double previewsHeight = GameInfoLayer.PartPreviewsBody.Height;
             if (!double.IsNaN(previewsWidth) && !double.IsNaN(previewsHeight) && previewsWidth >= 1 && previewsHeight >= 1)
             {
                 _viewModel.SetFlyerSlotSize(
-                    (int)Math.Round(previewsWidth * previewsDpi.DpiScaleX),
-                    (int)Math.Round(previewsHeight * previewsDpi.DpiScaleY));
+                    (int)Math.Round(previewsWidth * previewsDpi.DpiScaleX * _layoutScaleFactor),
+                    (int)Math.Round(previewsHeight * previewsDpi.DpiScaleY * _layoutScaleFactor));
             }
 
             // If the theme just hid the Video Preview layer, stop decoding into it. When it is shown again,
@@ -913,11 +917,7 @@ namespace ArcadeStick
         {
             if (_viewModel == null) return;
 
-            var config = _viewModel.Configuration;
-            int width = config.ActiveResolutionWidth;
-            int height = config.ActiveResolutionHeight;
-            var saved = config.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
-            ApplyRandomGameDisplayRect(Models.LayerRegistry.ResolveLayout(saved, width, height));
+            ApplyRandomGameDisplayRect(_viewModel.ResolveDisplayLayout());
         }
         // [END SECTION: Random Game Display Rect]
 
@@ -1373,16 +1373,14 @@ namespace ArcadeStick
         }
 
         // Tells the decoder how many pixels the Video Preview's media slot occupies (from the layer entry,
-        // scaled by the screen DPI), so the picture is decoded at the size it is shown at.
+        // scaled by the screen DPI and Smart fullscreen's factor), so the picture is decoded at the size it is shown at.
         private void UpdatePreviewTargetSize()
         {
             if (_previewPlayer == null) return;
 
             // The entry's Width / Height are the video area and the border sits outside it. The media slot reaches 1px under the
             // ring on each side when there is a border (same rule as VideoPreviewLayerControl.ApplyClip), so decode to that size.
-            var config = _viewModel.Configuration;
-            var savedLayout = config.Layouts.FirstOrDefault(l => l.Width == config.ActiveResolutionWidth && l.Height == config.ActiveResolutionHeight);
-            var resolvedLayout = Models.LayerRegistry.ResolveLayout(savedLayout, config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+            var resolvedLayout = _viewModel.ResolveDisplayLayout();
             var videoEntry = resolvedLayout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview);
             if (videoEntry == null) return;
             double videoBorderSize = Math.Max(0, videoEntry.BorderSize ?? 0);
@@ -1392,7 +1390,7 @@ namespace ArcadeStick
             if (double.IsNaN(width) || double.IsNaN(height) || width < 1 || height < 1) return;
 
             var dpi = VisualTreeHelper.GetDpi(this);
-            _previewPlayer.SetTargetSize((int)Math.Round(width * dpi.DpiScaleX), (int)Math.Round(height * dpi.DpiScaleY));
+            _previewPlayer.SetTargetSize((int)Math.Round(width * dpi.DpiScaleX * _layoutScaleFactor), (int)Math.Round(height * dpi.DpiScaleY * _layoutScaleFactor));
         }
         // [END SECTION: FFmpeg Preview Player]
 
@@ -1428,9 +1426,7 @@ namespace ArcadeStick
         // Does the check for a see-through card: true when the game-selected part's background color alpha is below 255
         private bool IsRandomDisplayBackgroundTranslucent()
         {
-            var config = _viewModel.Configuration;
-            var saved = config.Layouts.FirstOrDefault(l => l.Width == config.ActiveResolutionWidth && l.Height == config.ActiveResolutionHeight);
-            var layout = Models.LayerRegistry.ResolveLayout(saved, config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+            var layout = _viewModel.ResolveDisplayLayout();
             string hex = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomGameDisplay)?.BgColorHex
                 ?? Models.LayerRegistry.DefaultRandomDisplayBgColorHex;
 
@@ -1569,11 +1565,14 @@ namespace ArcadeStick
             var targetContainer = FindTreeViewItemContainer(GameTree, _viewModel.SelectedGame);
             if (targetContainer == null) return;
 
+            // Built in code, so Smart fullscreen's scale is set on it directly rather than trusting the implicit ToolTip style
             _romCopyStatusTooltip = new System.Windows.Controls.ToolTip
             {
                 Content = message,
                 PlacementTarget = targetContainer,
                 Placement = PlacementMode.Bottom,
+                LayoutTransform = (Transform)FindResource(PopupScaleKey),
+                UseLayoutRounding = (bool)FindResource(PopupLayoutRoundingKey),
                 IsOpen = true
             };
 
@@ -2134,8 +2133,9 @@ namespace ArcadeStick
             FolderNameInputPlaceholder.Visibility = Visibility.Visible;
             FolderNameInputPopup.PlacementTarget = GameTree;
             FolderNameInputPopup.Placement = PlacementMode.MousePoint;
-            FolderNameInputPopup.HorizontalOffset = -20;
-            FolderNameInputPopup.VerticalOffset = -18;
+            // Offsets are in unscaled units, so they follow Smart fullscreen's factor to keep the box under the cursor
+            FolderNameInputPopup.HorizontalOffset = -20 * _layoutScaleFactor;
+            FolderNameInputPopup.VerticalOffset = -18 * _layoutScaleFactor;
             FolderNameInputPopup.IsOpen = true;
 
             Dispatcher.BeginInvoke(new Action(() =>
@@ -2555,6 +2555,7 @@ namespace ArcadeStick
 
         // [SECTION: Fullscreen Toggle]
         // Shared by the F11 hotkey and the hamburger menu's "Toggle Fullscreen" item so the two can't drift apart.
+        // With Smart fullscreen on and the Theme Builder closed, entering also runs the size test (ApplySmartFullscreen).
         private void ToggleFullscreen()
         {
             if (WindowStyle != WindowStyle.None)
@@ -2567,9 +2568,15 @@ namespace ArcadeStick
                 WindowStyle = WindowStyle.None;
                 ResizeMode = ResizeMode.NoResize;
                 WindowState = WindowState.Maximized;
+
+                if (_viewModel.Configuration.SmartFullscreen && _themeBuilderWindow == null) ApplySmartFullscreen();
             }
             else
             {
+                // Smart fullscreen's scale, size and black background go first, so SizeToContent sizes the window to the
+                // active layout again.
+                EndSmartFullscreen();
+
                 // Back to a normal window sized to the layout (client area = layout resolution).
                 WindowState = WindowState.Normal;
                 WindowStyle = WindowStyle.ThreeDBorderWindow;
@@ -2578,6 +2585,126 @@ namespace ArcadeStick
             }
         }
         // [END SECTION: Fullscreen Toggle]
+
+        // [SECTION: Smart Fullscreen]
+        // Session-only whole-number upscale in fullscreen (smart-fullscreen-pass1.md). The size test picks one of the theme's
+        // saved layout sizes and a scale n for the window's monitor in physical pixels; RootLayoutGrid (wallpaper, video,
+        // background grid, LayoutCanvas and the guides) is sized to that layout, scaled by n / dpiScale with a LayoutTransform
+        // (cancelling the Windows scale) and centered on a black window background, so any leftover screen is black bars.
+        // Layout rounding is off on the grid while scaled: WPF rounds to device pixels ignoring the transform, which would
+        // put whole layout units on fractional pixels at 125% / 150%. The picked size is a view model display override only.
+        private bool _smartFullscreenActive;
+        private IntPtr _smartFullscreenMonitor;
+        private double _layoutScaleFactor = 1; // WPF units per layout unit; 1 unless Smart fullscreen is scaling
+
+        // Window resources read by the main window's menus, popups and tooltips (MainWindow.xaml, Smart Fullscreen Popup Scale).
+        // Set only in ApplySmartFullscreen and put back to the defaults (no scale, rounding on) only in EndSmartFullscreen.
+        private const string PopupScaleKey = "Launcher.PopupScale";
+        private const string PopupLayoutRoundingKey = "Launcher.PopupLayoutRounding";
+
+        // Does the size test for the window's monitor and applies the picked layout and scale; falls back to plain
+        // fullscreen when the monitor cannot be read or no layout fits
+        private void ApplySmartFullscreen()
+        {
+            if (_viewModel == null) return;
+
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            if (!Services.MonitorBounds.TryGetPhysicalSize(hwnd, out IntPtr monitor, out int screenWidth, out int screenHeight))
+            {
+                EndSmartFullscreen();
+                return;
+            }
+
+            var dpi = VisualTreeHelper.GetDpi(this);
+            var sizes = _viewModel.Configuration.SavedThemeLayouts.Select(l => (l.Width, l.Height)).Distinct().ToList();
+            var result = Services.SmartFullscreen.Choose(screenWidth, screenHeight, dpi.DpiScaleX, sizes);
+            if (!result.Fits)
+            {
+                EndSmartFullscreen();
+                return;
+            }
+
+            _smartFullscreenActive = true;
+            _smartFullscreenMonitor = monitor;
+            _layoutScaleFactor = result.TransformFactor;
+
+            var scale = new ScaleTransform(result.TransformFactor, result.TransformFactor);
+            scale.Freeze();
+            RootLayoutGrid.LayoutTransform = scale;
+            RootLayoutGrid.Width = result.LayoutWidth;
+            RootLayoutGrid.Height = result.LayoutHeight;
+            RootLayoutGrid.HorizontalAlignment = HorizontalAlignment.Center;
+            RootLayoutGrid.VerticalAlignment = VerticalAlignment.Center;
+            RootLayoutGrid.UseLayoutRounding = false;
+            Background = Brushes.Black;
+
+            // Menus, popups and tooltips are separate windows: the same factor reaches them through the window resources
+            Resources[PopupScaleKey] = scale;
+            Resources[PopupLayoutRoundingKey] = false;
+
+            // Refreshes the theme bindings, which re-applies the layout (and the decode sizes with the new factor)
+            _viewModel.SetDisplayLayoutOverride((result.LayoutWidth, result.LayoutHeight));
+        }
+
+        // Removes Smart fullscreen's scale, size, centering, rounding and black background and drops the display override,
+        // leaving plain fullscreen at the active size (or the normal window). Does nothing while Smart fullscreen is not scaling.
+        private void EndSmartFullscreen()
+        {
+            if (!_smartFullscreenActive) return;
+
+            _smartFullscreenActive = false;
+            _smartFullscreenMonitor = IntPtr.Zero;
+            _layoutScaleFactor = 1;
+
+            RootLayoutGrid.ClearValue(FrameworkElement.LayoutTransformProperty);
+            RootLayoutGrid.ClearValue(FrameworkElement.WidthProperty);
+            RootLayoutGrid.ClearValue(FrameworkElement.HeightProperty);
+            RootLayoutGrid.ClearValue(FrameworkElement.HorizontalAlignmentProperty);
+            RootLayoutGrid.ClearValue(FrameworkElement.VerticalAlignmentProperty);
+            RootLayoutGrid.ClearValue(FrameworkElement.UseLayoutRoundingProperty);
+            ClearValue(BackgroundProperty);
+
+            Resources[PopupScaleKey] = Transform.Identity;
+            Resources[PopupLayoutRoundingKey] = true;
+
+            _viewModel.SetDisplayLayoutOverride(null);
+        }
+
+        // Reruns the size test while Smart fullscreen is scaling (DPI, monitor or display change, theme switch, layout size pick)
+        private void RecomputeSmartFullscreen()
+        {
+            if (_smartFullscreenActive) ApplySmartFullscreen();
+        }
+
+        // Reruns the size test when the window has moved to another monitor
+        private void SmartFullscreen_LocationChanged(object? sender, EventArgs e)
+        {
+            if (!_smartFullscreenActive) return;
+
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            if (Services.MonitorBounds.TryGetPhysicalSize(hwnd, out IntPtr monitor, out _, out _) && monitor != _smartFullscreenMonitor)
+                Dispatcher.BeginInvoke(new Action(RecomputeSmartFullscreen));
+        }
+
+        // Reruns the size test after a display resolution or arrangement change (raised off the UI thread)
+        private void SmartFullscreen_DisplaySettingsChanged(object? sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(RecomputeSmartFullscreen));
+        }
+
+        // Flips the Smart fullscreen preference and saves settings.json. Turning it off while it is scaling drops to plain
+        // fullscreen at the active size; turning it on takes effect the next time fullscreen is entered.
+        private void HamburgerSmartFullscreenMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var config = _viewModel.Configuration;
+                config.SmartFullscreen = !config.SmartFullscreen;
+                if (!config.SmartFullscreen) EndSmartFullscreen();
+                _viewModel.PersistConfigurationToDisk();
+            }));
+        }
+        // [END SECTION: Smart Fullscreen]
 
         // [SECTION: Hamburger Menu]
         // Same hover/resting-color pattern as the Sort/Options/Random buttons. The popup itself is the
@@ -2603,6 +2730,12 @@ namespace ArcadeStick
         private void PopulateHamburgerSubmenus(ContextMenu menu)
         {
             var config = _viewModel.Configuration;
+
+            // Smart fullscreen: a check mark while the preference is on
+            if (menu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Tag as string == "SmartFullscreenMenu") is MenuItem smartItem)
+            {
+                smartItem.Icon = config.SmartFullscreen ? CreateCheckIcon() : null;
+            }
 
             // Themes: every .zip in the Themes folder, check mark on the active one
             if (menu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Tag as string == "ThemesMenu") is MenuItem themesMenu)
@@ -2672,6 +2805,7 @@ namespace ArcadeStick
                     {
                         _viewModel.PersistConfigurationToDisk();
                         _themeBuilderWindow?.RefreshAfterExternalThemeSwitch();
+                        RecomputeSmartFullscreen(); // the new theme's sizes decide the fullscreen layout
                     }
                 }
                 catch (Exception ex)
@@ -2708,6 +2842,7 @@ namespace ArcadeStick
                 ApplyLayout();
                 _viewModel.PersistConfigurationToDisk();
                 _themeBuilderWindow?.RefreshAfterExternalSizeSwitch();
+                RecomputeSmartFullscreen();
             }));
         }
         // [END SECTION: Hamburger Theme & Layout Size Submenus]
@@ -2758,6 +2893,10 @@ namespace ArcadeStick
                 _themeBuilderWindow.Activate();
                 return;
             }
+
+            // The builder edits the active resolution, so Smart fullscreen drops to plain fullscreen at that size first
+            // (it stays plain after the builder closes, until fullscreen is toggled again)
+            EndSmartFullscreen();
 
             _themeBuilderWindow = new Views.ThemeBuilderWindow(_viewModel) { Owner = this };
             _themeBuilderWindow.Closed += (s, e) => _themeBuilderWindow = null;

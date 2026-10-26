@@ -163,6 +163,7 @@ namespace ArcadeStick.ViewModels
                         Configuration.ShowGuideLines = loadedSettings.ShowGuideLines;
                         Configuration.ShowCenterGuide = loadedSettings.ShowCenterGuide;
                         Configuration.GuideLineColorHex = loadedSettings.GuideLineColorHex;
+                        Configuration.SmartFullscreen = loadedSettings.SmartFullscreen;
                     }
                 }
                 catch
@@ -599,16 +600,50 @@ namespace ArcadeStick.ViewModels
         // The Main Window Background layer's color for the active resolution (its BgColorHex). Fills the main window
         // under the wallpaper (and alone when the wallpaper is disabled), and also its own popups.
         public string ThemeMainColor => GetLayerEntry(LayerRegistry.MainBackground).BgColorHex ?? LayerRegistry.DefaultMainBackgroundColorHex;
-        // Returns one layer's entry for the active resolution, where its styling lives (per resolution).
-        // Resolved with registry defaults filling any gaps, so it is never null for a registry layer.
+        // Returns one layer's entry for the displayed layout (the active resolution, or Smart fullscreen's pick), where its
+        // styling lives (per resolution). Resolved with registry defaults filling any gaps, so it is never null for a registry layer.
         private LayerLayoutEntry GetLayerEntry(string id)
         {
-            int width = Configuration.ActiveResolutionWidth;
-            int height = Configuration.ActiveResolutionHeight;
-            var saved = Configuration.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
-            var layout = LayerRegistry.ResolveLayout(saved, width, height);
-            return layout.Layers.First(e => e.Id == id);
+            return ResolveDisplayLayout().Layers.First(e => e.Id == id);
         }
+
+        // [SECTION: Smart Fullscreen Display Layout]
+        // Session-only display override: while Smart fullscreen is on, the main window shows the layout size the size
+        // test picked instead of the active resolution. It never touches ActiveResolution*, Layouts, SavedThemeLayouts,
+        // the Theme Builder's snapshots or theme.json; the Theme Builder keeps editing the active resolution.
+        private (int Width, int Height)? _displayLayoutOverride;
+
+        // The theme's saved copy of the override size, cloned once, used only when the working layouts lack that size
+        // (ResolveLayout fills gaps in place, so the theme snapshot itself is never handed to it).
+        private ThemeLayout? _displayLayoutThemeCopy;
+
+        public int DisplayLayoutWidth => _displayLayoutOverride?.Width ?? Configuration.ActiveResolutionWidth;
+        public int DisplayLayoutHeight => _displayLayoutOverride?.Height ?? Configuration.ActiveResolutionHeight;
+
+        // Sets (or clears, with null) the display override and refreshes the theme bindings, which re-applies the main window layout
+        public void SetDisplayLayoutOverride((int Width, int Height)? size)
+        {
+            _displayLayoutOverride = size;
+            _displayLayoutThemeCopy = null;
+            if (size is (int width, int height)
+                && Configuration.SavedThemeLayouts.FirstOrDefault(l => l.Width == width && l.Height == height) is ThemeLayout themeCopy)
+            {
+                _displayLayoutThemeCopy = ConfigurationSettings.CloneLayouts(new[] { themeCopy }).First();
+            }
+            RefreshThemeBindings();
+        }
+
+        // Returns the layout the main window shows: the working layout at the displayed size (falling back to the theme's
+        // saved copy for an override size), resolved with registry defaults
+        public ThemeLayout ResolveDisplayLayout()
+        {
+            int width = DisplayLayoutWidth;
+            int height = DisplayLayoutHeight;
+            var saved = Configuration.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+            if (saved == null && _displayLayoutOverride != null) saved = _displayLayoutThemeCopy;
+            return LayerRegistry.ResolveLayout(saved, width, height);
+        }
+        // [END SECTION: Smart Fullscreen Display Layout]
 
         public int ThemeFolderFontSize => GetLayerEntry(LayerRegistry.GamesList).FolderFontSize ?? LayerRegistry.DefaultFolderFontSize;
         public string ThemeArrowColor => GetLayerEntry(LayerRegistry.GamesList).ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex;

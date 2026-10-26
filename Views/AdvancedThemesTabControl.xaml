@@ -98,7 +98,7 @@
                     <Button x:Name="BtnResetLayout" Content="Reset Layout" Click="BtnResetLayout_Click" HorizontalAlignment="Left"
                             Style="{StaticResource ThemedActionButtonStyle}"
                             FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
-                    <Button x:Name="BtnDeleteCustomRes" Content="Delete Size" Click="BtnDeleteCustomRes_Click" Visibility="Collapsed"
+                    <Button x:Name="BtnDeleteCustomRes" Content="Delete Size" Click="BtnDeleteCustomRes_Click" Visibility="Collapsed" ToolTipService.ShowOnDisabled="True"
                             Style="{StaticResource ThemedActionButtonStyle}"
                             FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
                     <Button x:Name="BtnRestoreDefaults" Content="Restore Defaults" Click="BtnRestoreDefaults_Click"

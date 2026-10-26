@@ -3576,7 +3576,8 @@ namespace ArcadeStick.Views
             return active;
         }
 
-        // Hides the entry row, and shows Delete Size only while a custom (non-preset) size is active.
+        // Hides the entry row, and shows the remove button for any active size with a layout (not a pending one): "Delete Size"
+        // on a custom size, "Remove Size" on a preset. Disabled, with the reason in its tooltip, when it is the only size left.
         private void UpdateCustomResUi(int activeWidth, int activeHeight)
         {
             // While the active size is pending, the entry row stays open so it can be adjusted further
@@ -3587,8 +3588,23 @@ namespace ArcadeStick.Views
                 TxtCustomWidth.Text = activeWidth.ToString();
                 TxtCustomHeight.Text = activeHeight.ToString();
             }
-            BtnDeleteCustomRes.Visibility = (IsPresetSize(activeWidth, activeHeight) || pendingActive) ? Visibility.Collapsed : Visibility.Visible;
+            bool hasLayout = _settings.Layouts.Any(l => l.Width == activeWidth && l.Height == activeHeight);
+            BtnDeleteCustomRes.Visibility = (!hasLayout || pendingActive) ? Visibility.Collapsed : Visibility.Visible;
+            BtnDeleteCustomRes.Content = IsPresetSize(activeWidth, activeHeight) ? "Remove Size" : "Delete Size";
+
+            bool lastSize = CountRemovableSizes() <= 1;
+            BtnDeleteCustomRes.IsEnabled = !lastSize;
+            BtnDeleteCustomRes.ToolTip = lastSize
+                ? "The theme needs at least one size, so the last one cannot be removed."
+                : "Removes this size's layout from the theme (Save Changes writes it; closing without saving brings it back).";
         }
+
+        // Returns how many sizes have a layout, not counting a pending (not yet kept) custom size
+        private int CountRemovableSizes() =>
+            _settings.Layouts
+                .Select(l => new ResolutionPreset(l.Width, l.Height))
+                .Distinct()
+                .Count(size => size != _pendingSize);
 
         // Switches to a size: loads its saved layout, or starts a new one as a copy of the layout being
         // edited (background resized to fit) - the same inherit rule the preset switch uses.
@@ -3666,35 +3682,57 @@ namespace ArcadeStick.Views
             BtnAddCustomRes_Click(sender, e);
         }
 
-        // Delete Size: removes the active custom size's layout, then switches to the default preset.
+        // Delete Size / Remove Size: removes the active size's layout from the working layouts (any size, preset or custom,
+        // except the last one), then switches to another size that has a layout. An ordinary working edit: Save Changes writes
+        // it to the theme, and closing the builder without saving brings the layout back. A removed preset stays in the combo
+        // and starts as a fresh copy of the layout being edited if picked again; a removed custom size leaves the combo.
         private void BtnDeleteCustomRes_Click(object sender, RoutedEventArgs e)
         {
             int w = _currentLayout.Width;
             int h = _currentLayout.Height;
-            if (IsPresetSize(w, h)) return;
+            if (CountRemovableSizes() <= 1) return;
+
+            bool preset = IsPresetSize(w, h);
+            string verb = preset ? "Remove" : "Delete";
+            var back = PickSizeAfterRemoval(w, h);
+            if (back == null) return;
 
             var result = MessageBox.Show(
-                $"Delete the custom {w} x {h} layout?\n\nIts layer positions are discarded, and the default {LayerRegistry.DefaultWidth} x {LayerRegistry.DefaultHeight} layout is shown instead.",
-                "Confirm Delete Size", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                $"{verb} the {w} x {h} layout from this theme?\n\nIts layer positions are discarded and the {back.Width} x {back.Height} layout is shown instead. "
+                + "Save Changes writes this to the theme file; closing the Theme Builder without saving brings it back.",
+                $"Confirm {verb} Size", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result != MessageBoxResult.Yes) return;
 
             _settings.Layouts.RemoveAll(l => l.Width == w && l.Height == h);
             _pendingSize = null;
 
-            // Back to the theme's saved size when known (and it isn't the one just deleted), else the default
-            int backW = _settings.SavedThemeWidth;
-            int backH = _settings.SavedThemeHeight;
-            if (backW <= 0 || backH <= 0 || (backW == w && backH == h))
-            {
-                backW = LayerRegistry.DefaultWidth;
-                backH = LayerRegistry.DefaultHeight;
-            }
-            SwitchToResolution(backW, backH);
+            SwitchToResolution(back.Width, back.Height);
 
-            // Rebuild the list so the deleted size actually leaves the combo box
+            // Rebuild the list so a removed custom size leaves the combo box, and the Theme sizes row's highlight moves
             _loading = true;
-            RebuildResolutionCombo(backW, backH);
+            RebuildResolutionCombo(back.Width, back.Height);
             _loading = false;
+            RebuildSavedSizes();
+        }
+
+        // Returns the size to show after removing width x height: the theme's saved size when it still has a layout (the old
+        // Delete Size rule), else the remaining size nearest to the removed one. Null when no other size has a layout.
+        private ResolutionPreset? PickSizeAfterRemoval(int width, int height)
+        {
+            var remaining = _settings.Layouts
+                .Select(l => new ResolutionPreset(l.Width, l.Height))
+                .Distinct()
+                .Where(size => size != _pendingSize && !(size.Width == width && size.Height == height))
+                .ToList();
+            if (remaining.Count == 0) return null;
+
+            var themeSize = new ResolutionPreset(_settings.SavedThemeWidth, _settings.SavedThemeHeight);
+            if (remaining.Contains(themeSize)) return themeSize;
+
+            return remaining
+                .OrderBy(size => Math.Abs(size.Width - width) + Math.Abs(size.Height - height))
+                .ThenByDescending(size => size.Width * size.Height)
+                .First();
         }
         // [END SECTION: Custom Resolutions]
 
