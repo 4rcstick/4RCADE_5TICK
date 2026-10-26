@@ -142,6 +142,9 @@ namespace ArcadeStick
             // forces WPF to recalculate placement against the current window position.
             LocationChanged += MainWindow_LocationChanged;
 
+            // The folder-color picker's own dropdown is kept inside the monitor's work area (Folder Color Picker Dropdown Fit)
+            FolderColorPickerControl.Loaded += (s, e) => HookFolderColorDropdown();
+
             // Smart fullscreen reruns its size test when the window's DPI, monitor or the display settings change
             DpiChanged += (s, e) => Dispatcher.BeginInvoke(new Action(RecomputeSmartFullscreen));
             LocationChanged += SmartFullscreen_LocationChanged;
@@ -1539,6 +1542,11 @@ namespace ArcadeStick
                 // opening it manually (bypassing ToolTipService, which is disabled on the target
                 // element), that inheritance never happens on its own, leaving any bindings inside blank.
                 tooltip.DataContext = _pendingTooltipTarget.DataContext;
+
+                // For the same reason (no ToolTipService, so the tooltip never joins the window's tree) no implicit style
+                // reaches it: Smart fullscreen's scale and rounding are set here at open time, like the ROM copy tooltip
+                tooltip.LayoutTransform = (Transform)FindResource(PopupScaleKey);
+                tooltip.UseLayoutRounding = (bool)FindResource(PopupLayoutRoundingKey);
                 tooltip.IsOpen = true;
             }
         }
@@ -1943,6 +1951,172 @@ namespace ArcadeStick
             }
         }
         // [END SECTION: Folder Color Picker Flyout]
+
+        // [SECTION: Folder Color Picker Dropdown Fit]
+        // The folder-color picker's dropdown is PortableColorPicker's own internal Popup ("popup", default Placement Bottom of
+        // the swatch). After every open it is placed by one rule, in physical pixels: to the RIGHT of the folder-color popup
+        // (8px gap, tops aligned); to the LEFT if the right side would pass the work area's right edge; below the swatch (where
+        // WPF put it) if neither side fits. Then, if its bottom is past the work area bottom, it moves up by exactly the
+        // overflow, never above the work area top. WPF clamps an open popup's content to the room left on screen and sizes its
+        // window against the space below its ORIGINAL position, so the height comes from the unclamped DesiredSize and the
+        // dropdown is re-measured after the move. The move is the Popup's HorizontalOffset / VerticalOffset; both (and any
+        // forced height) reset on close, so every open starts clean.
+        private Popup? _folderColorDropdown;
+        private double _folderColorDropdownLeftAtZero; // screen left (physical px) before the move
+        private double _folderColorDropdownTopAtZero;  // screen top (physical px) before the move
+        private double _folderColorDropdownMoveX;      // requested move right (physical px)
+        private double _folderColorDropdownMoveY;      // requested move down (physical px; negative is up)
+        private double _folderColorDropdownDesired;    // unclamped content height (layout units) measured in pass 1
+        private bool _folderColorDropdownForcedHeight; // an explicit Height was set on the content after a move
+
+        // Does the hookup once: finds the picker's internal dropdown Popup and watches it open and close
+        private void HookFolderColorDropdown()
+        {
+            if (_folderColorDropdown != null) return;
+
+            _folderColorDropdown = FolderColorPickerControl.FindName("popup") as Popup ?? FindVisualChild<Popup>(FolderColorPickerControl);
+            if (_folderColorDropdown == null) return;
+
+            _folderColorDropdown.Opened += (s, e) =>
+                Dispatcher.BeginInvoke(new Action(() => FitFolderColorDropdown(firstPass: true)), DispatcherPriority.Loaded);
+            _folderColorDropdown.Closed += (s, e) =>
+            {
+                _folderColorDropdown.HorizontalOffset = 0;
+                _folderColorDropdown.VerticalOffset = 0;
+
+                // A forced content height only applies to the open it was made for; the next open measures fresh
+                if (_folderColorDropdownForcedHeight && _folderColorDropdown.Child is FrameworkElement content)
+                    content.ClearValue(FrameworkElement.HeightProperty);
+                _folderColorDropdownForcedHeight = false;
+            };
+        }
+
+        // Does the placement in two passes. The first measures the open dropdown (offsets 0) and the folder-color popup on screen,
+        // picks the side, clamps it into the work area and sets both offsets, turning physical pixels into offset units with
+        // the dropdown's own scale. The second measures how far it really moved on each axis and corrects the offsets in
+        // proportion (exact whichever space WPF applies them in), then re-measures it so its window grows to full height.
+        private void FitFolderColorDropdown(bool firstPass)
+        {
+            var popup = _folderColorDropdown;
+            if (popup == null || !popup.IsOpen || popup.Child is not FrameworkElement child || child.ActualHeight <= 0 || child.ActualWidth <= 0) return;
+            if (PresentationSource.FromVisual(child) == null) return;
+
+            Point topLeft = child.PointToScreen(new Point(0, 0));
+            double left = topLeft.X;
+            double top = topLeft.Y;
+
+            if (!firstPass)
+            {
+                double movedX = left - _folderColorDropdownLeftAtZero;
+                double movedY = top - _folderColorDropdownTopAtZero;
+                if (Math.Abs(movedX) > 0.5 && Math.Abs(movedX - _folderColorDropdownMoveX) > 0.5)
+                    popup.HorizontalOffset *= _folderColorDropdownMoveX / movedX;
+                if (Math.Abs(movedY) > 0.5 && Math.Abs(movedY - _folderColorDropdownMoveY) > 0.5)
+                    popup.VerticalOffset *= _folderColorDropdownMoveY / movedY;
+
+                GrowFolderColorDropdown(child);
+                return;
+            }
+
+            IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            if (!Services.MonitorBounds.TryGetPhysicalWorkArea(hwnd, out int workLeft, out int workTop, out int workWidth, out int workHeight)) return;
+            double workRight = workLeft + workWidth;
+            double workBottom = workTop + workHeight;
+
+            // Physical pixels per layout unit, from the child's own screen positions (the inherited scale and the DPI)
+            double scaleX = (child.PointToScreen(new Point(child.ActualWidth, 0)).X - left) / child.ActualWidth;
+            double scaleY = (child.PointToScreen(new Point(0, child.ActualHeight)).Y - top) / child.ActualHeight;
+            if (scaleX <= 0 || scaleY <= 0) return;
+
+            // ActualHeight is clamped to the room left on screen, so the size comes from the unclamped desired height
+            double desiredHeight = MeasureUnclampedHeight(child);
+            double width = child.ActualWidth * scaleX;
+            double height = desiredHeight * scaleY;
+
+            // Side: right of the folder-color popup, else left of it, else where WPF put it (below the swatch)
+            const double gap = 8;
+            double targetLeft = left;
+            double targetTop = top;
+            if (FolderColorPickerPopup.Child is FrameworkElement host && host.ActualWidth > 0 && PresentationSource.FromVisual(host) != null)
+            {
+                Point hostTopLeft = host.PointToScreen(new Point(0, 0));
+                Point hostBottomRight = host.PointToScreen(new Point(host.ActualWidth, host.ActualHeight));
+
+                if (hostBottomRight.X + gap + width <= workRight)
+                {
+                    targetLeft = hostBottomRight.X + gap;
+                    targetTop = hostTopLeft.Y;
+                }
+                else if (hostTopLeft.X - gap - width >= workLeft)
+                {
+                    targetLeft = hostTopLeft.X - gap - width;
+                    targetTop = hostTopLeft.Y;
+                }
+            }
+
+            // Vertical: up by exactly the overflow, never above the work area top
+            if (targetTop + height > workBottom) targetTop = workBottom - height;
+            targetTop = Math.Max(workTop, targetTop);
+
+            double moveX = targetLeft - left;
+            double moveY = targetTop - top;
+            if (Math.Abs(moveX) <= 0.5 && Math.Abs(moveY) <= 0.5) return;
+
+            _folderColorDropdownLeftAtZero = left;
+            _folderColorDropdownTopAtZero = top;
+            _folderColorDropdownMoveX = moveX;
+            _folderColorDropdownMoveY = moveY;
+            _folderColorDropdownDesired = desiredHeight;
+            popup.HorizontalOffset = moveX / scaleX;
+            popup.VerticalOffset = moveY / scaleY;
+
+            // Let the popup lay its content out again at the new position, so it can take its full height
+            (VisualTreeHelper.GetParent(child) as UIElement)?.InvalidateMeasure();
+            child.InvalidateMeasure();
+            Dispatcher.BeginInvoke(new Action(() => FitFolderColorDropdown(firstPass: false)), DispatcherPriority.Loaded);
+        }
+
+        // Does the regrow after a move: the popup window was sized against the room below its original position, so its
+        // content stays clamped after the move. First a fresh measure of the content and the popup root (which sizes against
+        // the new position); if the content is still short, an explicit Height of the measured desired height (cleared on close).
+        private void GrowFolderColorDropdown(FrameworkElement child)
+        {
+            var root = PresentationSource.FromVisual(child)?.RootVisual as UIElement;
+            double desired = _folderColorDropdownDesired;
+
+            child.InvalidateMeasure();
+            root?.InvalidateMeasure();
+            root?.UpdateLayout();
+            child.UpdateLayout();
+            if (desired <= 0 || child.ActualHeight >= desired - 0.5) return;
+
+            child.Height = desired;
+            _folderColorDropdownForcedHeight = true;
+            root?.InvalidateMeasure();
+            root?.UpdateLayout();
+        }
+
+        // Returns an element's height without the popup's screen clamp: it (and, for a Border, its content plus the border and
+        // padding) is measured with an infinite constraint, then its parent is invalidated so normal layout takes over again
+        private static double MeasureUnclampedHeight(FrameworkElement element)
+        {
+            var unlimited = new Size(double.PositiveInfinity, double.PositiveInfinity);
+            element.Measure(unlimited);
+            double height = element.DesiredSize.Height;
+
+            if (element is Border { Child: FrameworkElement inner } border)
+            {
+                inner.Measure(unlimited);
+                double chrome = border.BorderThickness.Top + border.BorderThickness.Bottom + border.Padding.Top + border.Padding.Bottom;
+                height = Math.Max(height, inner.DesiredSize.Height + chrome);
+                inner.InvalidateMeasure();
+            }
+
+            element.InvalidateMeasure();
+            (VisualTreeHelper.GetParent(element) as UIElement)?.InvalidateMeasure();
+            return height;
+        }
+        // [END SECTION: Folder Color Picker Dropdown Fit]
 
         // [SECTION: Folder Row Context Menu]
         // Right-clicking a folder row selects it first, same as game rows already do - Rename depends on

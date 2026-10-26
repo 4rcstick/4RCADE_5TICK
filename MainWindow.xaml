@@ -20,7 +20,8 @@
     <Window.Resources>
         <!-- [SECTION: Smart Fullscreen Popup Scale] -->
         <!-- Smart fullscreen's factor for the main window's menus, popups and tooltips. Each is a separate window: one whose Popup
-             has no visual parent (a ContextMenu, a ToolTip) gets no transform, so its root reads PopupScale; a Popup declared in
+             has no visual parent (a ContextMenu, a ToolTip) gets no transform, so its root reads PopupScale (the hand-opened
+             tooltips read it in code: DelayedTooltipTimer_Tick, ShowRomCopyStatusTooltip); a Popup declared in
              a scaled tree (a submenu, the two folder popups inside RootLayoutGrid, the color picker's dropdown) copies its
              ancestors' scale and reads only PopupLayoutRounding. Both keys are read with DynamicResource. These are the
              defaults (no scale, layout rounding on, the windowed and plain-fullscreen look); MainWindow.ApplySmartFullscreen
@@ -141,11 +142,6 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-        </Style>
-        <!-- Main window tooltips take Smart fullscreen's scale; only the scale and rounding are set, so the default look stays -->
-        <Style TargetType="ToolTip">
-            <Setter Property="LayoutTransform" Value="{DynamicResource Launcher.PopupScale}"/>
-            <Setter Property="UseLayoutRounding" Value="{DynamicResource Launcher.PopupLayoutRounding}"/>
         </Style>
 
         <ContextMenu x:Key="TreeViewBackgroundContextMenu">
