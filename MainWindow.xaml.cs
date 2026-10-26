@@ -320,8 +320,8 @@ namespace ArcadeStick
         // registry defaults for anything missing). Runs at startup and on every ThemeBindingsRefreshed,
         // so Save Adjustments and theme loads reposition live. The window itself sizes to the canvas
         // (SizeToContent), so the client area always equals the layout resolution.
-        // Bordered layers (shapes, custom layers, Splash Image, Video Preview, Random Game Display) treat the
-        // entry rect as the content area and are placed inflated by their border (PlaceOutsideBorder).
+        // Bordered layers (shapes, custom layers, Splash Image, Video Preview, Random Game Display) treat the entry's
+        // Width / Height as the content size and X / Y as the ring's outer corner (PlaceOutsideBorder).
         private void ApplyLayout()
         {
             if (_viewModel == null) return;
@@ -508,7 +508,7 @@ namespace ArcadeStick
             ApplyShapeLayers(layout);
 
             // Splash Image and Video Preview draw their own border from their entries (Video Preview also its background).
-            // Both entries' rects are the content area; the border grows outward, so each control is its rect inflated by BorderSize.
+            // Both entries' Width / Height are the content size and X / Y the ring's outer corner, so each control sits at (X, Y) sized W / H plus 2 x BorderSize.
             var splashEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SplashImage);
             if (splashEntry != null)
             {
@@ -518,7 +518,7 @@ namespace ArcadeStick
             var videoEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.VideoPreview);
             if (videoEntry != null)
             {
-                // The entry's rect is the video area; the border grows outward, so the control is that rect inflated by BorderSize
+                // The entry's Width / Height are the video area and X / Y the ring's outer corner, so the video starts at (X + B, Y + B)
                 PlaceOutsideBorder(VideoPreviewLayer, videoEntry, videoEntry.BorderSize ?? 0);
                 VideoPreviewLayer.ApplyBorder(videoEntry.BorderSize ?? 0, videoEntry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, videoEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
                 VideoPreviewLayer.ApplyBackground(videoEntry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
@@ -562,13 +562,13 @@ namespace ArcadeStick
         private readonly Dictionary<string, (FrameworkElement Element, string Path)> _shapeFileElements = new();
         private readonly Dictionary<string, string> _shapeVisibilityModes = new();
 
-        // Does the shared border-ring placement (the Video Preview rule): the entry's rect is the content area, so the
-        // element sits at that rect inflated by the border size on every side and the ring draws outside the content.
+        // Does the shared border-ring placement: the entry's X / Y are the ring's outer top-left corner and its Width / Height
+        // the content size, so the element sits at (X, Y) sized (W + 2B, H + 2B) and the content starts at (X + B, Y + B).
         private static void PlaceOutsideBorder(FrameworkElement element, Models.LayerLayoutEntry entry, double borderSize)
         {
             double border = Math.Max(0, borderSize);
-            Canvas.SetLeft(element, entry.X - border);
-            Canvas.SetTop(element, entry.Y - border);
+            Canvas.SetLeft(element, entry.X);
+            Canvas.SetTop(element, entry.Y);
             element.Width = entry.Width + (border * 2);
             element.Height = entry.Height + (border * 2);
         }
@@ -801,7 +801,7 @@ namespace ArcadeStick
             var entry = layout.Layers.FirstOrDefault(e => e.Id == id);
             if (entry == null) return;
 
-            // The state's rect is the card's content area; the layer is that rect inflated by this state's border
+            // The state's Width / Height are the card's content size and X / Y the ring's outer corner (this state's border)
             PlaceOutsideBorder(RandomGameDisplayLayer, entry, entry.BorderSize ?? 0);
             Panel.SetZIndex(RandomGameDisplayLayer, entry.Z);
             // The preview ignores the part's Hide flag
@@ -1378,7 +1378,7 @@ namespace ArcadeStick
         {
             if (_previewPlayer == null) return;
 
-            // The entry's rect is the video area and the border sits outside it. The media slot reaches 1px under the
+            // The entry's Width / Height are the video area and the border sits outside it. The media slot reaches 1px under the
             // ring on each side when there is a border (same rule as VideoPreviewLayerControl.ApplyClip), so decode to that size.
             var config = _viewModel.Configuration;
             var savedLayout = config.Layouts.FirstOrDefault(l => l.Width == config.ActiveResolutionWidth && l.Height == config.ActiveResolutionHeight);

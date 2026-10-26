@@ -40,7 +40,7 @@ namespace ArcadeStick.Views
         }
 
         // Same rule as VideoPreviewLayerControl.ApplyClip: the ring stays at the control's outer edge (ApplyLayout sizes the
-        // control to the entry rect inflated by BorderSize), and the splash content pulls in by the border minus 1px, so the
+        // control to the entry's Width / Height plus 2 x BorderSize at the entry's X / Y), and the splash content pulls in by the border minus 1px, so the
         // ring covers 1px of the picture (hides any sub-pixel sliver). Corner radius and clip shrink by the same inset.
         private void ApplyClip()
         {

@@ -294,7 +294,8 @@
 
 
             <!-- Shape layers 01 to 04: background/border layers, built like the Video Preview (border ring outside the
-                 entry rect). The outer Border is the positioned box (entry rect inflated by BorderSize); inside it the fill
+                 content size). The outer Border is the positioned box (at the entry's X / Y, the ring's outer corner, sized
+                 Width / Height plus 2 x BorderSize); inside it the fill
                  and the host Grid (image or video, stretched to fill) are tucked 1px under the ring, and the ring sits on
                  top. Every value is set from the layer entry in ApplyLayout() (ApplyShapeLayers). -->
             <Border x:Name="ShapeLayer01" IsHitTestVisible="False" Canvas.Left="20" Canvas.Top="60" Width="353" Height="640" ClipToBounds="True">
@@ -726,7 +727,7 @@
                  (game selected, splash page) draw the same card over whatever is behind them: the background color
                  (its alpha decides how much shows through), then the layer's file, then the message. The border is
                  a ring on top, outside the Viewbox, so its size never scales with the box. Like the Video Preview, the
-                 state's rect is the content area and the layer is that rect inflated by the state's border; the card
+                 state's Width / Height are the content size and its X / Y the ring's outer corner (the state's border); the card
                  reaches 1px under the ring. The style comes from the ThemeRandomDisplay* forwarders; the placement, the
                  card's inset and inner radius, the per-state max text size, the wrapped text width and the file's
                  rounded clip are set in ApplyRandomGameDisplayRect. -->

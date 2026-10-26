@@ -422,7 +422,8 @@ namespace ArcadeStick.Models
         // plus the Splash Image and Video Preview layers.
         public static bool HasBorderTab(string id) => IsShapeId(id) || IsCustomId(id) || id == SplashImage || id == VideoPreview;
 
-        // Does the border-ring rule check: true for the layers whose rect is the content area with the border drawn outside it
+        // Does the border-ring rule check: true for the layers whose Width / Height are the content size, with the ring drawn
+        // around it and X / Y at the ring's outer corner
         public static bool HasOutsideBorder(string id) => HasBorderTab(id) || id == RandomGameDisplay || id == RandomGameDisplaySplash;
 
         // Layers drawn as a bordered box with a fill and an optional image or video: the shape layers and the
