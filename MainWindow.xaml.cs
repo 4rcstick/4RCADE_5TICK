@@ -2717,7 +2717,12 @@ namespace ArcadeStick
 
         private async void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
-            if (_previewPlayerClosed) return;
+            if (_previewPlayerClosed)
+            {
+                // The real close: an auto-entered fullscreen saves the size from before the auto-enter, not the picked one
+                PersistSizeBeforeAutoEnterOnClose();
+                return;
+            }
 
             e.Cancel = true;
             if (_isClosingPreviewPlayer) return;
@@ -2745,8 +2750,55 @@ namespace ArcadeStick
         {
             _smartFullscreenAutoEntered = false;
 
-            if (!IsFullscreen) EnterFullscreen(_viewModel.Configuration.SmartFullscreen);
-            else ExitFullscreen();
+            // Leaving the fullscreen the launcher auto-entered goes back to the size active before that Layout size pick
+            var restoreSize = _sizeBeforeAutoEnter;
+            _sizeBeforeAutoEnter = null;
+
+            if (!IsFullscreen)
+            {
+                EnterFullscreen(_viewModel.Configuration.SmartFullscreen);
+                return;
+            }
+
+            ExitFullscreen();
+            if (restoreSize is (int width, int height)) RestoreSizeBeforeAutoEnter(width, height);
+        }
+
+        // Does the close-time save for an auto-entered fullscreen: writes the size active before the auto-enter to settings.json
+        // (copying its layout from the theme's saved copy when the working layouts lack it), so the next launch opens windowed
+        // at that size instead of the picked monitor-sized one. Only while the flag and the remembered size are both set, and
+        // only if the theme still has that size. No layout or window change, since the window is closing.
+        private void PersistSizeBeforeAutoEnterOnClose()
+        {
+            if (!_smartFullscreenAutoEntered || _sizeBeforeAutoEnter is not (int width, int height)) return;
+
+            var config = _viewModel.Configuration;
+            if (width == config.ActiveResolutionWidth && height == config.ActiveResolutionHeight) return;
+
+            if (!config.Layouts.Any(l => l.Width == width && l.Height == height))
+            {
+                var source = config.SavedThemeLayouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+                if (source == null) return;
+                config.Layouts.Add(Models.ConfigurationSettings.CloneLayouts(new[] { source }).First());
+            }
+
+            config.ActiveResolutionWidth = width;
+            config.ActiveResolutionHeight = height;
+            _viewModel.PersistConfigurationToDisk();
+        }
+
+        // Does the restore after leaving an auto-entered fullscreen: switches back to the remembered size only if the theme still
+        // has a layout at it (working or saved) and it is not already active; the window then sizes to it
+        private void RestoreSizeBeforeAutoEnter(int width, int height)
+        {
+            var config = _viewModel.Configuration;
+            if (width == config.ActiveResolutionWidth && height == config.ActiveResolutionHeight) return;
+
+            bool exists = config.Layouts.Any(l => l.Width == width && l.Height == height)
+                || config.SavedThemeLayouts.Any(l => l.Width == width && l.Height == height);
+            if (!exists) return;
+
+            SwitchActiveLayoutSize(width, height);
         }
 
         private bool IsFullscreen => WindowStyle == WindowStyle.None;
@@ -2801,6 +2853,11 @@ namespace ArcadeStick
         // Session-only (Pass 3): true while the launcher itself entered Smart fullscreen from an exact-fit Layout size pick.
         // Only that fullscreen may be auto-dropped. Cleared by every manual toggle and by EndSmartFullscreen from any cause.
         private bool _smartFullscreenAutoEntered;
+
+        // Session-only (Pass 3 follow-up): the active size before an auto-enter, restored when that fullscreen is left with F11 or
+        // the Toggle Fullscreen item. Separate from the flag, which every manual toggle clears first. Cleared without a restore
+        // by any other Layout size pick, a theme switch, and EndSmartFullscreen from any cause other than that exit.
+        private (int Width, int Height)? _sizeBeforeAutoEnter;
 
         // Returns true when the smart layout on screen is the active resolution (so Theme Builder edits are visible)
         private bool SmartLayoutMatchesActiveSize()
@@ -2875,8 +2932,10 @@ namespace ArcadeStick
         private void EndSmartFullscreen()
         {
             // Whatever ends it (exit, auto-drop, Theme Builder drop, preference off, no fit, monitor read failure), a fullscreen
-            // left behind is no longer one the launcher may auto-drop
+            // left behind is no longer one the launcher may auto-drop, and there is no size to go back to (the F11 exit reads the
+            // remembered size before it gets here)
             _smartFullscreenAutoEntered = false;
+            _sizeBeforeAutoEnter = null;
 
             if (!_smartFullscreenActive) return;
 
@@ -2908,8 +2967,11 @@ namespace ArcadeStick
         // Preference off: nothing. Windowed: an exact 1x fit for the window's monitor enters Smart fullscreen (auto-entered).
         // Auto-entered: an exact fit reruns the size test, anything else drops to windowed at the picked size. A Smart
         // fullscreen the user entered reruns the size test; plain fullscreen is left alone.
-        private void HandleLayoutSizePickForFullscreen(int width, int height)
+        private void HandleLayoutSizePickForFullscreen(int width, int height, (int Width, int Height) previousSize)
         {
+            // Any pick replaces the size an earlier auto-enter would have returned to (an auto-drop goes to the picked size)
+            _sizeBeforeAutoEnter = null;
+
             if (!_viewModel.Configuration.SmartFullscreen) return;
 
             if (!IsFullscreen)
@@ -2917,7 +2979,11 @@ namespace ArcadeStick
                 if (!IsExactFitForMonitor(width, height)) return;
 
                 EnterFullscreen(true);
-                if (_smartFullscreenActive) _smartFullscreenAutoEntered = true;
+                if (_smartFullscreenActive)
+                {
+                    _smartFullscreenAutoEntered = true;
+                    _sizeBeforeAutoEnter = previousSize;
+                }
                 else ExitFullscreen(); // the size test did not apply: never leave an auto-entered plain fullscreen
                 return;
             }
@@ -2938,6 +3004,8 @@ namespace ArcadeStick
         // to windowed at that size; any other Smart fullscreen reruns the size test. Never enters fullscreen.
         private void HandleThemeSwitchForFullscreen()
         {
+            _sizeBeforeAutoEnter = null; // a theme switch keeps the new theme's size, never an old one
+
             var config = _viewModel.Configuration;
             if (_smartFullscreenAutoEntered && !IsExactFitForMonitor(config.ActiveResolutionWidth, config.ActiveResolutionHeight))
             {
@@ -3047,10 +3115,21 @@ namespace ArcadeStick
 
                 sizeMenu.Visibility = sizes.Count >= 2 ? Visibility.Visible : Visibility.Collapsed;
 
+                // The check marks the layout on screen: Smart fullscreen's displayed size while it is scaling (display only),
+                // otherwise the active size; also the active size if the displayed one is not in the list
+                int checkWidth = config.ActiveResolutionWidth;
+                int checkHeight = config.ActiveResolutionHeight;
+                if (_smartFullscreenActive
+                    && sizes.Any(l => l.Width == _viewModel.DisplayLayoutWidth && l.Height == _viewModel.DisplayLayoutHeight))
+                {
+                    checkWidth = _viewModel.DisplayLayoutWidth;
+                    checkHeight = _viewModel.DisplayLayoutHeight;
+                }
+
                 foreach (var layout in sizes)
                 {
                     var item = new MenuItem { Header = $"{layout.Width} x {layout.Height}", Tag = (layout.Width, layout.Height) };
-                    if (layout.Width == config.ActiveResolutionWidth && layout.Height == config.ActiveResolutionHeight)
+                    if (layout.Width == checkWidth && layout.Height == checkHeight)
                     {
                         item.Icon = CreateCheckIcon();
                     }
@@ -3094,28 +3173,49 @@ namespace ArcadeStick
             var config = _viewModel.Configuration;
             int width = size.Item1;
             int height = size.Item2;
+
+            // A Smart fullscreen the user entered (F11) only reruns the size test and never writes the active size, so leaving
+            // it with F11 returns to exactly the size from before. Checked before the already-active return, so a click on the
+            // displayed (checked) size cannot write anything either. The auto-entered fullscreen keeps the pick rules below.
+            if (_smartFullscreenActive && !_smartFullscreenAutoEntered)
+            {
+                Dispatcher.BeginInvoke(new Action(RecomputeSmartFullscreen));
+                return;
+            }
+
             if (width == config.ActiveResolutionWidth && height == config.ActiveResolutionHeight) return;
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                // If the working layouts don't hold this size yet, take it from the theme's saved copy so
-                // the theme's positions are used instead of the registry defaults.
-                if (!config.Layouts.Any(l => l.Width == width && l.Height == height))
-                {
-                    var source = config.SavedThemeLayouts.FirstOrDefault(l => l.Width == width && l.Height == height);
-                    if (source != null)
-                    {
-                        config.Layouts.Add(Models.ConfigurationSettings.CloneLayouts(new[] { source }).First());
-                    }
-                }
-
-                config.ActiveResolutionWidth = width;
-                config.ActiveResolutionHeight = height;
-                ApplyLayout();
-                _viewModel.PersistConfigurationToDisk();
-                _themeBuilderWindow?.RefreshAfterExternalSizeSwitch();
-                HandleLayoutSizePickForFullscreen(width, height);
+                var previousSize = (config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+                SwitchActiveLayoutSize(width, height);
+                HandleLayoutSizePickForFullscreen(width, height, previousSize);
             }));
+        }
+
+        // Does the active-size switch shared by the Layout size pick and the auto-enter restore: takes the size from the theme's
+        // saved copy when the working layouts lack it, writes the active size, re-applies the layout, saves settings.json and
+        // refreshes the Theme Builder
+        private void SwitchActiveLayoutSize(int width, int height)
+        {
+            var config = _viewModel.Configuration;
+
+            // If the working layouts don't hold this size yet, take it from the theme's saved copy so
+            // the theme's positions are used instead of the registry defaults.
+            if (!config.Layouts.Any(l => l.Width == width && l.Height == height))
+            {
+                var source = config.SavedThemeLayouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+                if (source != null)
+                {
+                    config.Layouts.Add(Models.ConfigurationSettings.CloneLayouts(new[] { source }).First());
+                }
+            }
+
+            config.ActiveResolutionWidth = width;
+            config.ActiveResolutionHeight = height;
+            ApplyLayout();
+            _viewModel.PersistConfigurationToDisk();
+            _themeBuilderWindow?.RefreshAfterExternalSizeSwitch();
         }
         // [END SECTION: Hamburger Theme & Layout Size Submenus]
 
