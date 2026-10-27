@@ -3443,9 +3443,35 @@ namespace ArcadeStick.Views
         // [END SECTION: Background Grid]
 
         // [SECTION: Resolution & Reset]
+        // Set by the Theme Builder window: runs a size switch through the main window's Layout size pick rules for
+        // Smart fullscreen (MainWindow.RunSizePick). Null runs the switch directly.
+        public Action<Action>? SizePickRunner;
+
+        // Does a size switch through SizePickRunner when set, otherwise directly
+        private void RunSizePick(Action doSwitch)
+        {
+            if (SizePickRunner != null) SizePickRunner(doSwitch);
+            else doSwitch();
+        }
+
+        // Does the combo pick: a different size goes through RunSizePick, anything else ("Custom...", same size) applies directly
+        private void CboResolution_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading) return;
+
+            if (CboResolution.SelectedItem is ResolutionPreset preset
+                && (preset.Width != _currentLayout.Width || preset.Height != _currentLayout.Height))
+            {
+                RunSizePick(() => CboResolutionApply(sender, e));
+                return;
+            }
+
+            CboResolutionApply(sender, e);
+        }
+
         // Switching resolution: a size with no saved layout starts as a copy of the layout that was just
         // being edited (background resized to fit); a size that already has one is loaded as-is.
-        private void CboResolution_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CboResolutionApply(object sender, SelectionChangedEventArgs e)
         {
             if (_loading) return;
 
@@ -3775,11 +3801,14 @@ namespace ArcadeStick.Views
             if (sender is not Button button || button.Tag is not ResolutionPreset size) return;
             if (size.Width == _currentLayout.Width && size.Height == _currentLayout.Height) return;
 
-            SwitchToResolution(size.Width, size.Height);
+            RunSizePick(() =>
+            {
+                SwitchToResolution(size.Width, size.Height);
 
-            _loading = true;
-            RebuildResolutionCombo(size.Width, size.Height);
-            _loading = false;
+                _loading = true;
+                RebuildResolutionCombo(size.Width, size.Height);
+                _loading = false;
+            });
         }
         // [END SECTION: Theme Sizes Row]
 

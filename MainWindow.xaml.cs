@@ -335,13 +335,15 @@ namespace ArcadeStick
         {
             if (_viewModel == null) return;
 
-            // Theme Builder on screen in Smart fullscreen: when the active size stops matching the smart layout (any size
-            // change in the builder, a theme load), drop to plain fullscreen at the active size. EndSmartFullscreen refreshes
-            // the theme bindings, which runs ApplyLayout again in full, so this call returns. Gated on IsVisible so the
-            // builder's own close (which restores its snapshot size and re-applies the layout after hiding) changes nothing.
-            if (_smartFullscreenActive && _themeBuilderWindow?.IsVisible == true && !SmartLayoutMatchesActiveSize())
+            // Theme Builder on screen in Smart fullscreen shows only the active size. When the active size changes outside a size
+            // pick or hamburger theme switch (custom size Add, Remove Size, the builder's Load Theme), rerun the size test on it:
+            // ApplySmartFullscreen sets a new display override or ends Smart fullscreen, and both refresh the theme bindings,
+            // which runs ApplyLayout again in full, so this call returns. Gated on IsVisible (the builder's close is handled by
+            // its Closed handler in OpenThemeBuilderWindow). Skipped while RunSizePick or a hamburger theme switch runs
+            // (_deferBuilderDrop): their handlers decide right after the switch.
+            if (_smartFullscreenActive && _themeBuilderWindow?.IsVisible == true && !SmartLayoutMatchesActiveSize() && !_deferBuilderDrop)
             {
-                EndSmartFullscreen();
+                ApplySmartFullscreen();
                 return;
             }
 
@@ -2859,6 +2861,34 @@ namespace ArcadeStick
         // by any other Layout size pick, a theme switch, and EndSmartFullscreen from any cause other than that exit.
         private (int Width, int Height)? _sizeBeforeAutoEnter;
 
+        // True only while RunSizePick or a hamburger theme switch is running its switch: ApplyLayout then skips the Theme Builder
+        // size check, so HandleLayoutSizePickForFullscreen / HandleThemeSwitchForFullscreen decide right after the switch
+        private bool _deferBuilderDrop;
+
+        // Does a size pick (hamburger Layout size, Theme Builder Theme sizes button or size combo) with the Smart fullscreen pick
+        // rules in HandleLayoutSizePickForFullscreen. The handler is skipped only when nothing changed: same active size and
+        // no Smart fullscreen showing another size.
+        public void RunSizePick(Action doSwitch)
+        {
+            var config = _viewModel.Configuration;
+            (int Width, int Height) previousSize = (config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+
+            _deferBuilderDrop = true;
+            try
+            {
+                doSwitch();
+            }
+            finally
+            {
+                _deferBuilderDrop = false;
+            }
+
+            bool sizeChanged = config.ActiveResolutionWidth != previousSize.Width || config.ActiveResolutionHeight != previousSize.Height;
+            if (!sizeChanged && (!_smartFullscreenActive || SmartLayoutMatchesActiveSize())) return;
+
+            HandleLayoutSizePickForFullscreen(config.ActiveResolutionWidth, config.ActiveResolutionHeight, previousSize);
+        }
+
         // Returns true when the smart layout on screen is the active resolution (so Theme Builder edits are visible)
         private bool SmartLayoutMatchesActiveSize()
         {
@@ -2887,19 +2917,15 @@ namespace ArcadeStick
                 return;
             }
 
+            // Candidates: only the active size while the Theme Builder is on screen (it edits that size, which may have only a
+            // working layout); otherwise every size saved in the theme
+            var config = _viewModel.Configuration;
             var dpi = VisualTreeHelper.GetDpi(this);
-            var sizes = _viewModel.Configuration.SavedThemeLayouts.Select(l => (l.Width, l.Height)).Distinct().ToList();
+            var sizes = _themeBuilderWindow?.IsVisible == true
+                ? new List<(int Width, int Height)> { (config.ActiveResolutionWidth, config.ActiveResolutionHeight) }
+                : config.SavedThemeLayouts.Select(l => (l.Width, l.Height)).Distinct().ToList();
             var result = Services.SmartFullscreen.Choose(screenWidth, screenHeight, dpi.DpiScaleX, sizes);
             if (!result.Fits)
-            {
-                EndSmartFullscreen();
-                return;
-            }
-
-            // With the Theme Builder open, Smart fullscreen only shows the active size (the one being edited); otherwise plain
-            var config = _viewModel.Configuration;
-            if (_themeBuilderWindow?.IsVisible == true
-                && (result.LayoutWidth != config.ActiveResolutionWidth || result.LayoutHeight != config.ActiveResolutionHeight))
             {
                 EndSmartFullscreen();
                 return;
@@ -2931,7 +2957,7 @@ namespace ArcadeStick
         // leaving plain fullscreen at the active size (or the normal window). Does nothing while Smart fullscreen is not scaling.
         private void EndSmartFullscreen()
         {
-            // Whatever ends it (exit, auto-drop, Theme Builder drop, preference off, no fit, monitor read failure), a fullscreen
+            // Whatever ends it (exit, auto-drop, preference off, no fit, monitor read failure), a fullscreen
             // left behind is no longer one the launcher may auto-drop, and there is no size to go back to (the F11 exit reads the
             // remembered size before it gets here)
             _smartFullscreenAutoEntered = false;
@@ -2963,10 +2989,10 @@ namespace ArcadeStick
             if (_smartFullscreenActive) ApplySmartFullscreen();
         }
 
-        // Does the Smart fullscreen part of a hamburger Layout size pick; the picked size is already the active size.
+        // Does the Smart fullscreen part of a size pick (RunSizePick); the picked size is already the active size.
         // Preference off: nothing. Windowed: an exact 1x fit for the window's monitor enters Smart fullscreen (auto-entered).
-        // Auto-entered: an exact fit reruns the size test, anything else drops to windowed at the picked size. A Smart
-        // fullscreen the user entered reruns the size test; plain fullscreen is left alone.
+        // Any fullscreen (auto-entered, F11 or plain): an exact fit reruns the size test (which picks it), anything else
+        // drops to windowed at the picked size.
         private void HandleLayoutSizePickForFullscreen(int width, int height, (int Width, int Height) previousSize)
         {
             // Any pick replaces the size an earlier auto-enter would have returned to (an auto-drop goes to the picked size)
@@ -2988,9 +3014,7 @@ namespace ArcadeStick
                 return;
             }
 
-            if (!_smartFullscreenActive) return;
-
-            if (_smartFullscreenAutoEntered && !IsExactFitForMonitor(width, height))
+            if (!IsExactFitForMonitor(width, height))
             {
                 ExitFullscreen();
                 return;
@@ -3000,8 +3024,9 @@ namespace ArcadeStick
         }
 
         // Does the Smart fullscreen part of a hamburger theme switch (the active size is now the new theme's saved size):
-        // an auto-entered fullscreen stays and reruns the size test only if that size is an exact fit, otherwise it drops
-        // to windowed at that size; any other Smart fullscreen reruns the size test. Never enters fullscreen.
+        // an auto-entered fullscreen stays only if that size is an exact fit, otherwise it drops to windowed at that size;
+        // any other fullscreen with the preference on reruns the size test, so a plain fullscreen becomes Smart when it
+        // fits (not auto-entered). Never enters fullscreen from a window.
         private void HandleThemeSwitchForFullscreen()
         {
             _sizeBeforeAutoEnter = null; // a theme switch keeps the new theme's size, never an old one
@@ -3013,7 +3038,7 @@ namespace ArcadeStick
                 return;
             }
 
-            RecomputeSmartFullscreen();
+            if (config.SmartFullscreen && IsFullscreen) ApplySmartFullscreen();
         }
 
         // Reruns the size test when the window has moved to another monitor
@@ -3033,7 +3058,8 @@ namespace ArcadeStick
         }
 
         // Flips the Smart fullscreen preference and saves settings.json. Turning it off while it is scaling drops to plain
-        // fullscreen at the active size; turning it on takes effect the next time fullscreen is entered.
+        // fullscreen at the active size; turning it on in fullscreen runs the size test (Smart when it fits, not auto-entered),
+        // otherwise it takes effect the next time fullscreen is entered.
         private void HamburgerSmartFullscreenMenuItem_Click(object sender, RoutedEventArgs e)
         {
             Dispatcher.BeginInvoke(new Action(() =>
@@ -3041,6 +3067,7 @@ namespace ArcadeStick
                 var config = _viewModel.Configuration;
                 config.SmartFullscreen = !config.SmartFullscreen;
                 if (!config.SmartFullscreen) EndSmartFullscreen();
+                else if (IsFullscreen) ApplySmartFullscreen();
                 _viewModel.PersistConfigurationToDisk();
             }));
         }
@@ -3151,13 +3178,25 @@ namespace ArcadeStick
             {
                 try
                 {
-                    // LoadTheme also switches the active size to the one the theme was saved at
-                    if (_viewModel.LoadTheme(themeName))
+                    // LoadTheme also switches the active size to the one the theme was saved at. The Theme Builder size
+                    // check in ApplyLayout waits (_deferBuilderDrop) so HandleThemeSwitchForFullscreen decides once, after the load.
+                    bool loaded;
+                    _deferBuilderDrop = true;
+                    try
                     {
-                        _viewModel.PersistConfigurationToDisk();
-                        _themeBuilderWindow?.RefreshAfterExternalThemeSwitch();
-                        HandleThemeSwitchForFullscreen(); // the new theme's sizes decide the fullscreen layout
+                        loaded = _viewModel.LoadTheme(themeName);
+                        if (loaded)
+                        {
+                            _viewModel.PersistConfigurationToDisk();
+                            _themeBuilderWindow?.RefreshAfterExternalThemeSwitch();
+                        }
                     }
+                    finally
+                    {
+                        _deferBuilderDrop = false;
+                    }
+
+                    if (loaded) HandleThemeSwitchForFullscreen(); // the new theme's sizes decide the fullscreen layout
                 }
                 catch (Exception ex)
                 {
@@ -3174,23 +3213,15 @@ namespace ArcadeStick
             int width = size.Item1;
             int height = size.Item2;
 
-            // A Smart fullscreen the user entered (F11) only reruns the size test and never writes the active size, so leaving
-            // it with F11 returns to exactly the size from before. Checked before the already-active return, so a click on the
-            // displayed (checked) size cannot write anything either. The auto-entered fullscreen keeps the pick rules below.
-            if (_smartFullscreenActive && !_smartFullscreenAutoEntered)
-            {
-                Dispatcher.BeginInvoke(new Action(RecomputeSmartFullscreen));
-                return;
-            }
+            // Every pick writes the active size (RunSizePick applies the fullscreen rules). The active size picked again is a
+            // pick only while Smart fullscreen shows another size (then the fullscreen pick rules apply); otherwise nothing changes.
+            bool sameSize = width == config.ActiveResolutionWidth && height == config.ActiveResolutionHeight;
+            if (sameSize && (!_smartFullscreenActive || SmartLayoutMatchesActiveSize())) return;
 
-            if (width == config.ActiveResolutionWidth && height == config.ActiveResolutionHeight) return;
-
-            Dispatcher.BeginInvoke(new Action(() =>
+            Dispatcher.BeginInvoke(new Action(() => RunSizePick(() =>
             {
-                var previousSize = (config.ActiveResolutionWidth, config.ActiveResolutionHeight);
-                SwitchActiveLayoutSize(width, height);
-                HandleLayoutSizePickForFullscreen(width, height, previousSize);
-            }));
+                if (width != config.ActiveResolutionWidth || height != config.ActiveResolutionHeight) SwitchActiveLayoutSize(width, height);
+            })));
         }
 
         // Does the active-size switch shared by the Layout size pick and the auto-enter restore: takes the size from the theme's
@@ -3266,13 +3297,19 @@ namespace ArcadeStick
                 return;
             }
 
-            // The builder edits the active resolution: Smart fullscreen stays only while it shows that size, otherwise it drops
-            // to plain fullscreen at the active size first (and stays plain after the builder closes, until toggled again)
-            if (_smartFullscreenActive && !SmartLayoutMatchesActiveSize()) EndSmartFullscreen();
-
             _themeBuilderWindow = new Views.ThemeBuilderWindow(_viewModel) { Owner = this };
-            _themeBuilderWindow.Closed += (s, e) => _themeBuilderWindow = null;
+
+            // After the builder's own Closed handler (snapshot restore): Smart fullscreen goes back to its builder-closed size test
+            _themeBuilderWindow.Closed += (s, e) =>
+            {
+                _themeBuilderWindow = null;
+                RecomputeSmartFullscreen();
+            };
             _themeBuilderWindow.Show();
+
+            // The builder edits the active resolution: while it is on screen Smart fullscreen shows only that size (its own
+            // best scale), so rerun the size test when another size is showing
+            if (_smartFullscreenActive && !SmartLayoutMatchesActiveSize()) ApplySmartFullscreen();
         }
 
         private void HamburgerFullscreenMenuItem_Click(object sender, RoutedEventArgs e)
