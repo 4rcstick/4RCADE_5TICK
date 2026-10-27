@@ -95,19 +95,28 @@ namespace ArcadeStick.Views
         // [SECTION: Theme Serialization Logic]
 
         // [SUB-SECTION: Load Theme]
+        // Set by the Theme Builder window: runs a theme load through the main window's theme switch rules for Smart
+        // fullscreen (MainWindow.RunThemeSwitch). Null runs the load directly.
+        public Action<Func<bool>>? ThemeLoadRunner;
+
         // Loads the selected theme zip through MainViewModel.LoadTheme (which maps theme.json onto _settings),
-        // then refreshes the hosting window's bindings and persists settings.json.
+        // then refreshes the hosting window's bindings and persists settings.json, all through ThemeLoadRunner when set.
         private void BtnLoadTheme_Click(object sender, RoutedEventArgs e)
         {
             if (CboThemePresets.SelectedItem is string selectedTheme && selectedTheme != "[New Theme...]")
             {
                 try
                 {
-                    if (_viewModel.LoadTheme(selectedTheme))
+                    Func<bool> load = () =>
                     {
+                        if (!_viewModel.LoadTheme(selectedTheme)) return false;
                         _refreshOptionsBindings?.Invoke();
                         _persistToDisk?.Invoke();
-                    }
+                        return true;
+                    };
+
+                    if (ThemeLoadRunner != null) ThemeLoadRunner(load);
+                    else load();
                 }
                 catch (Exception ex)
                 {

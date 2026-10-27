@@ -96,6 +96,13 @@ namespace ArcadeStick.Views
                 else run();
             };
 
+            // Load Theme follows the same Smart fullscreen theme switch rules as the hamburger theme switch
+            ThemesManager.ThemeLoadRunner = load =>
+            {
+                if (Owner is MainWindow m) m.RunThemeSwitch(load);
+                else load();
+            };
+
             // Restore point for closing without saving: the layouts and Global values as of window open / last Save Adjustments.
             _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
             _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
@@ -170,6 +177,15 @@ namespace ArcadeStick.Views
             AdvancedTab.ReloadFromSettings();
             _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
             _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
+        }
+
+        // Called by MainWindow right after creating the builder when its open adopted Smart fullscreen's shown size as the
+        // active size: closing without saving goes back to the size active before that adopt. Only the size restore point
+        // moves; Save Adjustments, Save Changes and Load Theme still move it to the current active size.
+        public void SetSizeRestorePoint(int width, int height)
+        {
+            _resolutionWidthAtLastSave = width;
+            _resolutionHeightAtLastSave = height;
         }
         // [END SECTION: Constructor & Tab Initialization]
 
