@@ -101,6 +101,7 @@ namespace ArcadeStick
             // the host quietly does nothing and the preview slot just stays empty.
             _previewPlayer = new ArcadeStick.Playback.PreviewPlayerHost(
             _viewModel.Configuration.GetFfmpegRuntimeDirectory(), VideoPreviewLayer.PreviewVideoSurface);
+            _previewPlayer.StateChanged += PreviewPlayer_StateChanged;
 
             _romCopyService = new RomCopyService(_viewModel.Configuration);
 
@@ -1255,7 +1256,7 @@ namespace ArcadeStick
 
         // [SECTION: Video Preview & Media Cleanup]
         // Manages the FFmpeg preview player's visibility and playback state as game selection changes.
-        // NOTE: known beta trade-off - preview stays black after returning from MAME until reselection.
+        // Returning from MAME restarts the preview through GameLaunchCompleted -> RefreshVideoPreview.
 
         // Fired whenever the ViewModel's SelectedGame/VideoSourcePath actually resolves (post-debounce) -
         // starts/stops video preview here rather than in GameTree_SelectedItemChanged, so rapid gamepad
@@ -1361,14 +1362,18 @@ namespace ArcadeStick
 
         // [SECTION: FFmpeg Preview Player]
         // Game-preview video plays through the FFmpeg player (PreviewPlayerHost), drawing into the Image in
-        // VideoPreviewLayer. It loops on its own and is muted. If the runtime failed to load the host does
-        // nothing, so the slot just stays empty.
+        // VideoPreviewLayer. It loops on its own and plays without audio (no audio session, the stopwatch clocks it).
+        // If the runtime failed to load the host does nothing, so the slot just stays empty. A failed preview restarts
+        // itself (see Preview Auto-Restart below).
         private void StartActivePreview(string path)
         {
             if (_previewPlayer == null || !_previewPlayer.IsAvailable) return;
 
             // A theme can hide the Video Preview layer; don't decode video nobody can see.
             if (VideoPreviewLayer.Visibility != Visibility.Visible) return;
+
+            // Every explicit play (a selection, returning from a game, a spin) starts a fresh restart count
+            ResetPreviewRestartState(System.IO.Path.GetFullPath(path));
 
             UpdatePreviewTargetSize();
             VideoPreviewLayer.PreviewVideoSurface.Visibility = Visibility.Visible;
@@ -1381,11 +1386,115 @@ namespace ArcadeStick
             StopMediaElementPreview();
         }
 
+        // Does the stop: cancels any pending auto-restart, stops the player and hides its surface
         private void StopMediaElementPreview()
         {
+            ResetPreviewRestartState(null);
             _previewPlayer?.Stop();
             VideoPreviewLayer.PreviewVideoSurface.Visibility = Visibility.Collapsed;
         }
+
+        // [SECTION: Preview Auto-Restart]
+        // When the preview reports Error for the source it is playing, it is restarted from the start after 500 ms,
+        // at most 3 times per source. The count resets on every explicit play or stop, and when the preview has played
+        // 30 seconds since its last restart. No restart while a game runs, while the Options window has the preview
+        // paused, or while the preview is hidden. Each failure is logged to 4rcade5tick_files/logs/preview.log.
+        private const int MaxPreviewRestarts = 3;
+        private static readonly TimeSpan PreviewRestartDelay = TimeSpan.FromMilliseconds(500);
+        private static readonly TimeSpan PreviewRestartResetAfter = TimeSpan.FromSeconds(30);
+
+        private bool _previewAutoRestartEnabled = true;
+        private string? _previewSourcePath;      // full path of the source the preview was asked to play, null when stopped
+        private int _previewRestartAttempts;      // restarts already made for _previewSourcePath
+        private DateTime? _previewPlayingSince;   // when the current attempt reached Playing, null until it does
+        private DispatcherTimer? _previewRestartTimer;
+
+        // Does the switch for the auto-restart (attract mode can turn it off to handle failures itself); off also cancels a pending restart
+        public void SetPreviewAutoRestart(bool enabled)
+        {
+            _previewAutoRestartEnabled = enabled;
+            if (!enabled) _previewRestartTimer?.Stop();
+        }
+
+        // Does the reset for a new play (sourcePath) or a stop (null): cancels a pending restart and clears the count
+        private void ResetPreviewRestartState(string? sourcePath)
+        {
+            _previewRestartTimer?.Stop();
+            _previewSourcePath = sourcePath;
+            _previewRestartAttempts = 0;
+            _previewPlayingSince = null;
+        }
+
+        // Does the reaction to the player's state: notes when playback is running, and on Error for the current source logs it and schedules a restart
+        private void PreviewPlayer_StateChanged(object? sender, ArcadeStick.Playback.PlayerStateChanged change)
+        {
+            if (_previewSourcePath == null || !string.Equals(change.SourcePath, _previewSourcePath, StringComparison.OrdinalIgnoreCase)) return;
+
+            if (change.State == ArcadeStick.Playback.PlayerState.Playing)
+            {
+                _previewPlayingSince ??= DateTime.Now;
+                return;
+            }
+            if (change.State != ArcadeStick.Playback.PlayerState.Error) return;
+
+            if (_previewPlayingSince is DateTime since && DateTime.Now - since >= PreviewRestartResetAfter) _previewRestartAttempts = 0;
+            _previewPlayingSince = null;
+
+            int attempt = _previewRestartAttempts;
+            string? blocked = GetPreviewRestartBlocker() ?? (attempt >= MaxPreviewRestarts ? "restart limit reached" : null);
+            if (blocked == null)
+            {
+                _previewRestartAttempts++;
+                _previewRestartTimer ??= CreatePreviewRestartTimer();
+                _previewRestartTimer.Stop();
+                _previewRestartTimer.Start();
+            }
+
+            LogPreviewFailure(change, attempt, blocked == null ? $"yes (restart {attempt + 1} of {MaxPreviewRestarts})" : $"no ({blocked})");
+        }
+
+        // Does the one-shot 500 ms timer that runs the restart
+        private DispatcherTimer CreatePreviewRestartTimer()
+        {
+            var timer = new DispatcherTimer { Interval = PreviewRestartDelay };
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                // Conditions can change during the delay; a stop or new play has already cancelled this timer
+                if (_previewSourcePath == null || GetPreviewRestartBlocker() != null) return;
+                _previewPlayer?.Restart();
+            };
+            return timer;
+        }
+
+        // Does the restart check: the reason a restart must not run now, or null when it may
+        private string? GetPreviewRestartBlocker()
+        {
+            if (!_previewAutoRestartEnabled) return "auto-restart disabled";
+            if (_previewPlayer == null || !_previewPlayer.IsAvailable) return "player unavailable";
+            if (_gameBeingLaunched != null) return "game running";
+            if (_isOptionsWindowOpen) return "Options window open";
+            if (VideoPreviewLayer.Visibility != Visibility.Visible || VideoPreviewLayer.PreviewVideoSurface.Visibility != Visibility.Visible) return "preview hidden";
+            return null;
+        }
+
+        // Does the failure log: appends one timestamped line to 4rcade5tick_files/logs/preview.log (failures only, never during playback)
+        private void LogPreviewFailure(ArcadeStick.Playback.PlayerStateChanged change, int attempt, string retry)
+        {
+            try
+            {
+                string directory = System.IO.Path.Combine(_viewModel.Configuration.GetArcadeStickFilesPath(), "logs");
+                Directory.CreateDirectory(directory);
+                string line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}  error=\"{change.Error}\"  source=\"{change.SourcePath}\"  " +
+                    $"attempt={attempt}  window={(IsActive ? "active" : "inactive")},{WindowState}  retry={retry}{Environment.NewLine}";
+                File.AppendAllText(System.IO.Path.Combine(directory, "preview.log"), line);
+            }
+            catch (Exception exception)
+            {
+                System.Diagnostics.Debug.WriteLine($"PreviewPlayer: could not write preview.log: {exception.Message}");
+            }
+        }
+        // [END SECTION: Preview Auto-Restart]
 
         // Tells the decoder how many pixels the Video Preview's media slot occupies (from the layer entry,
         // scaled by the screen DPI and Smart fullscreen's factor), so the picture is decoded at the size it is shown at.

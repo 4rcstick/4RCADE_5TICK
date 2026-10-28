@@ -15,6 +15,10 @@ internal sealed class PreviewPlayerHost
     public string? LoadError { get; }
     public bool IsAvailable => presenter is not null && !closed;
 
+    // The presenter's state changes (Error carries the error text and source path), raised on the dispatcher.
+    // Events from a superseded Play / Restart / Stop are already filtered out by the presenter.
+    public event EventHandler<PlayerStateChanged>? StateChanged;
+
     public PreviewPlayerHost(string ffmpegDirectory, Image surface)
     {
         try
@@ -23,6 +27,7 @@ internal sealed class PreviewPlayerHost
             var api = new FFmpegApi(runtime);
             presenter = new VideoPresenter(api, surface);
             presenter.AudioSettings.Muted = true; // Previews are silent until attract mode needs sound.
+            presenter.StateChanged += (_, change) => StateChanged?.Invoke(this, change);
         }
         catch (Exception exception)
         {
@@ -37,7 +42,10 @@ internal sealed class PreviewPlayerHost
     // Decode box in pixels (the Video Preview layer's size).
     public void SetTargetSize(int width, int height) => presenter?.SetTargetSize(width, height);
 
-    public void Play(string path) => _ = RunAsync(p => p.PlayAsync(path));
+    // withAudio off (the default) opens no audio session at all; nothing passes it on yet (kept for the later sound feature).
+    public void Play(string path, bool withAudio = false) => _ = RunAsync(p => p.PlayAsync(path, withAudio));
+    // Reopens the current source from the start with the same audio choice.
+    public void Restart() => _ = RunAsync(p => p.RestartAsync());
     public void Stop() => _ = RunAsync(p => p.StopAsync());
     public void Pause() => _ = RunAsync(p => p.PauseAsync());
     public void Resume() => _ = RunAsync(p => p.ResumeAsync());

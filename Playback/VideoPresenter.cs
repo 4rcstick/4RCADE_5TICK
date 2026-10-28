@@ -29,7 +29,7 @@ internal sealed class VideoPresenter
     private Task stopping = Task.CompletedTask;
     private int requestVersion;
     private bool disposed;
-    private bool desiredPaused, clockInitialized;
+    private bool desiredPaused, clockInitialized, playAudio;
     private VideoInfo? retainedInfo;
     private PlayerState state = PlayerState.Stopped;
     private double sessionStart;
@@ -101,9 +101,11 @@ internal sealed class VideoPresenter
 
     // All public control methods are called on the WPF dispatcher. Replace operations are
     // serialized and superseded requests cannot publish an older source/seek afterwards.
-    public Task PlayAsync(string path)
+    // withAudio opens the audio session (WASAPI, audio clock); off, the stopwatch clocks the video. Restart and seek keep the choice.
+    public Task PlayAsync(string path, bool withAudio = false)
     {
         SourcePath = System.IO.Path.GetFullPath(path);
+        playAudio = withAudio;
         desiredPaused = false;
         return ReplaceAsync(SourcePath, 0, false);
     }
@@ -147,7 +149,7 @@ internal sealed class VideoPresenter
             SeekTarget = seek ? target : null;
             ActualResumedPosition = null;
             sessionStart = target;
-            session = new VideoSession(api, path, AudioSettings, ReadTargetSize, target, desiredPaused);
+            session = new VideoSession(api, path, AudioSettings, ReadTargetSize, target, desiredPaused, playAudio);
         }
         finally { changes.Release(); PublishState(); }
     }
@@ -298,6 +300,14 @@ internal sealed class VideoPresenter
         if (!desiredPaused && !preview) clock.Start();
         double now = desiredPaused || preview ? pending!.PresentationSeconds :
             session.HasAudio ? session.Audio!.State!.Clock : clockOrigin + clock.Elapsed.TotalSeconds;
+        // The stopwatch keeps running while composition is stopped (minimized window) but the decoder waits on the full
+        // queue, and nothing drops late frames on this path. Rebase onto the next frame instead of fast-forwarding the backlog.
+        if (!desiredPaused && !preview && !session.HasAudio && pending!.PresentationSeconds < now - 0.5)
+        {
+            clockOrigin = pending.PresentationSeconds;
+            clock.Restart();
+            now = clockOrigin;
+        }
         VideoFrame? display = null;
         while (pending is not null && pending.PresentationSeconds <= now + 0.001)
         {

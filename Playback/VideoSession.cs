@@ -51,12 +51,15 @@ internal sealed class VideoSession
     public bool TryRead(out VideoFrame? frame) => frames.Reader.TryRead(out frame);
 
     private readonly Func<(int Width, int Height)> targetSize;
+    private readonly bool playAudio;
 
-    public VideoSession(FFmpegApi api, string path, AudioSettings settings, Func<(int Width, int Height)> targetSize, double startSeconds = 0, bool paused = false)
+    // playAudio false never opens an AudioSession or WASAPI: the presenter's stopwatch is the clock, as for files with no audio stream.
+    public VideoSession(FFmpegApi api, string path, AudioSettings settings, Func<(int Width, int Height)> targetSize, double startSeconds = 0, bool paused = false, bool playAudio = false)
     {
         this.api = api;
         this.targetSize = targetSize;
         this.startSeconds = startSeconds;
+        this.playAudio = playAudio;
         Paused = paused;
         Path = System.IO.Path.GetFullPath(path);
         worker = Task.Factory.StartNew(() =>
@@ -127,7 +130,7 @@ internal sealed class VideoSession
             double duration = streamDuration > 0 ? streamDuration * timeBase.Value :
                 Math.Max(0, Read<long>(format, AVFormatContext_duration) / 1_000_000.0);
             nint audioDecoder = 0;
-            int audioIndex = api.FindBestStream(format, AudioMediaType, -1, streamIndex, &audioDecoder, 0);
+            int audioIndex = playAudio ? api.FindBestStream(format, AudioMediaType, -1, streamIndex, &audioDecoder, 0) : StreamNotFound;
             if (audioIndex < 0 && audioIndex != StreamNotFound) api.Check(audioIndex, "Find audio stream/decoder");
             HasAudio = audioIndex >= 0;
             long formatStart = Read<long>(format, AVFormatContext_start_time);
