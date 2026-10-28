@@ -2428,9 +2428,10 @@ namespace ArcadeStick
             FolderNameInputPlaceholder.Visibility = Visibility.Visible;
             FolderNameInputPopup.PlacementTarget = GameTree;
             FolderNameInputPopup.Placement = PlacementMode.MousePoint;
-            // Layout units: this Popup sits inside RootLayoutGrid, so WPF applies Smart fullscreen's inherited scale to the offsets too
-            FolderNameInputPopup.HorizontalOffset = -20;
-            FolderNameInputPopup.VerticalOffset = -18;
+            // This Popup sits inside RootLayoutGrid, so WPF applies the canvas scale f to the offsets; times m / f they follow the
+            // popup's content, which draws at the menus' scale m (Launcher.InheritedPopupScale)
+            FolderNameInputPopup.HorizontalOffset = -20 * _inheritedPopupFactor;
+            FolderNameInputPopup.VerticalOffset = -18 * _inheritedPopupFactor;
             FolderNameInputPopup.IsOpen = true;
 
             Dispatcher.BeginInvoke(new Action(() =>
@@ -2952,20 +2953,26 @@ namespace ArcadeStick
         // [END SECTION: Fullscreen Toggle]
 
         // [SECTION: Smart Fullscreen]
-        // Session-only whole-number upscale in fullscreen (smart-fullscreen-pass1.md). The size test picks one of the theme's
-        // saved layout sizes and a scale n for the window's monitor in physical pixels; RootLayoutGrid (wallpaper, video,
-        // background grid, LayoutCanvas and the guides) is sized to that layout, scaled by n / dpiScale with a LayoutTransform
+        // Session-only upscale in fullscreen (smart-fullscreen-pass1.md). The size test picks one of the theme's saved layout
+        // sizes and a whole-number scale n for the window's monitor in physical pixels, or a fractional scale s when no size
+        // fills the screen at a whole number (the fallback, never while the Theme Builder is on screen); RootLayoutGrid
+        // (wallpaper, video, background grid, LayoutCanvas and the guides) is sized to that layout, scaled by scale / dpiScale with a LayoutTransform
         // (cancelling the Windows scale) and centered on a black window background, so any leftover screen is black bars.
         // Layout rounding is off on the grid while scaled: WPF rounds to device pixels ignoring the transform, which would
         // put whole layout units on fractional pixels at 125% / 150%. The picked size is a view model display override only.
         private bool _smartFullscreenActive;
         private IntPtr _smartFullscreenMonitor;
         private double _layoutScaleFactor = 1; // WPF units per layout unit; 1 unless Smart fullscreen is scaling
+        private bool _smartFullscreenFromFallback; // the size test's pick came from the fractional fallback; cleared by EndSmartFullscreen
 
-        // Window resources read by the main window's menus, popups and tooltips (MainWindow.xaml, Smart Fullscreen Popup Scale).
-        // Set only in ApplySmartFullscreen and put back to the defaults (no scale, rounding on) only in EndSmartFullscreen.
+        // Window resources read by the main window's menus, popups and tooltips (MainWindow.xaml, Smart Fullscreen Popup Scale):
+        // PopupScale is the menus' scale m (the whole-number part of the canvas scale), InheritedPopupScale is m / f for the two
+        // folder popups, which inherit the canvas factor f. Set only in ApplySmartFullscreen and put back to the defaults (no
+        // scale, rounding on) only in EndSmartFullscreen.
         private const string PopupScaleKey = "Launcher.PopupScale";
+        private const string InheritedPopupScaleKey = "Launcher.InheritedPopupScale";
         private const string PopupLayoutRoundingKey = "Launcher.PopupLayoutRounding";
+        private double _inheritedPopupFactor = 1; // m / f (InheritedPopupScale); 1 unless Smart fullscreen shows a fractional scale
 
         // Session-only (Pass 3): true while the launcher itself entered Smart fullscreen from an exact-fit Layout size pick.
         // Only that fullscreen may be auto-dropped. Cleared by every manual toggle and by EndSmartFullscreen from any cause.
@@ -3033,14 +3040,15 @@ namespace ArcadeStick
                 return;
             }
 
-            // Candidates: only the active size while the Theme Builder is on screen (it edits that size, which may have only a
-            // working layout); otherwise every size saved in the theme
+            // Candidates: only the active size at its whole-number scale while the Theme Builder is on screen (it edits that
+            // size, which may have only a working layout); otherwise every size saved in the theme, with the fractional fallback
             var config = _viewModel.Configuration;
             var dpi = VisualTreeHelper.GetDpi(this);
-            var sizes = _themeBuilderWindow?.IsVisible == true
+            bool builderOnScreen = _themeBuilderWindow?.IsVisible == true;
+            var sizes = builderOnScreen
                 ? new List<(int Width, int Height)> { (config.ActiveResolutionWidth, config.ActiveResolutionHeight) }
                 : config.SavedThemeLayouts.Select(l => (l.Width, l.Height)).Distinct().ToList();
-            var result = Services.SmartFullscreen.Choose(screenWidth, screenHeight, dpi.DpiScaleX, sizes);
+            var result = Services.SmartFullscreen.Choose(screenWidth, screenHeight, dpi.DpiScaleX, sizes, allowFractional: !builderOnScreen);
             if (!result.Fits)
             {
                 EndSmartFullscreen();
@@ -3050,6 +3058,7 @@ namespace ArcadeStick
             _smartFullscreenActive = true;
             _smartFullscreenMonitor = monitor;
             _layoutScaleFactor = result.TransformFactor;
+            _smartFullscreenFromFallback = result.FromFallback;
 
             var scale = new ScaleTransform(result.TransformFactor, result.TransformFactor);
             scale.Freeze();
@@ -3061,8 +3070,17 @@ namespace ArcadeStick
             RootLayoutGrid.UseLayoutRounding = false;
             Background = Brushes.Black;
 
-            // Menus, popups and tooltips are separate windows: the same factor reaches them through the window resources
-            Resources[PopupScaleKey] = scale;
+            // Menus, popups and tooltips are separate windows: they get the whole-number part of the scale, m, through the window
+            // resources (equal to the canvas factor unless the fallback picked a fractional scale); the two folder popups inherit
+            // the canvas factor f, so their resource is m / f
+            double popupFactor = Services.SmartFullscreen.PopupFactor(result.Scale, dpi.DpiScaleX);
+            _inheritedPopupFactor = popupFactor / result.TransformFactor;
+            var popupScale = new ScaleTransform(popupFactor, popupFactor);
+            popupScale.Freeze();
+            var inheritedPopupScale = new ScaleTransform(_inheritedPopupFactor, _inheritedPopupFactor);
+            inheritedPopupScale.Freeze();
+            Resources[PopupScaleKey] = popupScale;
+            Resources[InheritedPopupScaleKey] = inheritedPopupScale;
             Resources[PopupLayoutRoundingKey] = false;
 
             // Refreshes the theme bindings, which re-applies the layout (and the decode sizes with the new factor)
@@ -3084,6 +3102,7 @@ namespace ArcadeStick
             _smartFullscreenActive = false;
             _smartFullscreenMonitor = IntPtr.Zero;
             _layoutScaleFactor = 1;
+            _smartFullscreenFromFallback = false;
 
             RootLayoutGrid.ClearValue(FrameworkElement.LayoutTransformProperty);
             RootLayoutGrid.ClearValue(FrameworkElement.WidthProperty);
@@ -3094,7 +3113,9 @@ namespace ArcadeStick
             ClearValue(BackgroundProperty);
 
             Resources[PopupScaleKey] = Transform.Identity;
+            Resources[InheritedPopupScaleKey] = Transform.Identity;
             Resources[PopupLayoutRoundingKey] = true;
+            _inheritedPopupFactor = 1;
 
             _viewModel.SetDisplayLayoutOverride(null);
         }
@@ -3458,6 +3479,10 @@ namespace ArcadeStick
                 if (config.SmartFullscreen && IsFullscreen) ApplySmartFullscreen();
             };
             _themeBuilderWindow.Show();
+
+            // The fractional fallback never applies while the builder is on screen: rerun so it opens at the whole-number
+            // scale (the size already matches, so the ApplyLayout check would not); the close rerun brings the fallback back
+            if (_smartFullscreenFromFallback) ApplySmartFullscreen();
         }
 
         private void HamburgerFullscreenMenuItem_Click(object sender, RoutedEventArgs e)
