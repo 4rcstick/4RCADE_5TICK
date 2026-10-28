@@ -426,6 +426,10 @@ namespace ArcadeStick.Models
         // around it and X / Y at the ring's outer corner
         public static bool HasOutsideBorder(string id) => HasBorderTab(id) || id == RandomGameDisplay || id == RandomGameDisplaySplash;
 
+        // Does the new size scaler's mismatch rule: true for the layers that only move (X / Y), keeping their size, fonts and
+        // borders, when "scale everything" runs on a different aspect ratio (the Search & Buttons group)
+        public static bool IsPositionOnlyOnMismatch(string id) => GetDefinition(id)?.GroupId == SearchAndButtonsGroup;
+
         // Layers drawn as a bordered box with a fill and an optional image or video: the shape layers and the
         // custom layers. They share one renderer, one tab set and the visibility dropdown.
         public static bool IsBoxId(string id) => IsShapeId(id) || IsCustomId(id);
@@ -999,6 +1003,13 @@ namespace ArcadeStick.Models
         public const int DefaultNavSize = 9;
         public const int MinNavSize = 4;
         public const int MaxNavSize = 40;
+
+        // Text size and border size ranges of the Advanced tab's fields (the fields keep their own literals); the new size
+        // scaler clamps to these
+        public const int MinTextFontSize = 6;
+        public const int MaxTextFontSize = 72;
+        public const int MinBorderSize = 0;
+        public const int MaxBorderSize = 50;
 
         // Random Game Display spin card defaults (the old hard-coded look: bold Segoe UI in the folder cyan on black,
         // square and unbordered). The max sizes match what the old fill-the-box text came to at the default rects.

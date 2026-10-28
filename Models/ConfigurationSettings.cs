@@ -91,6 +91,10 @@ namespace ArcadeStick.Models
         // layout and whole-number scale that best fill the screen in physical pixels, cancelling the Windows scale.
         public bool SmartFullscreen { get; set; } = false;
 
+        // New size scaler (editor preference, not part of any theme file): the choice last confirmed on a close aspect ratio in
+        // the Theme Builder's "New size layout" prompt, preselected next time. "A" scale everything, "B" positions only, "C" keep.
+        public string NewSizeScaleChoice { get; set; } = "C";
+
         // Snapshot of the active theme's layouts as last loaded from or saved to the theme file. Used as
         // the restore point for Reset Layer / Reset Layout. Never written to settings.json.
         [System.Text.Json.Serialization.JsonIgnore]

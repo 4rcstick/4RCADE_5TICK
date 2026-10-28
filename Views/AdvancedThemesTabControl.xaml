@@ -47,9 +47,6 @@
                     <Button x:Name="BtnAddCustomRes" Content="Apply" Click="BtnAddCustomRes_Click"
                             Style="{StaticResource ThemedActionButtonStyle}"
                             FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
-                    <Button x:Name="BtnKeepCustomRes" Content="Keep" Click="BtnKeepCustomRes_Click"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
                 </StackPanel>
 
                 <TextBlock Grid.Column="0" Text="Resolution:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>

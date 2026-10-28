@@ -1,4 +1,5 @@
 ﻿using ArcadeStick.Models;
+using ArcadeStick.Services;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -644,6 +645,94 @@ namespace ArcadeStick.Views
         // Builds one name prompt button on the shared action button style (the Global button values come from the style)
         private Button MakePromptButton(string content) =>
             new Button { Content = content, Width = 70, Padding = new Thickness(0, 3, 0, 3), Style = (Style)FindResource("ThemedActionButtonStyle") };
+
+        // "New size layout" prompt built in code like the name prompt (new-size-scaler.md): shows the sizes, the factors and,
+        // when they differ, an aspect ratio warning, with one radio button per LayoutScaler choice. The remembered choice is
+        // preselected unless the ratio is far off (then "keep"). Returns the choice, or null if cancelled. OK on a close ratio
+        // remembers the choice in memory only (Save Adjustments writes settings.json); OK on a far-off ratio leaves it alone.
+        private string? PromptForNewSizeScale(int oldWidth, int oldHeight, int newWidth, int newHeight)
+        {
+            var factors = LayoutScaler.GetFactors(oldWidth, oldHeight, newWidth, newHeight);
+            bool farOff = LayoutScaler.IsFarOffRatio(oldWidth, oldHeight, newWidth, newHeight);
+            string fx = LayoutScaler.FormatFactor(factors.Fx);
+            string fy = LayoutScaler.FormatFactor(factors.Fy);
+
+            var panel = new StackPanel { Margin = new Thickness(14) };
+            panel.Children.Add(MakePromptLine($"Adding {newWidth} x {newHeight} from {oldWidth} x {oldHeight}"));
+            panel.Children.Add(MakePromptLine($"Width x{fx}, height x{fy}"));
+            if (LayoutScaler.FactorsDiffer(factors))
+                panel.Children.Add(MakePromptLine($"Aspect ratio differs: positions stretch to fill; text and borders follow x{LayoutScaler.FormatFactor(factors.U)}"));
+
+            var choices = new (string Choice, string Label)[]
+            {
+                (LayoutScaler.ChoiceScaleAll, "Scale everything (positions, sizes, fonts, borders)"),
+                (LayoutScaler.ChoicePositionsOnly, "Scale positions only"),
+                (LayoutScaler.ChoiceKeep, "Keep the layout as is")
+            };
+            string remembered = LayoutScaler.IsChoice(_settings.NewSizeScaleChoice) ? _settings.NewSizeScaleChoice : LayoutScaler.ChoiceKeep;
+            string preselected = farOff ? LayoutScaler.ChoiceKeep : remembered;
+
+            var radios = new List<(RadioButton Radio, string Choice)>();
+            var radioPanel = new StackPanel { Margin = new Thickness(0, 8, 0, 12) };
+            foreach (var (choice, label) in choices)
+            {
+                var radio = new RadioButton
+                {
+                    Content = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap },
+                    GroupName = "NewSizeScale",
+                    IsChecked = choice == preselected,
+                    Margin = new Thickness(0, 3, 0, 3),
+                    VerticalContentAlignment = VerticalAlignment.Center
+                };
+                radio.SetResourceReference(Control.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardColor);
+                radio.SetResourceReference(Control.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardSize);
+                radios.Add((radio, choice));
+                radioPanel.Children.Add(radio);
+            }
+            panel.Children.Add(radioPanel);
+
+            var okButton = MakePromptButton("OK");
+            okButton.IsDefault = true;
+            okButton.Margin = new Thickness(0, 0, 8, 0);
+            var cancelButton = MakePromptButton("Cancel");
+            cancelButton.IsCancel = true;
+
+            var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            buttons.Children.Add(okButton);
+            buttons.Children.Add(cancelButton);
+            panel.Children.Add(buttons);
+
+            var prompt = new Window
+            {
+                Title = "New size layout",
+                Content = panel,
+                Width = 420,
+                SizeToContent = SizeToContent.Height,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                ShowInTaskbar = false
+            };
+            prompt.SetResourceReference(Window.BackgroundProperty, "ChromeWindowBg");
+
+            okButton.Click += (s, args) => prompt.DialogResult = true;
+            prompt.Loaded += (s, args) => radios.First(r => r.Radio.IsChecked == true).Radio.Focus();
+
+            if (prompt.ShowDialog() != true) return null;
+
+            string picked = radios.First(r => r.Radio.IsChecked == true).Choice;
+            if (!farOff) _settings.NewSizeScaleChoice = picked;
+            return picked;
+        }
+
+        // Builds one wrapped text line for a code-built prompt in the Global Standard font
+        private static TextBlock MakePromptLine(string text)
+        {
+            var line = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 4) };
+            line.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardColor);
+            line.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardSize);
+            return line;
+        }
 
         // Remove: deletes the selected custom layer at this resolution only (other resolutions are untouched).
         private void BtnRemoveLayer_Click(object sender, RoutedEventArgs e)
@@ -3454,7 +3543,8 @@ namespace ArcadeStick.Views
             else doSwitch();
         }
 
-        // Does the combo pick: a different size goes through RunSizePick, anything else ("Custom...", same size) applies directly
+        // Does the combo pick: a different size goes through RunSizePick, anything else ("Custom...", same size) applies directly.
+        // A size with no layout first asks the "New size layout" prompt (see BeginNewSizePick).
         private void CboResolution_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading) return;
@@ -3462,12 +3552,85 @@ namespace ArcadeStick.Views
             if (CboResolution.SelectedItem is ResolutionPreset preset
                 && (preset.Width != _currentLayout.Width || preset.Height != _currentLayout.Height))
             {
+                if (IsNewSize(preset.Width, preset.Height))
+                {
+                    BeginNewSizePick(preset, sender, e);
+                    return;
+                }
+
                 RunSizePick(() => CboResolutionApply(sender, e));
                 return;
             }
 
             CboResolutionApply(sender, e);
         }
+
+        // [SECTION: New Size Prompt]
+        // The scale choice for the new-size copy about to be made (set right before the switch, read and cleared by
+        // ScaleNewSizeCopy). Null copies 1:1, as before the scaler.
+        private string? _newSizeScaleChoice;
+
+        // Returns true when no working layout exists at width x height, so switching there creates a new size
+        private bool IsNewSize(int width, int height) =>
+            !_settings.Layouts.Any(l => l.Width == width && l.Height == height);
+
+        // Does a combo pick of a new size: puts the combo back on the current size at once, then, after the dropdown has
+        // closed (a modal dialog over an open dropdown is avoided), asks the prompt; OK selects the size again under
+        // _loading and runs the normal pick through RunSizePick, Cancel leaves the combo as it is.
+        private void BeginNewSizePick(ResolutionPreset preset, object sender, SelectionChangedEventArgs e)
+        {
+            RestoreResolutionComboSelection();
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_currentLayout == null || !IsNewSize(preset.Width, preset.Height)) return;
+                if (preset.Width == _currentLayout.Width && preset.Height == _currentLayout.Height) return;
+
+                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, preset.Width, preset.Height);
+                if (choice == null) return;
+
+                _loading = true;
+                CboResolution.SelectedItem = preset;
+                _loading = false;
+
+                RunNewSizeSwitch(choice, () => RunSizePick(() => CboResolutionApply(sender, e)));
+            }), System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        // Does a switch that creates a new size with the given scale choice, clearing the choice afterwards
+        private void RunNewSizeSwitch(string choice, Action doSwitch)
+        {
+            _newSizeScaleChoice = choice;
+            try
+            {
+                doSwitch();
+            }
+            finally
+            {
+                _newSizeScaleChoice = null;
+            }
+        }
+
+        // Does the combo restore after a cancelled or deferred new size: "Custom..." while a pending size is active,
+        // otherwise the current layout's size, under _loading so it does not re-trigger the selection handler
+        private void RestoreResolutionComboSelection()
+        {
+            bool onPending = _pendingSize != null && _pendingSize.Width == _currentLayout.Width && _pendingSize.Height == _currentLayout.Height;
+            _loading = true;
+            if (onPending) CboResolution.SelectedItem = "Custom...";
+            else CboResolution.SelectedItem = new ResolutionPreset(_currentLayout.Width, _currentLayout.Height);
+            _loading = false;
+        }
+
+        // Scales a fresh new-size copy (after its background was resized to fit) from the layout being edited, by the choice
+        // the prompt set; the copy only, never _currentLayout or SavedThemeLayouts
+        private void ScaleNewSizeCopy(ThemeLayout copy)
+        {
+            string? choice = _newSizeScaleChoice;
+            _newSizeScaleChoice = null;
+            LayoutScaler.Scale(copy.Layers, _currentLayout.Width, _currentLayout.Height, copy.Width, copy.Height, choice);
+        }
+        // [END SECTION: New Size Prompt]
 
         // Switching resolution: a size with no saved layout starts as a copy of the layout that was just
         // being edited (background resized to fit); a size that already has one is loaded as-is.
@@ -3526,6 +3689,7 @@ namespace ArcadeStick.Views
                 {
                     entry.X = 0; entry.Y = 0; entry.Width = preset.Width; entry.Height = preset.Height;
                 }
+                ScaleNewSizeCopy(saved);
             }
 
             StopPreviews();
@@ -3546,11 +3710,12 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: Custom Resolutions]
-        // A custom size that was applied but not yet kept. It becomes permanent when Save Adjustments (or a
-        // theme save) calls CommitPendingSize; switching to any other size before that discards it.
+        // A new custom size not yet committed. Apply commits it at once; a Theme sizes button for a custom size removed but not
+        // saved leaves it pending until Apply, Save Adjustments or a theme save calls CommitPendingSize; switching to any other
+        // size before that discards it.
         private ResolutionPreset? _pendingSize;
 
-        // Keeps the pending size: it joins the combo box from now on.
+        // Commits the pending size: it joins the combo box from now on.
         public void CommitPendingSize()
         {
             if (_pendingSize == null || _currentLayout == null) return;
@@ -3652,6 +3817,7 @@ namespace ArcadeStick.Views
                 {
                     entry.X = 0; entry.Y = 0; entry.Width = width; entry.Height = height;
                 }
+                ScaleNewSizeCopy(saved);
             }
 
             StopPreviews();
@@ -3669,7 +3835,10 @@ namespace ArcadeStick.Views
             RebuildLayerList(selectedId);
         }
 
-        // Add: the only check is whole numbers greater than zero - anything else is up to the user.
+        // Apply (the Add button, or Enter in the boxes): switches to the typed size and commits it at once, so it joins the combo
+        // box and the entry row closes (in memory only - Save Adjustments and Save Changes still write settings.json and the
+        // theme zip). The current size just commits a pending size and closes the row. The only check is whole numbers greater
+        // than zero - anything else is up to the user.
         private void BtnAddCustomRes_Click(object sender, RoutedEventArgs e)
         {
             if (!int.TryParse(TxtCustomWidth.Text.Trim(), out int w) || !int.TryParse(TxtCustomHeight.Text.Trim(), out int h) || w <= 0 || h <= 0)
@@ -3680,27 +3849,28 @@ namespace ArcadeStick.Views
 
             if (w == _currentLayout.Width && h == _currentLayout.Height)
             {
-                bool stillPending = _pendingSize != null && _pendingSize.Width == w && _pendingSize.Height == h;
-                if (!stillPending) PnlCustomRes.Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            SwitchToResolution(w, h);
-        }
-
-        // Keep: commits the pending size so it joins the combo box (in memory only - Save Adjustments and
-        // Save Changes still write settings.json and the theme zip).
-        private void BtnKeepCustomRes_Click(object sender, RoutedEventArgs e)
-        {
-            if (_pendingSize == null)
-            {
+                CommitPendingSize();
                 PnlCustomRes.Visibility = Visibility.Collapsed;
                 return;
             }
 
+            // A size with no layout asks the "New size layout" prompt first; Cancel leaves the entry row and any pending size as they were
+            if (IsNewSize(w, h))
+            {
+                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, w, h);
+                if (choice == null) return;
+                RunNewSizeSwitch(choice, () => SwitchToResolution(w, h));
+            }
+            else
+            {
+                SwitchToResolution(w, h);
+            }
+
             CommitPendingSize();
+            PnlCustomRes.Visibility = Visibility.Collapsed;
         }
 
+        // Applies the custom size on Enter in either box
         private void CustomRes_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
@@ -3801,7 +3971,7 @@ namespace ArcadeStick.Views
             if (sender is not Button button || button.Tag is not ResolutionPreset size) return;
             if (size.Width == _currentLayout.Width && size.Height == _currentLayout.Height) return;
 
-            RunSizePick(() =>
+            Action doPick = () => RunSizePick(() =>
             {
                 SwitchToResolution(size.Width, size.Height);
 
@@ -3809,6 +3979,17 @@ namespace ArcadeStick.Views
                 RebuildResolutionCombo(size.Width, size.Height);
                 _loading = false;
             });
+
+            // A size removed but not saved has no working layout, so it is a new size: ask the "New size layout" prompt first
+            if (IsNewSize(size.Width, size.Height))
+            {
+                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, size.Width, size.Height);
+                if (choice == null) return;
+                RunNewSizeSwitch(choice, doPick);
+                return;
+            }
+
+            doPick();
         }
         // [END SECTION: Theme Sizes Row]
 
