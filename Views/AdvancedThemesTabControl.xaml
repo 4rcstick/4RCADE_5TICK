@@ -4,11 +4,36 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              mc:Ignorable="d">
 
     <!-- The shared control styles this tab uses (PickerPopupGridStyle, GLLabelStyle, GLTextBoxStyle, GLCheckBoxStyle,
          GlyphToggleStyle, ChromeComboBoxStyle, ChromeListBoxStyle) live in App.xaml: [SECTION: Theme Builder Shared Styles]
          and [SECTION: Chrome Control Styles]. -->
+
+    <UserControl.Resources>
+        <!-- [SECTION: Layers Help] -->
+        <!-- The Layers header's help: the tooltip text (one line per point; edit it only here) and the circled ? glyph's look
+             (Chrome Palette only; the ring and the ? turn accent on hover). The tooltip is the default Windows tooltip. -->
+        <sys:String x:Key="LayersHelpText" xml:space="preserve">Right-click a layer to copy its position, size or border, then right-click another layer (or several) to paste.&#10;Ctrl-click or Shift-click to select several layers and move them together with the Move X / Move Y boxes.&#10;Use the arrows beside the list to bring a layer forward or send it backward. Double-click a shape or custom layer to rename it.</sys:String>
+
+        <Style x:Key="LayersHelpGlyphStyle" TargetType="Border">
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ChromeTextMuted}"/>
+            <Setter Property="TextElement.Foreground" Value="{StaticResource ChromeTextMuted}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource ChromeAccent}"/>
+                    <Setter Property="TextElement.Foreground" Value="{StaticResource ChromeAccent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- [END SECTION: Layers Help] -->
+    </UserControl.Resources>
 
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -114,17 +139,35 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Layer list (frontmost at top) with up/down arrows beside it -->
+            <!-- Layer list (frontmost at top) with up/down arrows beside it, under the Layers header -->
             <Grid Grid.Column="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <ListBox x:Name="LstLayers" Grid.Column="0" DisplayMemberPath="DisplayName" SelectionMode="Extended" SelectionChanged="LstLayers_SelectionChanged" MouseDoubleClick="LstLayers_MouseDoubleClick"
+                <!-- Layers header: same font values and bottom margin as TxtLayerName (outside PnlLayerFields, so it always
+                     shows), so the two headings share a top edge. The text is top-aligned so a taller glyph never moves it. -->
+                <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+                    <TextBlock Text="Layers" VerticalAlignment="Top"
+                               Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}"/>
+                    <Border Style="{StaticResource LayersHelpGlyphStyle}" Margin="8,0,0,0" VerticalAlignment="Center"
+                            ToolTipService.InitialShowDelay="300" ToolTipService.ShowDuration="60000">
+                        <Border.ToolTip>
+                            <TextBlock Text="{StaticResource LayersHelpText}" TextWrapping="Wrap" MaxWidth="380"/>
+                        </Border.ToolTip>
+                        <TextBlock Text="?" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </StackPanel>
+
+                <ListBox x:Name="LstLayers" Grid.Row="1" Grid.Column="0" DisplayMemberPath="DisplayName" SelectionMode="Extended" SelectionChanged="LstLayers_SelectionChanged" MouseDoubleClick="LstLayers_MouseDoubleClick"
                          Style="{StaticResource ChromeListBoxStyle}"/>
 
-                <StackPanel Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Top">
+                <StackPanel Grid.Row="1" Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Top">
                     <Button x:Name="BtnLayerUp" Content="&#xE70E;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerUp_Click" ToolTip="Bring forward" Width="30" Height="30" Margin="0,0,0,6"
                             Style="{StaticResource ThemedActionButtonStyle}"/>
                     <Button x:Name="BtnLayerDown" Content="&#xE70D;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerDown_Click" ToolTip="Send backward" Width="30" Height="30" Margin="0,0,0,6"
