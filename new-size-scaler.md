@@ -56,6 +56,10 @@ When a new layout size is created, offer to scale the copied layout instead of a
 - **Persistence:** Apply (and a preset pick) adds the size to the Resolution combo and makes it the working layout. The Theme sizes row reads the saved theme, so it changes only after Save Changes. Save Adjustments writes the working layouts to settings.json, so the size stays in the combo after closing and reopening the builder and after restarting the launcher. Closing the builder without saving removes the new size (close-revert snapshot), and picking it again shows the prompt again. Picking a size that already has a layout never prompts.
 - **Known limits (parked in themes.md 6b):** the Search & Buttons group can overlap when scaling down on a mismatch (at 1024x768 the search box partly covers the search label and the four buttons touch), because positions shrink while sizes do not; image layers (Splash Image, shape layers with a file) distort on a mismatch; a 1px border stays 1px at x1.25 (1.25 rounds down) while a 2px border becomes 3px.
 
+## Third amendment (user, 2026-10-28): the Video Preview keeps its shape on a mismatch
+
+10. **Video Preview only.** When the factors differ (`LayoutScaler.FactorsDiffer`, the same mismatch test, so 1366x768 still counts as matching), choice A scales the `VideoPreview` entry's Width **and** Height by `u = min(fx, fy)` instead of `fx` / `fy`, so the box keeps its own shape. X and Y still scale by `fx` / `fy` (the box stays top-left at its scaled position); BorderSize and fonts keep scaling by `u`; rounding (whole pixels, half away from zero) and clamping are unchanged. Since `u` is not larger than either factor, the box always fits inside the area it would have covered when stretched. On a matching ratio nothing changes; B and C are unchanged; every other layer (the shape layers behind the video panel, the Splash Image and every other image layer included) still stretches per axis. The rule is `LayerRegistry.IsUniformSizeOnMismatch(id)` (true only for `VideoPreview`), called from `LayoutScaler.Scale` at the Width / Height step. This narrows the final decision's "everything stretches per axis" for this one layer; a shape layer drawn as the video's frame or backdrop no longer lines up with it on a mismatch (accepted).
+
 ## STEP 1: read-only audit (no edits)
 
 Report findings, with file and method names, then stop and wait for "go".
@@ -105,3 +109,6 @@ End the audit with a short plan: the new files and methods, the edit list, and t
 20. 720 to 1080 and 720 to 1366x768 with A: the Search & Buttons group scales like everything else.
 21. 720 to 1024x768 and 720 to 1280x800 with A: the Search & Buttons group moves to its scaled positions and keeps its 720 size, fonts and borders. B and C unchanged.
 22. The custom size row shows only Apply; Apply still opens the prompt and commits the size (it joins the combo, the row closes); Save Adjustments and Save Changes still store it; Delete Size and Remove Size still work.
+23. 720 to 1024x768 with A (fx 0.8, fy 1.067, u 0.8): a 480x360 Video Preview at (700, 200) becomes 384x288 (still 4:3) at (560, 213); a shape layer and the Splash Image with the same rect become 384x384 at (560, 213).
+24. 720 to 1920x1080 and 720 to 1366x768 with A: the Video Preview scales like every other layer (720x540, 512x384).
+25. 720 to 1280x800 with A (fx 1.0, fy 1.111, u 1.0): the Video Preview keeps 480x360, its Y scales x1.111 (200 to 222); B and C unchanged on a mismatch.

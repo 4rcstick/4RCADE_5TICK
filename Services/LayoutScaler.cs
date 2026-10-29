@@ -11,7 +11,8 @@ namespace ArcadeStick.Services
     // [SECTION: New Size Layout Scaler]
     // Pure calculation, no UI dependencies (new-size-scaler.md, decision 65). When a new layout size is created from the
     // layout being edited, the copy can be scaled: A scales X / Y and Width / Height by Fx / Fy on every positionable layer,
-    // and font and border sizes by U (on a different aspect ratio the Search & Buttons group only moves, as with B); B scales
+    // and font and border sizes by U (on a different aspect ratio the Search & Buttons group only moves, as with B, and the
+    // Video Preview's Width / Height both scale by U so it keeps its shape); B scales
     // X / Y only; C changes nothing. Rounding is half away from zero, font and border sizes are clamped to their editor
     // ranges, nulls stay null.
     // Works on the new copy only; the background (not positionable) is skipped, since the copy already resized it to fit.
@@ -72,8 +73,11 @@ namespace ArcadeStick.Services
                 // On a different aspect ratio some layers (the Search & Buttons group) only move, as with "positions only"
                 if (mismatch && LayerRegistry.IsPositionOnlyOnMismatch(entry.Id)) continue;
 
-                entry.Width = RoundAway(entry.Width * f.Fx);
-                entry.Height = RoundAway(entry.Height * f.Fy);
+                // On a different aspect ratio the Video Preview keeps its own shape: Width and Height both by u, top-left at
+                // its scaled X / Y, inside the area it would have covered when stretched
+                bool uniform = mismatch && LayerRegistry.IsUniformSizeOnMismatch(entry.Id);
+                entry.Width = RoundAway(entry.Width * (uniform ? f.U : f.Fx));
+                entry.Height = RoundAway(entry.Height * (uniform ? f.U : f.Fy));
 
                 ScaleStyleSizes(entry, f.U);
             }

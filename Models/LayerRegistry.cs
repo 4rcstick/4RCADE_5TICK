@@ -430,6 +430,10 @@ namespace ArcadeStick.Models
         // borders, when "scale everything" runs on a different aspect ratio (the Search & Buttons group)
         public static bool IsPositionOnlyOnMismatch(string id) => GetDefinition(id)?.GroupId == SearchAndButtonsGroup;
 
+        // Does the new size scaler's keep-the-shape rule: true for the layers whose Width and Height both scale by u instead of
+        // fx / fy when "scale everything" runs on a different aspect ratio, so the box keeps its own ratio (the Video Preview)
+        public static bool IsUniformSizeOnMismatch(string id) => id == VideoPreview;
+
         // Layers drawn as a bordered box with a fill and an optional image or video: the shape layers and the
         // custom layers. They share one renderer, one tab set and the visibility dropdown.
         public static bool IsBoxId(string id) => IsShapeId(id) || IsCustomId(id);
