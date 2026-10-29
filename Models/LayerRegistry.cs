@@ -426,6 +426,13 @@ namespace ArcadeStick.Models
         // around it and X / Y at the ring's outer corner
         public static bool HasOutsideBorder(string id) => HasBorderTab(id) || id == RandomGameDisplay || id == RandomGameDisplaySplash;
 
+        // Does the layer list Copy / Paste check for X / Y / Width / Height: true for the bordered layers (shape, custom,
+        // Splash Image, Video Preview, both Random Game Display states), the Games List and the Marquee
+        public static bool CanCopyRect(string id) => HasOutsideBorder(id) || id == GamesList || id == MarqueePanel;
+
+        // Does the layer list Copy / Paste check for the border (size, color, radius): the bordered layers only
+        public static bool CanCopyBorder(string id) => HasOutsideBorder(id);
+
         // Does the new size scaler's mismatch rule: true for the layers that only move (X / Y), keeping their size, fonts and
         // borders, when "scale everything" runs on a different aspect ratio (the Search & Buttons group)
         public static bool IsPositionOnlyOnMismatch(string id) => GetDefinition(id)?.GroupId == SearchAndButtonsGroup;

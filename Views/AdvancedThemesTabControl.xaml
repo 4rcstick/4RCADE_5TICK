@@ -15,7 +15,7 @@
         <!-- [SECTION: Layers Help] -->
         <!-- The Layers header's help: the tooltip text (one line per point; edit it only here) and the circled ? glyph's look
              (Chrome Palette only; the ring and the ? turn accent on hover). The tooltip is the default Windows tooltip. -->
-        <sys:String x:Key="LayersHelpText" xml:space="preserve">Right-click a layer to copy its position, size or border, then right-click another layer (or several) to paste.&#10;Ctrl-click or Shift-click to select several layers and move them together with the Move X / Move Y boxes.&#10;Use the arrows beside the list to bring a layer forward or send it backward. Double-click a shape or custom layer to rename it.</sys:String>
+        <sys:String x:Key="LayersHelpText" xml:space="preserve">Right-click a layer to copy its position, size or border, then right-click another layer (or one of several selected layers) to paste. Search &amp; Buttons, Game Info, the Footer and the Main Window Background have no copy or paste.&#10;Ctrl-click or Shift-click to select several layers and move them together with the Move X / Move Y boxes.&#10;Use the arrows beside the list to bring a layer forward or send it backward. Double-click a shape or custom layer to rename it.</sys:String>
 
         <Style x:Key="LayersHelpGlyphStyle" TargetType="Border">
             <Setter Property="Width" Value="16"/>
@@ -164,8 +164,15 @@
                     </Border>
                 </StackPanel>
 
+                <!-- Right-click Copy / Paste: the items are built in code each time the menu opens (LstLayers_ContextMenuOpening);
+                     right-clicking a row outside the selection selects it first (the ListBox's own behavior). -->
                 <ListBox x:Name="LstLayers" Grid.Row="1" Grid.Column="0" DisplayMemberPath="DisplayName" SelectionMode="Extended" SelectionChanged="LstLayers_SelectionChanged" MouseDoubleClick="LstLayers_MouseDoubleClick"
-                         Style="{StaticResource ChromeListBoxStyle}"/>
+                         ContextMenuOpening="LstLayers_ContextMenuOpening"
+                         Style="{StaticResource ChromeListBoxStyle}">
+                    <ListBox.ContextMenu>
+                        <ContextMenu Style="{StaticResource BuilderContextMenuStyle}"/>
+                    </ListBox.ContextMenu>
+                </ListBox>
 
                 <StackPanel Grid.Row="1" Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Top">
                     <Button x:Name="BtnLayerUp" Content="&#xE70E;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerUp_Click" ToolTip="Bring forward" Width="30" Height="30" Margin="0,0,0,6"

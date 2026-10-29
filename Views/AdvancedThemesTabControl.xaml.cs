@@ -399,6 +399,218 @@ namespace ArcadeStick.Views
         }
         // [END SECTION: Multi-Select]
 
+        // [SECTION: Layer Copy and Paste]
+        // Right-click menu on the layer list (decision 67). One layer selected: Copy items for what it has (position and
+        // size: LayerRegistry.CanCopyRect; border: CanCopyBorder), plus Paste when something else is on the clipboard that it
+        // can take. Several selected: Paste only. The values are the raw entry numbers the fields show (no border ring or
+        // ratio lock conversion). A Random Game Display row copies from and pastes to the part last clicked into on the
+        // Position page (_guidePartId), else its first part. The clipboard is session-only and lives with this control (one
+        // per builder window); a new Copy replaces it, and a resolution switch, theme load or Reset Layer leaves it. A paste
+        // is an ordinary working edit with no undo. The menu items are built each time the menu opens.
+        [Flags]
+        private enum LayerCopyKind
+        {
+            None = 0,
+            X = 1,
+            Y = 2,
+            Width = 4,
+            Height = 8,
+            Border = 16,
+            Position = X | Y,
+            Size = Width | Height,
+            Rect = Position | Size
+        }
+
+        // What was copied, the numbers, the source entry and the layout size it came from
+        private sealed record LayerClipboard(LayerCopyKind Kind, string SourceId, int LayoutWidth, int LayoutHeight,
+            double X, double Y, double Width, double Height, int BorderSize, string BorderColorHex, int CornerRadius);
+
+        private LayerClipboard? _layerClipboard;
+
+        // The Copy items in menu order; null marks a separator
+        private static readonly LayerCopyKind?[] CopyMenuKinds =
+        {
+            LayerCopyKind.X, LayerCopyKind.Y, LayerCopyKind.Position, null,
+            LayerCopyKind.Width, LayerCopyKind.Height, LayerCopyKind.Size, null,
+            LayerCopyKind.Rect, null,
+            LayerCopyKind.Border
+        };
+
+        // Does the menu label for a copy or paste kind ("X / Y", "Position + Size", ...)
+        private static string CopyKindLabel(LayerCopyKind kind) => kind switch
+        {
+            LayerCopyKind.X => "X",
+            LayerCopyKind.Y => "Y",
+            LayerCopyKind.Position => "X / Y",
+            LayerCopyKind.Width => "Width",
+            LayerCopyKind.Height => "Height",
+            LayerCopyKind.Size => "Width / Height",
+            LayerCopyKind.Rect => "Position + Size",
+            LayerCopyKind.Border => "Border",
+            _ => kind.ToString()
+        };
+
+        // Does the copy and paste entry lookup for a list row: the layer's own Id, or for Random Game Display the part last
+        // clicked into on the Position page (its first part when that is not one of its parts); null for the other groups
+        private string? GetCopyEntryId(LayerListItem row)
+        {
+            if (row.Id == LayerRegistry.RandomGameGroup)
+            {
+                bool isPart = GetGroup(row.Id)?.PartIds.Contains(_guidePartId) == true;
+                return isPart ? _guidePartId : LayerRegistry.RandomGameDisplay;
+            }
+            return GetGroup(row.Id) == null ? row.Id : null;
+        }
+
+        // Does the per-layer kind check: the kinds an entry can be copied from or pasted to
+        private static LayerCopyKind GetCopyKinds(string entryId) =>
+            (LayerRegistry.CanCopyRect(entryId) ? LayerCopyKind.Rect : LayerCopyKind.None)
+            | (LayerRegistry.CanCopyBorder(entryId) ? LayerCopyKind.Border : LayerCopyKind.None);
+
+        // Does the paste target check: the entry takes every kind on the clipboard and is not its source (same entry at
+        // the same layout size); the same layer at another size can take it
+        private bool CanPasteTo(string entryId, bool allowSource)
+        {
+            if (_layerClipboard is not LayerClipboard clip || GetEntry(entryId) == null) return false;
+            if ((GetCopyKinds(entryId) & clip.Kind) != clip.Kind) return false;
+            bool isSource = clip.SourceId == entryId && clip.LayoutWidth == _currentLayout.Width && clip.LayoutHeight == _currentLayout.Height;
+            return allowSource || !isSource;
+        }
+
+        // Builds the menu for the current selection each time it opens, or cancels it: no row under the mouse (empty list
+        // space), nothing to copy or paste, or an empty menu. A right-click has already selected the row (the ListBox
+        // selects an unselected row and keeps a multi-selection that contains it); the menu key uses the selection as it is.
+        private void LstLayers_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (LstLayers.ContextMenu is not ContextMenu menu) return;
+            menu.Items.Clear();
+
+            bool fromMouse = e.CursorLeft >= 0 && e.CursorTop >= 0;
+            if (fromMouse)
+            {
+                var source = e.OriginalSource as DependencyObject;
+                while (source != null && source is not ListBoxItem) source = VisualTreeHelper.GetParent(source);
+                if (source == null)
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            if (!_loading && _settings != null)
+            {
+                if (IsMultiSelect) BuildMultiPasteMenu(menu);
+                else if (SingleSelectedLayer is LayerListItem row) BuildSingleCopyMenu(menu, row);
+            }
+
+            if (menu.Items.Count == 0) e.Handled = true;
+        }
+
+        // Does the one-layer menu: the Copy items the layer supports, then Paste when the clipboard fits and this is not
+        // its source. A Random Game Display row names its part in every item.
+        private void BuildSingleCopyMenu(ContextMenu menu, LayerListItem row)
+        {
+            if (GetCopyEntryId(row) is not string entryId || GetEntry(entryId) == null) return;
+            LayerCopyKind supported = GetCopyKinds(entryId);
+            if (supported == LayerCopyKind.None) return;
+
+            string suffix = row.Id == LayerRegistry.RandomGameGroup
+                ? $" ({LayerRegistry.GetDefinition(entryId)?.DisplayName ?? entryId})"
+                : "";
+
+            bool pendingSeparator = false;
+            foreach (var kind in CopyMenuKinds)
+            {
+                if (kind == null)
+                {
+                    pendingSeparator = menu.Items.Count > 0;
+                    continue;
+                }
+                if ((supported & kind.Value) != kind.Value) continue;
+
+                if (pendingSeparator) menu.Items.Add(MakeMenuSeparator());
+                pendingSeparator = false;
+                var copyKind = kind.Value;
+                menu.Items.Add(MakeMenuItem($"Copy {CopyKindLabel(copyKind)}{suffix}", () => CopyLayerValues(entryId, copyKind)));
+            }
+
+            if (_layerClipboard is LayerClipboard clip && CanPasteTo(entryId, allowSource: false))
+            {
+                menu.Items.Add(MakeMenuSeparator());
+                menu.Items.Add(MakeMenuItem($"Paste {CopyKindLabel(clip.Kind)}{suffix}", () => PasteLayerValues(new[] { entryId })));
+            }
+        }
+
+        // Does the several-layers menu: Paste only, when at least one selected row can take the clipboard (rows that
+        // cannot are skipped; the source, if selected, gets its own values back)
+        private void BuildMultiPasteMenu(ContextMenu menu)
+        {
+            if (_layerClipboard is not LayerClipboard clip) return;
+
+            var targets = LstLayers.SelectedItems.OfType<LayerListItem>()
+                .Select(GetCopyEntryId)
+                .OfType<string>()
+                .Where(id => CanPasteTo(id, allowSource: true))
+                .Distinct()
+                .ToList();
+            if (targets.Count == 0) return;
+
+            menu.Items.Add(MakeMenuItem($"Paste {CopyKindLabel(clip.Kind)}", () => PasteLayerValues(targets)));
+        }
+
+        // Does a plain menu item on the Theme Builder menu style
+        private MenuItem MakeMenuItem(string header, Action onClick)
+        {
+            var item = new MenuItem { Header = header, Style = (Style)FindResource("BuilderMenuItemStyle") };
+            item.Click += (_, _) => onClick();
+            return item;
+        }
+
+        // Does a separator on the Theme Builder menu style (set locally, or the menu would restyle it)
+        private Separator MakeMenuSeparator() => new Separator { Style = (Style)FindResource("BuilderMenuSeparatorStyle") };
+
+        // Does the copy: puts the entry's raw values, its Id and this layout size on the clipboard (replacing what was there)
+        private void CopyLayerValues(string entryId, LayerCopyKind kind)
+        {
+            if (GetEntry(entryId) is not LayerLayoutEntry entry) return;
+
+            // Same fallbacks as the Border tab loaders (the values are always filled by ResolveLayout anyway)
+            int borderFallback = LayerRegistry.IsBoxId(entryId) ? LayerRegistry.DefaultShapeBorderSize : 0;
+            _layerClipboard = new LayerClipboard(kind, entryId, _currentLayout.Width, _currentLayout.Height,
+                entry.X, entry.Y, entry.Width, entry.Height,
+                entry.BorderSize ?? borderFallback,
+                entry.BorderColorHex ?? LayerRegistry.DefaultShapeBorderColorHex,
+                entry.CornerRadius ?? LayerRegistry.DefaultShapeCornerRadius);
+        }
+
+        // Does the paste: writes the clipboard's kinds onto each target entry as raw numbers (no ratio lock, no group move,
+        // no Z, visibility or file change), then repaints and refreshes the fields (multi mode: guides and main window only)
+        private void PasteLayerValues(IReadOnlyCollection<string> entryIds)
+        {
+            if (_loading || _layerClipboard is not LayerClipboard clip) return;
+
+            foreach (string entryId in entryIds)
+            {
+                if (!CanPasteTo(entryId, allowSource: true) || GetEntry(entryId) is not LayerLayoutEntry entry) continue;
+
+                if (clip.Kind.HasFlag(LayerCopyKind.X)) entry.X = clip.X;
+                if (clip.Kind.HasFlag(LayerCopyKind.Y)) entry.Y = clip.Y;
+                if (clip.Kind.HasFlag(LayerCopyKind.Width)) entry.Width = clip.Width;
+                if (clip.Kind.HasFlag(LayerCopyKind.Height)) entry.Height = clip.Height;
+                if (clip.Kind.HasFlag(LayerCopyKind.Border))
+                {
+                    entry.BorderSize = clip.BorderSize;
+                    entry.BorderColorHex = clip.BorderColorHex;
+                    entry.CornerRadius = clip.CornerRadius;
+                }
+            }
+
+            // LoadSelectedLayerIntoFields ends in RaiseGuides (LayoutChanged repaints the main window)
+            if (IsMultiSelect) RaiseGuides();
+            else LoadSelectedLayerIntoFields();
+        }
+        // [END SECTION: Layer Copy and Paste]
+
         // Does the name shown for a single layer (list row and heading). Custom layers: their own Name.
         // Shape layers: this resolution's Name, else the first Name set at any resolution, else the registry
         // name. Every other layer: the registry name.

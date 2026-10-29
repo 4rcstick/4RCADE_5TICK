@@ -673,5 +673,52 @@
             </Setter>
         </Style>
         <!-- [END SECTION: ThemedActionButtonStyle] -->
+
+        <!-- [SECTION: Builder Context Menu Styles] -->
+        <!-- Keyed menu styles for the Theme Builder window (the Advanced tab's layer list Copy / Paste menu). The main window's
+             menus use its own implicit styles in MainWindow.xaml Window.Resources, which never reach the builder; these copy
+             their look for plain text items only (no icon column, check marks or submenus) and read only the Global Context
+             Menus resources (Global.Menu.*), so the Global tab edits them live. No Smart fullscreen scale: the builder is a
+             separate window at the Windows scale. Set them explicitly on every menu, item and separator (code-built
+             separators too: a menu restyles a Separator from MenuItem.SeparatorStyleKey unless its Style is set locally). -->
+        <Style x:Key="BuilderContextMenuStyle" TargetType="ContextMenu">
+            <Setter Property="Background" Value="{DynamicResource Global.Menu.Bg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Global.Menu.BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style x:Key="BuilderMenuItemStyle" TargetType="MenuItem">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="ItemBorder" Background="{DynamicResource Global.Menu.Bg}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter x:Name="HeaderPresenter" ContentSource="Header" VerticalAlignment="Center" Margin="6,0,16,0"
+                                              TextElement.Foreground="{DynamicResource Global.Menu.Text}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Global.Menu.BgHover}"/>
+                                <Setter TargetName="HeaderPresenter" Property="TextElement.Foreground" Value="{DynamicResource Global.Menu.TextHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="HeaderPresenter" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BuilderMenuSeparatorStyle" TargetType="Separator">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border BorderBrush="{DynamicResource Global.Menu.BorderColor}" BorderThickness="0,1,0,0" Margin="4,4,4,4"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- [END SECTION: Builder Context Menu Styles] -->
     </Application.Resources>
 </Application>
