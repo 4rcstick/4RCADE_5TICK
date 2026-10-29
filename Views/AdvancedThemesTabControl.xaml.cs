@@ -507,16 +507,18 @@ namespace ArcadeStick.Views
         }
 
         // Does the one-layer menu: the Copy items the layer supports, then Paste when the clipboard fits and this is not
-        // its source. A Random Game Display row names its part in every item.
+        // its source. A Random Game Display row starts with a heading naming its part (the state the items act on).
         private void BuildSingleCopyMenu(ContextMenu menu, LayerListItem row)
         {
             if (GetCopyEntryId(row) is not string entryId || GetEntry(entryId) == null) return;
             LayerCopyKind supported = GetCopyKinds(entryId);
             if (supported == LayerCopyKind.None) return;
 
-            string suffix = row.Id == LayerRegistry.RandomGameGroup
-                ? $" ({LayerRegistry.GetDefinition(entryId)?.DisplayName ?? entryId})"
-                : "";
+            if (row.Id == LayerRegistry.RandomGameGroup)
+            {
+                menu.Items.Add(MakeMenuHeading(LayerRegistry.GetDefinition(entryId)?.DisplayName ?? entryId));
+                menu.Items.Add(MakeMenuSeparator());
+            }
 
             bool pendingSeparator = false;
             foreach (var kind in CopyMenuKinds)
@@ -531,13 +533,13 @@ namespace ArcadeStick.Views
                 if (pendingSeparator) menu.Items.Add(MakeMenuSeparator());
                 pendingSeparator = false;
                 var copyKind = kind.Value;
-                menu.Items.Add(MakeMenuItem($"Copy {CopyKindLabel(copyKind)}{suffix}", () => CopyLayerValues(entryId, copyKind)));
+                menu.Items.Add(MakeMenuItem($"Copy {CopyKindLabel(copyKind)}", () => CopyLayerValues(entryId, copyKind)));
             }
 
             if (_layerClipboard is LayerClipboard clip && CanPasteTo(entryId, allowSource: false))
             {
                 menu.Items.Add(MakeMenuSeparator());
-                menu.Items.Add(MakeMenuItem($"Paste {CopyKindLabel(clip.Kind)}{suffix}", () => PasteLayerValues(new[] { entryId })));
+                menu.Items.Add(MakeMenuItem($"Paste {CopyKindLabel(clip.Kind)}", () => PasteLayerValues(new[] { entryId })));
             }
         }
 
@@ -565,6 +567,9 @@ namespace ArcadeStick.Views
             item.Click += (_, _) => onClick();
             return item;
         }
+
+        // Does a heading line on the Theme Builder menu heading style (not clickable, never highlighted)
+        private MenuItem MakeMenuHeading(string text) => new MenuItem { Header = text, Style = (Style)FindResource("BuilderMenuHeadingStyle") };
 
         // Does a separator on the Theme Builder menu style (set locally, or the menu would restyle it)
         private Separator MakeMenuSeparator() => new Separator { Style = (Style)FindResource("BuilderMenuSeparatorStyle") };
