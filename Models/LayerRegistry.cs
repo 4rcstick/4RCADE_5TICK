@@ -247,6 +247,23 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? BoxShadowDepth { get; set; }
 
+        // Favorites Star only (Game Info group): the outline star's color and drop shadow, shown while the selected game is
+        // not in Favorites. Its TextColorHex and TextShadow* fields are the solid star's. Same rules as above.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? OutlineColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? OutlineShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? OutlineShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? OutlineShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? OutlineShadowDepth { get; set; }
+
         // Game Info section headers (the Game Info Body entry only; its body text uses the generic Text* fields
         // above). A second block of text styling because the generic fields only fit one block per entry.
         // Same rules: null on every other layer, left out of the theme file when null, filled from defaults.
@@ -349,6 +366,11 @@ namespace ArcadeStick.Models
             BoxShadowColorHex = source.BoxShadowColorHex;
             BoxShadowBlur = source.BoxShadowBlur;
             BoxShadowDepth = source.BoxShadowDepth;
+            OutlineColorHex = source.OutlineColorHex;
+            OutlineShadowEnabled = source.OutlineShadowEnabled;
+            OutlineShadowColorHex = source.OutlineShadowColorHex;
+            OutlineShadowBlur = source.OutlineShadowBlur;
+            OutlineShadowDepth = source.OutlineShadowDepth;
             SectionHeaderFontSize = source.SectionHeaderFontSize;
             SectionHeaderColorHex = source.SectionHeaderColorHex;
             SectionHeaderFontFamily = source.SectionHeaderFontFamily;
@@ -512,12 +534,13 @@ namespace ArcadeStick.Models
         public const string ImagePreviewsNav = "ImagePreviewsNav";
         public const string ImagePreviewsBody = "ImagePreviewsBody";
         public const string PlayButton = "PlayButton";
+        public const string FavoritesStar = "FavoritesStar";
 
         // Each group's parts share one Z and are edited on one page, in the order listed here.
         public static readonly IReadOnlyList<LayerGroupDefinition> AllGroups = new List<LayerGroupDefinition>
         {
             new(SearchAndButtonsGroup, "Search & Buttons", new[] { SearchLabel, SearchBox, RandomButton, SortButton, OptionsButton, HamburgerButton }, AllowGroupMove: true),
-            new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsNav, ImagePreviewsBody, PlayButton }, AllowGroupMove: true),
+            new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsNav, ImagePreviewsBody, PlayButton, FavoritesStar }, AllowGroupMove: true),
             new(RandomGameGroup, "Random Game Display", new[] { RandomGameDisplay, RandomGameDisplaySplash }, AllowRatioLock: true)
         };
 
@@ -559,6 +582,7 @@ namespace ArcadeStick.Models
             new() { Id = ImagePreviewsNav, DisplayName = "Image Previews Nav",  X = 414, Y = 456, Width = 328, Height = 20,  Z = 34, GroupId = GameInfoGroup },
             new() { Id = ImagePreviewsBody,DisplayName = "Image Previews",      X = 414, Y = 486, Width = 328, Height = 198, Z = 34, GroupId = GameInfoGroup },
             new() { Id = PlayButton,       DisplayName = "Play Button",         X = 765, Y = 348, Width = 100, Height = 32,  Z = 34, GroupId = GameInfoGroup },
+            new() { Id = FavoritesStar,    DisplayName = "Favorites Star",      X = 873, Y = 348, Width = 32,  Height = 32,  Z = 34, GroupId = GameInfoGroup },
 
             new() { Id = SearchLabel,    DisplayName = "Search Label",      X = 20,  Y = 20,  Width = 67,  Height = 30, Z = 20, GroupId = SearchAndButtonsGroup },
             new() { Id = SearchBox,      DisplayName = "Search Box",        X = 87,  Y = 20,  Width = 142, Height = 30, Z = 20, GroupId = SearchAndButtonsGroup },
@@ -678,6 +702,9 @@ namespace ArcadeStick.Models
 
                 // Play Button: text, fill, both shadows, border and hover colors
                 FillPlayButtonStyle(entry);
+
+                // Favorites Star: glyph size and each state's color and drop shadow
+                FillFavoritesStarStyle(entry);
 
                 layout.Layers.Add(entry);
             }
@@ -857,6 +884,22 @@ namespace ArcadeStick.Models
             if (string.IsNullOrWhiteSpace(entry.HoverBorderColorHex)) entry.HoverBorderColorHex = DefaultPlayButtonHoverBorderColorHex;
         }
 
+        // Fills the Favorites Star's style on its own entry: glyph size, the solid star's color and shadow (Text*) and the
+        // outline star's (Outline*). Saved values are kept, a saved false included.
+        private static void FillFavoritesStarStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id != FavoritesStar) return;
+
+            entry.TextFontSize ??= DefaultStarSize;
+            if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultStarSolidColorHex;
+            FillTextShadowDefaults(entry);
+            if (string.IsNullOrWhiteSpace(entry.OutlineColorHex)) entry.OutlineColorHex = DefaultStarOutlineColorHex;
+            entry.OutlineShadowEnabled ??= DefaultShadowEnabled;
+            if (string.IsNullOrWhiteSpace(entry.OutlineShadowColorHex)) entry.OutlineShadowColorHex = DefaultShadowColorHex;
+            entry.OutlineShadowBlur ??= DefaultShadowBlur;
+            entry.OutlineShadowDepth ??= DefaultShadowDepth;
+        }
+
         // Fills one Random Game Display state's background color and border (black, unbordered, square; saved values kept)
         private static void FillRandomDisplayCardDefaults(LayerLayoutEntry entry)
         {
@@ -969,6 +1012,9 @@ namespace ArcadeStick.Models
 
                 // Play Button: fill any missing style value (an older theme gets the whole part from defaults)
                 FillPlayButtonStyle(entry);
+
+                // Favorites Star: fill any missing style value (an older theme gets the whole part from defaults)
+                FillFavoritesStarStyle(entry);
 
                 // Main Window Background: the Disable flag and the background color fill in when missing (saved values kept)
                 if (entry.Id == MainBackground)
@@ -1123,6 +1169,12 @@ namespace ArcadeStick.Models
         public const string DefaultPlayButtonHoverColorHex = "#FF00D4FF";
         public const string DefaultPlayButtonHoverBgColorHex = "#FF2C2C2E";
         public const string DefaultPlayButtonHoverBorderColorHex = "#FF00D4FF";
+
+        // Favorites Star defaults. Its size range is MinTextFontSize / MaxTextFontSize, and both states' shadows use the
+        // standard off-by-default values above.
+        public const int DefaultStarSize = 24;
+        public const string DefaultStarSolidColorHex = "#FFFFD60A";
+        public const string DefaultStarOutlineColorHex = "#FFA0A0A2";
 
         // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
         // Segoe UI is also the fallback when a theme has no saved family.

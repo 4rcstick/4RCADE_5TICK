@@ -104,6 +104,7 @@ namespace ArcadeStick
             _previewPlayer.StateChanged += PreviewPlayer_StateChanged;
             VideoPreviewLayer.SoundToggleRequested += (s, e) => TogglePreviewSound();
             GameInfoLayer.PlayRequested += (s, e) => TriggerActiveSelectionLaunch();
+            GameInfoLayer.FavoriteToggleRequested += (s, e) => ToggleFavoriteFromStar();
             VideoPreviewLayer.SetSoundEnabled(_viewModel.Configuration.PreviewSoundEnabled);
             StateChanged += MainWindow_StateChanged;
 
@@ -198,6 +199,7 @@ namespace ArcadeStick
         private string? _lastSearchButtonsStyleKey;
         private string? _lastGameInfoStyleKey;
         private string? _lastPlayButtonStyleKey;
+        private string? _lastFavoritesStarStyleKey;
         private string? _lastRandomDisplayStyleKey;
         private string? _lastMarqueeBannerStyleKey;
         private string? _lastMainBackgroundKey;
@@ -482,6 +484,16 @@ namespace ArcadeStick
                 _viewModel.RefreshPlayButtonBindings();
             }
 
+            // Favorites Star: re-raise its bindings only when one of its style values changed
+            var favStarEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.FavoritesStar);
+            string favStarStyleKey = $"{favStarEntry?.TextFontSize}|{favStarEntry?.TextColorHex}|{favStarEntry?.TextShadowEnabled}|{favStarEntry?.TextShadowColorHex}|{favStarEntry?.TextShadowBlur}|{favStarEntry?.TextShadowDepth}"
+                + $"|{favStarEntry?.OutlineColorHex}|{favStarEntry?.OutlineShadowEnabled}|{favStarEntry?.OutlineShadowColorHex}|{favStarEntry?.OutlineShadowBlur}|{favStarEntry?.OutlineShadowDepth}";
+            if (favStarStyleKey != _lastFavoritesStarStyleKey)
+            {
+                _lastFavoritesStarStyleKey = favStarStyleKey;
+                _viewModel.RefreshFavoritesStarBindings();
+            }
+
             // Random Game Display: re-raise the spin card's bindings only when a style value on either part changed
             string randomDisplayStyleKey = string.Join("#",
                 new[] { Models.LayerRegistry.RandomGameDisplay, Models.LayerRegistry.RandomGameDisplaySplash }
@@ -517,10 +529,11 @@ namespace ArcadeStick
                 { Models.LayerRegistry.ImagePreviewsNav, GameInfoLayer.PartPreviewsNav },
                 { Models.LayerRegistry.ImagePreviewsBody, GameInfoLayer.PartPreviewsBody },
                 { Models.LayerRegistry.PlayButton, GameInfoLayer.PartPlayButton },
+                { Models.LayerRegistry.FavoritesStar, GameInfoLayer.PartFavoritesStar },
                 { Models.LayerRegistry.Footer, FooterPanel }
             };
 
-            // The Game Info host fills the whole canvas (its seven parts are positioned inside it) and takes the
+            // The Game Info host fills the whole canvas (its eight parts are positioned inside it) and takes the
             // group's shared Z. It has no background, so empty areas don't block clicks on the layers below.
             Canvas.SetLeft(GameInfoLayer, 0);
             Canvas.SetTop(GameInfoLayer, 0);
@@ -1152,7 +1165,7 @@ namespace ArcadeStick
                 {
                     if (_viewModel.SelectedGame != null)
                     {
-                        Dispatcher.BeginInvoke(new Action(() => _viewModel.ToggleFavorite(_viewModel.SelectedGame)));
+                        Dispatcher.BeginInvoke(new Action(() => _viewModel.ToggleFavorite(_viewModel.SelectedGame, jumpToFavorite: false)));
                     }
                 }
                 else if (button == Windows.Gaming.Input.GamepadButtons.Menu)
@@ -1354,6 +1367,10 @@ namespace ArcadeStick
                 // deselection. Letting it through would transiently null SelectedGame/VideoSourcePath,
                 // stopping the preview player and starting the boot splash player almost simultaneously.
                 if (e.NewValue == null && _viewModel.IsRebuildingTree) return;
+
+                // An in-place Favorites change or its jump can make the tree select a parent folder when the selected row
+                // goes away; that is not the user deselecting the game either.
+                if (_viewModel.IsFavoritesTreeChanging && e.NewValue is not Models.GameItem) return;
 
                 // While the random-winner jump runs, collapsing a folder makes WPF select that folder (not null),
                 // which would set SelectedGame to null and flash the default logo. Ignore anything that isn't
@@ -1852,13 +1869,13 @@ namespace ArcadeStick
             };
             var selectedGameForFavorites = _viewModel.SelectedGame;
             // Deferred via Dispatcher.BeginInvoke: MenuItem.Click still fires from inside the ContextMenu
-            // popup's own dismissal frame. Calling straight into AddGameToFavorites -> UpdateLiveTreeDisplay
-            // -> the video preview stop from there could hang the UI thread (same class of issue as the
+            // popup's own dismissal frame. Calling straight into AddGameToFavorites -> the in-place update (or
+            // its fallback rebuild) -> a video preview stop from there could hang the UI thread (same class of issue as the
             // documented Options-close/splash-video collision, just a different popup boundary). Deferring
             // lets the popup fully tear down and control return to the normal message loop first.
             favoritesItem.Click += (s, args) =>
             {
-                // Preserve the current scroll position across the add's UpdateLiveTreeDisplay rebuild - same
+                // Preserve the current scroll position across the add's in-place update - same
                 // double-deferred restore pattern as the custom-folder items below, so nothing appears to move.
                 var preRebuildScrollViewer = FindVisualChild<ScrollViewer>(GameTree);
                 double preservedOffset = preRebuildScrollViewer?.VerticalOffset ?? 0;
@@ -1992,6 +2009,59 @@ namespace ArcadeStick
             Dispatcher.BeginInvoke(new Action(() => _viewModel.AddGameToExclusionList(selectedGame)));
         }
         // [END SECTION: Game Row Context Menu]
+
+        // [SECTION: Favorites Star Toggle]
+        // Does the Favorites Star click: adds or removes the selected game (the star flips at once) and updates the Favorites
+        // folder in place afterward, with no jump, so the folder never expands
+        private void ToggleFavoriteFromStar()
+        {
+            var game = _viewModel.SelectedGame;
+            if (game == null) return;
+
+            bool isAdding = false;
+            RunKeepingGameTreeScroll(() =>
+            {
+                isAdding = _viewModel.ChangeFavoriteState(game);
+
+                // Lets WPF paint the new star before the file write, which can be slow on a USB stick
+                Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+
+                return _viewModel.SaveFavorites();
+            }, () => _viewModel.ApplyFavoriteChangeInPlace(game, isAdding));
+        }
+
+        // Runs a favorite change, updates the tree and puts the list back at the same scroll offset. No tree update when the
+        // change reports false (nothing saved). Two nested Loaded hops, same as the Add to Folder > Favorites item (one hop
+        // lands against an incomplete extent).
+        private void RunKeepingGameTreeScroll(Func<bool> applyChange, Action updateTree)
+        {
+            var preRebuildScrollViewer = FindVisualChild<ScrollViewer>(GameTree);
+            double preservedOffset = preRebuildScrollViewer?.VerticalOffset ?? 0;
+
+            if (!applyChange()) return;
+
+            // The fallback rebuild runs outside ToggleFavorite's try / catch, and an exception here would otherwise close the app
+            try
+            {
+                updateTree();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error updating the games list: {ex.Message}");
+                return;
+            }
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    var postRebuildScrollViewer = FindVisualChild<ScrollViewer>(GameTree);
+                    postRebuildScrollViewer?.ScrollToVerticalOffset(preservedOffset);
+                }), System.Windows.Threading.DispatcherPriority.Loaded);
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+        // [END SECTION: Favorites Star Toggle]
 
         // [SECTION: Folder Color Picker Flyout]
         // Opens the Choose Color flyout, anchored under the folder row that was right-clicked. Snapshots
@@ -2710,7 +2780,7 @@ namespace ArcadeStick
                 e.Handled = true;
                 if (_viewModel.SelectedGame != null)
                 {
-                    _viewModel.ToggleFavorite(_viewModel.SelectedGame);
+                    _viewModel.ToggleFavorite(_viewModel.SelectedGame, jumpToFavorite: false);
                 }
                 return;
             }

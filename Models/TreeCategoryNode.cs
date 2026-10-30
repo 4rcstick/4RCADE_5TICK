@@ -194,6 +194,10 @@ namespace ArcadeStick.Models
             }
         }
 
+        // Does the live refresh after ChildGames changed: DisplayItems is a plain iterator with no change notification, so
+        // the TreeView only sees an in-place change when the property is raised again
+        public void RefreshDisplayItems() => OnPropertyChanged(nameof(DisplayItems));
+
         // Collapsing this node also collapses all of its sub-folders (prevents stale expanded state underneath)
         public bool IsNodeExpanded
         {

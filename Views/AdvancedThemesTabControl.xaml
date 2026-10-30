@@ -1607,6 +1607,140 @@
                     </TabItem>
                     <!-- [END SECTION: Game Info - Play Button Tab] -->
 
+                    <!-- [SECTION: Game Info - Favorites Star Tab] -->
+                    <!-- The star that adds or removes the selected game from Favorites, stored on the FavoritesStar entry. Size and the
+                         solid star use the GI block system (block "FavStar", Text* fields); the outline star has its own controls (Outline* fields). -->
+                    <TabItem x:Name="TabGIFavStar" Header="FAVORITES STAR" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <!-- Size (shared by both states) and the glow tip -->
+                                <Grid Margin="0,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Size:" Style="{StaticResource GLLabelStyle}"/>
+                                    <TextBox x:Name="GIFavStarSize" Tag="FavStar" Grid.Row="1" Grid.Column="0" Width="48" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Text="A glow is a shadow with Depth 0 and a bright color." TextWrapping="Wrap" Margin="0,8,0,0"
+                                               Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
+                                </Grid>
+
+                                <!-- Solid star: color and drop shadow (color, blur and depth are enabled while the toggle is on) -->
+                                <Grid Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Solid star (game is in Favorites)" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="GIFavStarColorPicker" Tag="FavStar" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="GIFavStarColorHex" Tag="FavStar" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="GIFavStarShadow" Tag="FavStar" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
+                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="5" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=GIFavStarShadow}" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="GIFavStarShadowColorPicker" Tag="FavStar" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="GIFavStarShadowColorHex" Tag="FavStar" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="GIFavStarShadowBlur" Tag="FavStar" Grid.Row="5" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIFavStarShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                    <TextBox x:Name="GIFavStarShadowDepth" Tag="FavStar" Grid.Row="5" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIFavStarShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                </Grid>
+
+                                <!-- Outline star: color and drop shadow (color, blur and depth are enabled while the toggle is on) -->
+                                <Grid Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Outline star (game is not in Favorites)" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="FavStarOutlineColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="FavStarOutlineColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtFavStarOutlineColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtFavStarOutlineColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="ChkFavStarOutlineShadow" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
+                                              Style="{StaticResource GLCheckBoxStyle}" Click="ChkFavStarOutlineShadow_Click"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="5" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=ChkFavStarOutlineShadow}" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="FavStarOutlineShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="FavStarOutlineShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtFavStarOutlineShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtFavStarOutlineShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="TxtFavStarOutlineShadowBlur" Grid.Row="5" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkFavStarOutlineShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="FavStarField_LostFocus" KeyDown="FavStarField_KeyDown"/>
+                                    <TextBox x:Name="TxtFavStarOutlineShadowDepth" Grid.Row="5" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkFavStarOutlineShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="FavStarField_LostFocus" KeyDown="FavStarField_KeyDown"/>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Game Info - Favorites Star Tab] -->
+
                     <!-- [SECTION: Shape Layer - Background Tab] -->
                     <TabItem x:Name="TabShapeBackground" Header="BACKGROUND" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">

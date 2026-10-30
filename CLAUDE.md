@@ -12,6 +12,7 @@ Key features:
 - Windows.Gaming.Input (WGI) gamepad navigation
 - A layered Theme Builder: every visual element is a layer with per-resolution position, size, order and styling, edited live from the UI (no file editing)
 - MAME.ini integration (reads/writes settings without manual ini editing)
+- Favorites changes update the FAVORITES folder in place and keep it alphabetical
 
 This is a solo-developer project, converted from a ~1600-line PowerShell prototype. It is deliberately architected, not vibe-coded. Scope and design decisions are made carefully; do not make architectural or scope decisions unilaterally. When a change has design implications beyond the immediate fix, flag it and ask rather than assuming.
 
@@ -75,6 +76,15 @@ Each of the four buttons is two layers: the outer Border holds the fill, the inn
 ### Game Info and other name-keyed handlers
 The Advanced tab's Game Info (and Marquee shadow) controls are found **by name** (`GI{Block}{Control}`) with a Tag-keyed shared handler table, gated per block. Follow the existing naming exactly.
 
+### Adding a new Game Info part (template: Play Button; simpler: Favorites Star)
+- Registry: `const` Id (never renamed), last in `GameInfoGroup` `PartIds`, `AllLayers` entry with the group's Z, default constants, a `Fill...Style` called from both `BuildDefaultLayout` and `ResolveLayout`. Use `??=` for text where empty is a saved choice.
+- New entry fields: nullable, `JsonIgnore(WhenWritingNull)`, added to `CopyStyleFrom`. Check `LayoutScaler` and report; it only needs a change for a size outside the general 6 to 72 font rule.
+- XAML: last child of `HostCanvas`, in the `map` in `ApplyLayout`. Resting and hover values are Style setters bound to forwarders, never local values.
+- View model: `[SECTION: ... Forwarders]` with a `Refresh...Bindings()` raised from `RefreshThemeBindings()`, and the part's own `_last...StyleKey` in `ApplyLayout` (not `gameInfoStyleKey`).
+- Tab: add to `AllLayerTabs` and `GetLayerTabs`; a `GIBlocks` entry for the shared text and shadow controls (`GI{Block}{Control}`, `Tag` = block key; check every name, a typo crashes at runtime), a `[SECTION: ... Styling Fields]` region for the rest, its `Load...Fields()` called from `LoadSelectedLayerIntoFields()`.
+- Actions: the control raises an event and holds no logic; `MainWindow` handles it.
+- Update the part list in themes.md 3.2 and the count in section 8.
+
 ### Theme Builder window behavior
 Closing without saving restores layouts to the last saved snapshot; anything stored outside layouts is not covered. Advanced-tab edits are in memory only until Save Adjustments / Save Changes. Layer files (images, video) are bundled into the theme zip through each entry's `ImagePath`. Closing the builder or any modal child of MainWindow calls `MainWindow.BringToFrontAfterChildClose` so the launcher returns to the front (never make it Topmost).
 
@@ -113,12 +123,20 @@ The WGI polling loop fix uses `await` instead of `.Wait()`. **Do not revert to t
 - `mame_cache.json` (config/database) is derived from `mame.exe -listfull` output via `CacheScannerService`; ROM-set drift detection regenerates it when ZIP names diverge from cached entries.
 - Most casual users keep ROMs flat. The fallback "GAMES" node for ungrouped games is essential; never silently discard ungrouped games.
 
+### Favorites changes (themes.md 3.21)
+- A favorite add or remove updates the tree through `ApplyFavoriteChangeInPlace`. Do not add a full rebuild to this path; `UpdateLiveTreeDisplay` runs only when the consistency check fails or the change throws.
+- The rebuild's FAVORITES block, the sorted insert and the consistency check must agree on the order (FullTitle, then RomName). Change them together.
+- Code that changes `FavoriteRoms` must raise `IsSelectedGameFavorite`.
+- A live change to a node's `ChildGames` needs `RefreshDisplayItems()`, and `GuardFavoritesTreeChange` if the selected row can go away.
+
 ### Historical notes: LibVLC era (status to confirm with the user before relying on or deleting)
 Earlier betas used LibVLCSharp for previews. Two incidents from that era: an RTSS / MSI Afterburner overlay hook (`RTSSHooks64.dll`) colliding with LibVLC's D3D11 output (native access violation in `dxgi.dll`; workaround RTSS application detection level None), and a loop race from combining a manual `EndReached` restart with `:input-repeat`. If LibVLC is fully gone, these no longer apply; do not add LibVLC back or re-add manual loop restarts without asking.
 
 ## Theme Builder Status (beta.4)
 
 Built: Main Window Background (color, wallpaper), Games List (folders, game titles), Shape Layers 01 to 04 and custom layers, Marquee (logo, shadow, no-art banner with one shared card for the idle banner and the spin's no-marquee card), Splash Image, Video Preview (border, background, fallback image), Search & Buttons, Game Info (title, publisher, info headers and body, navs, previews shadow), Random Game Display (text, background, border, overlay card in both states, per-part ratio lock). Also: a Layers header with a ? help tooltip above the layer list, right-click Copy / Paste of position, size and border between layers (decisions 66 and 67), layer rename, multi-select nudge, group move, alignment guides (Edge guides and Center guides, running edge to edge of the window), and a session-only Background grid (spacing and X / Y offset) for lining layers up; every bordered layer draws its border outside its Width / Height with X / Y at the ring's outer corner (Video Preview as the model). **Global tab** (theme-wide, not per resolution): Fonts, Backgrounds, Tabs, Buttons, Scrollbars (colors and width), Context Menus (colors and border), each with Restore Defaults, live through Global resources, reverted on close without saving. The input chrome (text boxes, combos, lists, checkboxes, sliders, picker popups, small dialogs) uses the fixed Chrome Palette in App.xaml. The Themes Manager (theme load/save/delete) is a row at the top of THEME BUILDER; THEME BROWSER is an empty Grid placeholder awaiting the theme browser (Global tab migration Passes 1 to 6, `global-tab-plan.md`, then 2026-10-22).
+- Play Button (Game Info part): launches the selected game; text, fill, border, hover colors and separate text and button shadows.
+- Favorites Star (Game Info part): solid or outline glyph that toggles the selected game's favorite; size and each state's color and shadow.
 
 Smart fullscreen (themes.md 3.17 to 3.19, decisions 63 and 64) is built and tested on a 1080p monitor at 100/125/150/175%; 1440p, 4K and mixed-DPI monitor moves are untested on hardware. Remaining: a theme browser on the THEME BROWSER tab, then replacing registry defaults with the finished default theme. The Footer is intentionally not themed (it stays as is). A WYSIWYG edit mode is planned for beta.5 (no drag handles in beta.4).
 

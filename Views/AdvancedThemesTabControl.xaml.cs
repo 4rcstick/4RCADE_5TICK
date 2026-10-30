@@ -974,7 +974,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabGIPlayButton, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -988,7 +988,7 @@ namespace ArcadeStick.Views
             if (unitKey == LayerRegistry.SearchAndButtonsGroup) return new[] { TabSBSearch, TabSBButtons, TabShapeBorder };
 
             // Game Info group: title, publisher block, headers + body, the two navs, and the image previews shadow
-            if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabGIPlayButton };
+            if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabGIPlayButton, TabGIFavStar };
 
             // Random Game Display group: the spin card's text, background (color and file) and the shared Border tab
             // (mapped to the RandomGameDisplay entry by GetSelectedBorderEntry)
@@ -1067,6 +1067,9 @@ namespace ArcadeStick.Views
 
             // Play Button fields the block system does not cover: filled when that group is selected
             LoadPlayButtonFields();
+
+            // Favorites Star outline state (the block system fills the size and solid state): filled when that group is selected
+            LoadFavoritesStarFields();
 
             // Random Game Display fields (Text and Background tabs): filled when that group is selected
             LoadRandomDisplayStyleFields();
@@ -3462,6 +3465,76 @@ namespace ArcadeStick.Views
         }
         // [END SECTION: Play Button Styling Fields]
 
+        // [SECTION: Favorites Star Styling Fields]
+        // Shown while the Game Info group is selected (FAVORITES STAR tab). The size and the solid star go through the GI block
+        // system (block "FavStar"); this region is the outline star on the FavoritesStar entry: color and shadow (Outline*).
+        // Colors and the checkbox apply immediately; number fields apply on Enter or focus loss and revert invalid input.
+        private LayerLayoutEntry? FavStarEntry => SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.GameInfoGroup ? GetEntry(LayerRegistry.FavoritesStar) : null;
+
+        // Fills the tab's outline star controls from the Favorites Star entry
+        private void LoadFavoritesStarFields()
+        {
+            if (FavStarEntry is not LayerLayoutEntry entry) return;
+
+            _loading = true;
+
+            ShowColor(FavStarOutlineColorPicker, TxtFavStarOutlineColorHex, entry.OutlineColorHex ?? LayerRegistry.DefaultStarOutlineColorHex);
+            ChkFavStarOutlineShadow.IsChecked = entry.OutlineShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            ShowColor(FavStarOutlineShadowColorPicker, TxtFavStarOutlineShadowColorHex, entry.OutlineShadowColorHex ?? LayerRegistry.DefaultShadowColorHex);
+            TxtFavStarOutlineShadowBlur.Text = (entry.OutlineShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtFavStarOutlineShadowDepth.Text = (entry.OutlineShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            _loading = false;
+        }
+
+        // Does the outline shadow toggle
+        private void ChkFavStarOutlineShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || FavStarEntry is not LayerLayoutEntry entry) return;
+
+            entry.OutlineShadowEnabled = ChkFavStarOutlineShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        // Color pickers and hex boxes (outline color, outline shadow)
+        private void FavStarOutlineColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(FavStarOutlineColorPicker, TxtFavStarOutlineColorHex, FavStarEntry, (en, hex) => en.OutlineColorHex = hex);
+        private void TxtFavStarOutlineColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(FavStarOutlineColorPicker, TxtFavStarOutlineColorHex, FavStarEntry, en => en.OutlineColorHex ?? LayerRegistry.DefaultStarOutlineColorHex, (en, hex) => en.OutlineColorHex = hex);
+
+        private void FavStarOutlineShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(FavStarOutlineShadowColorPicker, TxtFavStarOutlineShadowColorHex, FavStarEntry, (en, hex) => en.OutlineShadowColorHex = hex);
+        private void TxtFavStarOutlineShadowColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(FavStarOutlineShadowColorPicker, TxtFavStarOutlineShadowColorHex, FavStarEntry, en => en.OutlineShadowColorHex ?? LayerRegistry.DefaultShadowColorHex, (en, hex) => en.OutlineShadowColorHex = hex);
+
+        // One shared handler pair for the number fields: outline shadow blur (0-30) and depth (0-20)
+        private void FavStarField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyFavoritesStarFields();
+        }
+
+        private void FavStarField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyFavoritesStarFields();
+        }
+
+        // Stores each valid number field on the Favorites Star entry; an invalid one keeps its stored value
+        private void ApplyFavoritesStarFields()
+        {
+            if (_loading || _settings == null || FavStarEntry is not LayerLayoutEntry entry) return;
+
+            if (int.TryParse(TxtFavStarOutlineShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int blur) && blur >= 0 && blur <= 30)
+                entry.OutlineShadowBlur = blur;
+            if (int.TryParse(TxtFavStarOutlineShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth) && depth >= 0 && depth <= 20)
+                entry.OutlineShadowDepth = depth;
+
+            // Re-display the stored values (reverts invalid input) and re-apply the layout
+            LoadSelectedLayerIntoFields();
+        }
+        // [END SECTION: Favorites Star Styling Fields]
+
         // [SECTION: Game Info Styling Fields]
         // Six Game Info text blocks and two image-shadow blocks share one set of handlers: each control is named
         // GI{Block}{Control} and carries its block key in Tag, and GIBlocks maps the key to the entry, which field
@@ -3510,6 +3583,8 @@ namespace ArcadeStick.Views
                 LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             ["PlayButton"] = new(LayerRegistry.PlayButton, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultPlayButtonBold,
                 LayerRegistry.DefaultPlayButtonFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
+            ["FavStar"] = new(LayerRegistry.FavoritesStar, false, false, LayerRegistry.DefaultFontFamily, false,
+                LayerRegistry.DefaultStarSize, LayerRegistry.MinTextFontSize, LayerRegistry.MaxTextFontSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             // Image shadows: the Image Previews (Game Info group, PREVIEWS tab) and the Marquee layer (its own SHADOW tab)
             ["Previews"] = new(LayerRegistry.ImagePreviewsBody, false, false, LayerRegistry.DefaultFontFamily, false,
                 0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true },

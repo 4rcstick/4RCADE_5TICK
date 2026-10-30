@@ -434,6 +434,7 @@ namespace ArcadeStick.ViewModels
                     _selectedGame = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(IsGameSelected));
+                    RaiseSelectedGameFavoriteChanged();
 
                     // Every selection gets a new version; background loads for an older one are discarded
                     int mediaVersion = System.Threading.Interlocked.Increment(ref _mediaSelectionVersion);
@@ -901,6 +902,41 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Play Button Forwarders]
 
+        // [SECTION: Favorites Star Forwarders]
+        // The Game Info group's Favorites Star, read from its own FavoritesStar entry: the solid star on Text*, the outline
+        // star on Outline*. Colors are hex strings like the other forwarders.
+        private LayerLayoutEntry FavStarEntry => GetLayerEntry(LayerRegistry.FavoritesStar);
+
+        // True while the selected game is in Favorites. FavoriteRoms does not notify, so everything that changes the
+        // selection or the set calls RaiseSelectedGameFavoriteChanged.
+        public bool IsSelectedGameFavorite => SelectedGame != null && FavoriteRoms.Contains(SelectedGame.RomName);
+
+        // Does the IsSelectedGameFavorite change notification
+        private void RaiseSelectedGameFavoriteChanged() => OnPropertyChanged(nameof(IsSelectedGameFavorite));
+
+        public double ThemeFavStarSize => FavStarEntry.TextFontSize ?? LayerRegistry.DefaultStarSize;
+        public string ThemeFavStarSolidColor => FavStarEntry.TextColorHex ?? LayerRegistry.DefaultStarSolidColorHex;
+        public System.Windows.Media.Effects.Effect? ThemeFavStarSolidEffect => BuildTextShadowEffect(FavStarEntry);
+        public string ThemeFavStarOutlineColor => FavStarEntry.OutlineColorHex ?? LayerRegistry.DefaultStarOutlineColorHex;
+        public System.Windows.Media.Effects.Effect? ThemeFavStarOutlineEffect =>
+            BuildShadowEffect(
+                FavStarEntry.OutlineShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                FavStarEntry.OutlineShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                FavStarEntry.OutlineShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                FavStarEntry.OutlineShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+
+        // Re-raises the Favorites Star forwarders after their entry values changed (RefreshThemeBindings and MainWindow.ApplyLayout's
+        // Favorites Star style key)
+        public void RefreshFavoritesStarBindings()
+        {
+            OnPropertyChanged(nameof(ThemeFavStarSize));
+            OnPropertyChanged(nameof(ThemeFavStarSolidColor));
+            OnPropertyChanged(nameof(ThemeFavStarSolidEffect));
+            OnPropertyChanged(nameof(ThemeFavStarOutlineColor));
+            OnPropertyChanged(nameof(ThemeFavStarOutlineEffect));
+        }
+        // [END SECTION: Favorites Star Forwarders]
+
         // [SECTION: Random Game Display Forwarders]
         // The spin card's style. Text (message, font, color, alignment, wrap, shadow) is shared by both states and read
         // from the RandomGameDisplay entry; background color and border are per state, read from the active state's
@@ -1316,6 +1352,7 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMainColor));
             RefreshGameInfoBindings();
             RefreshPlayButtonBindings();
+            RefreshFavoritesStarBindings();
             RefreshRandomDisplayBindings();
             RefreshMarqueeBindings();
             RefreshMarqueeBannerBindings();
@@ -2366,6 +2403,7 @@ namespace ArcadeStick.ViewModels
                 string favoritesFilePath = Path.Combine(configDir, Configuration.FavoritesListFile);
 
                 FavoriteRoms.Clear();
+                RaiseSelectedGameFavoriteChanged();
 
                 var fileContents = new List<string>
                 {
@@ -2513,18 +2551,7 @@ namespace ArcadeStick.ViewModels
                 // from their parent - mirrors BuildVirtualTree's clone-display logic, extended here since the
                 // custom-folder branch previously had no equivalent, leaving same-titled clones and parents
                 // visually indistinguishable.
-                string GetFormattedTitle(GameItem gameItem)
-            {
-                string differentiator = !string.IsNullOrEmpty(gameItem.CloneOf)
-                    ? Services.VirtualCategorySortService.BuildCloneDifferentiator(gameItem)
-                    : string.Empty;
-
-                string baseTitle = string.IsNullOrEmpty(differentiator)
-                    ? gameItem.FullTitle
-                    : $"{gameItem.FullTitle} {differentiator}".Trim();
-
-                return IsDevMode ? $"[{gameItem.RomName}] {baseTitle}" : baseTitle;
-            }
+                string GetFormattedTitle(GameItem gameItem) => FormatGameTitle(gameItem);
 
             // Mouse-support flags and theme-driven display properties (FontSize/colors) are pushed here
             // rather than resolved via RelativeSource AncestorType=TreeView in XAML - eliminates the
@@ -2756,14 +2783,20 @@ namespace ArcadeStick.ViewModels
                         IsCustomColor = true // otherwise RefreshFolderColorsLive() overwrites this with the generic folder color
                     };
 
+                    var matchedFavorites = new List<GameItem>();
                     foreach (var romName in FavoriteRoms)
                     {
                         var matchedGame = GamesCollection.FirstOrDefault(g => g.RomName.Equals(romName, StringComparison.OrdinalIgnoreCase));
-                        if (matchedGame != null && !favoritesRoot.ChildGames.Contains(matchedGame))
+                        if (matchedGame != null && !matchedFavorites.Contains(matchedGame))
                         {
                             matchedGame.DisplayTitle = GetFormattedTitle(matchedGame);
-                            favoritesRoot.ChildGames.Add(matchedGame);
+                            matchedFavorites.Add(matchedGame);
                         }
+                    }
+
+                    foreach (var matchedGame in SortFavoriteGames(matchedFavorites))
+                    {
+                        favoritesRoot.ChildGames.Add(matchedGame);
                     }
 
                     if (favoritesRoot.ChildGames.Count > 0)
@@ -3768,53 +3801,31 @@ namespace ArcadeStick.ViewModels
         // [END SECTION: Mouse Support Persistence]
 
         // [SECTION: Favorites Persistence]
-        // Toggles a game's favorite status, persists FavoriteRoms to disk, rebuilds the tree, then
-        // re-expands and re-selects the game inside the Favorites node if it was just added - unless
-        // jumpToFavorite is false, in which case the current selection/view stays put (used by the
-        // "Add to Folder" context menu, same no-jump behavior as AddGameToCustomFolder).
+        // Toggles a game's favorite status, persists FavoriteRoms to disk and updates the FAVORITES folder in
+        // place (ApplyFavoriteChangeInPlace, which falls back to one full rebuild if its check fails), then
+        // expands the Favorites node and re-selects the game inside it if it was just added - unless
+        // jumpToFavorite is false, in which case the current selection/view stays put (used by Ctrl+F, gamepad Y
+        // and the "Add to Folder" context menu; the Favorites Star stays put too, through its own path in MainWindow).
         public void ToggleFavorite(GameItem? game, bool jumpToFavorite = true)
         {
-            if (game == null) return;
-
-            string configDir = Configuration.GetConfigPath();
-            string favoritesFilePath = Path.Combine(configDir, Configuration.FavoritesListFile);
-
-            if (!Directory.Exists(configDir))
-            {
-                Directory.CreateDirectory(configDir);
-            }
-
-            bool isAdding = !FavoriteRoms.Contains(game.RomName);
-
-            if (isAdding) FavoriteRoms.Add(game.RomName);
-            else FavoriteRoms.Remove(game.RomName);
+            if (!ToggleFavoriteWithoutRebuild(game, out bool isAdding)) return;
 
             try
             {
-                var fileContents = new List<string>
-                {
-                    "# ARCADE LAUNCHER FAVORITES CONFIG",
-                    "# DO NOT MODIFY MANUALLY",
-                    ""
-                };
-
-                fileContents.AddRange(FavoriteRoms);
-                File.WriteAllLines(favoritesFilePath, fileContents);
-
-                UpdateLiveTreeDisplay();
-
-                UpdateLiveTreeDisplay();
+                ApplyFavoriteChangeInPlace(game!, isAdding);
 
                 if (jumpToFavorite)
                 {
                     var favoritesNode = TreeNodesCollection.FirstOrDefault(n => string.Equals(n.HeaderText, "FAVORITES", StringComparison.OrdinalIgnoreCase));
                     if (favoritesNode != null)
                     {
+                        // Expanding collapses the other folders, and the live tree would move the selection to a collapsed folder
+                        GuardFavoritesTreeChange();
                         favoritesNode.IsNodeExpanded = true;
 
                         if (isAdding)
                         {
-                            var targetGame = favoritesNode.ChildGames.FirstOrDefault(g => g.RomName.Equals(game.RomName, StringComparison.OrdinalIgnoreCase));
+                            var targetGame = favoritesNode.ChildGames.FirstOrDefault(g => g.RomName.Equals(game!.RomName, StringComparison.OrdinalIgnoreCase));
                             if (targetGame != null)
                             {
                                 SelectedGame = targetGame;
@@ -3828,6 +3839,205 @@ namespace ArcadeStick.ViewModels
                 System.Windows.MessageBox.Show($"Error saving favorites config: {ex.Message}");
             }
         }
+
+        // Does the part of a favorite toggle that does not touch the tree: the set change, then the file write. Returns true when
+        // the file saved (false for no game or a failed save, after showing the error); the caller updates the tree only on
+        // true. isAdding says which way it toggled.
+        public bool ToggleFavoriteWithoutRebuild(GameItem? game, out bool isAdding)
+        {
+            isAdding = false;
+            if (game == null) return false;
+
+            isAdding = ChangeFavoriteState(game);
+            return SaveFavorites();
+        }
+
+        // Does the in-memory half of a favorite toggle: flips the game in FavoriteRoms and raises IsSelectedGameFavorite, with
+        // no disk access. Returns true when the game was added.
+        public bool ChangeFavoriteState(GameItem game)
+        {
+            bool isAdding = !FavoriteRoms.Contains(game.RomName);
+
+            if (isAdding) FavoriteRoms.Add(game.RomName);
+            else FavoriteRoms.Remove(game.RomName);
+            RaiseSelectedGameFavoriteChanged();
+
+            return isAdding;
+        }
+
+        // Does the disk half of a favorite toggle: writes FavoriteRoms to the favorites file. Returns false after showing the
+        // error when the write fails.
+        public bool SaveFavorites()
+        {
+            string configDir = Configuration.GetConfigPath();
+            string favoritesFilePath = Path.Combine(configDir, Configuration.FavoritesListFile);
+
+            if (!Directory.Exists(configDir))
+            {
+                Directory.CreateDirectory(configDir);
+            }
+
+            try
+            {
+                var fileContents = new List<string>
+                {
+                    "# ARCADE LAUNCHER FAVORITES CONFIG",
+                    "# DO NOT MODIFY MANUALLY",
+                    ""
+                };
+
+                fileContents.AddRange(FavoriteRoms);
+                File.WriteAllLines(favoritesFilePath, fileContents);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error saving favorites config: {ex.Message}");
+                return false;
+            }
+        }
+
+        // [SECTION: Favorites In-Place Update]
+        // A Favorites change only affects the pinned FAVORITES root, so the fast path changes that one node (milliseconds)
+        // instead of rebuilding the whole tree (over a second on a large list). The result must always match what
+        // UpdateLiveTreeDisplay's FAVORITES block would build; anything else falls back to one full rebuild.
+
+        // True while an in-place Favorites change or its jump is settling. MainWindow ignores any non-game selection then: the
+        // live tree selects the parent folder when the selected row goes away, which would otherwise clear SelectedGame.
+        public bool IsFavoritesTreeChanging { get; private set; }
+
+        // Does the title text for a game's row: the rom name prefix in Dev Mode, and a parenthetical differentiator for clones
+        private string FormatGameTitle(GameItem gameItem)
+        {
+            string differentiator = !string.IsNullOrEmpty(gameItem.CloneOf)
+                ? Services.VirtualCategorySortService.BuildCloneDifferentiator(gameItem)
+                : string.Empty;
+
+            string baseTitle = string.IsNullOrEmpty(differentiator)
+                ? gameItem.FullTitle
+                : $"{gameItem.FullTitle} {differentiator}".Trim();
+
+            return IsDevMode ? $"[{gameItem.RomName}] {baseTitle}" : baseTitle;
+        }
+
+        // Does the FAVORITES folder's alphabetical order: by title, ties broken by rom name
+        private static IEnumerable<GameItem> SortFavoriteGames(IEnumerable<GameItem> games) =>
+            games.OrderBy(g => g.FullTitle, StringComparer.OrdinalIgnoreCase).ThenBy(g => g.RomName, StringComparer.OrdinalIgnoreCase);
+
+        // Does the same comparison as SortFavoriteGames for one pair, for an insert at the sorted position
+        private static int CompareFavoriteGames(GameItem a, GameItem b)
+        {
+            int byTitle = StringComparer.OrdinalIgnoreCase.Compare(a.FullTitle, b.FullTitle);
+            return byTitle != 0 ? byTitle : StringComparer.OrdinalIgnoreCase.Compare(a.RomName, b.RomName);
+        }
+
+        // Returns the FAVORITES root node, or null when the tree does not show one
+        private TreeCategoryNode? FindFavoritesNode() =>
+            TreeNodesCollection.FirstOrDefault(n => string.Equals(n.HeaderText, "FAVORITES", StringComparison.OrdinalIgnoreCase));
+
+        // Does the selection guard for a live change to the FAVORITES node, reset one dispatcher pass later as in
+        // UpdateLiveTreeDisplay, because the tree can deliver its selection change after the edit
+        private void GuardFavoritesTreeChange()
+        {
+            IsRebuildingTree = true;
+            IsFavoritesTreeChanging = true;
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                IsRebuildingTree = false;
+                IsFavoritesTreeChanging = false;
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+
+        // Adds or removes one game in the FAVORITES node, after FavoriteRoms has been changed and saved. Does nothing to the
+        // tree during a search (it shows results, and a later search change rebuilds). Falls back to one full rebuild when the
+        // result does not match what a rebuild would show, or when the change throws.
+        public void ApplyFavoriteChangeInPlace(GameItem game, bool isAdding)
+        {
+            if (!string.IsNullOrEmpty(SearchText.Trim()))
+            {
+                return;
+            }
+
+            bool applied = false;
+            try
+            {
+                GuardFavoritesTreeChange();
+                if (isAdding) AddFavoriteToNode(game);
+                else RemoveFavoriteFromNode(game);
+                applied = FavoritesNodeMatchesRebuild();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Favorites in-place update failed, rebuilding: {ex.Message}");
+            }
+
+            if (!applied) UpdateLiveTreeDisplay();
+        }
+
+        // Does the add: inserts the game at its sorted position, creating the pinned node for the first favorite
+        private void AddFavoriteToNode(GameItem game)
+        {
+            var node = FindFavoritesNode();
+            bool isNewNode = node == null;
+            node ??= new TreeCategoryNode
+            {
+                HeaderText = "FAVORITES",
+                FolderColor = SafeConvertToBrush(ReadFolderColorFile(Configuration.FavoritesColorFile)),
+                IsCustomColor = true // otherwise RefreshFolderColorsLive() overwrites this with the generic folder color
+            };
+
+            if (!node.ChildGames.Any(g => g.RomName.Equals(game.RomName, StringComparison.OrdinalIgnoreCase)))
+            {
+                game.DisplayTitle = FormatGameTitle(game);
+
+                int index = 0;
+                while (index < node.ChildGames.Count && CompareFavoriteGames(node.ChildGames[index], game) < 0) index++;
+                node.ChildGames.Insert(index, game);
+            }
+
+            if (isNewNode)
+            {
+                TreeNodesCollection.Insert(0, node);
+                RefreshFolderColorsLive();
+            }
+            else
+            {
+                node.RefreshDisplayItems();
+            }
+        }
+
+        // Does the remove: takes the game out of the node, and the node out of the tree when it becomes empty
+        private void RemoveFavoriteFromNode(GameItem game)
+        {
+            var node = FindFavoritesNode();
+            if (node == null) return;
+
+            var row = node.ChildGames.FirstOrDefault(g => g.RomName.Equals(game.RomName, StringComparison.OrdinalIgnoreCase));
+            if (row != null) node.ChildGames.Remove(row);
+
+            if (node.ChildGames.Count == 0) TreeNodesCollection.Remove(node);
+            else node.RefreshDisplayItems();
+        }
+
+        // Does the consistency check: the node holds exactly what a rebuild would show, in the same sorted order, pinned first,
+        // and is absent when there is nothing to show
+        private bool FavoritesNodeMatchesRebuild()
+        {
+            var expected = SortFavoriteGames(GamesCollection
+                .Where(g => FavoriteRoms.Contains(g.RomName))
+                .DistinctBy(g => g.RomName, StringComparer.OrdinalIgnoreCase))
+                .Select(g => g.RomName)
+                .ToList();
+
+            var node = FindFavoritesNode();
+            if (node == null) return expected.Count == 0;
+
+            return TreeNodesCollection[0] == node
+                && expected.Count > 0
+                && node.ChildGames.Select(g => g.RomName).SequenceEqual(expected, StringComparer.OrdinalIgnoreCase);
+        }
+
+        // [END SECTION: Favorites In-Place Update]
 
         // Loads the previously saved favorites ROM set from disk at startup
         private void LoadFavoritesFromDisk()
@@ -4365,9 +4575,9 @@ namespace ArcadeStick.ViewModels
         // [END SECTION: Context Menu Folder Actions]
 
         // [SECTION: Flat Row Navigation Support]
-        // Maintains FlatVisibleRows, a flattened projection of the tree (respecting expand state) used
-        // for linear navigation. Expanding one root category collapses all sibling roots and sub-folders
-        // (single-branch-open behavior).
+        // Maintains FlatVisibleRows, a flattened projection of the tree (respecting expand state). Nothing
+        // reads it at the moment: it is only written here, so the Favorites in-place update skips it.
+        // Expanding one root category collapses all sibling roots and sub-folders (single-branch-open behavior).
         public void ToggleNodeExpanded(TreeCategoryNode targetNode)
         {
             if (targetNode == null) return;

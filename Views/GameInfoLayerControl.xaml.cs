@@ -7,11 +7,11 @@ using System.Windows.Media;
 
 namespace ArcadeStick.Views
 {
-    // Game Info layer group: a transparent host holding seven independently positioned parts (see the XAML).
+    // Game Info layer group: a transparent host holding eight independently positioned parts (see the XAML).
     // This file drives the two cycling pieces - the 4-page Game Info cycle (0 = Game Info, 1 = Trivia,
     // 2 = Tips & Tricks, 3 = Specs & Credits) and the Flyer / Title Screen / Snap image cycle. MainWindow's
     // ApplyLayout positions, sizes and shows/hides each part element (PartTitle, PartPublisher, PartInfoNav,
-    // PartInfoBody, PartPreviewsNav, PartPreviewsBody, PartPlayButton) directly.
+    // PartInfoBody, PartPreviewsNav, PartPreviewsBody, PartPlayButton, PartFavoritesStar) directly.
     public partial class GameInfoLayerControl : UserControl
     {
         private int _column2StateIndex = 0;
@@ -24,6 +24,9 @@ namespace ArcadeStick.Views
 
         // Raised when the Play Button is clicked; MainWindow does the launch
         public event EventHandler? PlayRequested;
+
+        // Raised when the Favorites Star is clicked; MainWindow does the toggle
+        public event EventHandler? FavoriteToggleRequested;
 
         public GameInfoLayerControl()
         {
@@ -81,6 +84,9 @@ namespace ArcadeStick.Views
 
         // Does the Play Button click: asks MainWindow to launch the selected game
         private void PartPlayButton_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => PlayRequested?.Invoke(this, EventArgs.Empty);
+
+        // Does the Favorites Star click: asks MainWindow to add or remove the selected game
+        private void PartFavoritesStar_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => FavoriteToggleRequested?.Invoke(this, EventArgs.Empty);
 
         // [SECTION: Game Info pages]
         private void Column2ArrowLeft_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
