@@ -1365,6 +1365,248 @@
                     </TabItem>
                     <!-- [END SECTION: Game Info - Previews Tab] -->
 
+                    <!-- [SECTION: Game Info - Play Button Tab] -->
+                    <!-- The button that launches the selected game, stored on the PlayButton entry. Text: text, font + bold, size / color
+                         (the GI block system, block "PlayButton"), vertical nudge, drop shadow. Button: fill and box shadow (BoxShadow*).
+                         Border: color, size, radius (drawn inside the box). Hover: text, fill and border colors. -->
+                    <TabItem x:Name="TabGIPlayButton" Header="PLAY BUTTON" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                            <StackPanel Margin="10">
+                                <!-- Text -->
+                                <Grid Margin="0,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Text" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+
+                                    <!-- Button text (empty = no text) -->
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Button text:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <TextBox x:Name="TxtPlayButtonText" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" MaxLength="24" Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
+
+                                    <!-- Font family + bold -->
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                        <ComboBox x:Name="GIPlayButtonFont" Tag="PlayButton" Width="160" Height="25"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                        <CheckBox x:Name="GIPlayButtonBold" Tag="PlayButton" Content="Bold" Margin="12,0,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
+                                    </StackPanel>
+
+                                    <!-- Size, color (side by side), then the vertical nudge (-10 to 10) -->
+                                    <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="48"/>
+                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
+                                        <TextBox x:Name="GIPlayButtonSize" Tag="PlayButton" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
+                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                                <colorpicker:PortableColorPicker x:Name="GIPlayButtonColorPicker" Tag="PlayButton" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
+                                                    <colorpicker:PortableColorPicker.Resources>
+                                                        <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                    </colorpicker:PortableColorPicker.Resources>
+                                                </colorpicker:PortableColorPicker>
+                                            </Border>
+                                            <TextBox x:Name="GIPlayButtonColorHex" Tag="PlayButton" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIColorHex_LostFocus"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Text="Vertical nudge (px):" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                        <TextBox x:Name="TxtPlayButtonNudge" Grid.Row="3" Grid.Column="0" HorizontalContentAlignment="Center"
+                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
+                                    </Grid>
+
+                                    <!-- Text drop shadow (color, blur and depth are enabled while the toggle is on) -->
+                                    <CheckBox x:Name="GIPlayButtonShadow" Tag="PlayButton" Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow (text)" Margin="0,8,0,0"
+                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="8" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=GIPlayButtonShadow}" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="GIPlayButtonShadowColorPicker" Tag="PlayButton" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="GIPlayButtonShadowColorHex" Tag="PlayButton" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="GIPlayButtonShadowBlur" Tag="PlayButton" Grid.Row="8" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIPlayButtonShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                    <TextBox x:Name="GIPlayButtonShadowDepth" Tag="PlayButton" Grid.Row="8" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIPlayButtonShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                </Grid>
+
+                                <!-- Button: fill and the box's own drop shadow (it draws outside the button) -->
+                                <Grid Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Button" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="PlayButtonBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonBgColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtPlayButtonBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonBgColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="ChkPlayButtonBoxShadow" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow (button)" Margin="0,8,0,0"
+                                              Style="{StaticResource GLCheckBoxStyle}" Click="ChkPlayButtonBoxShadow_Click"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="5" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=ChkPlayButtonBoxShadow}" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="PlayButtonBoxShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonBoxShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtPlayButtonBoxShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonBoxShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="TxtPlayButtonBoxShadowBlur" Grid.Row="5" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkPlayButtonBoxShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
+                                    <TextBox x:Name="TxtPlayButtonBoxShadowDepth" Grid.Row="5" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkPlayButtonBoxShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
+                                </Grid>
+
+                                <!-- Border: color, size (0 to 50), radius (0 to 200) -->
+                                <Grid Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Border" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="PlayButtonBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonBorderColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtPlayButtonBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonBorderColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="TxtPlayButtonBorderSize" Grid.Row="2" Grid.Column="2" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
+                                    <TextBox x:Name="TxtPlayButtonCornerRadius" Grid.Row="2" Grid.Column="4" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
+                                </Grid>
+
+                                <!-- Hover: text, fill and border colors while the mouse is over the button -->
+                                <Grid Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Hover" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Text color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="PlayButtonHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonHoverColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtPlayButtonHoverColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonHoverColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                    <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="PlayButtonHoverBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonHoverBgColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtPlayButtonHoverBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonHoverBgColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
+                                    <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="PlayButtonHoverBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonHoverBorderColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtPlayButtonHoverBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonHoverBorderColorHex_LostFocus"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Game Info - Play Button Tab] -->
+
                     <!-- [SECTION: Shape Layer - Background Tab] -->
                     <TabItem x:Name="TabShapeBackground" Header="BACKGROUND" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">

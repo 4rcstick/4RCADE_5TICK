@@ -7,11 +7,11 @@ using System.Windows.Media;
 
 namespace ArcadeStick.Views
 {
-    // Game Info layer group: a transparent host holding six independently positioned parts (see the XAML).
+    // Game Info layer group: a transparent host holding seven independently positioned parts (see the XAML).
     // This file drives the two cycling pieces - the 4-page Game Info cycle (0 = Game Info, 1 = Trivia,
     // 2 = Tips & Tricks, 3 = Specs & Credits) and the Flyer / Title Screen / Snap image cycle. MainWindow's
     // ApplyLayout positions, sizes and shows/hides each part element (PartTitle, PartPublisher, PartInfoNav,
-    // PartInfoBody, PartPreviewsNav, PartPreviewsBody) directly.
+    // PartInfoBody, PartPreviewsNav, PartPreviewsBody, PartPlayButton) directly.
     public partial class GameInfoLayerControl : UserControl
     {
         private int _column2StateIndex = 0;
@@ -21,6 +21,9 @@ namespace ArcadeStick.Views
         // PREFERRED state and persists across game switches (a viewing preference); if the new game lacks
         // that image, the first available one shows instead without overwriting the preference.
         private int _previewStateIndex = 0;
+
+        // Raised when the Play Button is clicked; MainWindow does the launch
+        public event EventHandler? PlayRequested;
 
         public GameInfoLayerControl()
         {
@@ -75,6 +78,9 @@ namespace ArcadeStick.Views
             Column2BodyTipsScroll.ScrollToTop();
             Column2BodySpecsCreditsScroll.ScrollToTop();
         }
+
+        // Does the Play Button click: asks MainWindow to launch the selected game
+        private void PartPlayButton_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => PlayRequested?.Invoke(this, EventArgs.Empty);
 
         // [SECTION: Game Info pages]
         private void Column2ArrowLeft_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

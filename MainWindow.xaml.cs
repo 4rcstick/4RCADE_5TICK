@@ -103,6 +103,7 @@ namespace ArcadeStick
             _viewModel.Configuration.GetFfmpegRuntimeDirectory(), VideoPreviewLayer.PreviewVideoSurface);
             _previewPlayer.StateChanged += PreviewPlayer_StateChanged;
             VideoPreviewLayer.SoundToggleRequested += (s, e) => TogglePreviewSound();
+            GameInfoLayer.PlayRequested += (s, e) => TriggerActiveSelectionLaunch();
             VideoPreviewLayer.SetSoundEnabled(_viewModel.Configuration.PreviewSoundEnabled);
             StateChanged += MainWindow_StateChanged;
 
@@ -196,6 +197,7 @@ namespace ArcadeStick
         private string? _lastVideoFallbackPath;
         private string? _lastSearchButtonsStyleKey;
         private string? _lastGameInfoStyleKey;
+        private string? _lastPlayButtonStyleKey;
         private string? _lastRandomDisplayStyleKey;
         private string? _lastMarqueeBannerStyleKey;
         private string? _lastMainBackgroundKey;
@@ -468,6 +470,18 @@ namespace ArcadeStick
                 _viewModel.RefreshGameInfoBindings();
             }
 
+            // Play Button: re-raise its bindings only when one of its style values changed
+            var playButtonEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.PlayButton);
+            string playButtonStyleKey = $"{playButtonEntry?.ButtonText}|{playButtonEntry?.TextFontFamily}|{playButtonEntry?.TextBold}|{playButtonEntry?.TextFontSize}|{playButtonEntry?.TextColorHex}|{playButtonEntry?.TextNudgeY}"
+                + $"|{playButtonEntry?.TextShadowEnabled}|{playButtonEntry?.TextShadowColorHex}|{playButtonEntry?.TextShadowBlur}|{playButtonEntry?.TextShadowDepth}"
+                + $"|{playButtonEntry?.BgColorHex}|{playButtonEntry?.BoxShadowEnabled}|{playButtonEntry?.BoxShadowColorHex}|{playButtonEntry?.BoxShadowBlur}|{playButtonEntry?.BoxShadowDepth}"
+                + $"|{playButtonEntry?.BorderSize}|{playButtonEntry?.BorderColorHex}|{playButtonEntry?.CornerRadius}|{playButtonEntry?.HoverColorHex}|{playButtonEntry?.HoverBgColorHex}|{playButtonEntry?.HoverBorderColorHex}";
+            if (playButtonStyleKey != _lastPlayButtonStyleKey)
+            {
+                _lastPlayButtonStyleKey = playButtonStyleKey;
+                _viewModel.RefreshPlayButtonBindings();
+            }
+
             // Random Game Display: re-raise the spin card's bindings only when a style value on either part changed
             string randomDisplayStyleKey = string.Join("#",
                 new[] { Models.LayerRegistry.RandomGameDisplay, Models.LayerRegistry.RandomGameDisplaySplash }
@@ -502,10 +516,11 @@ namespace ArcadeStick
                 { Models.LayerRegistry.GameInfoBody, GameInfoLayer.PartInfoBody },
                 { Models.LayerRegistry.ImagePreviewsNav, GameInfoLayer.PartPreviewsNav },
                 { Models.LayerRegistry.ImagePreviewsBody, GameInfoLayer.PartPreviewsBody },
+                { Models.LayerRegistry.PlayButton, GameInfoLayer.PartPlayButton },
                 { Models.LayerRegistry.Footer, FooterPanel }
             };
 
-            // The Game Info host fills the whole canvas (its six parts are positioned inside it) and takes the
+            // The Game Info host fills the whole canvas (its seven parts are positioned inside it) and takes the
             // group's shared Z. It has no background, so empty areas don't block clicks on the layers below.
             Canvas.SetLeft(GameInfoLayer, 0);
             Canvas.SetTop(GameInfoLayer, 0);

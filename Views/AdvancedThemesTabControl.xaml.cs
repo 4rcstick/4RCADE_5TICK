@@ -974,7 +974,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabGIPlayButton, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -988,7 +988,7 @@ namespace ArcadeStick.Views
             if (unitKey == LayerRegistry.SearchAndButtonsGroup) return new[] { TabSBSearch, TabSBButtons, TabShapeBorder };
 
             // Game Info group: title, publisher block, headers + body, the two navs, and the image previews shadow
-            if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews };
+            if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabGIPlayButton };
 
             // Random Game Display group: the spin card's text, background (color and file) and the shared Border tab
             // (mapped to the RandomGameDisplay entry by GetSelectedBorderEntry)
@@ -1064,6 +1064,9 @@ namespace ArcadeStick.Views
 
             // Game Info fields (Title, Publisher, Info and Nav tabs): filled when that group is selected
             LoadGameInfoStyleFields();
+
+            // Play Button fields the block system does not cover: filled when that group is selected
+            LoadPlayButtonFields();
 
             // Random Game Display fields (Text and Background tabs): filled when that group is selected
             LoadRandomDisplayStyleFields();
@@ -3346,6 +3349,119 @@ namespace ArcadeStick.Views
         }
         // [END SECTION: Marquee Banner Styling Fields]
 
+        // [SECTION: Play Button Styling Fields]
+        // Shown while the Game Info group is selected (PLAY BUTTON tab). The font, bold, size, color and text shadow go through
+        // the GI block system (block "PlayButton"); this region is the rest of the PlayButton entry: button text, vertical
+        // nudge, background, box shadow (BoxShadow*), border and hover colors.
+        // Colors and the checkbox apply immediately; text and number fields apply on Enter or focus loss and revert invalid input.
+        private LayerLayoutEntry? PlayButtonEntry => SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.GameInfoGroup ? GetEntry(LayerRegistry.PlayButton) : null;
+
+        // Fills the tab's non-block controls from the Play Button entry
+        private void LoadPlayButtonFields()
+        {
+            if (PlayButtonEntry is not LayerLayoutEntry entry) return;
+
+            _loading = true;
+
+            TxtPlayButtonText.Text = entry.ButtonText ?? LayerRegistry.DefaultPlayButtonText;
+            TxtPlayButtonNudge.Text = (entry.TextNudgeY ?? LayerRegistry.DefaultPlayButtonNudgeY).ToString(CultureInfo.InvariantCulture);
+            ShowColor(PlayButtonBgColorPicker, TxtPlayButtonBgColorHex, entry.BgColorHex ?? LayerRegistry.DefaultPlayButtonBgColorHex);
+
+            ChkPlayButtonBoxShadow.IsChecked = entry.BoxShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            ShowColor(PlayButtonBoxShadowColorPicker, TxtPlayButtonBoxShadowColorHex, entry.BoxShadowColorHex ?? LayerRegistry.DefaultShadowColorHex);
+            TxtPlayButtonBoxShadowBlur.Text = (entry.BoxShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtPlayButtonBoxShadowDepth.Text = (entry.BoxShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            ShowColor(PlayButtonBorderColorPicker, TxtPlayButtonBorderColorHex, entry.BorderColorHex ?? LayerRegistry.DefaultPlayButtonBorderColorHex);
+            TxtPlayButtonBorderSize.Text = (entry.BorderSize ?? LayerRegistry.DefaultPlayButtonBorderSize).ToString(CultureInfo.InvariantCulture);
+            TxtPlayButtonCornerRadius.Text = (entry.CornerRadius ?? LayerRegistry.DefaultPlayButtonCornerRadius).ToString(CultureInfo.InvariantCulture);
+
+            ShowColor(PlayButtonHoverColorPicker, TxtPlayButtonHoverColorHex, entry.HoverColorHex ?? LayerRegistry.DefaultPlayButtonHoverColorHex);
+            ShowColor(PlayButtonHoverBgColorPicker, TxtPlayButtonHoverBgColorHex, entry.HoverBgColorHex ?? LayerRegistry.DefaultPlayButtonHoverBgColorHex);
+            ShowColor(PlayButtonHoverBorderColorPicker, TxtPlayButtonHoverBorderColorHex, entry.HoverBorderColorHex ?? LayerRegistry.DefaultPlayButtonHoverBorderColorHex);
+
+            _loading = false;
+        }
+
+        // Does the box shadow toggle
+        private void ChkPlayButtonBoxShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || PlayButtonEntry is not LayerLayoutEntry entry) return;
+
+            entry.BoxShadowEnabled = ChkPlayButtonBoxShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        // Color pickers and hex boxes (background, box shadow, border, the three hover colors)
+        private void PlayButtonBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(PlayButtonBgColorPicker, TxtPlayButtonBgColorHex, PlayButtonEntry, (en, hex) => en.BgColorHex = hex);
+        private void TxtPlayButtonBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(PlayButtonBgColorPicker, TxtPlayButtonBgColorHex, PlayButtonEntry, en => en.BgColorHex ?? LayerRegistry.DefaultPlayButtonBgColorHex, (en, hex) => en.BgColorHex = hex);
+
+        private void PlayButtonBoxShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(PlayButtonBoxShadowColorPicker, TxtPlayButtonBoxShadowColorHex, PlayButtonEntry, (en, hex) => en.BoxShadowColorHex = hex);
+        private void TxtPlayButtonBoxShadowColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(PlayButtonBoxShadowColorPicker, TxtPlayButtonBoxShadowColorHex, PlayButtonEntry, en => en.BoxShadowColorHex ?? LayerRegistry.DefaultShadowColorHex, (en, hex) => en.BoxShadowColorHex = hex);
+
+        private void PlayButtonBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(PlayButtonBorderColorPicker, TxtPlayButtonBorderColorHex, PlayButtonEntry, (en, hex) => en.BorderColorHex = hex);
+        private void TxtPlayButtonBorderColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(PlayButtonBorderColorPicker, TxtPlayButtonBorderColorHex, PlayButtonEntry, en => en.BorderColorHex ?? LayerRegistry.DefaultPlayButtonBorderColorHex, (en, hex) => en.BorderColorHex = hex);
+
+        private void PlayButtonHoverColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(PlayButtonHoverColorPicker, TxtPlayButtonHoverColorHex, PlayButtonEntry, (en, hex) => en.HoverColorHex = hex);
+        private void TxtPlayButtonHoverColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(PlayButtonHoverColorPicker, TxtPlayButtonHoverColorHex, PlayButtonEntry, en => en.HoverColorHex ?? LayerRegistry.DefaultPlayButtonHoverColorHex, (en, hex) => en.HoverColorHex = hex);
+
+        private void PlayButtonHoverBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(PlayButtonHoverBgColorPicker, TxtPlayButtonHoverBgColorHex, PlayButtonEntry, (en, hex) => en.HoverBgColorHex = hex);
+        private void TxtPlayButtonHoverBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(PlayButtonHoverBgColorPicker, TxtPlayButtonHoverBgColorHex, PlayButtonEntry, en => en.HoverBgColorHex ?? LayerRegistry.DefaultPlayButtonHoverBgColorHex, (en, hex) => en.HoverBgColorHex = hex);
+
+        private void PlayButtonHoverBorderColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(PlayButtonHoverBorderColorPicker, TxtPlayButtonHoverBorderColorHex, PlayButtonEntry, (en, hex) => en.HoverBorderColorHex = hex);
+        private void TxtPlayButtonHoverBorderColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(PlayButtonHoverBorderColorPicker, TxtPlayButtonHoverBorderColorHex, PlayButtonEntry, en => en.HoverBorderColorHex ?? LayerRegistry.DefaultPlayButtonHoverBorderColorHex, (en, hex) => en.HoverBorderColorHex = hex);
+
+        // One shared handler pair for the text and number fields: button text, nudge (-10 to 10), box shadow blur (0-30) and depth (0-20), border size (0-50) and radius (0-200)
+        private void PlayButtonField_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyPlayButtonFields();
+        }
+
+        private void PlayButtonField_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyPlayButtonFields();
+        }
+
+        // Stores the button text (empty is allowed) and each valid number field on the Play Button entry; an invalid one keeps its stored value
+        private void ApplyPlayButtonFields()
+        {
+            if (_loading || _settings == null || PlayButtonEntry is not LayerLayoutEntry entry) return;
+
+            string text = TxtPlayButtonText.Text;
+            if (text.Length > LayerRegistry.MaxPlayButtonTextLength) text = text.Substring(0, LayerRegistry.MaxPlayButtonTextLength);
+            entry.ButtonText = text;
+
+            // Vertical nudge: any whole number is accepted and clamped to -10..10; anything else reverts
+            if (int.TryParse(TxtPlayButtonNudge.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int nudge))
+                entry.TextNudgeY = Math.Clamp(nudge, LayerRegistry.MinTextNudgeY, LayerRegistry.MaxTextNudgeY);
+            if (int.TryParse(TxtPlayButtonBoxShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int blur) && blur >= 0 && blur <= 30)
+                entry.BoxShadowBlur = blur;
+            if (int.TryParse(TxtPlayButtonBoxShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int depth) && depth >= 0 && depth <= 20)
+                entry.BoxShadowDepth = depth;
+            if (int.TryParse(TxtPlayButtonBorderSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int border) && border >= 0 && border <= 50)
+                entry.BorderSize = border;
+            if (int.TryParse(TxtPlayButtonCornerRadius.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int radius) && radius >= 0 && radius <= 200)
+                entry.CornerRadius = radius;
+
+            // Re-display the stored values (reverts invalid input) and re-apply the layout
+            LoadSelectedLayerIntoFields();
+        }
+        // [END SECTION: Play Button Styling Fields]
+
         // [SECTION: Game Info Styling Fields]
         // Six Game Info text blocks and two image-shadow blocks share one set of handlers: each control is named
         // GI{Block}{Control} and carries its block key in Tag, and GIBlocks maps the key to the entry, which field
@@ -3392,6 +3508,8 @@ namespace ArcadeStick.Views
                 LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             ["PreviewsNav"] = new(LayerRegistry.ImagePreviewsNav, false, false, LayerRegistry.DefaultFontFamily, false,
                 LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
+            ["PlayButton"] = new(LayerRegistry.PlayButton, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultPlayButtonBold,
+                LayerRegistry.DefaultPlayButtonFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             // Image shadows: the Image Previews (Game Info group, PREVIEWS tab) and the Marquee layer (its own SHADOW tab)
             ["Previews"] = new(LayerRegistry.ImagePreviewsBody, false, false, LayerRegistry.DefaultFontFamily, false,
                 0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true },

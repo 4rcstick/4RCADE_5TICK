@@ -845,6 +845,62 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Game Info Forwarders]
 
+        // [SECTION: Play Button Forwarders]
+        // The Game Info group's Play Button, read from its own PlayButton entry. Colors are hex strings like the other
+        // forwarders. The text and the box each have their own shadow (TextShadow* and BoxShadow*).
+        private LayerLayoutEntry PlayButtonEntry => GetLayerEntry(LayerRegistry.PlayButton);
+
+        public string ThemePlayButtonText => PlayButtonEntry.ButtonText ?? LayerRegistry.DefaultPlayButtonText;
+        public FontFamily ThemePlayButtonFontFamily => ToFontFamily(PlayButtonEntry.TextFontFamily);
+        public FontWeight ThemePlayButtonFontWeight => (PlayButtonEntry.TextBold ?? LayerRegistry.DefaultPlayButtonBold) ? FontWeights.Bold : FontWeights.Normal;
+        public double ThemePlayButtonFontSize => PlayButtonEntry.TextFontSize ?? LayerRegistry.DefaultPlayButtonFontSize;
+        public string ThemePlayButtonColor => PlayButtonEntry.TextColorHex ?? LayerRegistry.DefaultPlayButtonColorHex;
+        public double ThemePlayButtonTextNudgeY => PlayButtonEntry.TextNudgeY ?? LayerRegistry.DefaultPlayButtonNudgeY;
+        public System.Windows.Media.Effects.Effect? ThemePlayButtonTextEffect => BuildTextShadowEffect(PlayButtonEntry);
+        public string ThemePlayButtonBgColor => PlayButtonEntry.BgColorHex ?? LayerRegistry.DefaultPlayButtonBgColorHex;
+        public System.Windows.Media.Effects.Effect? ThemePlayButtonBoxEffect =>
+            BuildShadowEffect(
+                PlayButtonEntry.BoxShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                PlayButtonEntry.BoxShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                PlayButtonEntry.BoxShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                PlayButtonEntry.BoxShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+        public string ThemePlayButtonBorderColor => PlayButtonEntry.BorderColorHex ?? LayerRegistry.DefaultPlayButtonBorderColorHex;
+        public Thickness ThemePlayButtonBorderThickness => new Thickness(PlayButtonEntry.BorderSize ?? LayerRegistry.DefaultPlayButtonBorderSize);
+        public CornerRadius ThemePlayButtonCornerRadius => new CornerRadius(PlayButtonEntry.CornerRadius ?? LayerRegistry.DefaultPlayButtonCornerRadius);
+
+        // The fill's inset (border size minus 1px, so it reaches 1px under the ring) and its corner radius, reduced by the same inset to stay concentric
+        private double PlayButtonBoxInset => Math.Max(0, (PlayButtonEntry.BorderSize ?? LayerRegistry.DefaultPlayButtonBorderSize) - 1);
+        public Thickness ThemePlayButtonBoxMargin => new Thickness(PlayButtonBoxInset);
+        public CornerRadius ThemePlayButtonBoxCornerRadius => new CornerRadius(Math.Max(0, (PlayButtonEntry.CornerRadius ?? LayerRegistry.DefaultPlayButtonCornerRadius) - PlayButtonBoxInset));
+
+        public string ThemePlayButtonHoverColor => PlayButtonEntry.HoverColorHex ?? LayerRegistry.DefaultPlayButtonHoverColorHex;
+        public string ThemePlayButtonHoverBgColor => PlayButtonEntry.HoverBgColorHex ?? LayerRegistry.DefaultPlayButtonHoverBgColorHex;
+        public string ThemePlayButtonHoverBorderColor => PlayButtonEntry.HoverBorderColorHex ?? LayerRegistry.DefaultPlayButtonHoverBorderColorHex;
+
+        // Re-raises the Play Button forwarders after their entry values changed (RefreshThemeBindings and MainWindow.ApplyLayout's
+        // Play Button style key)
+        public void RefreshPlayButtonBindings()
+        {
+            OnPropertyChanged(nameof(ThemePlayButtonText));
+            OnPropertyChanged(nameof(ThemePlayButtonFontFamily));
+            OnPropertyChanged(nameof(ThemePlayButtonFontWeight));
+            OnPropertyChanged(nameof(ThemePlayButtonFontSize));
+            OnPropertyChanged(nameof(ThemePlayButtonColor));
+            OnPropertyChanged(nameof(ThemePlayButtonTextNudgeY));
+            OnPropertyChanged(nameof(ThemePlayButtonTextEffect));
+            OnPropertyChanged(nameof(ThemePlayButtonBgColor));
+            OnPropertyChanged(nameof(ThemePlayButtonBoxEffect));
+            OnPropertyChanged(nameof(ThemePlayButtonBorderColor));
+            OnPropertyChanged(nameof(ThemePlayButtonBorderThickness));
+            OnPropertyChanged(nameof(ThemePlayButtonCornerRadius));
+            OnPropertyChanged(nameof(ThemePlayButtonBoxMargin));
+            OnPropertyChanged(nameof(ThemePlayButtonBoxCornerRadius));
+            OnPropertyChanged(nameof(ThemePlayButtonHoverColor));
+            OnPropertyChanged(nameof(ThemePlayButtonHoverBgColor));
+            OnPropertyChanged(nameof(ThemePlayButtonHoverBorderColor));
+        }
+        // [END SECTION: Play Button Forwarders]
+
         // [SECTION: Random Game Display Forwarders]
         // The spin card's style. Text (message, font, color, alignment, wrap, shadow) is shared by both states and read
         // from the RandomGameDisplay entry; background color and border are per state, read from the active state's
@@ -1259,6 +1315,7 @@ namespace ArcadeStick.ViewModels
 
             OnPropertyChanged(nameof(ThemeMainColor));
             RefreshGameInfoBindings();
+            RefreshPlayButtonBindings();
             RefreshRandomDisplayBindings();
             RefreshMarqueeBindings();
             RefreshMarqueeBannerBindings();

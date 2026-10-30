@@ -230,6 +230,23 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? BannerTextMargin { get; set; }
 
+        // Play Button only (Game Info group): the button's text (an empty text means no text; null fills from the default)
+        // and the box's own drop shadow. Its TextShadow* fields are the text's shadow. Same rules as above.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? ButtonText { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? BoxShadowEnabled { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? BoxShadowColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? BoxShadowBlur { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? BoxShadowDepth { get; set; }
+
         // Game Info section headers (the Game Info Body entry only; its body text uses the generic Text* fields
         // above). A second block of text styling because the generic fields only fit one block per entry.
         // Same rules: null on every other layer, left out of the theme file when null, filled from defaults.
@@ -327,6 +344,11 @@ namespace ArcadeStick.Models
             BannerShadowBlur = source.BannerShadowBlur;
             BannerShadowDepth = source.BannerShadowDepth;
             BannerTextMargin = source.BannerTextMargin;
+            ButtonText = source.ButtonText;
+            BoxShadowEnabled = source.BoxShadowEnabled;
+            BoxShadowColorHex = source.BoxShadowColorHex;
+            BoxShadowBlur = source.BoxShadowBlur;
+            BoxShadowDepth = source.BoxShadowDepth;
             SectionHeaderFontSize = source.SectionHeaderFontSize;
             SectionHeaderColorHex = source.SectionHeaderColorHex;
             SectionHeaderFontFamily = source.SectionHeaderFontFamily;
@@ -489,12 +511,13 @@ namespace ArcadeStick.Models
         public const string GameInfoBody = "GameInfoBody";
         public const string ImagePreviewsNav = "ImagePreviewsNav";
         public const string ImagePreviewsBody = "ImagePreviewsBody";
+        public const string PlayButton = "PlayButton";
 
         // Each group's parts share one Z and are edited on one page, in the order listed here.
         public static readonly IReadOnlyList<LayerGroupDefinition> AllGroups = new List<LayerGroupDefinition>
         {
             new(SearchAndButtonsGroup, "Search & Buttons", new[] { SearchLabel, SearchBox, RandomButton, SortButton, OptionsButton, HamburgerButton }, AllowGroupMove: true),
-            new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsNav, ImagePreviewsBody }, AllowGroupMove: true),
+            new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsNav, ImagePreviewsBody, PlayButton }, AllowGroupMove: true),
             new(RandomGameGroup, "Random Game Display", new[] { RandomGameDisplay, RandomGameDisplaySplash }, AllowRatioLock: true)
         };
 
@@ -535,6 +558,7 @@ namespace ArcadeStick.Models
             new() { Id = GameInfoBody,     DisplayName = "Game Info",           X = 765, Y = 398, Width = 490, Height = 298, Z = 34, GroupId = GameInfoGroup },
             new() { Id = ImagePreviewsNav, DisplayName = "Image Previews Nav",  X = 414, Y = 456, Width = 328, Height = 20,  Z = 34, GroupId = GameInfoGroup },
             new() { Id = ImagePreviewsBody,DisplayName = "Image Previews",      X = 414, Y = 486, Width = 328, Height = 198, Z = 34, GroupId = GameInfoGroup },
+            new() { Id = PlayButton,       DisplayName = "Play Button",         X = 765, Y = 348, Width = 100, Height = 32,  Z = 34, GroupId = GameInfoGroup },
 
             new() { Id = SearchLabel,    DisplayName = "Search Label",      X = 20,  Y = 20,  Width = 67,  Height = 30, Z = 20, GroupId = SearchAndButtonsGroup },
             new() { Id = SearchBox,      DisplayName = "Search Box",        X = 87,  Y = 20,  Width = 142, Height = 30, Z = 20, GroupId = SearchAndButtonsGroup },
@@ -651,6 +675,9 @@ namespace ArcadeStick.Models
 
                 // Marquee no-art banner: the title card's font, colors, wrap, border and text shadow
                 FillMarqueeBannerStyle(entry);
+
+                // Play Button: text, fill, both shadows, border and hover colors
+                FillPlayButtonStyle(entry);
 
                 layout.Layers.Add(entry);
             }
@@ -804,6 +831,32 @@ namespace ArcadeStick.Models
             entry.BannerTextMargin ??= DefaultBannerTextMargin;
         }
 
+        // Fills the Play Button's style on its own entry: text, font, bold, size, color, nudge, text shadow, fill, box shadow,
+        // border and hover colors. An empty saved text is kept (it means no text); saved values are kept, a saved false included.
+        private static void FillPlayButtonStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id != PlayButton) return;
+
+            entry.ButtonText ??= DefaultPlayButtonText;
+            if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
+            entry.TextBold ??= DefaultPlayButtonBold;
+            entry.TextFontSize ??= DefaultPlayButtonFontSize;
+            if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultPlayButtonColorHex;
+            entry.TextNudgeY ??= DefaultPlayButtonNudgeY;
+            FillTextShadowDefaults(entry);
+            if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultPlayButtonBgColorHex;
+            entry.BoxShadowEnabled ??= DefaultShadowEnabled;
+            if (string.IsNullOrWhiteSpace(entry.BoxShadowColorHex)) entry.BoxShadowColorHex = DefaultShadowColorHex;
+            entry.BoxShadowBlur ??= DefaultShadowBlur;
+            entry.BoxShadowDepth ??= DefaultShadowDepth;
+            entry.BorderSize ??= DefaultPlayButtonBorderSize;
+            if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = DefaultPlayButtonBorderColorHex;
+            entry.CornerRadius ??= DefaultPlayButtonCornerRadius;
+            if (string.IsNullOrWhiteSpace(entry.HoverColorHex)) entry.HoverColorHex = DefaultPlayButtonHoverColorHex;
+            if (string.IsNullOrWhiteSpace(entry.HoverBgColorHex)) entry.HoverBgColorHex = DefaultPlayButtonHoverBgColorHex;
+            if (string.IsNullOrWhiteSpace(entry.HoverBorderColorHex)) entry.HoverBorderColorHex = DefaultPlayButtonHoverBorderColorHex;
+        }
+
         // Fills one Random Game Display state's background color and border (black, unbordered, square; saved values kept)
         private static void FillRandomDisplayCardDefaults(LayerLayoutEntry entry)
         {
@@ -913,6 +966,9 @@ namespace ArcadeStick.Models
 
                 // Marquee no-art banner: fill any missing banner style value
                 FillMarqueeBannerStyle(entry);
+
+                // Play Button: fill any missing style value (an older theme gets the whole part from defaults)
+                FillPlayButtonStyle(entry);
 
                 // Main Window Background: the Disable flag and the background color fill in when missing (saved values kept)
                 if (entry.Id == MainBackground)
@@ -1051,6 +1107,22 @@ namespace ArcadeStick.Models
         public const int DefaultBannerTextMargin = 5;
         public const int MinBannerTextMargin = 0;
         public const int MaxBannerTextMargin = 100;
+
+        // Play Button defaults (the main window buttons' look). Its text nudge uses MinTextNudgeY / MaxTextNudgeY, and both
+        // of its shadows the standard off-by-default values above.
+        public const string DefaultPlayButtonText = "PLAY";
+        public const int MaxPlayButtonTextLength = 24;
+        public const int DefaultPlayButtonFontSize = 16;
+        public const bool DefaultPlayButtonBold = true;
+        public const string DefaultPlayButtonColorHex = "#FF00D4FF";
+        public const int DefaultPlayButtonNudgeY = 0;
+        public const string DefaultPlayButtonBgColorHex = "#FF1C1C1E";
+        public const int DefaultPlayButtonBorderSize = 1;
+        public const string DefaultPlayButtonBorderColorHex = "#FF00D4FF";
+        public const int DefaultPlayButtonCornerRadius = 0;
+        public const string DefaultPlayButtonHoverColorHex = "#FF00D4FF";
+        public const string DefaultPlayButtonHoverBgColorHex = "#FF2C2C2E";
+        public const string DefaultPlayButtonHoverBorderColorHex = "#FF00D4FF";
 
         // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
         // Segoe UI is also the fallback when a theme has no saved family.
