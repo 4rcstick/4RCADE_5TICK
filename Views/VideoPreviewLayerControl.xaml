@@ -57,5 +57,12 @@
 
         <!-- Border ring on top, never hit-testable -->
         <Border x:Name="MediaSlotRing" Background="Transparent" IsHitTestVisible="False"/>
+
+        <!-- Preview sound glyph: above the ring and outside the rounded clip, its margin keeps it inside the video area.
+             Shown on hover while a video plays; visibility, glyph, size and margin come from the code-behind. -->
+        <Border x:Name="SoundGlyphButton" Background="Transparent" Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Visibility="Collapsed" MouseLeftButtonUp="SoundGlyphButton_MouseLeftButtonUp">
+            <TextBlock x:Name="SoundGlyphIcon" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource ChromePreviewSoundGlyph}" IsHitTestVisible="False"/>
+        </Border>
     </Grid>
 </UserControl>

@@ -164,6 +164,7 @@ namespace ArcadeStick.ViewModels
                         Configuration.ShowCenterGuide = loadedSettings.ShowCenterGuide;
                         Configuration.GuideLineColorHex = loadedSettings.GuideLineColorHex;
                         Configuration.SmartFullscreen = loadedSettings.SmartFullscreen;
+                        Configuration.PreviewSoundEnabled = loadedSettings.PreviewSoundEnabled;
                         Configuration.NewSizeScaleChoice = loadedSettings.NewSizeScaleChoice;
                     }
                 }

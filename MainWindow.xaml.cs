@@ -102,6 +102,9 @@ namespace ArcadeStick
             _previewPlayer = new ArcadeStick.Playback.PreviewPlayerHost(
             _viewModel.Configuration.GetFfmpegRuntimeDirectory(), VideoPreviewLayer.PreviewVideoSurface);
             _previewPlayer.StateChanged += PreviewPlayer_StateChanged;
+            VideoPreviewLayer.SoundToggleRequested += (s, e) => TogglePreviewSound();
+            VideoPreviewLayer.SetSoundEnabled(_viewModel.Configuration.PreviewSoundEnabled);
+            StateChanged += MainWindow_StateChanged;
 
             _romCopyService = new RomCopyService(_viewModel.Configuration);
 
@@ -542,6 +545,7 @@ namespace ArcadeStick
                 PlaceOutsideBorder(VideoPreviewLayer, videoEntry, videoEntry.BorderSize ?? 0);
                 VideoPreviewLayer.ApplyBorder(videoEntry.BorderSize ?? 0, videoEntry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, videoEntry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
                 VideoPreviewLayer.ApplyBackground(videoEntry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
+                VideoPreviewLayer.ApplySoundGlyphSize(videoEntry.Height);
             }
 
             ApplyCustomLayers(layout);
@@ -1362,7 +1366,8 @@ namespace ArcadeStick
 
         // [SECTION: FFmpeg Preview Player]
         // Game-preview video plays through the FFmpeg player (PreviewPlayerHost), drawing into the Image in
-        // VideoPreviewLayer. It loops on its own and plays without audio (no audio session, the stopwatch clocks it).
+        // VideoPreviewLayer. It loops on its own. With Preview sound off it opens no audio session and the stopwatch
+        // clocks it; with it on, each start plays with sound on the audio clock.
         // If the runtime failed to load the host does nothing, so the slot just stays empty. A failed preview restarts
         // itself (see Preview Auto-Restart below).
         private void StartActivePreview(string path)
@@ -1377,7 +1382,7 @@ namespace ArcadeStick
 
             UpdatePreviewTargetSize();
             VideoPreviewLayer.PreviewVideoSurface.Visibility = Visibility.Visible;
-            _previewPlayer.Play(path);
+            _previewPlayer.Play(path, _viewModel.Configuration.PreviewSoundEnabled);
         }
 
         // Stops the preview player and hides its surface.
@@ -1423,6 +1428,8 @@ namespace ArcadeStick
             _previewSourcePath = sourcePath;
             _previewRestartAttempts = 0;
             _previewPlayingSince = null;
+            _previewMinimizePausedSource = null;
+            VideoPreviewLayer.SetPreviewPlaying(false);
         }
 
         // Does the reaction to the player's state: notes when playback is running, and on Error for the current source logs it and schedules a restart
@@ -1433,10 +1440,12 @@ namespace ArcadeStick
             if (change.State == ArcadeStick.Playback.PlayerState.Playing)
             {
                 _previewPlayingSince ??= DateTime.Now;
+                VideoPreviewLayer.SetPreviewPlaying(true);
                 return;
             }
             if (change.State != ArcadeStick.Playback.PlayerState.Error) return;
 
+            VideoPreviewLayer.SetPreviewPlaying(false);
             if (_previewPlayingSince is DateTime since && DateTime.Now - since >= PreviewRestartResetAfter) _previewRestartAttempts = 0;
             _previewPlayingSince = null;
 
@@ -1486,7 +1495,7 @@ namespace ArcadeStick
                 string directory = System.IO.Path.Combine(_viewModel.Configuration.GetArcadeStickFilesPath(), "logs");
                 Directory.CreateDirectory(directory);
                 string line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}  error=\"{change.Error}\"  source=\"{change.SourcePath}\"  " +
-                    $"attempt={attempt}  window={(IsActive ? "active" : "inactive")},{WindowState}  retry={retry}{Environment.NewLine}";
+                    $"attempt={attempt}  sound={(_viewModel.Configuration.PreviewSoundEnabled ? "on" : "off")}  window={(IsActive ? "active" : "inactive")},{WindowState}  retry={retry}{Environment.NewLine}";
                 File.AppendAllText(System.IO.Path.Combine(directory, "preview.log"), line);
             }
             catch (Exception exception)
@@ -1495,6 +1504,50 @@ namespace ArcadeStick
             }
         }
         // [END SECTION: Preview Auto-Restart]
+
+        // [SECTION: Preview Sound]
+        // One preference for the glyph on the Video Preview and the hamburger item. Every preview start reads it, and
+        // toggling restarts a playing clip from 0:00 with the new choice. With sound on, minimizing pauses the preview.
+        private string? _previewMinimizePausedSource; // the source this minimize paused, null when it paused nothing
+
+        // Does the one toggle: saves the setting, restarts the preview if one should be playing now, refreshes the glyph
+        private void TogglePreviewSound()
+        {
+            var config = _viewModel.Configuration;
+            config.PreviewSoundEnabled = !config.PreviewSoundEnabled;
+            _viewModel.PersistConfigurationToDisk();
+            _previewMinimizePausedSource = null;
+            VideoPreviewLayer.SetSoundEnabled(config.PreviewSoundEnabled);
+
+            if (IsPreviewSupposedToPlay()) StartActivePreview(_previewSourcePath!);
+        }
+
+        // Does the check for a preview that should be playing now: asked to play, no game running, Options closed, layer and surface shown
+        private bool IsPreviewSupposedToPlay()
+        {
+            return _previewSourcePath != null && _gameBeingLaunched == null && !_isOptionsWindowOpen
+                && VideoPreviewLayer.Visibility == Visibility.Visible && VideoPreviewLayer.PreviewVideoSurface.Visibility == Visibility.Visible;
+        }
+
+        // Does the minimize rule, sound on only: pauses on minimize, and on restore resumes only what this minimize paused
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                if (_viewModel.Configuration.PreviewSoundEnabled && _previewMinimizePausedSource == null && IsPreviewSupposedToPlay())
+                {
+                    _previewMinimizePausedSource = _previewSourcePath;
+                    _previewPlayer?.Pause();
+                }
+                return;
+            }
+
+            if (_previewMinimizePausedSource == null) return;
+            bool sameSource = string.Equals(_previewMinimizePausedSource, _previewSourcePath, StringComparison.OrdinalIgnoreCase);
+            _previewMinimizePausedSource = null;
+            if (sameSource && IsPreviewSupposedToPlay()) _previewPlayer?.Resume();
+        }
+        // [END SECTION: Preview Sound]
 
         // Tells the decoder how many pixels the Video Preview's media slot occupies (from the layer entry,
         // scaled by the screen DPI and Smart fullscreen's factor), so the picture is decoded at the size it is shown at.
@@ -1521,7 +1574,7 @@ namespace ArcadeStick
         // Sets the idle/boot-splash media state at startup (no game selected, no video playing)
         // Stops and hides the video preview right as a spin begins, so the previous game's video doesn't
         // keep playing under an opaque spin card. A spin from the game-selected state whose card background is
-        // translucent leaves it playing, since it shows through (the player is always muted, and the winner's
+        // translucent leaves it playing, since it shows through (with its sound, if Preview sound is on, and the winner's
         // video swaps in through the normal Play call). VideoPreview's visibility is otherwise owned entirely by
         // ViewModel_PropertyChanged/RefreshVideoPreview/etc., so this only ever hides it - the normal
         // selection-change pipeline is what reveals it again once a winner is set (or leaves it hidden if
@@ -2945,9 +2998,10 @@ namespace ArcadeStick
             EndSmartFullscreen();
 
             // Back to a normal window sized to the layout (client area = layout resolution).
+            // CanMinimize keeps the minimize button but still blocks resizing and maximizing.
             WindowState = WindowState.Normal;
             WindowStyle = WindowStyle.ThreeDBorderWindow;
-            ResizeMode = ResizeMode.NoResize;
+            ResizeMode = ResizeMode.CanMinimize;
             SizeToContent = SizeToContent.WidthAndHeight;
         }
         // [END SECTION: Fullscreen Toggle]
@@ -3208,6 +3262,12 @@ namespace ArcadeStick
         }
         // [END SECTION: Smart Fullscreen]
 
+        // Runs the preview sound toggle after the hamburger menu has closed
+        private void HamburgerPreviewSoundMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(TogglePreviewSound));
+        }
+
         // [SECTION: Hamburger Menu]
         // Same hover/resting-color pattern as the Sort/Options/Random buttons. The popup itself is the
         // HamburgerContextMenu resource in MainWindow.xaml, opened here and anchored under the button.
@@ -3237,6 +3297,12 @@ namespace ArcadeStick
             if (menu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Tag as string == "SmartFullscreenMenu") is MenuItem smartItem)
             {
                 smartItem.Icon = config.SmartFullscreen ? CreateCheckIcon() : null;
+            }
+
+            // Preview sound: a check mark while the preference is on
+            if (menu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Tag as string == "PreviewSoundMenu") is MenuItem soundItem)
+            {
+                soundItem.Icon = config.PreviewSoundEnabled ? CreateCheckIcon() : null;
             }
 
             // Themes: every .zip in the Themes folder, check mark on the active one

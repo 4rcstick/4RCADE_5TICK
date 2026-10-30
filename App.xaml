@@ -29,6 +29,8 @@
         <SolidColorBrush x:Key="ChromeSelectedInactiveBg" Color="#3D00D4FF"/>
         <SolidColorBrush x:Key="ChromeSelectedInactiveBorder" Color="#FF00D4FF"/>
         <SolidColorBrush x:Key="ChromeSliderTrack" Color="#FF3A3A3C"/>
+        <!-- Speaker glyph over the playing Video Preview -->
+        <SolidColorBrush x:Key="ChromePreviewSoundGlyph" Color="#CCFFFFFF"/>
         <!-- [END SECTION: Chrome Palette] -->
 
         <!-- [SECTION: Global Theme Resources] -->

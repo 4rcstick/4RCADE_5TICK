@@ -48,7 +48,7 @@ Windows and views
 - `MainViewModel` holds the forwarders, `GetLayerEntry`, the `Refresh...Bindings` methods, theme load, tree building, and media loading.
 
 Media
-- Game-preview video plays through the FFmpeg player (`PreviewPlayerHost`, native FFmpeg DLLs in `4rcade5tick_files/ffmpeg`) drawing into an `Image` in `VideoPreviewLayer`. It plays with no audio session at all (`Play(path, withAudio = false)`, stopwatch clock; the WASAPI path is kept for later sound), and a failed preview is logged to `4rcade5tick_files/logs/preview.log` and restarted up to 3 times (themes.md 3.20). Wallpaper video, boot splash video and shape/custom layer videos use WPF `MediaElement`. Animated gif/APNG use AnimatedImage.Wpf.
+- Game-preview video plays through the FFmpeg player (`PreviewPlayerHost`, native FFmpeg DLLs in `4rcade5tick_files/ffmpeg`) drawing into an `Image` in `VideoPreviewLayer`. Sound is an optional per-install setting, off by default (`PreviewSoundEnabled`): off opens no audio session at all (stopwatch clock), on uses the WASAPI path and the audio clock. A failed preview is logged to `4rcade5tick_files/logs/preview.log` and restarted up to 3 times (themes.md 3.20). Wallpaper video, boot splash video and shape/custom layer videos use WPF `MediaElement`. Animated gif/APNG use AnimatedImage.Wpf.
 - Do not reopen: the single-`MediaElement` wallpaper loop (a two-player swap was tried and rejected for a visible flash).
 
 ## Known Gotchas (check before considering a change complete)

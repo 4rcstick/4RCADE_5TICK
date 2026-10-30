@@ -26,7 +26,6 @@ internal sealed class PreviewPlayerHost
             runtime = FFmpegRuntime.Load(ffmpegDirectory);
             var api = new FFmpegApi(runtime);
             presenter = new VideoPresenter(api, surface);
-            presenter.AudioSettings.Muted = true; // Previews are silent until attract mode needs sound.
             presenter.StateChanged += (_, change) => StateChanged?.Invoke(this, change);
         }
         catch (Exception exception)
@@ -42,7 +41,7 @@ internal sealed class PreviewPlayerHost
     // Decode box in pixels (the Video Preview layer's size).
     public void SetTargetSize(int width, int height) => presenter?.SetTargetSize(width, height);
 
-    // withAudio off (the default) opens no audio session at all; nothing passes it on yet (kept for the later sound feature).
+    // withAudio off (the default) opens no audio session at all; on plays the clip's sound on the audio clock.
     public void Play(string path, bool withAudio = false) => _ = RunAsync(p => p.PlayAsync(path, withAudio));
     // Reopens the current source from the start with the same audio choice.
     public void Restart() => _ = RunAsync(p => p.RestartAsync());

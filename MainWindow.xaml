@@ -11,7 +11,7 @@
         xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
         xmlns:sys="clr-namespace:System;assembly=System.Runtime"
         Title="4RCADE 5TICK" 
-        ResizeMode="NoResize"
+        ResizeMode="CanMinimize"
         SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterScreen"
         UseLayoutRounding="True"
@@ -192,6 +192,8 @@
             </MenuItem>
             <!-- Editor preference (settings.json, default off); its check mark is set in PopulateHamburgerSubmenus -->
             <MenuItem Header="Smart fullscreen" Tag="SmartFullscreenMenu" Click="HamburgerSmartFullscreenMenuItem_Click"/>
+            <!-- Per-install preference (settings.json, default off); its check mark is set in PopulateHamburgerSubmenus -->
+            <MenuItem Header="Preview sound" Tag="PreviewSoundMenu" Click="HamburgerPreviewSoundMenuItem_Click"/>
         </ContextMenu>
     </Window.Resources>
 

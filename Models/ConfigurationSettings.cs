@@ -91,6 +91,10 @@ namespace ArcadeStick.Models
         // layout and whole-number scale that best fill the screen in physical pixels, cancelling the Windows scale.
         public bool SmartFullscreen { get; set; } = false;
 
+        // Preview sound (per-install preference, not part of any theme file): off opens no audio session at all; on, every
+        // preview start plays with sound. Toggled by the glyph on the Video Preview and the hamburger menu.
+        public bool PreviewSoundEnabled { get; set; } = false;
+
         // New size scaler (editor preference, not part of any theme file): the choice last confirmed on a close aspect ratio in
         // the Theme Builder's "New size layout" prompt, preselected next time. "A" scale everything, "B" positions only, "C" keep.
         public string NewSizeScaleChoice { get; set; } = "C";
