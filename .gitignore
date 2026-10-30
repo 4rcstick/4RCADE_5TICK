@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 boot.cfg
+/handoff-2-favorites-star.md
+/handoff-3-favorites-in-place.md
+/handoff-4-favorites-no-jump.md
