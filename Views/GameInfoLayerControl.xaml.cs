@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -7,20 +6,15 @@ using System.Windows.Media;
 
 namespace ArcadeStick.Views
 {
-    // Game Info layer group: a transparent host holding eight independently positioned parts (see the XAML).
-    // This file drives the two cycling pieces - the 4-page Game Info cycle (0 = Game Info, 1 = Trivia,
-    // 2 = Tips & Tricks, 3 = Specs & Credits) and the Flyer / Title Screen / Snap image cycle. MainWindow's
+    // Game Info layer group: a transparent host holding seven independently positioned parts (see the XAML).
+    // This file drives the 4-page Game Info cycle (0 = Game Info, 1 = Trivia, 2 = Tips & Tricks,
+    // 3 = Specs & Credits) and picks the one image the previews slot shows. MainWindow's
     // ApplyLayout positions, sizes and shows/hides each part element (PartTitle, PartPublisher, PartInfoNav,
-    // PartInfoBody, PartPreviewsNav, PartPreviewsBody, PartPlayButton, PartFavoritesStar) directly.
+    // PartInfoBody, PartPreviewsBody, PartPlayButton, PartFavoritesStar) directly.
     public partial class GameInfoLayerControl : UserControl
     {
         private int _column2StateIndex = 0;
         private const int Column2StateCount = 4;
-
-        // 0 = Flyer, 1 = Title Screen, 2 = Snap - matches the dot order left-to-right. This is the user's
-        // PREFERRED state and persists across game switches (a viewing preference); if the new game lacks
-        // that image, the first available one shows instead without overwriting the preference.
-        private int _previewStateIndex = 0;
 
         // Raised when the Play Button is clicked; MainWindow does the launch
         public event EventHandler? PlayRequested;
@@ -49,19 +43,13 @@ namespace ArcadeStick.Views
         // game's info, not a viewing preference), and scrolls every body back to the top, since ScrollViewers
         // keep their own offset independent of the bound text. Flyer/Title/Snap are set at selection time
         // (instantly from the view model's cache, or together in one callback once a background decode lands)
-        // - rebuild the available image states whenever any of them changes.
-        // Each nav's color change repaints its own dot row (the active dot's fill is set in code).
+        // - pick the image to show again whenever any of them changes.
+        // The Game Info Nav's color change repaints its dot row (the active dot's fill is set in code).
         private void DataContext_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "ThemeGameInfoNavColor")
             {
                 UpdateColumn2Visibility();
-                return;
-            }
-
-            if (e.PropertyName == "ThemePreviewsNavColor")
-            {
-                UpdatePreviewVisibility();
                 return;
             }
 
@@ -115,10 +103,6 @@ namespace ArcadeStick.Views
         private Brush ResolveGameInfoNavBrush() =>
             DataContext is ArcadeStick.ViewModels.MainViewModel vm ? ResolveNavBrush(vm.ThemeGameInfoNavColor) : Brushes.White;
 
-        // Resolves the Image Previews Nav color into a Brush for its active dot fill (white fallback)
-        private Brush ResolvePreviewsNavBrush() =>
-            DataContext is ArcadeStick.ViewModels.MainViewModel vm ? ResolveNavBrush(vm.ThemePreviewsNavColor) : Brushes.White;
-
         // Converts a nav color hex into a Brush, falling back to white when it can't be parsed
         private static Brush ResolveNavBrush(string colorHex)
         {
@@ -151,72 +135,17 @@ namespace ArcadeStick.Views
         // [END SECTION: Game Info pages]
 
         // [SECTION: Image Previews (Flyer / Title Screen / Snap)]
-        // Only images that actually resolved are part of the cycle, and the arrow/dot row hides when fewer
-        // than two are available.
-        private int[] GetAvailablePreviewStates()
-        {
-            var available = new List<int>(3);
-            if (DataContext is ArcadeStick.ViewModels.MainViewModel vm)
-            {
-                if (vm.FlyerImage != null) available.Add(0);
-                if (vm.TitleImage != null) available.Add(1);
-                if (vm.SnapImage != null) available.Add(2);
-            }
-            return available.ToArray();
-        }
-
-        // Returns -1 when nothing is available (slot stays blank).
-        private int ResolveActivePreviewState(int[] available)
-        {
-            if (available.Length == 0) return -1;
-            return Array.IndexOf(available, _previewStateIndex) >= 0 ? _previewStateIndex : available[0];
-        }
-
-        private void StepPreviewState(int direction)
-        {
-            var available = GetAvailablePreviewStates();
-            if (available.Length < 2) return;
-
-            int position = Array.IndexOf(available, ResolveActivePreviewState(available));
-            position = (position + direction + available.Length) % available.Length;
-            _previewStateIndex = available[position];
-            UpdatePreviewVisibility();
-        }
-
-        private void Row3ArrowLeft_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => StepPreviewState(-1);
-        private void Row3ArrowRight_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => StepPreviewState(1);
-
-        // Each dot jumps straight to its own state; Tag holds the target index as a string (set in XAML).
-        private void Row3Dot_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is FrameworkElement dot && dot.Tag is string tag && int.TryParse(tag, out int index))
-            {
-                _previewStateIndex = index;
-                UpdatePreviewVisibility();
-            }
-        }
-
-        // The nav row only shows with 2+ images - with 0 or 1 there's nothing to cycle. Only the row's inner
-        // content is collapsed; the part itself belongs to ApplyLayout (the layer's Hide setting).
+        // Does the fixed image choice: the flyer, else the title screen, else the snap, else a blank slot
         private void UpdatePreviewVisibility()
         {
-            var available = GetAvailablePreviewStates();
-            int active = ResolveActivePreviewState(available);
+            var vm = DataContext as ArcadeStick.ViewModels.MainViewModel;
+            bool showFlyer = vm?.FlyerImage != null;
+            bool showTitle = !showFlyer && vm?.TitleImage != null;
+            bool showSnap = !showFlyer && !showTitle && vm?.SnapImage != null;
 
-            Row3FlyerImage.Visibility = active == 0 ? Visibility.Visible : Visibility.Collapsed;
-            Row3TitleImage.Visibility = active == 1 ? Visibility.Visible : Visibility.Collapsed;
-            Row3SnapImage.Visibility = active == 2 ? Visibility.Visible : Visibility.Collapsed;
-
-            Row3NavContent.Visibility = available.Length >= 2 ? Visibility.Visible : Visibility.Collapsed;
-
-            Row3Dot0.Visibility = Array.IndexOf(available, 0) >= 0 ? Visibility.Visible : Visibility.Collapsed;
-            Row3Dot1.Visibility = Array.IndexOf(available, 1) >= 0 ? Visibility.Visible : Visibility.Collapsed;
-            Row3Dot2.Visibility = Array.IndexOf(available, 2) >= 0 ? Visibility.Visible : Visibility.Collapsed;
-
-            var navColor = ResolvePreviewsNavBrush();
-            Row3Dot0.Fill = active == 0 ? navColor : Brushes.Transparent;
-            Row3Dot1.Fill = active == 1 ? navColor : Brushes.Transparent;
-            Row3Dot2.Fill = active == 2 ? navColor : Brushes.Transparent;
+            Row3FlyerImage.Visibility = showFlyer ? Visibility.Visible : Visibility.Collapsed;
+            Row3TitleImage.Visibility = showTitle ? Visibility.Visible : Visibility.Collapsed;
+            Row3SnapImage.Visibility = showSnap ? Visibility.Visible : Visibility.Collapsed;
         }
         // [END SECTION: Image Previews (Flyer / Title Screen / Snap)]
     }

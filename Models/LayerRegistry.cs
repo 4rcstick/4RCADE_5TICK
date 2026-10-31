@@ -531,7 +531,6 @@ namespace ArcadeStick.Models
         public const string PublisherBlock = "PublisherBlock";
         public const string GameInfoNav = "GameInfoNav";
         public const string GameInfoBody = "GameInfoBody";
-        public const string ImagePreviewsNav = "ImagePreviewsNav";
         public const string ImagePreviewsBody = "ImagePreviewsBody";
         public const string PlayButton = "PlayButton";
         public const string FavoritesStar = "FavoritesStar";
@@ -540,7 +539,7 @@ namespace ArcadeStick.Models
         public static readonly IReadOnlyList<LayerGroupDefinition> AllGroups = new List<LayerGroupDefinition>
         {
             new(SearchAndButtonsGroup, "Search & Buttons", new[] { SearchLabel, SearchBox, RandomButton, SortButton, OptionsButton, HamburgerButton }, AllowGroupMove: true),
-            new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsNav, ImagePreviewsBody, PlayButton, FavoritesStar }, AllowGroupMove: true),
+            new(GameInfoGroup, "Game Info", new[] { GameTitle, PublisherBlock, GameInfoNav, GameInfoBody, ImagePreviewsBody, PlayButton, FavoritesStar }, AllowGroupMove: true),
             new(RandomGameGroup, "Random Game Display", new[] { RandomGameDisplay, RandomGameDisplaySplash }, AllowRatioLock: true)
         };
 
@@ -579,7 +578,6 @@ namespace ArcadeStick.Models
             new() { Id = PublisherBlock,   DisplayName = "Publisher Block",     X = 745, Y = 248, Width = 490, Height = 90,  Z = 34, GroupId = GameInfoGroup },
             new() { Id = GameInfoNav,      DisplayName = "Game Info Nav",       X = 765, Y = 348, Width = 490, Height = 40,  Z = 34, GroupId = GameInfoGroup },
             new() { Id = GameInfoBody,     DisplayName = "Game Info",           X = 765, Y = 398, Width = 490, Height = 298, Z = 34, GroupId = GameInfoGroup },
-            new() { Id = ImagePreviewsNav, DisplayName = "Image Previews Nav",  X = 414, Y = 456, Width = 328, Height = 20,  Z = 34, GroupId = GameInfoGroup },
             new() { Id = ImagePreviewsBody,DisplayName = "Image Previews",      X = 414, Y = 486, Width = 328, Height = 198, Z = 34, GroupId = GameInfoGroup },
             new() { Id = PlayButton,       DisplayName = "Play Button",         X = 765, Y = 348, Width = 100, Height = 32,  Z = 34, GroupId = GameInfoGroup },
             new() { Id = FavoritesStar,    DisplayName = "Favorites Star",      X = 873, Y = 348, Width = 32,  Height = 32,  Z = 34, GroupId = GameInfoGroup },
@@ -688,7 +686,7 @@ namespace ArcadeStick.Models
                 // Search & Buttons styling: label, box and the shared button style (on the Random Game Button)
                 FillSearchButtonsStyle(entry);
 
-                // Game Info styling: title, publisher block, headers + body, and the two navs
+                // Game Info styling: title, publisher block, headers + body, and the Game Info Nav
                 FillGameInfoStyle(entry);
 
                 // Image shadow: the Marquee layer and the Image Previews
@@ -793,7 +791,7 @@ namespace ArcadeStick.Models
                 entry.TextRightMargin ??= DefaultInfoBodyRightMargin;
                 FillTextShadowDefaults(entry);
             }
-            else if (entry.Id == GameInfoNav || entry.Id == ImagePreviewsNav)
+            else if (entry.Id == GameInfoNav)
             {
                 entry.TextFontSize ??= DefaultNavSize;
                 if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;

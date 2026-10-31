@@ -91,7 +91,7 @@ namespace ArcadeStick.Services
             entry.GameFontSize = ScaleSize(entry.GameFontSize, u, LayerRegistry.MinTextFontSize, LayerRegistry.MaxTextFontSize);
             entry.SectionHeaderFontSize = ScaleSize(entry.SectionHeaderFontSize, u, LayerRegistry.MinTextFontSize, LayerRegistry.MaxTextFontSize);
 
-            if (entry.Id == LayerRegistry.GameInfoNav || entry.Id == LayerRegistry.ImagePreviewsNav)
+            if (entry.Id == LayerRegistry.GameInfoNav)
                 entry.TextFontSize = ScaleSize(entry.TextFontSize, u, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize);
             else if (entry.Id == LayerRegistry.RandomGameDisplay || entry.Id == LayerRegistry.RandomGameDisplaySplash)
                 entry.TextFontSize = ScaleSize(entry.TextFontSize, u, LayerRegistry.MinRandomDisplayFontSize, LayerRegistry.MaxRandomDisplayFontSize);

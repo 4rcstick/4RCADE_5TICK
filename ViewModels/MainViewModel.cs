@@ -731,7 +731,7 @@ namespace ArcadeStick.ViewModels
         // [SECTION: Game Info Forwarders]
         // Game Info text and nav styling, read from the active resolution's entries: title on GameTitle, publisher
         // block on PublisherBlock, section headers (SectionHeader*) and body text (Text*) on GameInfoBody, and the
-        // two navs on GameInfoNav and ImagePreviewsNav. The Specs/Credits panes use the header and body styles.
+        // Game Info Nav on GameInfoNav. The Specs/Credits panes use the header and body styles.
         public int ThemeGameNameHeaderFontSize => GetLayerEntry(LayerRegistry.GameTitle).TextFontSize ?? LayerRegistry.DefaultTitleFontSize;
         public string ThemeGameNameHeaderColor => GetLayerEntry(LayerRegistry.GameTitle).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
         public FontFamily ThemeGameNameHeaderFontFamily => ToFontFamily(GetLayerEntry(LayerRegistry.GameTitle).TextFontFamily);
@@ -790,9 +790,6 @@ namespace ArcadeStick.ViewModels
         public string ThemeGameInfoNavColor => GetLayerEntry(LayerRegistry.GameInfoNav).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
         public double ThemeGameInfoNavSize => GetLayerEntry(LayerRegistry.GameInfoNav).TextFontSize ?? LayerRegistry.DefaultNavSize;
         public System.Windows.Media.Effects.Effect? ThemeGameInfoNavEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.GameInfoNav));
-        public string ThemePreviewsNavColor => GetLayerEntry(LayerRegistry.ImagePreviewsNav).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
-        public double ThemePreviewsNavSize => GetLayerEntry(LayerRegistry.ImagePreviewsNav).TextFontSize ?? LayerRegistry.DefaultNavSize;
-        public System.Windows.Media.Effects.Effect? ThemePreviewsNavEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.ImagePreviewsNav));
 
         // Image Previews shadow/glow (flyer, title screen and snap; the cabinet image is not part of it)
         public System.Windows.Media.Effects.Effect? ThemePreviewsEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.ImagePreviewsBody));
@@ -839,9 +836,6 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeGameInfoNavColor));
             OnPropertyChanged(nameof(ThemeGameInfoNavSize));
             OnPropertyChanged(nameof(ThemeGameInfoNavEffect));
-            OnPropertyChanged(nameof(ThemePreviewsNavColor));
-            OnPropertyChanged(nameof(ThemePreviewsNavSize));
-            OnPropertyChanged(nameof(ThemePreviewsNavEffect));
             OnPropertyChanged(nameof(ThemePreviewsEffect));
         }
         // [END SECTION: Game Info Forwarders]
@@ -3039,7 +3033,7 @@ namespace ArcadeStick.ViewModels
         // parent's preview assets (video, flyer, screenshot, marquee, etc.) when they don't have their
         // own - most people only ever source media for the "main" version of a game. Returns null if
         // neither name matches in any of the given extensions.
-        // Row 3's Flyer/Cabinet states in the media panel rework - separate from PreviewPriorityOrder's
+        // Resolves the previews slot's flyer and the cabinet image - separate from PreviewPriorityOrder's
         // Row 1 resolution (flyers/cabinets were deliberately removed from that list so the same image
         // doesn't show redundantly in both places). Reuses TryResolveMediaFile's existing primary+clone
         // fallback pattern rather than duplicating that logic.
@@ -3170,9 +3164,9 @@ namespace ArcadeStick.ViewModels
             }
         }
 
-        // Column One's lower content slot cycles Flyer > Title Screen > Snap. Title/Snap resolve with the
-        // same primary+clone fallback as Flyer. GameInfoLayerControl listens for these property changes to
-        // rebuild its dot row; they are set together at selection time (SetRow3Images).
+        // The previews slot shows one image in a fixed order: flyer, then title screen, then snap, else blank,
+        // with no navigation. Title/Snap resolve with the same primary+clone fallback as Flyer. GameInfoLayerControl
+        // listens for these property changes to pick the image; they are set together at selection time (SetRow3Images).
         private BitmapImage? _titleImage;
         public BitmapImage? TitleImage
         {
@@ -3351,7 +3345,7 @@ namespace ArcadeStick.ViewModels
         // selection increments _mediaSelectionVersion: background work checks it before each file read and again
         // before applying, so a stale game's art is discarded. Order: marquee first (applied as soon as it is
         // ready), then the video slot's static image, then flyer/title/snap/cabinet together in one callback so
-        // GameInfoLayerControl rebuilds the preview nav dots once. Only the video path waits for the debounce.
+        // GameInfoLayerControl picks the previews slot's one image once. Only the video path waits for the debounce.
         private int _mediaSelectionVersion;
 
         private static readonly string[] ArtImageExtensions = { ".png", ".jpg" };
@@ -3529,7 +3523,7 @@ namespace ArcadeStick.ViewModels
             LoadImagesInBackground(version, requests, images => PreviewImage = images[0]);
         }
 
-        // Does Row 3 (flyer, title, snap) and the cabinet: applied together, so the preview nav dots update once
+        // Does Row 3 (flyer, title, snap) and the cabinet: applied together, so the previews slot picks its one image once
         private void ApplyInstantRow3(GameItem game, int version)
         {
             var requests = new[]

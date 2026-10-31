@@ -974,7 +974,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -987,8 +987,8 @@ namespace ArcadeStick.Views
             // Random Game Button entry by GetSelectedBorderEntry)
             if (unitKey == LayerRegistry.SearchAndButtonsGroup) return new[] { TabSBSearch, TabSBButtons, TabShapeBorder };
 
-            // Game Info group: title, publisher block, headers + body, the two navs, and the image previews shadow
-            if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGINav, TabGIPreviews, TabGIPlayButton, TabGIFavStar };
+            // Game Info group: title, publisher block, headers + body, the Game Info Nav, and the image previews shadow
+            if (unitKey == LayerRegistry.GameInfoGroup) return new[] { TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar };
 
             // Random Game Display group: the spin card's text, background (color and file) and the shared Border tab
             // (mapped to the RandomGameDisplay entry by GetSelectedBorderEntry)
@@ -1062,7 +1062,7 @@ namespace ArcadeStick.Views
             // Search & Buttons fields (Search and Buttons tabs, Border tab hover row): filled when that group is selected
             LoadSearchButtonsStyleFields();
 
-            // Game Info fields (Title, Publisher, Info and Nav tabs): filled when that group is selected
+            // Game Info fields (Title, Publisher and Game Info tabs): filled when that group is selected
             LoadGameInfoStyleFields();
 
             // Play Button fields the block system does not cover: filled when that group is selected
@@ -3541,7 +3541,7 @@ namespace ArcadeStick.Views
         // set it uses (generic Text* or the body entry's SectionHeader*), its defaults and size range, and the list
         // row that must be selected for it (the Game Info group, or the Marquee layer for the Marquee block).
         // Colors, checkboxes and combos apply immediately; number fields apply on Enter or focus loss and revert
-        // invalid input. The two navs have no font or bold controls (they are shapes); the image-shadow blocks
+        // invalid input. The nav has no font or bold controls (it is shapes); the image-shadow blocks
         // (Previews, Marquee) have only the shadow controls.
 
         // One block's storage: the entry it lives on, whether it uses the SectionHeader* fields, and its defaults.
@@ -3578,8 +3578,6 @@ namespace ArcadeStick.Views
             ["InfoBody"] = new(LayerRegistry.GameInfoBody, false, true, LayerRegistry.DefaultInfoBodyFontFamily, LayerRegistry.DefaultInfoBodyBold,
                 LayerRegistry.DefaultInfoBodyFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { DefaultRightMargin = LayerRegistry.DefaultInfoBodyRightMargin },
             ["Nav"] = new(LayerRegistry.GameInfoNav, false, false, LayerRegistry.DefaultFontFamily, false,
-                LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
-            ["PreviewsNav"] = new(LayerRegistry.ImagePreviewsNav, false, false, LayerRegistry.DefaultFontFamily, false,
                 LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             ["PlayButton"] = new(LayerRegistry.PlayButton, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultPlayButtonBold,
                 LayerRegistry.DefaultPlayButtonFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
@@ -3629,7 +3627,7 @@ namespace ArcadeStick.Views
 
         private static string? GIBlockKey(object sender) => (sender as FrameworkElement)?.Tag as string;
 
-        // Fills the Title, Publisher, Info, Nav and Previews tabs from the Game Info entries (group selected)
+        // Fills the Title, Publisher, Game Info and Previews tabs from the Game Info entries (group selected)
         private void LoadGameInfoStyleFields() => LoadGIBlockFields(LayerRegistry.GameInfoGroup);
 
         // Fills the Marquee layer's SHADOW tab (Marquee layer selected)
@@ -3770,7 +3768,7 @@ namespace ArcadeStick.Views
             else ApplyHexColor(picker, hexBox, entry, Stored, Store);
         }
 
-        // One shared handler pair for every block's number fields: size (6-72 for text, 4-40 for the navs),
+        // One shared handler pair for every block's number fields: size (6-72 for text, 4-40 for the nav),
         // shadow blur (0-30) and depth (0-20)
         private void GIField_KeyDown(object sender, KeyEventArgs e)
         {

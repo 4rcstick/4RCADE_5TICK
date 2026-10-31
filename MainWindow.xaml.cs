@@ -460,9 +460,9 @@ namespace ArcadeStick
             }
 
             // Game Info: re-raise the title, publisher, header, body and nav bindings only when one of their style
-            // values changed (the nav color forwarders also repaint the active dots in GameInfoLayerControl)
+            // values changed (the nav color forwarder also repaints the active dots in GameInfoLayerControl)
             string gameInfoStyleKey = string.Join("#",
-                new[] { Models.LayerRegistry.GameTitle, Models.LayerRegistry.PublisherBlock, Models.LayerRegistry.GameInfoBody, Models.LayerRegistry.GameInfoNav, Models.LayerRegistry.ImagePreviewsNav, Models.LayerRegistry.ImagePreviewsBody }
+                new[] { Models.LayerRegistry.GameTitle, Models.LayerRegistry.PublisherBlock, Models.LayerRegistry.GameInfoBody, Models.LayerRegistry.GameInfoNav, Models.LayerRegistry.ImagePreviewsBody }
                     .Select(id => layout.Layers.FirstOrDefault(e => e.Id == id))
                     .Select(e => $"{e?.TextFontFamily}|{e?.TextBold}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextAlign}|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}|{e?.TextRightMargin}"
                         + $"|{e?.SectionHeaderFontFamily}|{e?.SectionHeaderBold}|{e?.SectionHeaderFontSize}|{e?.SectionHeaderColorHex}|{e?.SectionHeaderShadowEnabled}|{e?.SectionHeaderShadowColorHex}|{e?.SectionHeaderShadowBlur}|{e?.SectionHeaderShadowDepth}"));
@@ -526,14 +526,14 @@ namespace ArcadeStick
                 { Models.LayerRegistry.PublisherBlock, GameInfoLayer.PartPublisher },
                 { Models.LayerRegistry.GameInfoNav, GameInfoLayer.PartInfoNav },
                 { Models.LayerRegistry.GameInfoBody, GameInfoLayer.PartInfoBody },
-                { Models.LayerRegistry.ImagePreviewsNav, GameInfoLayer.PartPreviewsNav },
                 { Models.LayerRegistry.ImagePreviewsBody, GameInfoLayer.PartPreviewsBody },
                 { Models.LayerRegistry.PlayButton, GameInfoLayer.PartPlayButton },
                 { Models.LayerRegistry.FavoritesStar, GameInfoLayer.PartFavoritesStar },
                 { Models.LayerRegistry.Footer, FooterPanel }
             };
 
-            // The Game Info host fills the whole canvas (its eight parts are positioned inside it) and takes the
+            // The Game Info host fills the whole canvas (its seven parts - title, publisher, info nav, info, previews,
+            // play button, favorites star - are positioned inside it) and takes the
             // group's shared Z. It has no background, so empty areas don't block clicks on the layers below.
             Canvas.SetLeft(GameInfoLayer, 0);
             Canvas.SetTop(GameInfoLayer, 0);

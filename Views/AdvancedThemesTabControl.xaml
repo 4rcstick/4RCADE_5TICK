@@ -994,12 +994,81 @@
                     <!-- [END SECTION: Game Info - Publisher Tab] -->
 
                     <!-- [SECTION: Game Info - Info Tab] -->
-                    <!-- Section headers (SectionHeader* fields) and body text (Text* fields, the body's right margin included), both on the Game Info entry. The Specs / Credits page uses these styles too. -->
-                    <TabItem x:Name="TabGIInfo" Header="INFO" Visibility="Collapsed">
+                    <!-- Page navigation (the arrows and dots, on the Game Info Nav entry), then section headers (SectionHeader* fields) and body text (Text* fields, the body's right margin included), both on the Game Info entry. The Specs / Credits page uses these styles too. -->
+                    <TabItem x:Name="TabGIInfo" Header="GAME INFO" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
-                                <!-- Headers: font + bold; size / color; drop shadow -->
+                                <!-- Page Navigation (the Game Info Nav entry): size / color; drop shadow -->
                                 <Grid Margin="0,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Page Navigation" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+
+                                    <!-- Size, color (side by side) -->
+                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="48"/>
+                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
+                                        <TextBox x:Name="GINavSize" Tag="Nav" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
+                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                                <colorpicker:PortableColorPicker x:Name="GINavColorPicker" Tag="Nav" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
+                                                    <colorpicker:PortableColorPicker.Resources>
+                                                        <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                    </colorpicker:PortableColorPicker.Resources>
+                                                </colorpicker:PortableColorPicker>
+                                            </Border>
+                                            <TextBox x:Name="GINavColorHex" Tag="Nav" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIColorHex_LostFocus"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
+                                    <CheckBox x:Name="GINavShadow" Tag="Nav" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
+                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
+                                    <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GINavShadow}">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <colorpicker:PortableColorPicker x:Name="GINavShadowColorPicker" Tag="Nav" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="GINavShadowColorHex" Tag="Nav" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="GINavShadowBlur" Tag="Nav" Grid.Row="6" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GINavShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                    <TextBox x:Name="GINavShadowDepth" Tag="Nav" Grid.Row="6" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GINavShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
+                                </Grid>
+                                <!-- Headers: font + bold; size / color; drop shadow -->
+                                <Grid Margin="0,24,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
@@ -1164,154 +1233,6 @@
                         </ScrollViewer>
                     </TabItem>
                     <!-- [END SECTION: Game Info - Info Tab] -->
-
-                    <!-- [SECTION: Game Info - Nav Tab] -->
-                    <!-- Arrow + dot rows: size / color; drop shadow. Game Info Nav is stored on the Game Info Nav entry, Image Previews Nav on its own entry (no shared values). -->
-                    <TabItem x:Name="TabGINav" Header="NAV" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
-                            <StackPanel Margin="10">
-                                <!-- Game Info Nav: size / color; drop shadow -->
-                                <Grid Margin="0,0,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="110"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
-                                        <ColumnDefinition Width="52"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Game Info Nav" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-
-                                    <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48"/>
-                                            <ColumnDefinition Width="14"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}"/>
-                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
-                                        <TextBox x:Name="GINavSize" Tag="Nav" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
-                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
-                                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                                                <colorpicker:PortableColorPicker x:Name="GINavColorPicker" Tag="Nav" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
-                                                    <colorpicker:PortableColorPicker.Resources>
-                                                        <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                                                    </colorpicker:PortableColorPicker.Resources>
-                                                </colorpicker:PortableColorPicker>
-                                            </Border>
-                                            <TextBox x:Name="GINavColorHex" Tag="Nav" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIColorHex_LostFocus"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
-                                    <CheckBox x:Name="GINavShadow" Tag="Nav" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GINavShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                                            <colorpicker:PortableColorPicker x:Name="GINavShadowColorPicker" Tag="Nav" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
-                                                <colorpicker:PortableColorPicker.Resources>
-                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                                                </colorpicker:PortableColorPicker.Resources>
-                                            </colorpicker:PortableColorPicker>
-                                        </Border>
-                                        <TextBox x:Name="GINavShadowColorHex" Tag="Nav" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIShadowColorHex_LostFocus"/>
-                                    </StackPanel>
-                                    <TextBox x:Name="GINavShadowBlur" Tag="Nav" Grid.Row="6" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GINavShadow}"
-                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
-                                    <TextBox x:Name="GINavShadowDepth" Tag="Nav" Grid.Row="6" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GINavShadow}"
-                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
-                                </Grid>
-                                <!-- Image Previews Nav: size / color; drop shadow -->
-                                <Grid Margin="0,24,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="110"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
-                                        <ColumnDefinition Width="52"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Image Previews Nav" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-
-                                    <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48"/>
-                                            <ColumnDefinition Width="14"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}"/>
-                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
-                                        <TextBox x:Name="GIPreviewsNavSize" Tag="PreviewsNav" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
-                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
-                                        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                                                <colorpicker:PortableColorPicker x:Name="GIPreviewsNavColorPicker" Tag="PreviewsNav" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
-                                                    <colorpicker:PortableColorPicker.Resources>
-                                                        <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                                                    </colorpicker:PortableColorPicker.Resources>
-                                                </colorpicker:PortableColorPicker>
-                                            </Border>
-                                            <TextBox x:Name="GIPreviewsNavColorHex" Tag="PreviewsNav" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIColorHex_LostFocus"/>
-                                        </StackPanel>
-                                    </Grid>
-
-                                    <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
-                                    <CheckBox x:Name="GIPreviewsNavShadow" Tag="PreviewsNav" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,8,0,0"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                    <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIPreviewsNavShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
-                                            <colorpicker:PortableColorPicker x:Name="GIPreviewsNavShadowColorPicker" Tag="PreviewsNav" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
-                                                <colorpicker:PortableColorPicker.Resources>
-                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
-                                                </colorpicker:PortableColorPicker.Resources>
-                                            </colorpicker:PortableColorPicker>
-                                        </Border>
-                                        <TextBox x:Name="GIPreviewsNavShadowColorHex" Tag="PreviewsNav" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIShadowColorHex_LostFocus"/>
-                                    </StackPanel>
-                                    <TextBox x:Name="GIPreviewsNavShadowBlur" Tag="PreviewsNav" Grid.Row="6" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIPreviewsNavShadow}"
-                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
-                                    <TextBox x:Name="GIPreviewsNavShadowDepth" Tag="PreviewsNav" Grid.Row="6" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=GIPreviewsNavShadow}"
-                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
-                                </Grid>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
-                    <!-- [END SECTION: Game Info - Nav Tab] -->
 
                     <!-- [SECTION: Game Info - Previews Tab] -->
                     <TabItem x:Name="TabGIPreviews" Header="PREVIEWS" Visibility="Collapsed">

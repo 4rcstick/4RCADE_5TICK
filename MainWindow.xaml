@@ -743,8 +743,8 @@
             <!-- Video Preview layer: its own positioned element, mapped in ApplyLayout() -->
             <views:VideoPreviewLayerControl x:Name="VideoPreviewLayer" Canvas.Left="414" Canvas.Top="198" Width="328" Height="248"/>
 
-            <!-- Game Info layer group: a transparent host filling the canvas, holding six independently
-                 positioned parts (title, publisher block, info nav, info, previews nav, previews). Each part is
+            <!-- Game Info layer group: a transparent host filling the canvas, holding seven independently
+                 positioned parts (title, publisher block, info nav, info, previews, play button, favorites star). Each part is
                  mapped in ApplyLayout(); the host takes the group's shared Z. -->
             <views:GameInfoLayerControl x:Name="GameInfoLayer" Canvas.Left="0" Canvas.Top="0" Width="1280" Height="720"/>
 

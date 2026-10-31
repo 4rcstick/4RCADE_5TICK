@@ -5,8 +5,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignHeight="720" d:DesignWidth="1280">
 
-    <!-- Game Info layer group: a transparent host that fills the layout canvas and holds eight independently
-         positioned parts (Game Title, Publisher Block, Game Info Nav, Game Info, Image Previews Nav, Image
+    <!-- Game Info layer group: a transparent host that fills the layout canvas and holds seven independently
+         positioned parts (Game Title, Publisher Block, Game Info Nav, Game Info, Image
          Previews, Play Button, Favorites Star). MainWindow.ApplyLayout sets each part's Canvas position, size and visibility from the
          layout, and the host's own size and Z. The host has no background, so empty areas don't block clicks.
          Whole group is hidden while no game is selected (the boot splash shows instead) - done on the inner
@@ -68,7 +68,7 @@
         </StackPanel>
 
         <!-- PART: Game Info Nav (arrow + dot row for the 4 pages: Game Info / Trivia / Tips & Tricks / Specs & Credits).
-             Size, color and shadow come from the GameInfoNav entry (separate from the Image Previews Nav). -->
+             Size, color and shadow come from the GameInfoNav entry. -->
         <Border x:Name="PartInfoNav" Canvas.Left="765" Canvas.Top="348" Width="490" Height="40">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{Binding ThemeGameInfoNavEffect}">
                 <Polygon x:Name="Column2ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Height="{Binding ThemeGameInfoNavSize, FallbackValue=9}" Fill="{Binding ThemeGameInfoNavColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Column2ArrowLeft_MouseLeftButtonUp"/>
@@ -97,7 +97,7 @@
 
             <!-- Scrollable bodies, one visible at a time. RelativeSource AncestorType=UserControl inside the
                  DataTemplate resolves to this control, whose DataContext is MainViewModel (inherited). Each body's right
-                 margin (the gap to the scrollbar) is the Info tab's text margin (ThemeInfoBodyBlockMargin / PageMargin). -->
+                 margin (the gap to the scrollbar) is the GAME INFO tab's text margin (ThemeInfoBodyBlockMargin / PageMargin). -->
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="Column2BodyGameInfoScroll" VerticalScrollBarVisibility="Auto" Visibility="Visible" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                     <ItemsControl ItemsSource="{Binding GameInfoBlocks}">
@@ -170,9 +170,8 @@
                     <ScrollViewer x:Name="Column2BodySpecsCreditsScroll" Grid.Column="1" VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                         <!-- Specs / Credits use the Info Headers and Info Body styles (no styles of their own) -->
                         <StackPanel Margin="{Binding ThemeInfoBodyPageMargin, FallbackValue='0,0,20,20'}">
-                            <TextBlock Text="SPECS" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Margin="0,0,0,10"/>
                             <TextBlock Text="{Binding HistoryTechnical}" FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap"/>
-                            <TextBlock Text="CREDITS" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Margin="0,20,0,10"/>
+                            <TextBlock Text="Credits" FontFamily="{Binding ThemeInfoHeaderFontFamily}" FontWeight="{Binding ThemeInfoHeaderFontWeight, FallbackValue=Bold}" FontSize="{Binding ThemeInfoHeaderFontSize, FallbackValue=20}" Foreground="{Binding ThemeInfoHeaderColor, FallbackValue=White}" Effect="{Binding ThemeInfoHeaderEffect}" Margin="0,20,0,10"/>
                             <TextBlock Text="{Binding HistoryStaff}" FontFamily="{Binding ThemeInfoBodyFontFamily}" FontWeight="{Binding ThemeInfoBodyFontWeight, FallbackValue=Normal}" FontSize="{Binding ThemeInfoBodyFontSize, FallbackValue=16}" Foreground="{Binding ThemeInfoBodyColor, FallbackValue=White}" Effect="{Binding ThemeInfoBodyEffect}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </ScrollViewer>
@@ -180,21 +179,7 @@
             </Grid>
         </Grid>
 
-        <!-- PART: Image Previews Nav (arrow + dot row for Flyer / Title Screen / Snap). The inner StackPanel
-             (Row3NavContent) is what code-behind collapses when fewer than two images exist - the part itself
-             is left alone, since ApplyLayout owns its visibility (the layer's Hide setting). Size, color and
-             shadow come from the ImagePreviewsNav entry (separate from the Game Info Nav). -->
-        <Border x:Name="PartPreviewsNav" Canvas.Left="414" Canvas.Top="456" Width="328" Height="20">
-            <StackPanel x:Name="Row3NavContent" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{Binding ThemePreviewsNavEffect}">
-                <Polygon x:Name="Row3ArrowLeft" Points="10,0 10,10 0,5" Stretch="Uniform" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="{Binding ThemePreviewsNavColor, FallbackValue=White}" VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowLeft_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Row3Dot0" Tag="0" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="{Binding ThemePreviewsNavColor, FallbackValue=White}" Stroke="{Binding ThemePreviewsNavColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Row3Dot1" Tag="1" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemePreviewsNavColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
-                <Ellipse x:Name="Row3Dot2" Tag="2" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="Transparent" Stroke="{Binding ThemePreviewsNavColor, FallbackValue=White}" StrokeThickness="1.5" Margin="0,0,10,0" Cursor="Hand" MouseLeftButtonUp="Row3Dot_MouseLeftButtonUp"/>
-                <Polygon x:Name="Row3ArrowRight" Points="0,0 0,10 10,5" Stretch="Uniform" Width="{Binding ThemePreviewsNavSize, FallbackValue=9}" Height="{Binding ThemePreviewsNavSize, FallbackValue=9}" Fill="{Binding ThemePreviewsNavColor, FallbackValue=White}" VerticalAlignment="Center" Margin="4,0,0,0" Cursor="Hand" MouseLeftButtonUp="Row3ArrowRight_MouseLeftButtonUp"/>
-            </StackPanel>
-        </Border>
-
-        <!-- PART: Image Previews (only the active image is visible, set in code-behind; missing images are skipped).
+        <!-- PART: Image Previews (one image shows, in a fixed order set in code-behind: flyer, then title screen, then snap).
              The shadow/glow is set once here and follows the visible image's alpha. -->
         <Grid x:Name="PartPreviewsBody" Canvas.Left="414" Canvas.Top="486" Width="328" Height="198" Effect="{Binding ThemePreviewsEffect}">
             <Image x:Name="Row3FlyerImage" Source="{Binding FlyerImage}" Stretch="Uniform" Visibility="Collapsed" RenderOptions.BitmapScalingMode="HighQuality"/>
