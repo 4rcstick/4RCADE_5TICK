@@ -167,6 +167,40 @@ namespace ArcadeStick.Views
             File.Copy(absolutePath, destPath);
             return $"assets/{Path.GetFileName(destPath)}";
         }
+
+        // Staging subfolder holding a thumbnail recovered from the old zip until it is bundled into assets/
+        private const string RecoveredThumbnailFolder = "recovered-thumbnail";
+
+        // Copies assets/theme-thumbnail.png out of an existing theme zip into staging and returns its path. Empty when the
+        // zip is missing, unreadable or has no thumbnail; a failure here never blocks the save. The zip is closed on return.
+        private static string ExtractThumbnailFromZip(string themeFile, string stagingDir)
+        {
+            try
+            {
+                if (!File.Exists(themeFile)) return string.Empty;
+
+                using var zip = ZipFile.OpenRead(themeFile);
+                var entry = zip.GetEntry($"assets/{ArcadeStick.Services.ThemeThumbnailStore.FileName}");
+                if (entry == null) return string.Empty;
+
+                string folder = Path.Combine(stagingDir, RecoveredThumbnailFolder);
+                Directory.CreateDirectory(folder);
+                string filePath = Path.Combine(folder, ArcadeStick.Services.ThemeThumbnailStore.FileName);
+                entry.ExtractToFile(filePath);
+                return filePath;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        // Removes the recovered thumbnail's staging subfolder, if any, so it does not end up in the new zip
+        private static void DeleteRecoveredThumbnailFolder(string stagingDir)
+        {
+            string folder = Path.Combine(stagingDir, RecoveredThumbnailFolder);
+            if (Directory.Exists(folder)) Directory.Delete(folder, recursive: true);
+        }
         // [END SECTION: Theme Archive Asset Bundling]
 
         // [SUB-SECTION: Save Theme]
@@ -256,7 +290,8 @@ namespace ArcadeStick.Views
 
                 // Theme info: a new theme keeps the author and description but never the previous theme's thumbnail file
                 // or date (a pending capture goes under its own new GUID folder). Bundled before the layers, so a layer
-                // image with the same name cannot rename the thumbnail. A missing file degrades to no thumbnail.
+                // image with the same name cannot rename the thumbnail. A missing file is recovered from the zip about to
+                // be overwritten (the live path is left alone), otherwise it degrades to no thumbnail.
                 if (isNewTheme)
                 {
                     _settings.Info.ThumbnailPath = "";
@@ -264,9 +299,15 @@ namespace ArcadeStick.Views
                 }
                 ArcadeStick.Services.ThemeThumbnailStore.WritePending(_settings);
                 var infoForTheme = _settings.Info.Clone();
-                infoForTheme.ThumbnailPath = File.Exists(ResolveAssetAbsolutePath(infoForTheme.ThumbnailPath))
-                    ? BundleThemeAsset(infoForTheme.ThumbnailPath, stagingAssetsDir, missingAssets)
-                    : "";
+                string thumbnailSource = infoForTheme.ThumbnailPath;
+                if (!string.IsNullOrWhiteSpace(thumbnailSource) && !File.Exists(ResolveAssetAbsolutePath(thumbnailSource)))
+                {
+                    thumbnailSource = isNewTheme ? "" : ExtractThumbnailFromZip(themeFile, stagingDir);
+                }
+                infoForTheme.ThumbnailPath = string.IsNullOrWhiteSpace(thumbnailSource)
+                    ? ""
+                    : BundleThemeAsset(thumbnailSource, stagingAssetsDir, missingAssets);
+                DeleteRecoveredThumbnailFolder(stagingDir); // everything left in staging goes into the zip
 
                 // The zip's theme.json must carry the date, so it is chosen here; the live block takes it only once the zip is written
                 DateTime savedUtc = DateTime.UtcNow;

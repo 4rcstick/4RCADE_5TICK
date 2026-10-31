@@ -15,7 +15,7 @@
     <UserControl.Resources>
         <!-- [SECTION: Layers Help] -->
         <!-- The Layers header's help: the tooltip text (one line per point; edit it only here) and the circled ? glyph's look
-             (Chrome Palette only; the ring and the ? turn accent on hover). The tooltip is the default Windows tooltip. -->
+             (Global Sub-Text color; the ring and the ? turn the Global Sub-Header color on hover). The tooltip is the default Windows tooltip. -->
         <sys:String x:Key="LayersHelpText" xml:space="preserve">Right-click a layer to copy its position, size or border, then right-click another layer (or one of several selected layers) to paste. Search &amp; Buttons, Game Info, the Footer and the Main Window Background have no copy or paste.&#10;Ctrl-click or Shift-click to select several layers and move them together with the Move X / Move Y boxes.&#10;Use the arrows beside the list to bring a layer forward or send it backward. Double-click a shape or custom layer to rename it.</sys:String>
 
         <Style x:Key="LayersHelpGlyphStyle" TargetType="Border">
@@ -24,12 +24,12 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="{StaticResource ChromeTextMuted}"/>
-            <Setter Property="TextElement.Foreground" Value="{StaticResource ChromeTextMuted}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Global.Font.SubText.Color}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource Global.Font.SubText.Color}"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" Value="{StaticResource ChromeAccent}"/>
-                    <Setter Property="TextElement.Foreground" Value="{StaticResource ChromeAccent}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource Global.Font.SubHeader.Color}"/>
+                    <Setter Property="TextElement.Foreground" Value="{DynamicResource Global.Font.SubHeader.Color}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -44,19 +44,19 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
-        <!-- Theme info view camera and pencil glyphs: the character alone (Chrome Palette only; turns accent on hover).
+        <!-- Theme info view camera and pencil glyphs: the character alone (Global Sub-Text color; turns the Global Sub-Header color on hover).
              The transparent background makes the whole glyph box clickable. -->
         <Style x:Key="ThemeInfoGlyphStyle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="{StaticResource ChromeTextMuted}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Global.Font.SubText.Color}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="8,0,0,0"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Foreground" Value="{StaticResource ChromeAccent}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource Global.Font.SubHeader.Color}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>

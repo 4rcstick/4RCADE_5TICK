@@ -386,6 +386,7 @@ namespace ArcadeStick.Models
             this.ActiveResolutionWidth = source.ActiveResolutionWidth;
             this.ActiveResolutionHeight = source.ActiveResolutionHeight;
             this.Layouts = source.Layouts ?? new List<ThemeLayout>();
+            this.Info = source.Info;
             this.OptionsBg = source.OptionsBg;
             this.ScrollTrackColor = source.ScrollTrackColor;
             this.ScrollTrackHoverColor = source.ScrollTrackHoverColor;

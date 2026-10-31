@@ -4430,8 +4430,12 @@ namespace ArcadeStick.Views
                     Margin = new Thickness(0, 0, 6, 4),
                     FontWeight = active ? FontWeights.Bold : FontWeights.Normal
                 };
-                // The style gives the Global button look; the active size rests on the hover background
-                if (active) button.SetResourceReference(Button.BackgroundProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBgHover);
+                // The style gives the Global button look; the active size rests on the hover pair (background and text)
+                if (active)
+                {
+                    button.SetResourceReference(Button.BackgroundProperty, ArcadeStick.Services.GlobalThemeResources.ButtonBgHover);
+                    button.SetResourceReference(Button.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.ButtonTextHover);
+                }
                 button.Click += BtnSavedSize_Click;
 
                 PnlSavedSizes.Children.Add(button);

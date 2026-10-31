@@ -1,4 +1,5 @@
 ﻿using ArcadeStick.Models;
+using ArcadeStick.Services;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,7 +12,7 @@ namespace ArcadeStick.Views
         // The longest description the edit box accepts
         public const int MaxDescriptionLength = 500;
 
-        private const double FallbackOpacity = 0.55;
+        private const double FallbackOpacity = 0.6;
         private string _value = "";
 
         // Raised with the trimmed text when Apply commits an edit
@@ -30,6 +31,7 @@ namespace ArcadeStick.Views
             bool blank = _value.Length == 0;
             TxtValue.Text = blank ? ThemeInfoFallbacks.NoDescription : _value;
             TxtValue.Opacity = blank ? FallbackOpacity : 1;
+            TxtValue.SetResourceReference(TextBlock.ForegroundProperty, blank ? GlobalThemeResources.FontSubTextColor : GlobalThemeResources.FontStandardColor);
             CancelEdit();
         }
 
