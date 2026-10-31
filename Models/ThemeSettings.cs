@@ -18,6 +18,9 @@ namespace ArcadeStick.Models
         public int ActiveWidth { get; set; } = 0;
         public int ActiveHeight { get; set; } = 0;
 
+        // Author, description, last saved date and thumbnail. Null in older themes: LoadTheme uses a blank block then.
+        public ThemeInfo? Info { get; set; } = new();
+
         // Flat theme values. Defaults must equal the ConfigurationSettings initializers (the one source of defaults),
         // so a theme saved without a key loads the same value Restore Defaults gives.
         // GlobalThemeResources also reuses this class as the Theme Builder's close-revert snapshot of the Global values.

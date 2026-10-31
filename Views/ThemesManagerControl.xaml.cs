@@ -173,11 +173,13 @@ namespace ArcadeStick.Views
         // Validates the theme name (prompting for one if "[New Theme...]" is selected), builds a ThemeSettings DTO
         // from _settings, bundles every layout entry's ImagePath into a staging assets/ folder (rewriting the DTO's
         // copies of those paths to archive-relative paths), then zips the result to the theme's .zip file. DANGER:
-        // any new flat theme property must be added to this DTO too (and to ThemeSettings and LoadTheme).
+        // any new flat theme property must be added to this DTO too (and to ThemeSettings and LoadTheme). The info block's
+        // thumbnail is bundled the same way; ModifiedUtc moves on the live block only after the zip is written.
         private void BtnSaveTheme_Click(object sender, RoutedEventArgs e)
         {
             string? themeName = CboThemePresets.SelectedItem as string;
-            if (themeName == "[New Theme...]")
+            bool isNewTheme = themeName == "[New Theme...]";
+            if (isNewTheme)
             {
                 themeName = TxtNewThemeName.Text.Trim();
                 if (string.IsNullOrEmpty(themeName))
@@ -188,6 +190,8 @@ namespace ArcadeStick.Views
             }
 
             if (string.IsNullOrEmpty(themeName)) return;
+
+            var infoBeforeSave = _settings.Info.Clone(); // a failed save leaves the live info block as it was
 
             try
             {
@@ -250,6 +254,24 @@ namespace ArcadeStick.Views
 
                 var missingAssets = new List<string>();
 
+                // Theme info: a new theme keeps the author and description but never the previous theme's thumbnail file
+                // or date (a pending capture goes under its own new GUID folder). Bundled before the layers, so a layer
+                // image with the same name cannot rename the thumbnail. A missing file degrades to no thumbnail.
+                if (isNewTheme)
+                {
+                    _settings.Info.ThumbnailPath = "";
+                    _settings.Info.ModifiedUtc = null;
+                }
+                ArcadeStick.Services.ThemeThumbnailStore.WritePending(_settings);
+                var infoForTheme = _settings.Info.Clone();
+                infoForTheme.ThumbnailPath = File.Exists(ResolveAssetAbsolutePath(infoForTheme.ThumbnailPath))
+                    ? BundleThemeAsset(infoForTheme.ThumbnailPath, stagingAssetsDir, missingAssets)
+                    : "";
+
+                // The zip's theme.json must carry the date, so it is chosen here; the live block takes it only once the zip is written
+                DateTime savedUtc = DateTime.UtcNow;
+                infoForTheme.ModifiedUtc = savedUtc;
+                themeDto.Info = infoForTheme;
 
                 // Layouts: keep every saved resolution, and make sure the active resolution has an entry
                 // (registry defaults fill in anything not customized yet) so a save always records it.
@@ -301,6 +323,9 @@ namespace ArcadeStick.Views
                 ZipFile.CreateFromDirectory(stagingDir, themeFile);
                 Directory.Delete(stagingDir, recursive: true);
 
+                _settings.Info.ModifiedUtc = savedUtc;
+                _settings.PendingThemeThumbnail = null;
+
                 if (missingAssets.Count > 0)
                 {
                     MessageBox.Show($"Theme saved, but {missingAssets.Count} asset file(s) could not be found and were not included:\n\n{string.Join("\n", missingAssets)}", "Some Assets Missing", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -319,6 +344,7 @@ namespace ArcadeStick.Views
             }
             catch (Exception ex)
             {
+                _settings.Info = infoBeforeSave;
                 MessageBox.Show($"Failed to save theme: {ex.Message}", "Write Crash", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

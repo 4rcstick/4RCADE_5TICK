@@ -135,6 +135,11 @@ namespace ArcadeStick.Views
         public AdvancedThemesTabControl()
         {
             InitializeComponent();
+
+            // The info controls only update memory: Save Adjustments / Save Changes write these values
+            ThemeInfoAuthor.ValueApplied += value => _settings.Info.Author = value;
+            ThemeInfoDescription.ValueApplied += value => _settings.Info.Description = value;
+            ThemeInfoThumbnail.ThumbnailChanged += image => _settings.PendingThemeThumbnail = image;
         }
 
         // [SECTION: Initialization]
@@ -1038,11 +1043,68 @@ namespace ArcadeStick.Views
 
         private static string Fmt(double value) => value.ToString("0.##", CultureInfo.InvariantCulture);
 
+        // [SECTION: Theme Info View]
+        private const double ThemeInfoDescriptionMinHeight = 110;
+
+        // Set by the Theme Builder window: captures the main window as a thumbnail image (null if it could not)
+        public Func<System.Windows.Media.Imaging.BitmapSource?>? ThumbnailCaptureRunner;
+
+        // Shows or hides the info view. Coming into view re-reads the values; leaving discards any unapplied edit text.
+        private void ShowThemeInfoView(bool show)
+        {
+            bool wasShown = PnlThemeInfo.Visibility == Visibility.Visible;
+            if (show && !wasShown) RefreshThemeInfo();
+            if (!show && wasShown) CloseThemeInfoEdits();
+
+            PnlThemeInfo.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+            BtnThemeInfo.FontWeight = show ? FontWeights.Bold : FontWeights.Normal;
+        }
+
+        // Fills the four display controls from the live info block and any pending capture. Also closes an open edit box.
+        public void RefreshThemeInfo()
+        {
+            if (_settings.PendingThemeThumbnail != null) ThemeInfoThumbnail.ShowImage(_settings.PendingThemeThumbnail);
+            else ThemeInfoThumbnail.ShowFile(ThemeThumbnailStore.ResolvePath(_settings, _settings.Info.ThumbnailPath));
+
+            ThemeInfoAuthor.ShowValue(_settings.Info.Author);
+            ThemeInfoDescription.ShowValue(_settings.Info.Description);
+            ThemeInfoModified.ShowValue(_settings.Info.ModifiedUtc);
+        }
+
+        // Does the discard of unapplied text in the author and description boxes
+        private void CloseThemeInfoEdits()
+        {
+            ThemeInfoAuthor.CancelEdit();
+            ThemeInfoDescription.CancelEdit();
+        }
+
+        // Gives the description whatever height the other rows leave in the view, never less than its minimum
+        private void ThemeInfoLayout_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            double rest = PnlThemeInfoTop.ActualHeight + ThemeInfoModified.ActualHeight + ThemeInfoModified.Margin.Top;
+            ThemeInfoDescription.Height = Math.Max(ThemeInfoDescriptionMinHeight, PnlThemeInfo.ActualHeight - rest);
+        }
+
+        // Clearing the selection brings the info view back through the selection handler
+        private void BtnThemeInfo_Click(object sender, RoutedEventArgs e) => LstLayers.UnselectAll();
+
+        // Captures the main window into the pending thumbnail; nothing goes to disk until a save
+        private void GlyphCaptureThumbnail_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (ThumbnailCaptureRunner?.Invoke() is System.Windows.Media.Imaging.BitmapSource image) ThemeInfoThumbnail.SetNewImage(image);
+        }
+
+        private void GlyphEditAuthor_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => ThemeInfoAuthor.BeginEdit();
+
+        private void GlyphEditDescription_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => ThemeInfoDescription.BeginEdit();
+        // [END SECTION: Theme Info View]
+
         private void LoadSelectedLayerIntoFields()
         {
             // Several rows selected: the nudge page only (none of the single-layer loaders below run)
             if (IsMultiSelect)
             {
+                ShowThemeInfoView(false);
                 LoadMultiSelection();
                 return;
             }
@@ -1117,6 +1179,7 @@ namespace ArcadeStick.Views
             if (SingleSelectedLayer is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition selectedGroup)
             {
                 BtnRenameLayer.Visibility = Visibility.Collapsed;
+                ShowThemeInfoView(false);
                 LoadGroupIntoFields(selectedGroup);
                 return;
             }
@@ -1124,9 +1187,12 @@ namespace ArcadeStick.Views
             if (SingleSelectedLayer is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry)
             {
                 PnlLayerFields.Visibility = Visibility.Collapsed;
+                ShowThemeInfoView(true);
                 RaiseGuides();
                 return;
             }
+
+            ShowThemeInfoView(false);
 
             // Single layer: undo anything the group page changed
             PnlGroupParts.Visibility = Visibility.Collapsed;

@@ -31,6 +31,10 @@
         <SolidColorBrush x:Key="ChromeSliderTrack" Color="#FF3A3A3C"/>
         <!-- Speaker glyph over the playing Video Preview -->
         <SolidColorBrush x:Key="ChromePreviewSoundGlyph" Color="#CCFFFFFF"/>
+        <!-- Theme thumbnail "No Image" box: opaque and self-contained, so it reads over any theme background -->
+        <SolidColorBrush x:Key="ChromeThumbnailPlaceholderBg" Color="#FF1C1C1E"/>
+        <SolidColorBrush x:Key="ChromeThumbnailPlaceholderBorder" Color="#FFA0A0A2"/>
+        <SolidColorBrush x:Key="ChromeThumbnailPlaceholderText" Color="#FFF2F2F7"/>
         <!-- [END SECTION: Chrome Palette] -->
 
         <!-- [SECTION: Global Theme Resources] -->

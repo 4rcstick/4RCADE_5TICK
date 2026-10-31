@@ -14,6 +14,9 @@ namespace ArcadeStick.Views
         private int _resolutionHeightAtLastSave;
         // The flat Global tab values at the same restore point (theme-wide, so the size switch never moves it)
         private ArcadeStick.Models.ThemeSettings _globalAtLastSave = new();
+        // The theme info block at the same restore point. A pending thumbnail is always written by a save or dropped by a
+        // load, so the restore point never holds one: closing without saving just discards it.
+        private ArcadeStick.Models.ThemeInfo _infoAtLastSave = new();
         private System.Windows.Threading.DispatcherTimer? _themeSavedFlashTimer;
 
         // [SECTION: Constructor & Tab Initialization]
@@ -40,9 +43,13 @@ namespace ArcadeStick.Views
                 _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
                 _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
                 _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
+                _infoAtLastSave = _settings.Info.Clone();
+                ArcadeStick.Services.ThemeThumbnailStore.RemoveUnusedFolders(_settings, _infoAtLastSave);
+                AdvancedTab.RefreshThemeInfo();
                 ShowThemeSavedFlash();
             });
             AdvancedTab.Initialize(_settings);
+            AdvancedTab.ThumbnailCaptureRunner = () => (Owner as MainWindow)?.CaptureThemeThumbnail();
             GlobalTab.Initialize(_settings);
 
             // Alignment guides: forward the Advanced tab's guide info to the main window, but only while the
@@ -108,6 +115,7 @@ namespace ArcadeStick.Views
             _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
             _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
             _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
+            _infoAtLastSave = _settings.Info.Clone();
 
             Closed += (s, e) =>
             {
@@ -119,6 +127,10 @@ namespace ArcadeStick.Views
                 // Same for the Global values, then republish their app resources
                 ArcadeStick.Services.GlobalThemeResources.RestoreSnapshot(_globalAtLastSave, _settings, ArcadeStick.Services.GlobalArea.All);
                 ArcadeStick.Services.GlobalThemeResources.Apply(_settings);
+
+                // Same for the theme info: unsaved edits and any pending thumbnail are discarded
+                _settings.Info = _infoAtLastSave;
+                _settings.PendingThemeThumbnail = null;
 
                 var main = Owner as MainWindow;
                 main?.ShowGuides(null);
@@ -139,14 +151,20 @@ namespace ArcadeStick.Views
         private void RefreshAfterThemeLoad()
         {
             RefreshWindowBindings();
+
+            // A pending thumbnail belonged to the previous theme. Cleared here, not in ReloadFromSettings: a size switch runs that too.
+            _settings.PendingThemeThumbnail = null;
+
             AdvancedTab.ReloadFromSettings();
             GlobalTab.ReloadFromSettings();
+            AdvancedTab.RefreshThemeInfo();
 
             // A theme load is a deliberate change: the loaded layouts and Global values become the restore point for closing
             _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
             _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
             _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
             _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
+            _infoAtLastSave = _settings.Info.Clone();
         }
 
         // Called by MainWindow after the theme is switched from the hamburger menu. Reloads the manager row and tabs and
@@ -238,7 +256,11 @@ namespace ArcadeStick.Views
         {
             try
             {
+                // A pending thumbnail goes to disk first so settings.json records its path. ModifiedUtc is not stamped: only Save Changes does that.
+                ArcadeStick.Services.ThemeThumbnailStore.WritePending(_settings);
                 PersistSettingsToDisk();
+                _settings.PendingThemeThumbnail = null;
+                AdvancedTab.RefreshThemeInfo();
 
                 // Saved: a pending custom size is now permanent, and this is the new restore point for closing
                 AdvancedTab.CommitPendingSize();
@@ -246,6 +268,8 @@ namespace ArcadeStick.Views
                 _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
                 _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
                 _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
+                _infoAtLastSave = _settings.Info.Clone();
+                ArcadeStick.Services.ThemeThumbnailStore.RemoveUnusedFolders(_settings, _infoAtLastSave);
 
                 _viewModel.RefreshThemeBindings();
                 _viewModel.RefreshFolderColorsLive();

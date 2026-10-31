@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:local="clr-namespace:ArcadeStick.Views"
              mc:Ignorable="d">
 
     <!-- The shared control styles this tab uses (PickerPopupGridStyle, GLLabelStyle, GLTextBoxStyle, GLCheckBoxStyle,
@@ -33,6 +34,32 @@
             </Style.Triggers>
         </Style>
         <!-- [END SECTION: Layers Help] -->
+
+        <!-- Theme info view headings: the Global Header font on the shared label style -->
+        <Style x:Key="ThemeInfoHeadingStyle" TargetType="TextBlock" BasedOn="{StaticResource GLLabelStyle}">
+            <Setter Property="Foreground" Value="{DynamicResource Global.Font.Header.Color}"/>
+            <Setter Property="FontSize" Value="{DynamicResource Global.Font.Header.Size}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Theme info view camera and pencil glyphs: the character alone (Chrome Palette only; turns accent on hover).
+             The transparent background makes the whole glyph box clickable. -->
+        <Style x:Key="ThemeInfoGlyphStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{StaticResource ChromeTextMuted}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="8,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource ChromeAccent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <Grid Margin="15">
@@ -45,10 +72,19 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
 
             <!-- Theme sizes: one button per size saved in the theme file (filled from code-behind) -->
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="Theme sizes:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <WrapPanel x:Name="PnlSavedSizes" VerticalAlignment="Center"/>
-            </StackPanel>
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Theme sizes:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <WrapPanel Grid.Column="1" x:Name="PnlSavedSizes" VerticalAlignment="Center"/>
+                <!-- Outside PnlSavedSizes, which RebuildSavedSizes clears. No right margin, so its right edge lines up with
+                     Delete Theme in the Active Theme row. Bold while the info view shows (no background). -->
+                <Button Grid.Column="2" x:Name="BtnThemeInfo" Content="Theme Info" Click="BtnThemeInfo_Click" VerticalAlignment="Top"
+                        Style="{StaticResource ThemedActionButtonStyle}" Padding="7,3" Margin="10,0,0,4"/>
+            </Grid>
 
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -2320,6 +2356,40 @@
                 </StackPanel>
             </Grid>
             <!-- [END SECTION: Layer Property Tabs] -->
+
+            <!-- [SECTION: Theme Info View] -->
+            <!-- The default content while no layer is selected. The outer scroll keeps everything reachable on a small or
+                 scaled display; the description fills what is left (height set from code-behind, never under its minimum)
+                 so it scrolls on its own. -->
+            <ScrollViewer Grid.Column="2" x:Name="PnlThemeInfo" Visibility="Collapsed" VerticalScrollBarVisibility="Auto"
+                          Style="{StaticResource ArcadeDarkScrollViewerThemed}" SizeChanged="ThemeInfoLayout_SizeChanged">
+                <StackPanel>
+                    <StackPanel x:Name="PnlThemeInfoTop" SizeChanged="ThemeInfoLayout_SizeChanged">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="Thumbnail" Style="{StaticResource ThemeInfoHeadingStyle}"/>
+                            <TextBlock Text="&#xE722;" Style="{StaticResource ThemeInfoGlyphStyle}"
+                                       ToolTip="Capture the main window as this theme's thumbnail" MouseLeftButtonUp="GlyphCaptureThumbnail_MouseLeftButtonUp"/>
+                        </StackPanel>
+                        <local:ThemeThumbnailControl x:Name="ThemeInfoThumbnail"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,8">
+                            <TextBlock Text="Author" Style="{StaticResource ThemeInfoHeadingStyle}"/>
+                            <TextBlock Text="&#xE70F;" Style="{StaticResource ThemeInfoGlyphStyle}"
+                                       ToolTip="Edit the author" MouseLeftButtonUp="GlyphEditAuthor_MouseLeftButtonUp"/>
+                        </StackPanel>
+                        <local:ThemeAuthorControl x:Name="ThemeInfoAuthor"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,8">
+                            <TextBlock Text="Description" Style="{StaticResource ThemeInfoHeadingStyle}"/>
+                            <TextBlock Text="&#xE70F;" Style="{StaticResource ThemeInfoGlyphStyle}"
+                                       ToolTip="Edit the description" MouseLeftButtonUp="GlyphEditDescription_MouseLeftButtonUp"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <local:ThemeDescriptionControl x:Name="ThemeInfoDescription"/>
+                    <local:ThemeModifiedControl x:Name="ThemeInfoModified" Margin="0,10,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+            <!-- [END SECTION: Theme Info View] -->
         </Grid>
         <!-- [END SECTION: Layer List + Fields] -->
     </Grid>

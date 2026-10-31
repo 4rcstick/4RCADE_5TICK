@@ -319,6 +319,70 @@ namespace ArcadeStick
             BackgroundGridLayer.Visibility = Visibility.Visible;
         }
 
+        // Renders the main window preview to a frozen image ThumbnailHeight px tall, with the background grid hidden for
+        // the render only (all inside this one UI-thread call, so nothing paints in between). Null if it has no size yet.
+        public BitmapSource? CaptureThemeThumbnail()
+        {
+            const int ThumbnailHeight = 360;
+
+            bool gridWasOn = _backgroundGridOn;
+            if (gridWasOn)
+            {
+                _backgroundGridOn = false;
+                UpdateBackgroundGrid();
+                RootLayoutGrid.UpdateLayout();
+            }
+
+            try
+            {
+                // Layout size: the brush draws the grid's own content, without the LayoutTransform Smart fullscreen puts on it
+                double width = RootLayoutGrid.ActualWidth;
+                double height = RootLayoutGrid.ActualHeight;
+                if (width <= 0 || height <= 0) return null;
+
+                // An absolute viewbox, so a layer hanging off the canvas cannot change the framing
+                var bounds = new Rect(0, 0, width, height);
+                var brush = new VisualBrush(RootLayoutGrid)
+                {
+                    Stretch = Stretch.Fill,
+                    ViewboxUnits = BrushMappingMode.Absolute,
+                    Viewbox = bounds,
+                    AutoLayoutContent = false
+                };
+                var windowVisual = new DrawingVisual();
+                using (var context = windowVisual.RenderOpen())
+                {
+                    context.DrawRectangle(brush, null, bounds);
+                }
+
+                DpiScale dpi = VisualTreeHelper.GetDpi(RootLayoutGrid);
+                var fullSize = new RenderTargetBitmap((int)Math.Round(width * dpi.DpiScaleX), (int)Math.Round(height * dpi.DpiScaleY), dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
+                fullSize.Render(windowVisual);
+
+                // Scale down, keeping the aspect ratio
+                int thumbnailWidth = Math.Max(1, (int)Math.Round(ThumbnailHeight * width / height));
+                var scaledVisual = new DrawingVisual();
+                RenderOptions.SetBitmapScalingMode(scaledVisual, BitmapScalingMode.HighQuality);
+                using (var context = scaledVisual.RenderOpen())
+                {
+                    context.DrawImage(fullSize, new Rect(0, 0, thumbnailWidth, ThumbnailHeight));
+                }
+
+                var thumbnail = new RenderTargetBitmap(thumbnailWidth, ThumbnailHeight, 96, 96, PixelFormats.Pbgra32);
+                thumbnail.Render(scaledVisual);
+                thumbnail.Freeze();
+                return thumbnail;
+            }
+            finally
+            {
+                if (gridWasOn)
+                {
+                    _backgroundGridOn = true;
+                    UpdateBackgroundGrid();
+                }
+            }
+        }
+
         // Returns the opaque line color: the background's RGB (alpha ignored) blended BackgroundGridContrastOnDark toward
         // white when its luminance is under 128, otherwise BackgroundGridContrastOnLight toward black
         private static Color GetBackgroundGridLineColor(Color background)

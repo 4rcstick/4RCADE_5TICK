@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="ArcadeStick.Views.ThemeThumbnailControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             HorizontalAlignment="Left">
+    <Grid>
+        <!-- Uniform inside MaxHeight: the display height rules until the width runs out, then the height shrinks instead -->
+        <Image x:Name="ImgThumbnail" Stretch="Uniform" HorizontalAlignment="Left" Visibility="Collapsed"
+               RenderOptions.BitmapScalingMode="HighQuality"/>
+
+        <!-- The Viewbox shrinks the box in a pane narrower than it, and never enlarges it -->
+        <Viewbox x:Name="BoxNoImage" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left">
+            <Border x:Name="BdNoImage" Background="{StaticResource ChromeThumbnailPlaceholderBg}"
+                    BorderBrush="{StaticResource ChromeThumbnailPlaceholderBorder}" BorderThickness="1">
+                <TextBlock x:Name="TxtNoImage" Foreground="{StaticResource ChromeThumbnailPlaceholderText}" FontSize="13"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </Viewbox>
+    </Grid>
+</UserControl>

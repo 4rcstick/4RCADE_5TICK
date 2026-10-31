@@ -77,6 +77,19 @@ namespace ArcadeStick.Models
         public int ActiveResolutionWidth { get; set; } = 1280;
         public int ActiveResolutionHeight { get; set; } = 720;
 
+        // The active theme's info block (a null in the file reads as a blank block). Edited in memory by the Theme
+        // Builder until Save Adjustments / Save Changes.
+        private ThemeInfo _info = new();
+        public ThemeInfo Info
+        {
+            get => _info;
+            set => _info = value ?? new ThemeInfo();
+        }
+
+        // A captured thumbnail not written to disk yet (ThemeThumbnailStore). Session-only.
+        [System.Text.Json.Serialization.JsonIgnore]
+        public System.Windows.Media.Imaging.BitmapSource? PendingThemeThumbnail { get; set; }
+
         // Per-resolution layer layouts for the active theme (loaded from the theme file, written back on
         // theme save). Missing resolutions/layers fall back to LayerRegistry defaults.
         public List<ThemeLayout> Layouts { get; set; } = new();

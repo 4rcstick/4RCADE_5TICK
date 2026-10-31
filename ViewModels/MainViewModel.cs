@@ -1582,6 +1582,19 @@ namespace ArcadeStick.ViewModels
             Configuration.BtnTextColorNormalHex = themeData.BtnTextColorNormalHex;
             Configuration.BtnBgColorHoverHex = themeData.BtnBgColorHoverHex;
 
+            // Info block: a theme without one gets a blank block, so the previous theme's values never carry over. The
+            // thumbnail points at the extracted copy, with the standard asset name as the fallback.
+            var themeInfo = themeData.Info ?? new ThemeInfo();
+            themeInfo.Author ??= "";
+            themeInfo.Description ??= "";
+            themeInfo.ThumbnailPath = RewriteAssetPath(themeInfo.ThumbnailPath) ?? "";
+            if (!File.Exists(ThemeThumbnailStore.ResolvePath(Configuration, themeInfo.ThumbnailPath)))
+            {
+                string assetThumbnail = Path.Combine(extractDir, "assets", ThemeThumbnailStore.FileName);
+                themeInfo.ThumbnailPath = File.Exists(assetThumbnail) ? Path.GetRelativePath(Configuration.BaseDirectory, assetThumbnail) : "";
+            }
+            Configuration.Info = themeInfo;
+
             // Layouts come from the theme file; any resolution or layer not saved there falls back to
             // LayerRegistry defaults at resolve time. The active resolution (a user choice stored in
             // settings.json) is deliberately left alone.

@@ -337,6 +337,14 @@ Group rules: parts of a group share one Z and appear as one row; the group edit 
 
 ---
 
+### 3.22 Theme Info view (built 2026-10-31, handoff-theme-info-section.md; tested by the user)
+- **Data:** one `ThemeInfo` block (`Author`, `Description`, `ModifiedUtc`, `ThumbnailPath`) on both `ThemeSettings` and `ConfigurationSettings.Info`. `LoadTheme` uses a blank block when a theme has none. `ConfigurationSettings.PendingThemeThumbnail` (session-only) holds a capture until a save.
+- **Controls:** `ThemeThumbnailControl`, `ThemeAuthorControl`, `ThemeDescriptionControl`, `ThemeModifiedControl`: content only, for reuse by the Theme Browser. Fallback strings are in `ThemeInfoFallbacks`; only Apply commits (Enter too on the author).
+- **View:** `PnlThemeInfo` shows while no layer is selected; the Theme Info button clears the selection and is bold while the view shows. The description's height is set in `ThemeInfoLayout_SizeChanged` (the outer ScrollViewer gives no remaining space to a star row). The button sits at the right end of the Theme sizes row, outside `PnlSavedSizes`. The camera and pencil use `ThemeInfoGlyphStyle` (no circle).
+- **Folder cleanup:** `ThemeThumbnailStore.RemoveUnusedFolders` runs after Save Adjustments and in the Save Changes callback, right after the restore point moves. It deletes GUID-named folders directly inside `Themes/Thumbnails` except those used by the live block and the restore point, and fails silently. A theme load does not run it, so a folder a load leaves unused goes at the next save.
+- **Capture:** `MainWindow.CaptureThemeThumbnail` hides the grid for the render only and returns a 360 px tall image.
+- **Saving:** Save Adjustments writes a pending capture to `Themes/Thumbnails/<guid>/theme-thumbnail.png` and settings.json, with no date stamp. Save Changes also bundles the thumbnail before the layers. The date is chosen before theme.json is written (the zip must carry it) and reaches the live block only after the zip succeeds. A `[New Theme...]` save keeps the author and description, and takes no inherited thumbnail or date. Closing without saving restores the block and drops the pending capture.
+
 ## 4. Design decisions (settled)
 
 1. **Layer by layer**, Games List first (it carried font family, shadows and other styling), then reuse what works for the next layers.
@@ -623,6 +631,9 @@ Resolved: per-resolution storage on the entry; effect set shape; font list; arro
 | Playback/VideoFrame.cs | Pooled BGRA frame and the `VideoInfo` record |
 | app.manifest | Per-Monitor V2 DPI awareness (decision 63); referenced by `<ApplicationManifest>` in ArcadeStick.csproj |
 | settings.json / theme.json | Real examples of stored data |
+| Models/ThemeInfo.cs | Theme info block and the fallback strings |
+| Services/ThemeThumbnailStore.cs | Writes a pending thumbnail to its GUID folder, resolves thumbnail paths |
+| Views/ThemeThumbnailControl, ThemeAuthorControl, ThemeDescriptionControl, ThemeModifiedControl | Reusable theme info display controls |
 
 ---
 
@@ -717,3 +728,4 @@ Resolved: per-resolution storage on the entry; effect set shape; font list; arro
 - 2026-10-30: **Play Button, Favorites Star and in-place Favorites (3.12, 3.21, section 7).** Two new Game Info parts, each with its own tab and entry fields: `PlayButton` (`ButtonText`, `BoxShadow*`) launches the selected game; `FavoritesStar` (`Outline*`) toggles the favorite and follows `IsSelectedGameFavorite`. Favorite changes now update the FAVORITES node in place (`ApplyFavoriteChangeInPlace`, new `TreeCategoryNode.RefreshDisplayItems`) with a consistency check and a one-rebuild fallback, the folder is alphabetical, a guard keeps `SelectedGame` when the tree selects a folder, and Ctrl+F and gamepad Y no longer jump to the Favorites folder. Services/LayoutScaler.cs needed no change.
 - 2026-10-30: **Image Previews Nav removed (handoff-5-remove-previews-nav.md, 3.12, decision 32).** The arrows and dots under the video preview are gone from the registry (`ImagePreviewsNav`), GameInfoLayerControl (`PartPreviewsNav`), MainViewModel (`ThemePreviewsNav*`), `ApplyLayout`, the NAV tab (`GIPreviewsNav*`, `GIBlocks["PreviewsNav"]`) and `LayoutScaler`'s nav size rule. The previews slot now shows one image in a fixed order: flyer, then title screen, then snap, else blank. Game Info is 7 parts. A saved entry for the old Id is ignored: `ResolveLayout` builds from the registry and carries over only registry and custom Ids, so no migration. `ImagePreviewsBody`'s default rect, `default.zip` and the video slot's fallback are unchanged.
 - 2026-10-30: **NAV tab merged into GAME INFO (handoff-6-game-info-tab.md, 3.12).** Theme Builder UI only. The Game Info Nav block moved from `TabGINav` (deleted) to the top of `TabGIInfo`, headed "Page Navigation", above Headers (now top margin 24); the tab header changed from INFO to GAME INFO. Control names (`GINav*`), `Tag="Nav"`, `GIBlocks["Nav"]`, the entry and saved values are unchanged.
+- 2026-10-31: **Theme Info view** (`handoff-theme-info-section.md`, section 3.22). New `Models/ThemeInfo.cs`, `Services/ThemeThumbnailStore.cs` and the four display controls; Chrome Palette placeholder brushes; `LoadTheme`, the save DTO, the Theme Builder restore point, the Theme Info button and `MainWindow.CaptureThemeThumbnail`. Follow-up the same day: the camera and pencil moved to `ThemeInfoGlyphStyle` (no circle, FontSize 13), the Theme Info button moved to the right end of the Theme sizes row, and `ThemeThumbnailStore.RemoveUnusedFolders` removes unused thumbnail folders after saves only (not after a load). Tested by the user.
