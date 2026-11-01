@@ -118,6 +118,10 @@ namespace ArcadeStick.Views
                     if (ThemeLoadRunner != null) ThemeLoadRunner(load);
                     else load();
                 }
+                catch (ArcadeStick.Services.ThemeLoadException ex)
+                {
+                    MessageBox.Show(ex.Message, "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Error reading theme properties: {ex.Message}", "Processing Failure", MessageBoxButton.OK, MessageBoxImage.Error);

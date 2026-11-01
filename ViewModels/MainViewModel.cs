@@ -1490,8 +1490,8 @@ namespace ArcadeStick.ViewModels
         // Asset paths are rewritten relative to Configuration.BaseDirectory rather than left absolute -
         // matches ResolveAssetAbsolutePath's existing expectation on the Save side, and keeps settings.json
         // portable across USB drive-letter changes.
-        // Raised just before LoadTheme deletes and re-extracts a theme's Extracted folder, so MainWindow can
-        // release any custom layer files (video, animated images) that are still open from it.
+        // Raised just before LoadTheme swaps a theme's Extracted folder, so MainWindow can release any files
+        // (video, animated images) that are still open from it.
         public event Action? ThemeExtractionStarting;
 
         // The theme the in-memory layouts, info and Global values came from. Set when a load completes or Save Changes
@@ -1528,25 +1528,60 @@ namespace ArcadeStick.ViewModels
                 themeFile = realFile.FullName;
             }
 
-            string extractDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes", "Extracted", themeName);
-            if (Directory.Exists(extractDir))
-            {
-                ThemeExtractionStarting?.Invoke();
-                Directory.Delete(extractDir, recursive: true);
-            }
-            ZipFile.ExtractToDirectory(themeFile, extractDir);
+            string themesDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes");
+            string extractedRoot = Path.Combine(themesDir, "Extracted");
+            string extractDir = Path.Combine(extractedRoot, themeName); // where the files end up, so the paths below use it
+            string stagingRoot = Path.Combine(themesDir, ThemeFolderSwap.StagingFolderName);
 
-            // New themes store theme.json; older ones store theme.cfg (same JSON content). Prefer the new
-            // name and fall back so existing themes, including the bundled default.zip, keep loading.
-            string themeJsonPath = Path.Combine(extractDir, "theme.json");
-            if (!File.Exists(themeJsonPath)) themeJsonPath = Path.Combine(extractDir, "theme.cfg");
-
-            string jsonString = File.ReadAllText(themeJsonPath);
-            var themeData = System.Text.Json.JsonSerializer.Deserialize<ThemeSettings>(jsonString);
-            if (themeData == null) return false;
+            ThemeFolderSwap.CleanStaleFolders(stagingRoot, extractedRoot);
 
             // Rewrites this theme's asset paths (every entry's ImagePath and the thumbnail below) to the extracted folder
             string RewriteAssetPath(string storedValue) => RewriteThemeAssetPath(storedValue, extractDir);
+
+            // Everything that can fail runs here, before anything in memory changes: a failure leaves the disk and memory as they were.
+            ThemeSettings themeData;
+            List<ThemeLayout> themeLayouts;
+            List<ThemeLayout> savedLayouts;
+            string stagedDir = ThemeFolderSwap.NewStagingPath(stagingRoot, themeName);
+            try
+            {
+                themeData = ExtractAndReadTheme(themeFile, themeName, stagedDir);
+
+                try
+                {
+                    // Layouts come from the theme file; layer images are stored archive-relative there. A file that was
+                    // missing at save time keeps its stored path, which is left untouched (RewriteThemeAssetPath).
+                    themeLayouts = themeData.Layouts ?? new List<ThemeLayout>();
+                    foreach (var customEntry in themeLayouts.SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
+                    {
+                        customEntry.ImagePath = RewriteAssetPath(customEntry.ImagePath);
+                    }
+
+                    // Restore point for Reset Layer / Reset Layout: an independent copy of what the theme file holds.
+                    savedLayouts = ConfigurationSettings.CloneLayouts(themeLayouts);
+                }
+                catch (Exception ex)
+                {
+                    throw new ThemeLoadException($"Couldn't load '{themeName}'. Its theme file isn't valid. Nothing was changed.\n\nDetails: {ex.Message}");
+                }
+
+                bool releasedFiles = Directory.Exists(extractDir);
+                try
+                {
+                    if (releasedFiles) ThemeExtractionStarting?.Invoke();
+                    ThemeFolderSwap.Swap(stagedDir, extractDir, stagingRoot, themeName);
+                }
+                catch (Exception ex)
+                {
+                    if (releasedFiles) ReacquireThemeFiles();
+                    if (ex is ThemeLoadException) throw;
+                    throw new ThemeLoadException($"Couldn't load '{themeName}'. Nothing was changed.\n\nDetails: {ex.Message}");
+                }
+            }
+            finally
+            {
+                ThemeFolderSwap.TryDeleteFolder(stagedDir); // already gone after a successful swap
+            }
 
             // Map ThemeSettings DTO properties back to the main ConfigurationSettings object
             Configuration.OptionsBg = themeData.OptionsBg;
@@ -1604,16 +1639,12 @@ namespace ArcadeStick.ViewModels
             }
             Configuration.Info = themeInfo;
 
-            // Layouts come from the theme file; any resolution or layer not saved there falls back to
-            // LayerRegistry defaults at resolve time. The active resolution (a user choice stored in
-            // settings.json) is deliberately left alone.
-            // Layer images are stored archive-relative in the theme file; point them at the extracted copy. A file
-            // that was missing at save time keeps its stored path, which is left untouched (RewriteThemeAssetPath).
-            foreach (var customEntry in (themeData.Layouts ?? new List<ThemeLayout>()).SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
-            {
-                customEntry.ImagePath = RewriteAssetPath(customEntry.ImagePath);
-            }
-            Configuration.Layouts = themeData.Layouts ?? new List<ThemeLayout>();
+            // Any resolution or layer not saved in the theme falls back to LayerRegistry defaults at resolve time. The active
+            // resolution (a user choice stored in settings.json) is deliberately left alone. The names move in the same step
+            // as the layouts, before the display refresh, so LoadedThemeName always names the theme whose layouts are in memory.
+            Configuration.Layouts = themeLayouts;
+            Configuration.ActiveThemeName = themeName;
+            LoadedThemeName = themeName;
 
             // The window follows the theme: switch to the size the theme was saved at (older themes keep the current size)
             if (themeData.ActiveWidth > 0 && themeData.ActiveHeight > 0)
@@ -1622,17 +1653,76 @@ namespace ArcadeStick.ViewModels
                 Configuration.ActiveResolutionHeight = themeData.ActiveHeight;
             }
 
-            // Restore point for Reset Layer / Reset Layout: an independent copy of what the theme file holds.
-            Configuration.SavedThemeLayouts = ConfigurationSettings.CloneLayouts(Configuration.Layouts);
+            Configuration.SavedThemeLayouts = savedLayouts;
             Configuration.SavedThemeWidth = Configuration.ActiveResolutionWidth;
             Configuration.SavedThemeHeight = Configuration.ActiveResolutionHeight;
 
-            RefreshThemeBindings();
-            RefreshGameColorsLive();
-            Configuration.ActiveThemeName = themeName;
-            LoadedThemeName = themeName;
+            // The theme is loaded from here on. A failed display refresh must not report it as a failed load.
+            try
+            {
+                RefreshThemeBindings();
+                RefreshGameColorsLive();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"'{themeName}' loaded, but the display did not finish updating. Restart the app if it looks wrong.\n\nDetails: {ex.Message}", "Theme Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
 
             return true;
+        }
+
+        // Checks the zip, extracts it to the staging folder and parses its theme file (theme.json, or theme.cfg in older
+        // themes), so a bad theme is refused before the live folder is touched. Throws ThemeLoadException on any failure.
+        private static ThemeSettings ExtractAndReadTheme(string themeFile, string themeName, string stagedDir)
+        {
+            try
+            {
+                using (var zip = ZipFile.OpenRead(themeFile))
+                {
+                    bool hasThemeFile = zip.Entries.Any(entry =>
+                        entry.FullName.Equals("theme.json", StringComparison.OrdinalIgnoreCase)
+                        || entry.FullName.Equals("theme.cfg", StringComparison.OrdinalIgnoreCase));
+                    if (!hasThemeFile)
+                    {
+                        throw new ThemeLoadException($"Couldn't load '{themeName}'. Its zip has no theme.json or theme.cfg. Nothing was changed.");
+                    }
+                }
+
+                ZipFile.ExtractToDirectory(themeFile, stagedDir);
+            }
+            catch (Exception ex) when (ex is not ThemeLoadException)
+            {
+                throw new ThemeLoadException($"Couldn't load '{themeName}'. Its zip file can't be read and may be damaged. Nothing was changed.\n\nDetails: {ex.Message}");
+            }
+
+            try
+            {
+                // New themes store theme.json; older ones store theme.cfg (same JSON content). Prefer the new
+                // name and fall back so existing themes, including the bundled default.zip, keep loading.
+                string themeJsonPath = Path.Combine(stagedDir, "theme.json");
+                if (!File.Exists(themeJsonPath)) themeJsonPath = Path.Combine(stagedDir, "theme.cfg");
+
+                string jsonString = File.ReadAllText(themeJsonPath);
+                return System.Text.Json.JsonSerializer.Deserialize<ThemeSettings>(jsonString)
+                    ?? throw new InvalidDataException("The theme file is empty.");
+            }
+            catch (Exception ex)
+            {
+                throw new ThemeLoadException($"Couldn't load '{themeName}'. Its theme file isn't valid. Nothing was changed.\n\nDetails: {ex.Message}");
+            }
+        }
+
+        // Shows the current theme again after a failed swap released its open files. Its own failure must not hide the load's message.
+        private void ReacquireThemeFiles()
+        {
+            try
+            {
+                RefreshThemeBindings();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Could not reapply the theme after a failed load: {ex.Message}");
+            }
         }
         // [END SECTION: Shared Theme Loader]
 

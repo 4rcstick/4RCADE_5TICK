@@ -876,9 +876,9 @@ namespace ArcadeStick
             UpdateShapeVisibility();
         }
 
-        // Stops and removes every custom layer element so no file stays open. Called just before LoadTheme
-        // deletes and re-extracts the theme's Extracted folder. The next ApplyLayout recreates whatever
-        // the new theme needs.
+        // Stops and removes every layer element holding a theme file so none stays open. Called just before LoadTheme
+        // swaps the theme's Extracted folder. The next theme refresh recreates whatever the theme needs,
+        // including the same theme's files when the swap was refused.
         public void ReleaseCustomLayers()
         {
             // The Random Game Display layer's file is held open the same way
@@ -886,6 +886,18 @@ namespace ArcadeStick
 
             // ...and so are the shape layers' files
             ReleaseAllShapeFiles();
+
+            // ...and the wallpaper and boot splash videos
+            MainBgVideo.Stop();
+            MainBgVideo.Source = null;
+            MainBgVideo.Close();
+            _currentMainBgVideoPath = null;
+
+            var splashVideo = SplashLayer.BootSplashVideoPreview;
+            splashVideo.Stop();
+            splashVideo.Source = null;
+            splashVideo.Close();
+            _currentBootSplashPath = null;
 
             // Custom layers: release each box's file and remove the box. The next ApplyLayout recreates
             // whatever the new theme needs.
@@ -3517,7 +3529,7 @@ namespace ArcadeStick
         }
 
         // Deferred via Dispatcher.BeginInvoke like every other menu item here. Picking the active theme
-        // does nothing: LoadTheme deletes and re-extracts that theme's folder, which could collide with a
+        // does nothing: LoadTheme swaps that theme's folder, which could collide with a
         // file the running wallpaper video has open.
         private void HamburgerThemeItem_Click(object sender, RoutedEventArgs e)
         {
@@ -3536,6 +3548,10 @@ namespace ArcadeStick
                         _themeBuilderWindow?.RefreshAfterExternalThemeSwitch();
                         return true;
                     });
+                }
+                catch (Services.ThemeLoadException ex)
+                {
+                    MessageBox.Show(ex.Message, "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
                 catch (Exception ex)
                 {
