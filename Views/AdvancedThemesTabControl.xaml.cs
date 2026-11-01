@@ -4557,23 +4557,88 @@ namespace ArcadeStick.Views
             RebuildLayerList(selectedId);
         }
 
-        // Restore Defaults: every layer at this resolution back to the built-in registry defaults.
+        // Restore Defaults: applies the default set for this layout's height to the active layout only. Layers with no default
+        // (custom layers) are skipped, theme-wide values are not touched, and NormalizeZ renumbers Z in the restored order.
         private void BtnRestoreDefaults_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show(
-                $"Restore every layer at {_currentLayout.Width} x {_currentLayout.Height} to the built-in default layout?\n\nThis ignores the saved theme and discards your position, size, order, visibility and spacing changes for this resolution.",
-                "Confirm Restore Defaults", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes) return;
+            var defaults = DefaultLayerSets.GetDefaultsForHeight(_currentLayout.Height);
+            var mode = PromptForRestoreDefaults(defaults);
+            if (mode == null) return;
 
             string? selectedId = (LstLayers.SelectedItem as LayerListItem)?.Id;
-            var shapeNames = CaptureShapeNames(); // names are not style: they survive the reset
 
-            _currentLayout = LayerRegistry.BuildDefaultLayout(_currentLayout.Width, _currentLayout.Height);
-            RestoreShapeNames(shapeNames);
-            StoreLayout(_currentLayout);
+            foreach (var entry in _currentLayout.Layers)
+            {
+                var defEntry = defaults.Layers.FirstOrDefault(l => l.Id == entry.Id);
+                if (defEntry == null) continue;
+
+                DefaultLayerSets.ApplyLayout(entry, defEntry, _currentLayout);
+                if (mode == RestoreDefaultsMode.Everything) DefaultLayerSets.ApplyStyle(entry, defEntry, _settings);
+            }
+
             NormalizeZ(GetAscendingOrder());
-
             RebuildLayerList(selectedId);
+        }
+
+        // Restore Defaults pop-up built in code like the other prompts: one button per mode with its explanation, plus Cancel.
+        // Returns the chosen mode, or null if cancelled.
+        private RestoreDefaultsMode? PromptForRestoreDefaults(ThemeLayout defaults)
+        {
+            RestoreDefaultsMode? picked = null;
+
+            var panel = new StackPanel { Margin = new Thickness(14) };
+            var heading = MakePromptLine($"Restore the {_currentLayout.Width} x {_currentLayout.Height} layout to the {defaults.Width} x {defaults.Height} defaults?");
+            heading.Margin = new Thickness(0, 0, 0, 12);
+            panel.Children.Add(heading);
+
+            var prompt = new Window
+            {
+                Title = "Restore Defaults",
+                Content = panel,
+                Width = 460,
+                SizeToContent = SizeToContent.Height,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                ShowInTaskbar = false
+            };
+            prompt.SetResourceReference(Window.BackgroundProperty, "ChromeWindowBg");
+
+            var choices = new (RestoreDefaultsMode Mode, string Label, string Explanation)[]
+            {
+                (RestoreDefaultsMode.LayoutOnly, "Layout only", "Resets position, size, layer order and visibility. Keeps your colors, fonts, borders and images."),
+                (RestoreDefaultsMode.Everything, "Everything", "Resets all layer settings to the defaults.")
+            };
+            foreach (var (mode, label, explanation) in choices)
+            {
+                var button = MakePromptButton(label);
+                button.Width = 96;
+                button.VerticalAlignment = VerticalAlignment.Top;
+                button.Click += (s, args) =>
+                {
+                    picked = mode;
+                    prompt.DialogResult = true;
+                };
+
+                var line = MakePromptLine(explanation);
+                line.Margin = new Thickness(12, 0, 0, 0);
+                Grid.SetColumn(line, 1);
+
+                var row = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                row.Children.Add(button);
+                row.Children.Add(line);
+                panel.Children.Add(row);
+            }
+
+            var cancelButton = MakePromptButton("Cancel");
+            cancelButton.IsCancel = true;
+            cancelButton.HorizontalAlignment = HorizontalAlignment.Right;
+            panel.Children.Add(cancelButton);
+
+            prompt.ShowDialog();
+            return picked;
         }
         // [END SECTION: Resolution & Reset]
     }

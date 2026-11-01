@@ -194,6 +194,7 @@ namespace ArcadeStick.ViewModels
             LoadFavoritesFromDisk();
             LoadMouseSupportFromDisk();
             LoadPreviewOrderConfig();
+            LoadedThemeName = Configuration.ActiveThemeName; // settings.json's layouts belong to the theme it names
             LoadSavedThemeSnapshot();
 
             // Fresh install (settings.json didn't exist above) or any other case where no theme is
@@ -233,15 +234,12 @@ namespace ArcadeStick.ViewModels
 
                 var snapshotLayouts = ConfigurationSettings.CloneLayouts(themeData.Layouts ?? new List<ThemeLayout>());
 
-                // Custom layer images are archive-relative in the zip. Point them at the extracted copy that
-                // LoadTheme made (same rewrite as LoadTheme), so Reset Layer / Reset Layout restore working paths.
+                // Layer images are archive-relative in the zip. Point them at the extracted copy that LoadTheme
+                // made (same rewrite as LoadTheme), so Reset Layer / Reset Layout restore working paths.
                 string snapshotExtractDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes", "Extracted", Configuration.ActiveThemeName);
                 foreach (var customEntry in snapshotLayouts.SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
                 {
-                    if (string.IsNullOrWhiteSpace(customEntry.ImagePath) || Path.IsPathRooted(customEntry.ImagePath)) continue;
-
-                    string absolutePath = Path.Combine(snapshotExtractDir, customEntry.ImagePath.Replace('/', Path.DirectorySeparatorChar));
-                    customEntry.ImagePath = Path.GetRelativePath(Configuration.BaseDirectory, absolutePath);
+                    customEntry.ImagePath = RewriteThemeAssetPath(customEntry.ImagePath, snapshotExtractDir);
                 }
 
                 Configuration.SavedThemeLayouts = snapshotLayouts;
@@ -1496,6 +1494,26 @@ namespace ArcadeStick.ViewModels
         // release any custom layer files (video, animated images) that are still open from it.
         public event Action? ThemeExtractionStarting;
 
+        // The theme the in-memory layouts, info and Global values came from. Set when a load completes or Save Changes
+        // writes the zip, and never by a failed load; Save Changes refuses to write any other existing theme.
+        public string LoadedThemeName { get; set; } = "";
+
+        // Converts a stored asset path for use after extraction. Only a path inside the zip ("assets/x.png", either slash,
+        // any case) moves to the extracted folder, relative to Configuration.BaseDirectory (not absolute) so the theme
+        // survives a USB drive-letter change. Anything else is rooted or relative to the app folder (for example a file
+        // that was missing at save time, or 4rcade5tick_files\assets\x.png) and is returned exactly as stored.
+        private string RewriteThemeAssetPath(string storedValue, string extractDir)
+        {
+            if (string.IsNullOrWhiteSpace(storedValue)) return storedValue;
+
+            bool isZipAssetPath = storedValue.StartsWith("assets/", StringComparison.OrdinalIgnoreCase)
+                || storedValue.StartsWith("assets\\", StringComparison.OrdinalIgnoreCase);
+            if (!isZipAssetPath) return storedValue;
+
+            string absolutePath = Path.Combine(extractDir, storedValue.Replace('/', Path.DirectorySeparatorChar));
+            return Path.GetRelativePath(Configuration.BaseDirectory, absolutePath);
+        }
+
         public bool LoadTheme(string themeName)
         {
             string themeFile = Configuration.GetThemePath(themeName);
@@ -1527,17 +1545,8 @@ namespace ArcadeStick.ViewModels
             var themeData = System.Text.Json.JsonSerializer.Deserialize<ThemeSettings>(jsonString);
             if (themeData == null) return false;
 
-            // Rewrites a layout entry's asset path (used for every entry's ImagePath below) from archive-relative
-            // ("assets/x.png") to a path relative to Configuration.BaseDirectory (not absolute) so the theme
-            // survives a USB drive-letter change. A rooted (already-absolute) stored value means that asset was
-            // missing at save time and was never actually bundled - left untouched rather than mangled.
-            string RewriteAssetPath(string storedValue)
-            {
-                if (string.IsNullOrWhiteSpace(storedValue)) return storedValue;
-                if (Path.IsPathRooted(storedValue)) return storedValue;
-                string absolutePath = Path.Combine(extractDir, storedValue.Replace('/', Path.DirectorySeparatorChar));
-                return Path.GetRelativePath(Configuration.BaseDirectory, absolutePath);
-            }
+            // Rewrites this theme's asset paths (every entry's ImagePath and the thumbnail below) to the extracted folder
+            string RewriteAssetPath(string storedValue) => RewriteThemeAssetPath(storedValue, extractDir);
 
             // Map ThemeSettings DTO properties back to the main ConfigurationSettings object
             Configuration.OptionsBg = themeData.OptionsBg;
@@ -1598,9 +1607,8 @@ namespace ArcadeStick.ViewModels
             // Layouts come from the theme file; any resolution or layer not saved there falls back to
             // LayerRegistry defaults at resolve time. The active resolution (a user choice stored in
             // settings.json) is deliberately left alone.
-            // Custom layer images are stored archive-relative in the theme file; point them at the extracted
-            // copy (same rewrite as the flat asset properties above). A rooted path means the file was missing
-            // at save time and is left untouched.
+            // Layer images are stored archive-relative in the theme file; point them at the extracted copy. A file
+            // that was missing at save time keeps its stored path, which is left untouched (RewriteThemeAssetPath).
             foreach (var customEntry in (themeData.Layouts ?? new List<ThemeLayout>()).SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
             {
                 customEntry.ImagePath = RewriteAssetPath(customEntry.ImagePath);
@@ -1622,6 +1630,7 @@ namespace ArcadeStick.ViewModels
             RefreshThemeBindings();
             RefreshGameColorsLive();
             Configuration.ActiveThemeName = themeName;
+            LoadedThemeName = themeName;
 
             return true;
         }

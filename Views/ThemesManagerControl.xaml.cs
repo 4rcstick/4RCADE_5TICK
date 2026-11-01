@@ -140,7 +140,7 @@ namespace ArcadeStick.Views
         // Copies one asset file into the staging assets/ folder (numbering the filename if it collides
         // with an asset already bundled from a different property) and returns the archive-relative path
         // the DTO should be rewritten to point at. A missing/empty source is left untouched and reported
-        // back via missingAssets, rather than failing the whole save.
+        // back via missingAssets, rather than failing the whole save; LoadTheme leaves such a path as stored too.
         private string BundleThemeAsset(string storedPath, string stagingAssetsDir, List<string> missingAssets)
         {
             if (string.IsNullOrWhiteSpace(storedPath)) return storedPath;
@@ -204,7 +204,8 @@ namespace ArcadeStick.Views
         // [END SECTION: Theme Archive Asset Bundling]
 
         // [SUB-SECTION: Save Theme]
-        // Validates the theme name (prompting for one if "[New Theme...]" is selected), builds a ThemeSettings DTO
+        // Validates the theme name (prompting for one if "[New Theme...]" is selected, confirming before overwriting an existing
+        // theme, and refusing an existing theme that is not the loaded one), builds a ThemeSettings DTO
         // from _settings, bundles every layout entry's ImagePath into a staging assets/ folder (rewriting the DTO's
         // copies of those paths to archive-relative paths), then zips the result to the theme's .zip file. DANGER:
         // any new flat theme property must be added to this DTO too (and to ThemeSettings and LoadTheme). The info block's
@@ -221,9 +222,27 @@ namespace ArcadeStick.Views
                     MessageBox.Show("Please enter a valid theme name.", "Validation Halt", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
+
+                if (File.Exists(_settings.GetThemePath(themeName))
+                    && MessageBox.Show($"A theme named '{themeName}' already exists. Overwrite it with the theme currently loaded?", "Overwrite Theme", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+                {
+                    return;
+                }
             }
 
             if (string.IsNullOrEmpty(themeName)) return;
+
+            // The zip name comes from the dropdown but everything written comes from memory, so an existing theme can only
+            // be saved over by the theme that is actually loaded.
+            string loadedTheme = _viewModel.LoadedThemeName;
+            if (!isNewTheme && !string.Equals(themeName, loadedTheme, StringComparison.OrdinalIgnoreCase))
+            {
+                string mismatchMessage = string.IsNullOrWhiteSpace(loadedTheme)
+                    ? $"The theme list shows '{themeName}' but no theme is loaded. Press Load Theme on '{themeName}' first, so nothing gets overwritten."
+                    : $"The theme list shows '{themeName}' but the loaded theme is '{loadedTheme}'. Press Load Theme on '{themeName}' first, or select '{loadedTheme}', so nothing gets overwritten.";
+                MessageBox.Show(mismatchMessage, "Theme Not Saved", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             var infoBeforeSave = _settings.Info.Clone(); // a failed save leaves the live info block as it was
 
@@ -364,6 +383,10 @@ namespace ArcadeStick.Views
                 ZipFile.CreateFromDirectory(stagingDir, themeFile);
                 Directory.Delete(stagingDir, recursive: true);
 
+                // The zip is written: this is now the loaded and active theme, including under a new name
+                _viewModel.LoadedThemeName = themeName;
+                _settings.ActiveThemeName = themeName;
+
                 _settings.Info.ModifiedUtc = savedUtc;
                 _settings.PendingThemeThumbnail = null;
 
@@ -379,7 +402,6 @@ namespace ArcadeStick.Views
                 _viewModel.RefreshGameColorsLive();
                 RefreshThemeList();
                 CboThemePresets.SelectedItem = themeName;
-                _settings.ActiveThemeName = themeName;
                 _persistToDisk?.Invoke();
                 _themeSavedCallback?.Invoke();
             }

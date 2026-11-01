@@ -24,6 +24,12 @@
 		<PackageReference Include="System.Management" Version="10.0.0-preview.2.25163.2" />
 	</ItemGroup>
 
+	<!-- The layer values Restore Defaults applies (Models/DefaultLayerSets.cs) -->
+	<ItemGroup>
+		<None Remove="Models\DefaultLayerSets.json" />
+		<EmbeddedResource Include="Models\DefaultLayerSets.json" LogicalName="DefaultLayerSets.json" />
+	</ItemGroup>
+
 	<!-- FFmpeg runtime for the game-preview player: the five DLLs plus their notices and licenses are copied
 	     to 4rcade5tick_files\ffmpeg in the publish output (loose beside the exe, not bundled into it).
 	     Publish only - debug runs use the 4rcade5tick_files folder that boot.cfg or the exe folder points to. -->
