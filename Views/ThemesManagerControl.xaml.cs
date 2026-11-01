@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -211,12 +212,14 @@ namespace ArcadeStick.Views
         // Validates the theme name (prompting for one if "[New Theme...]" is selected, confirming before overwriting an existing
         // theme, and refusing an existing theme that is not the loaded one), builds a ThemeSettings DTO
         // from _settings, bundles every layout entry's ImagePath into a staging assets/ folder (rewriting the DTO's
-        // copies of those paths to archive-relative paths), then zips the result to the theme's .zip file. DANGER:
-        // any new flat theme property must be added to this DTO too (and to ThemeSettings and LoadTheme). The info block's
-        // thumbnail is bundled the same way; ModifiedUtc moves on the live block only after the zip is written.
+        // copies of those paths to archive-relative paths), asks before saving with missing files, then writes a temp zip,
+        // verifies it and swaps it in, keeping the old zip as <name>.zip.bak. DANGER: any new flat theme property must be
+        // added to this DTO too (and to ThemeSettings and LoadTheme). The info block's thumbnail is bundled the same way.
+        // Nothing live changes until the swap succeeds, so a failed or cancelled save leaves everything as it was.
         private void BtnSaveTheme_Click(object sender, RoutedEventArgs e)
         {
             string? themeName = CboThemePresets.SelectedItem as string;
+            string dropdown = themeName ?? "";
             bool isNewTheme = themeName == "[New Theme...]";
             if (isNewTheme)
             {
@@ -230,6 +233,7 @@ namespace ArcadeStick.Views
                 if (File.Exists(_settings.GetThemePath(themeName))
                     && MessageBox.Show($"A theme named '{themeName}' already exists. Overwrite it with the theme currently loaded?", "Overwrite Theme", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
                 {
+                    ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, _viewModel.LoadedThemeName, "cancelled", "Declined to overwrite an existing theme.");
                     return;
                 }
             }
@@ -244,16 +248,21 @@ namespace ArcadeStick.Views
                 string mismatchMessage = string.IsNullOrWhiteSpace(loadedTheme)
                     ? $"The theme list shows '{themeName}' but no theme is loaded. Press Load Theme on '{themeName}' first, so nothing gets overwritten."
                     : $"The theme list shows '{themeName}' but the loaded theme is '{loadedTheme}'. Press Load Theme on '{themeName}' first, or select '{loadedTheme}', so nothing gets overwritten.";
+                ArcadeStick.Services.ThemeLog.Write("SaveBlocked", themeName, dropdown, loadedTheme, "blocked", "The selected theme is not the loaded theme.");
                 MessageBox.Show(mismatchMessage, "Theme Not Saved", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var infoBeforeSave = _settings.Info.Clone(); // a failed save leaves the live info block as it was
+            string stagingDir = Path.Combine(Path.GetTempPath(), $"4rcstick_theme_{Guid.NewGuid():N}");
+            string? tempZip = null;
+            bool zipWritten = false; // from here on the theme is saved, whatever a later refresh does
 
             try
             {
                 string themeFile = _settings.GetThemePath(themeName);
-                Directory.CreateDirectory(Path.GetDirectoryName(themeFile) ?? throw new InvalidOperationException($"Invalid theme path: {themeFile}"));
+                string themesDir = Path.GetDirectoryName(themeFile) ?? throw new InvalidOperationException($"Invalid theme path: {themeFile}");
+                Directory.CreateDirectory(themesDir);
+                ArcadeStick.Services.ThemeFileStore.CleanStaleTempZips(themesDir);
 
                 // Create and populate the DTO
                 var themeDto = new ArcadeStick.Models.ThemeSettings
@@ -305,7 +314,6 @@ namespace ArcadeStick.Views
                 // layer files) into a staging assets/ folder, rewriting the DTO's copies of those paths to
                 // archive-relative paths - the original absolute/relative
                 // paths on THIS machine are meaningless to whoever imports the theme elsewhere.
-                string stagingDir = Path.Combine(Path.GetTempPath(), $"4rcstick_theme_{Guid.NewGuid():N}");
                 string stagingAssetsDir = Path.Combine(stagingDir, "assets");
                 Directory.CreateDirectory(stagingAssetsDir);
 
@@ -313,24 +321,33 @@ namespace ArcadeStick.Views
 
                 // Theme info: a new theme keeps the author and description but never the previous theme's thumbnail file
                 // or date (a pending capture goes under its own new GUID folder). Bundled before the layers, so a layer
-                // image with the same name cannot rename the thumbnail. A missing file is recovered from the zip about to
+                // image with the same name cannot rename the thumbnail. A pending capture goes straight into staging and
+                // reaches the Thumbnails folder only after the swap. A missing file is recovered from the zip about to
                 // be overwritten (the live path is left alone), otherwise it degrades to no thumbnail.
+                var infoForTheme = _settings.Info.Clone();
                 if (isNewTheme)
                 {
-                    _settings.Info.ThumbnailPath = "";
-                    _settings.Info.ModifiedUtc = null;
+                    infoForTheme.ThumbnailPath = "";
+                    infoForTheme.ModifiedUtc = null;
                 }
-                ArcadeStick.Services.ThemeThumbnailStore.WritePending(_settings);
-                var infoForTheme = _settings.Info.Clone();
-                string thumbnailSource = infoForTheme.ThumbnailPath;
-                if (!string.IsNullOrWhiteSpace(thumbnailSource) && !File.Exists(ResolveAssetAbsolutePath(thumbnailSource)))
+                if (_settings.PendingThemeThumbnail is System.Windows.Media.Imaging.BitmapSource pendingThumbnail)
                 {
-                    thumbnailSource = isNewTheme ? "" : ExtractThumbnailFromZip(themeFile, stagingDir);
+                    string fileName = ArcadeStick.Services.ThemeThumbnailStore.FileName;
+                    ArcadeStick.Services.ThemeThumbnailStore.WritePng(pendingThumbnail, Path.Combine(stagingAssetsDir, fileName));
+                    infoForTheme.ThumbnailPath = $"assets/{fileName}";
                 }
-                infoForTheme.ThumbnailPath = string.IsNullOrWhiteSpace(thumbnailSource)
-                    ? ""
-                    : BundleThemeAsset(thumbnailSource, stagingAssetsDir, missingAssets);
-                DeleteRecoveredThumbnailFolder(stagingDir); // everything left in staging goes into the zip
+                else
+                {
+                    string thumbnailSource = infoForTheme.ThumbnailPath;
+                    if (!string.IsNullOrWhiteSpace(thumbnailSource) && !File.Exists(ResolveAssetAbsolutePath(thumbnailSource)))
+                    {
+                        thumbnailSource = isNewTheme ? "" : ExtractThumbnailFromZip(themeFile, stagingDir);
+                    }
+                    infoForTheme.ThumbnailPath = string.IsNullOrWhiteSpace(thumbnailSource)
+                        ? ""
+                        : BundleThemeAsset(thumbnailSource, stagingAssetsDir, missingAssets);
+                    DeleteRecoveredThumbnailFolder(stagingDir); // everything left in staging goes into the zip
+                }
 
                 // The zip's theme.json must carry the date, so it is chosen here; the live block takes it only once the zip is written
                 DateTime savedUtc = DateTime.UtcNow;
@@ -348,8 +365,8 @@ namespace ArcadeStick.Views
                     if (layout.Width == activeW && layout.Height == activeH) activeSaved = layout;
                     else layoutsToSave.Add(layout);
                 }
-                layoutsToSave.Add(ArcadeStick.Models.LayerRegistry.ResolveLayout(activeSaved, activeW, activeH));
-                _settings.Layouts = layoutsToSave;
+                var resolvedActive = ArcadeStick.Models.LayerRegistry.ResolveLayout(activeSaved, activeW, activeH);
+                layoutsToSave.Add(resolvedActive);
 
                 // The theme file gets its own copy of the layouts, with every custom layer's image bundled
                 // into the zip and its path rewritten to archive-relative. The live layouts keep their real paths.
@@ -371,33 +388,56 @@ namespace ArcadeStick.Views
                 themeDto.ActiveWidth = activeW;
                 themeDto.ActiveHeight = activeH;
 
-                // Saving the theme moves the restore point to what was just written to the zip.
-                _settings.SavedThemeLayouts = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(layoutsToSave);
-                _settings.SavedThemeWidth = activeW;
-                _settings.SavedThemeHeight = activeH;
+                if (missingAssets.Count > 0 && !ConfirmSaveWithMissingAssets(missingAssets))
+                {
+                    ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, loadedTheme, "cancelled", $"Missing: {string.Join(", ", missingAssets)}");
+                    return;
+                }
 
                 var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
                 string jsonString = System.Text.Json.JsonSerializer.Serialize(themeDto, jsonOptions);
                 File.WriteAllText(Path.Combine(stagingDir, "theme.json"), jsonString);
 
-                if (File.Exists(themeFile))
-                {
-                    File.Delete(themeFile); // ZipFile.CreateFromDirectory throws if the destination already exists
-                }
-                ZipFile.CreateFromDirectory(stagingDir, themeFile);
-                Directory.Delete(stagingDir, recursive: true);
+                // Write and check the new zip beside the old one; the old zip is only replaced once the new one is good
+                tempZip = ArcadeStick.Services.ThemeFileStore.NewTempZipPath(themeFile);
+                ZipFile.CreateFromDirectory(stagingDir, tempZip);
+                ArcadeStick.Services.ThemeFileStore.VerifyZip(tempZip, stagingDir);
+                ArcadeStick.Services.ThemeFileStore.ReplaceZip(tempZip, themeFile);
+                zipWritten = true;
 
-                // The zip is written: this is now the loaded and active theme, including under a new name
+                // The live layout keeps its object, because the Advanced tab's _currentLayout points at it and adds and
+                // removes custom layers through it; replacing it would lose those edits on the next save.
+                if (activeSaved != null)
+                {
+                    activeSaved.Layers = resolvedActive.Layers;
+                    layoutsToSave[layoutsToSave.Count - 1] = activeSaved;
+                }
+                _settings.Layouts = layoutsToSave;
+
+                // Saving the theme moves the restore point to what was just written to the zip.
+                _settings.SavedThemeLayouts = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(layoutsToSave);
+                _settings.SavedThemeWidth = activeW;
+                _settings.SavedThemeHeight = activeH;
+
+                // This is now the loaded and active theme, including under a new name
                 _viewModel.LoadedThemeName = themeName;
                 _settings.ActiveThemeName = themeName;
 
+                // A new theme never keeps the previous theme's thumbnail file. The zip already holds the capture, so a
+                // failed write to the Thumbnails folder only costs the live preview.
+                if (isNewTheme) _settings.Info.ThumbnailPath = "";
+                try
+                {
+                    ArcadeStick.Services.ThemeThumbnailStore.WritePending(_settings);
+                }
+                catch (Exception thumbnailEx)
+                {
+                    ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, themeName, "ok", $"Thumbnail not written to the Thumbnails folder: {thumbnailEx.Message}");
+                }
                 _settings.Info.ModifiedUtc = savedUtc;
                 _settings.PendingThemeThumbnail = null;
 
-                if (missingAssets.Count > 0)
-                {
-                    MessageBox.Show($"Theme saved, but {missingAssets.Count} asset file(s) could not be found and were not included:\n\n{string.Join("\n", missingAssets)}", "Some Assets Missing", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
+                ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, themeName, "ok", missingAssets.Count > 0 ? $"Saved without: {string.Join(", ", missingAssets)}" : "");
 
                 _persistToDisk?.Invoke();
 
@@ -411,53 +451,109 @@ namespace ArcadeStick.Views
             }
             catch (Exception ex)
             {
-                _settings.Info = infoBeforeSave;
-                MessageBox.Show($"Failed to save theme: {ex.Message}", "Write Crash", MessageBoxButton.OK, MessageBoxImage.Error);
+                ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, _viewModel.LoadedThemeName, zipWritten ? "ok" : "failed", ex.Message);
+
+                if (zipWritten)
+                {
+                    MessageBox.Show($"'{themeName}' was saved, but the display did not finish updating. Restart the app if it looks wrong.\n\nDetails: {ex.Message}", "Theme Saved", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else if (ex is ArcadeStick.Services.ThemeFileException)
+                {
+                    MessageBox.Show(ex.Message, "Theme Not Saved", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show($"Couldn't save '{themeName}'. The existing theme file was not changed. Another program may be using it. Close it and try again.\n\nDetails: {ex.Message}", "Theme Not Saved", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
+            finally
+            {
+                ArcadeStick.Services.ThemeFolderSwap.TryDeleteFolder(stagingDir);
+                try
+                {
+                    if (tempZip != null && File.Exists(tempZip)) File.Delete(tempZip);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        // Asks whether to save without the files that could not be found (No is the default), listing at most 8 of them
+        private static bool ConfirmSaveWithMissingAssets(List<string> missingAssets)
+        {
+            const int maxListed = 8;
+            string list = string.Join("\n", missingAssets.Take(maxListed));
+            if (missingAssets.Count > maxListed) list += $"\nand {missingAssets.Count - maxListed} more";
+
+            return MessageBox.Show($"{missingAssets.Count} asset file(s) could not be found and will not be included:\n\n{list}\n\nSave anyway?", "Some Assets Missing", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
         }
         // [END SUB-SECTION: Save Theme]
 
         // [END SECTION: Theme Serialization Logic]
 
         // [SECTION: Delete Theme]
-        // Prompts for confirmation, then deletes the selected theme's .cfg file and refreshes the dropdown.
+        // Prompts for confirmation (No is the default), then removes the selected theme through ThemeFileStore.DeleteTheme: the
+        // zip moves to Themes\Deleted and the working folder is removed, or nothing changes. Deleting the loaded theme clears
+        // the loaded and active names, so nothing keeps targeting it.
         private void BtnDeleteTheme_Click(object sender, RoutedEventArgs e)
         {
-            if (CboThemePresets.SelectedItem is string selectedTheme && selectedTheme != "[New Theme...]")
+            if (CboThemePresets.SelectedItem is not string selectedTheme || selectedTheme == "[New Theme...]") return;
+
+            string loadedTheme = _viewModel.LoadedThemeName;
+            bool isLoadedTheme = string.Equals(selectedTheme, loadedTheme, StringComparison.OrdinalIgnoreCase);
+
+            string prompt = $"Delete theme '{selectedTheme}'?\n\nThis removes the theme and its working folder from the app. Its zip is moved to the Themes\\Deleted folder, so it can be recovered by hand.";
+            if (isLoadedTheme)
             {
-                if (MessageBox.Show($"Are you completely certain you want to permanently delete the theme layout configuration file for '{selectedTheme}'?", "Verify Deletion", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                prompt += "\n\nThis is the theme currently loaded. Its images will be missing until you load another theme, and the app will start with the Default theme next time.";
+            }
+
+            if (MessageBox.Show(prompt, "Delete Theme", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+            {
+                ArcadeStick.Services.ThemeLog.Write("Delete", selectedTheme, selectedTheme, loadedTheme, "cancelled");
+                return;
+            }
+
+            string themesDir = Path.Combine(_settings.GetArcadeStickFilesPath(), "Themes");
+            string themeFile = _settings.GetThemePath(selectedTheme);
+            string extractDir = Path.Combine(themesDir, "Extracted", selectedTheme);
+            string stagingRoot = Path.Combine(themesDir, ArcadeStick.Services.ThemeFolderSwap.StagingFolderName);
+            string deletedDir = Path.Combine(themesDir, ArcadeStick.Services.ThemeFileStore.DeletedFolderName);
+
+            try
+            {
+                ArcadeStick.Services.ThemeFolderSwap.CleanStaleFolders(stagingRoot, Path.Combine(themesDir, "Extracted"));
+                _viewModel.ReleaseThemeFiles();
+                ArcadeStick.Services.ThemeFileStore.DeleteTheme(themeFile, extractDir, stagingRoot, deletedDir, selectedTheme);
+
+                if (isLoadedTheme)
                 {
-                    try
-                    {
-                        string themeFile = _settings.GetThemePath(selectedTheme);
-                        bool deletedAnything = false;
-
-                        if (File.Exists(themeFile))
-                        {
-                            File.Delete(themeFile);
-                            deletedAnything = true;
-                        }
-
-                        // Also clean up this theme's extracted temp assets (Themes\Extracted\<name>\), if
-                        // it was ever loaded - otherwise those files would just sit there orphaned forever
-                        // with no theme left to reference them.
-                        string extractDir = Path.Combine(_settings.GetArcadeStickFilesPath(), "Themes", "Extracted", selectedTheme);
-                        if (Directory.Exists(extractDir))
-                        {
-                            Directory.Delete(extractDir, recursive: true);
-                            deletedAnything = true;
-                        }
-
-                        if (deletedAnything)
-                        {
-                            RefreshThemeList();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Deletion protocol faulted: {ex.Message}", "IO Access Failure", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    _viewModel.LoadedThemeName = "";
+                    _settings.ActiveThemeName = "";
                 }
+                ArcadeStick.Services.ThemeLog.Write("Delete", selectedTheme, selectedTheme, loadedTheme, "ok", isLoadedTheme ? "This was the loaded theme." : "");
+
+                if (isLoadedTheme) _persistToDisk?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                ArcadeStick.Services.ThemeLog.Write("Delete", selectedTheme, selectedTheme, loadedTheme, "failed", ex.Message);
+                string message = ex is ArcadeStick.Services.ThemeFileException
+                    ? ex.Message
+                    : $"Couldn't delete '{selectedTheme}'. Nothing was deleted.\n\nDetails: {ex.Message}";
+                MessageBox.Show(message, "Theme Not Deleted", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            // The release step let go of the current theme's files whatever happened, so show them again
+            try
+            {
+                _viewModel.RefreshThemeBindings();
+                RefreshThemeList();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Could not refresh after a theme delete: {ex.Message}");
             }
         }
         // [END SECTION: Delete Theme]

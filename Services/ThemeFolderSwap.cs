@@ -21,12 +21,13 @@ namespace ArcadeStick.Services
 
         private const string LoadingMarker = "loading";
         private const string OldMarker = "old";
+        private const string DeletedMarker = "deleted";
         private const int MoveAttempts = 5;
         private const int MoveRetryDelayMs = 200;
 
-        // Only names this class creates: <theme>.loading-<32 hex> or <theme>.old-<32 hex>
+        // Only names this class creates: <theme>.loading-<32 hex>, <theme>.old-<32 hex> or <theme>.deleted-<32 hex>
         private static readonly Regex StagingNamePattern = new(
-            $@"^(?<theme>.+)\.(?<kind>{LoadingMarker}|{OldMarker})-[0-9a-f]{{32}}$",
+            $@"^(?<theme>.+)\.(?<kind>{LoadingMarker}|{OldMarker}|{DeletedMarker})-[0-9a-f]{{32}}$",
             RegexOptions.CultureInvariant);
 
         // Returns an unused path in the staging folder for a theme's new extraction, creating the staging folder if needed
@@ -36,7 +37,14 @@ namespace ArcadeStick.Services
             return Path.Combine(stagingRoot, MakeFolderName(themeName, LoadingMarker));
         }
 
-        // Deletes leftovers from earlier loads: only direct children of the staging folder with this class's exact names.
+        // Returns an unused path in the staging folder for a theme's working folder while it is being deleted
+        public static string NewDeletedPath(string stagingRoot, string themeName)
+        {
+            Directory.CreateDirectory(stagingRoot);
+            return Path.Combine(stagingRoot, MakeFolderName(themeName, DeletedMarker));
+        }
+
+        // Deletes leftovers from earlier loads and deletes: only direct children of the staging folder with this class's exact names.
         // An .old folder is kept while its theme has no Extracted folder, since a failed rollback left it as the only working copy.
         public static void CleanStaleFolders(string stagingRoot, string extractedRoot)
         {
@@ -99,10 +107,12 @@ namespace ArcadeStick.Services
                 }
                 catch (Exception rollbackEx) when (rollbackEx is IOException or UnauthorizedAccessException)
                 {
+                    ThemeLog.Write("SwapRollback", themeName, "-", "-", "failed", rollbackEx.Message);
                     throw new ThemeLoadException(
                         $"Couldn't load '{themeName}', and its working folder could not be put back. The theme's zip is untouched.\n\nTo recover by hand, rename this folder:\n{asideDir}\n\nback to:\n{liveDir}\n\nDetails: {ex.Message}\n{rollbackEx.Message}");
                 }
 
+                ThemeLog.Write("SwapRollback", themeName, "-", "-", "ok", ex.Message);
                 throw new ThemeLoadException($"Couldn't load '{themeName}'. The new copy could not be put in place, so the old one was put back. Nothing was changed.\n\nDetails: {ex.Message}");
             }
 
@@ -125,7 +135,7 @@ namespace ArcadeStick.Services
         private static string MakeFolderName(string themeName, string marker) => $"{themeName}.{marker}-{Guid.NewGuid():N}";
 
         // Renames a folder, retrying briefly because a video player or virus scanner can hold a file for a moment after release
-        private static void MoveFolder(string source, string destination)
+        public static void MoveFolder(string source, string destination)
         {
             for (int attempt = 1; ; attempt++)
             {

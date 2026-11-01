@@ -40,7 +40,7 @@ This is a solo-developer project, converted from a ~1600-line PowerShell prototy
 
 Settings and themes
 - `ConfigurationSettings` holds live settings (loaded from `4rcade5tick_files/settings.json`) and the per-resolution `Layouts`. It has **no change notification**; layer values reach XAML through `MainViewModel` `Theme*` forwarders, and the flat Global values through `{DynamicResource Global...}` resources published by `GlobalThemeResources.Apply`.
-- A theme is a **zip** (`4rcade5tick_files/Themes/<name>.zip`) containing `theme.json` plus bundled `assets/`; loading extracts to `Themes/Extracted/<name>/`. `LoadTheme` deletes and re-extracts that folder (`ThemeExtractionStarting` releases open files first).
+- A theme is a **zip** (`4rcade5tick_files/Themes/<name>.zip`) containing `theme.json` plus bundled `assets/`; loading extracts to `Themes/Extracted/<name>/`. `LoadTheme` extracts to a staging folder first and swaps it in by renaming, and Save and Delete Theme follow the same rule (see Theme file safety under Known Gotchas).
 - `LayerRegistry` is the single source of truth for layers, groups, defaults and fonts. Each resolution has a `ThemeLayout` of `LayerLayoutEntry` items (rect, Z, visibility, ImagePath and styling fields).
 - **New styling goes on layer entries, per resolution**, not on `ConfigurationSettings`. Old keys in saved files are ignored; there is no legacy migration (the user rebuilds themes).
 
@@ -114,6 +114,17 @@ Closing without saving restores layouts to the last saved snapshot; anything sto
 
 ### Media loading (decision 42, 2026-10-21)
 The `SelectedGame` setter runs the instant part (marquee, `MarqueeMissing`, flyer/title/snap/cabinet, the video slot's static image, `HasActiveMedia`): file checks on the UI thread, decoding on a background task guarded by `_mediaSelectionVersion`, plus a 30-entry decoded-image cache. **Only `VideoSourcePath` stays behind the 600 ms debounce.** `ResolvePreviewMedia()` is the single two-pass preview resolver. Do not move `HasActiveMedia` or `MarqueeMissing` back behind the debounce (that was the original "no preview flash" bug). Anything that sets `MarqueeImage` to null for "nothing selected" must also clear `MarqueeMissing`; use `MarqueeMissing`, never `HasMarqueeImage`, for the no-art banner.
+
+### Theme file safety (themes.md 3.4, section 7, decisions 71 and 72)
+- **Nothing is deleted or replaced until its replacement is confirmed good, and a failure leaves the old files and memory as they were.** Do not add a delete-first path to Load, Save or Delete Theme.
+- **Load:** `LoadTheme` checks the zip, extracts and parses it in `Themes\_staging`, then swaps the folder with `ThemeFolderSwap` (rename aside, rename into place, rollback). A failure throws `ThemeLoadException`; callers show its message as "Theme Not Loaded". An open file in the theme's folder refuses the load, including an open File Explorer window, so a new layer that holds a file open must be released in `ReleaseCustomLayers`.
+- **Save:** bundles into a staging folder in Temp, asks first if files are missing (No by default), writes `<name>.zip.tmp-<guid>` in `Themes`, verifies it, then swaps it in with `ThemeFileStore.ReplaceZip`, keeping `<name>.zip.bak`. Layouts, the restore point, theme names, the thumbnail write and `ModifiedUtc` move only after the swap.
+- **Delete Theme:** `ThemeFileStore.DeleteTheme` renames the working folder aside, then moves the zip to `Themes\Deleted` (not the Recycle Bin: removable drives have none), with rollback. Deleting the loaded theme clears `LoadedThemeName` and `ActiveThemeName`, so the next launch loads `default`.
+- **`LoadedThemeName`** (`MainViewModel`) names the theme whose values are in memory. Save refuses any other existing theme, because the zip name comes from the dropdown but the data comes from memory. Set it only in the same step as the layouts.
+- **Stored asset paths:** only a path starting with `assets/` or `assets\` is inside the zip (`RewriteThemeAssetPath`). Anything else stays exactly as stored; prefixing it is what made paths grow on every save and load.
+- **Keep the active layout object across a save.** `_currentLayout` adds and removes custom layers through it; only its `Layers` list may change.
+- **Theme lists read only `*.zip` directly in `Themes`,** which keeps `.bak` and `.tmp-` files, `_staging` and `Deleted` out of them. Keep it that way.
+- **`4rcade5tick_files/logs/theme.log`** (`ThemeLog`) has one line per Load, Save, Delete, SaveBlocked or SwapRollback. Check it first after any theme file incident.
 
 ### Rompath safety rule
 Boot-time sync (`SyncMameRomPathsAsync`) and user-triggered save (`MAMEiniTabControl.UpdateMameIniSettings`) are two separate writers **by design**. `BtnSaveOptions_Click` must never call the MAME.ini tab's rompath sync. Do not consolidate these without explicit approval.

@@ -25,14 +25,18 @@ namespace ArcadeStick.Services
             Directory.CreateDirectory(folder);
             string filePath = Path.Combine(folder, FileName);
 
-            var encoder = new PngBitmapEncoder();
-            encoder.Frames.Add(BitmapFrame.Create(pending));
-            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                encoder.Save(stream);
-            }
+            WritePng(pending, filePath);
 
             settings.Info.ThumbnailPath = Path.GetRelativePath(settings.BaseDirectory, filePath);
+        }
+
+        // Writes an image as a png file. Save Changes uses it to bundle a pending capture before anything live changes.
+        public static void WritePng(BitmapSource image, string filePath)
+        {
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(image));
+            using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
+            encoder.Save(stream);
         }
 
         // Returns the GUID folder name of a stored thumbnail path, or a new GUID if the path is not in the Thumbnails folder

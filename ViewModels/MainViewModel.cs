@@ -194,6 +194,7 @@ namespace ArcadeStick.ViewModels
             LoadFavoritesFromDisk();
             LoadMouseSupportFromDisk();
             LoadPreviewOrderConfig();
+            ThemeLog.Configure(Path.Combine(Configuration.GetArcadeStickFilesPath(), "logs"));
             LoadedThemeName = Configuration.ActiveThemeName; // settings.json's layouts belong to the theme it names
             LoadSavedThemeSnapshot();
 
@@ -1494,6 +1495,9 @@ namespace ArcadeStick.ViewModels
         // (video, animated images) that are still open from it.
         public event Action? ThemeExtractionStarting;
 
+        // Releases the files the main window holds open from a theme's folder (Delete Theme, before it renames the folder)
+        public void ReleaseThemeFiles() => ThemeExtractionStarting?.Invoke();
+
         // The theme the in-memory layouts, info and Global values came from. Set when a load completes or Save Changes
         // writes the zip, and never by a failed load; Save Changes refuses to write any other existing theme.
         public string LoadedThemeName { get; set; } = "";
@@ -1514,7 +1518,24 @@ namespace ArcadeStick.ViewModels
             return Path.GetRelativePath(Configuration.BaseDirectory, absolutePath);
         }
 
+        // Loads a theme (LoadThemeCore) and logs the outcome
         public bool LoadTheme(string themeName)
+        {
+            try
+            {
+                bool loaded = LoadThemeCore(themeName);
+                ThemeLog.Write("Load", themeName, "-", LoadedThemeName, loaded ? "ok" : "failed", loaded ? "" : "The theme's zip was not found.");
+                return loaded;
+            }
+            catch (Exception ex)
+            {
+                ThemeLog.Write("Load", themeName, "-", LoadedThemeName, "failed", ex.Message);
+                throw;
+            }
+        }
+
+        // Does the load: checks and extracts the zip to staging, swaps it into place, then applies it to memory
+        private bool LoadThemeCore(string themeName)
         {
             string themeFile = Configuration.GetThemePath(themeName);
             if (!File.Exists(themeFile)) return false;
