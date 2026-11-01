@@ -128,7 +128,7 @@ The `SelectedGame` setter runs the instant part (marquee, `MarqueeMissing`, flye
 - **`4rcade5tick_files/logs/theme.log`** (`ThemeLog`) has one line per Load, Save, Delete, SaveBlocked, SwapRollback or PathRefused (a rollback that succeeds during Delete logs as "Delete failed"). Check it first after any theme file incident.
 
 ### Restore Defaults (decision 70)
-The sets come from the default theme's `theme.json` through the embedded `Models/DefaultLayerSets.json`. If the default theme changes, regenerate that file by hand (no tool exists). `default.png`, `default_background.png`, `default_background.gif` and `no_preview.png` must ship in `4rcade5tick_files/assets`, or Everything shows blank images.
+The sets come from the default theme's `theme.json` through the embedded `Models/DefaultLayerSets.json`. If the default theme changes, regenerate that file by hand (no tool exists). `default_logo.png`, `default_background.png`, `default_splash.gif` and `no_preview.png` must ship in `4rcade5tick_files/assets`, or Everything shows blank images.
 
 ### Release checklist
 - The four default images above are in `4rcade5tick_files/assets`.
