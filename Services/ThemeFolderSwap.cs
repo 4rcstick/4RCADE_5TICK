@@ -33,15 +33,17 @@ namespace ArcadeStick.Services
         // Returns an unused path in the staging folder for a theme's new extraction, creating the staging folder if needed
         public static string NewStagingPath(string stagingRoot, string themeName)
         {
+            string path = ThemePaths.StagingFolder(stagingRoot, themeName, LoadingMarker);
             Directory.CreateDirectory(stagingRoot);
-            return Path.Combine(stagingRoot, MakeFolderName(themeName, LoadingMarker));
+            return path;
         }
 
         // Returns an unused path in the staging folder for a theme's working folder while it is being deleted
         public static string NewDeletedPath(string stagingRoot, string themeName)
         {
+            string path = ThemePaths.StagingFolder(stagingRoot, themeName, DeletedMarker);
             Directory.CreateDirectory(stagingRoot);
-            return Path.Combine(stagingRoot, MakeFolderName(themeName, DeletedMarker));
+            return path;
         }
 
         // Deletes leftovers from earlier loads and deletes: only direct children of the staging folder with this class's exact names.
@@ -78,7 +80,7 @@ namespace ArcadeStick.Services
             string? asideDir = null;
             if (Directory.Exists(liveDir))
             {
-                asideDir = Path.Combine(stagingRoot, MakeFolderName(themeName, OldMarker));
+                asideDir = ThemePaths.StagingFolder(stagingRoot, themeName, OldMarker);
                 try
                 {
                     MoveFolder(liveDir, asideDir);
@@ -130,9 +132,6 @@ namespace ArcadeStick.Services
             {
             }
         }
-
-        // Returns a staging folder name in the pattern CleanStaleFolders recognizes
-        private static string MakeFolderName(string themeName, string marker) => $"{themeName}.{marker}-{Guid.NewGuid():N}";
 
         // Renames a folder, retrying briefly because a video player or virus scanner can hold a file for a moment after release
         public static void MoveFolder(string source, string destination)

@@ -26,14 +26,8 @@ namespace ArcadeStick.Services
         private const int ReplaceRetryDelayMs = 200;
         private static readonly TimeSpan StaleTempAge = TimeSpan.FromHours(1);
 
-        // Only names NewTempZipPath creates
+        // Only names ThemePaths.TempZip creates
         private static readonly Regex TempZipPattern = new(@"^.+\.zip\.tmp-[0-9a-f]{32}$", RegexOptions.CultureInvariant);
-
-        // Returns a new temp file path beside the theme's zip (same drive, so the swap is a rename)
-        public static string NewTempZipPath(string themeFile) => $"{themeFile}.tmp-{Guid.NewGuid():N}";
-
-        // Returns the path of the one backup kept of a theme's previous zip
-        public static string BackupPath(string themeFile) => $"{themeFile}.bak";
 
         // Deletes this feature's own temp zips older than an hour, directly in the given folder only. Ignores errors.
         public static void CleanStaleTempZips(string themesDir)
@@ -74,12 +68,10 @@ namespace ArcadeStick.Services
             }
         }
 
-        // Puts the verified temp zip in place. An existing zip becomes <name>.zip.bak (replacing the previous backup). On a
+        // Puts the verified temp zip in place. An existing zip becomes the backup (replacing the previous one). On a
         // failure the old zip stays or is put back; if even that fails the message says how to recover by hand.
-        public static void ReplaceZip(string tempZip, string themeFile)
+        public static void ReplaceZip(string tempZip, string themeFile, string backup)
         {
-            string backup = BackupPath(themeFile);
-
             for (int attempt = 1; ; attempt++)
             {
                 try
@@ -113,6 +105,9 @@ namespace ArcadeStick.Services
         // moves to Themes\Deleted, and only then is the renamed folder deleted. A failure leaves or puts back both.
         public static void DeleteTheme(string themeFile, string extractDir, string stagingRoot, string deletedDir, string themeName)
         {
+            // Worked out first: a refused name must stop this before the folder moves
+            string? deletedZip = File.Exists(themeFile) ? NewDeletedZipPath(deletedDir, themeName) : null;
+
             string lockedMessage = $"Couldn't delete '{themeName}'. Another program (for example an image editor, or an open File Explorer window) may be using its folder. Close it and try again. Nothing was deleted.";
 
             string? asideDir = null;
@@ -131,10 +126,10 @@ namespace ArcadeStick.Services
 
             try
             {
-                if (File.Exists(themeFile))
+                if (deletedZip != null)
                 {
                     Directory.CreateDirectory(deletedDir);
-                    File.Move(themeFile, NewDeletedZipPath(deletedDir, themeName));
+                    File.Move(themeFile, deletedZip);
                 }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -162,10 +157,10 @@ namespace ArcadeStick.Services
         private static string NewDeletedZipPath(string deletedDir, string themeName)
         {
             string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-            string path = Path.Combine(deletedDir, $"{themeName}_{stamp}.zip");
+            string path = ThemePaths.DeletedZip(deletedDir, themeName, stamp, 0);
             for (int counter = 1; File.Exists(path); counter++)
             {
-                path = Path.Combine(deletedDir, $"{themeName}_{stamp}_{counter}.zip");
+                path = ThemePaths.DeletedZip(deletedDir, themeName, stamp, counter);
             }
             return path;
         }

@@ -18,7 +18,7 @@ namespace ArcadeStick.Models
             // 4rcade5tick_files - .zip rather than .cfg, since a saved theme now bundles the JSON config
             // alongside copies of every referenced asset file (wallpaper, boot splash, etc.), not just
             // the raw settings data.
-            return Path.Combine(GetArcadeStickFilesPath(), "Themes", $"{themeName}.zip");
+            return ArcadeStick.Services.ThemePaths.Zip(Path.Combine(GetArcadeStickFilesPath(), "Themes"), themeName);
         }
 
         public ConfigurationSettings()

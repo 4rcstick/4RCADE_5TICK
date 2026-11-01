@@ -237,7 +237,7 @@ namespace ArcadeStick.ViewModels
 
                 // Layer images are archive-relative in the zip. Point them at the extracted copy that LoadTheme
                 // made (same rewrite as LoadTheme), so Reset Layer / Reset Layout restore working paths.
-                string snapshotExtractDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes", "Extracted", Configuration.ActiveThemeName);
+                string snapshotExtractDir = ThemePaths.WorkingFolder(Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes"), Configuration.ActiveThemeName);
                 foreach (var customEntry in snapshotLayouts.SelectMany(l => l.Layers).Where(e => !string.IsNullOrWhiteSpace(e.ImagePath)))
                 {
                     customEntry.ImagePath = RewriteThemeAssetPath(customEntry.ImagePath, snapshotExtractDir);
@@ -250,6 +250,10 @@ namespace ArcadeStick.ViewModels
                     Configuration.SavedThemeWidth = themeData.ActiveWidth;
                     Configuration.SavedThemeHeight = themeData.ActiveHeight;
                 }
+            }
+            catch (ThemePathException ex)
+            {
+                ThemeLog.Write("PathRefused", Configuration.ActiveThemeName, "-", LoadedThemeName, "failed", $"Startup: {ex.Reason}");
             }
             catch
             {
@@ -1527,6 +1531,11 @@ namespace ArcadeStick.ViewModels
                 ThemeLog.Write("Load", themeName, "-", LoadedThemeName, loaded ? "ok" : "failed", loaded ? "" : "The theme's zip was not found.");
                 return loaded;
             }
+            catch (ThemePathException ex)
+            {
+                ThemeLog.Write("PathRefused", themeName, "-", LoadedThemeName, "failed", $"Load: {ex.Reason}");
+                throw new ThemeLoadException(ex.Message);
+            }
             catch (Exception ex)
             {
                 ThemeLog.Write("Load", themeName, "-", LoadedThemeName, "failed", ex.Message);
@@ -1551,7 +1560,7 @@ namespace ArcadeStick.ViewModels
 
             string themesDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "Themes");
             string extractedRoot = Path.Combine(themesDir, "Extracted");
-            string extractDir = Path.Combine(extractedRoot, themeName); // where the files end up, so the paths below use it
+            string extractDir = ThemePaths.WorkingFolder(themesDir, themeName); // where the files end up, so the paths below use it
             string stagingRoot = Path.Combine(themesDir, ThemeFolderSwap.StagingFolderName);
 
             ThemeFolderSwap.CleanStaleFolders(stagingRoot, extractedRoot);

@@ -230,6 +230,13 @@ namespace ArcadeStick.Views
                     return;
                 }
 
+                if (!ArcadeStick.Services.ThemePaths.TryValidateNewName(themeName, out string nameProblem))
+                {
+                    ArcadeStick.Services.ThemeLog.Write("SaveBlocked", themeName, dropdown, _viewModel.LoadedThemeName, "blocked", nameProblem);
+                    MessageBox.Show("Theme names can't contain \\ / : * ? \" < > | or \"..\", can't start with a dot, can't end with a dot or a space, can't be a reserved Windows name like CON, and can be at most 50 characters.", "Invalid Theme Name", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
                 if (File.Exists(_settings.GetThemePath(themeName))
                     && MessageBox.Show($"A theme named '{themeName}' already exists. Overwrite it with the theme currently loaded?", "Overwrite Theme", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
                 {
@@ -261,6 +268,7 @@ namespace ArcadeStick.Views
             {
                 string themeFile = _settings.GetThemePath(themeName);
                 string themesDir = Path.GetDirectoryName(themeFile) ?? throw new InvalidOperationException($"Invalid theme path: {themeFile}");
+                string backupZip = ArcadeStick.Services.ThemePaths.Backup(themesDir, themeName);
                 Directory.CreateDirectory(themesDir);
                 ArcadeStick.Services.ThemeFileStore.CleanStaleTempZips(themesDir);
 
@@ -399,10 +407,10 @@ namespace ArcadeStick.Views
                 File.WriteAllText(Path.Combine(stagingDir, "theme.json"), jsonString);
 
                 // Write and check the new zip beside the old one; the old zip is only replaced once the new one is good
-                tempZip = ArcadeStick.Services.ThemeFileStore.NewTempZipPath(themeFile);
+                tempZip = ArcadeStick.Services.ThemePaths.TempZip(themesDir, themeName);
                 ZipFile.CreateFromDirectory(stagingDir, tempZip);
                 ArcadeStick.Services.ThemeFileStore.VerifyZip(tempZip, stagingDir);
-                ArcadeStick.Services.ThemeFileStore.ReplaceZip(tempZip, themeFile);
+                ArcadeStick.Services.ThemeFileStore.ReplaceZip(tempZip, themeFile, backupZip);
                 zipWritten = true;
 
                 // The live layout keeps its object, because the Advanced tab's _currentLayout points at it and adds and
@@ -451,7 +459,14 @@ namespace ArcadeStick.Views
             }
             catch (Exception ex)
             {
-                ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, _viewModel.LoadedThemeName, zipWritten ? "ok" : "failed", ex.Message);
+                if (ex is ArcadeStick.Services.ThemePathException refusedSave)
+                {
+                    ArcadeStick.Services.ThemeLog.Write("PathRefused", themeName, dropdown, _viewModel.LoadedThemeName, "failed", $"Save: {refusedSave.Reason}");
+                }
+                else
+                {
+                    ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, _viewModel.LoadedThemeName, zipWritten ? "ok" : "failed", ex.Message);
+                }
 
                 if (zipWritten)
                 {
@@ -515,14 +530,14 @@ namespace ArcadeStick.Views
                 return;
             }
 
-            string themesDir = Path.Combine(_settings.GetArcadeStickFilesPath(), "Themes");
-            string themeFile = _settings.GetThemePath(selectedTheme);
-            string extractDir = Path.Combine(themesDir, "Extracted", selectedTheme);
-            string stagingRoot = Path.Combine(themesDir, ArcadeStick.Services.ThemeFolderSwap.StagingFolderName);
-            string deletedDir = Path.Combine(themesDir, ArcadeStick.Services.ThemeFileStore.DeletedFolderName);
-
             try
             {
+                string themesDir = Path.Combine(_settings.GetArcadeStickFilesPath(), "Themes");
+                string themeFile = _settings.GetThemePath(selectedTheme);
+                string extractDir = ArcadeStick.Services.ThemePaths.WorkingFolder(themesDir, selectedTheme);
+                string stagingRoot = Path.Combine(themesDir, ArcadeStick.Services.ThemeFolderSwap.StagingFolderName);
+                string deletedDir = Path.Combine(themesDir, ArcadeStick.Services.ThemeFileStore.DeletedFolderName);
+
                 ArcadeStick.Services.ThemeFolderSwap.CleanStaleFolders(stagingRoot, Path.Combine(themesDir, "Extracted"));
                 _viewModel.ReleaseThemeFiles();
                 ArcadeStick.Services.ThemeFileStore.DeleteTheme(themeFile, extractDir, stagingRoot, deletedDir, selectedTheme);
@@ -538,7 +553,15 @@ namespace ArcadeStick.Views
             }
             catch (Exception ex)
             {
-                ArcadeStick.Services.ThemeLog.Write("Delete", selectedTheme, selectedTheme, loadedTheme, "failed", ex.Message);
+                if (ex is ArcadeStick.Services.ThemePathException refusedDelete)
+                {
+                    ArcadeStick.Services.ThemeLog.Write("PathRefused", selectedTheme, selectedTheme, loadedTheme, "failed", $"Delete: {refusedDelete.Reason}");
+                }
+                else
+                {
+                    ArcadeStick.Services.ThemeLog.Write("Delete", selectedTheme, selectedTheme, loadedTheme, "failed", ex.Message);
+                }
+
                 string message = ex is ArcadeStick.Services.ThemeFileException
                     ? ex.Message
                     : $"Couldn't delete '{selectedTheme}'. Nothing was deleted.\n\nDetails: {ex.Message}";

@@ -115,16 +115,25 @@ Closing without saving restores layouts to the last saved snapshot; anything sto
 ### Media loading (decision 42, 2026-10-21)
 The `SelectedGame` setter runs the instant part (marquee, `MarqueeMissing`, flyer/title/snap/cabinet, the video slot's static image, `HasActiveMedia`): file checks on the UI thread, decoding on a background task guarded by `_mediaSelectionVersion`, plus a 30-entry decoded-image cache. **Only `VideoSourcePath` stays behind the 600 ms debounce.** `ResolvePreviewMedia()` is the single two-pass preview resolver. Do not move `HasActiveMedia` or `MarqueeMissing` back behind the debounce (that was the original "no preview flash" bug). Anything that sets `MarqueeImage` to null for "nothing selected" must also clear `MarqueeMissing`; use `MarqueeMissing`, never `HasMarqueeImage`, for the no-art banner.
 
-### Theme file safety (themes.md 3.4, section 7, decisions 71 and 72)
+### Theme file safety (themes.md 3.4, section 7, decisions 71 to 73)
 - **Nothing is deleted or replaced until its replacement is confirmed good, and a failure leaves the old files and memory as they were.** Do not add a delete-first path to Load, Save or Delete Theme.
 - **Load:** `LoadTheme` checks the zip, extracts and parses it in `Themes\_staging`, then swaps the folder with `ThemeFolderSwap` (rename aside, rename into place, rollback). A failure throws `ThemeLoadException`; callers show its message as "Theme Not Loaded". An open file in the theme's folder refuses the load, including an open File Explorer window, so a new layer that holds a file open must be released in `ReleaseCustomLayers`.
-- **Save:** bundles into a staging folder in Temp, asks first if files are missing (No by default), writes `<name>.zip.tmp-<guid>` in `Themes`, verifies it, then swaps it in with `ThemeFileStore.ReplaceZip`, keeping `<name>.zip.bak`. Layouts, the restore point, theme names, the thumbnail write and `ModifiedUtc` move only after the swap.
+- **Save:** bundles into a staging folder in Temp, asks first if files are missing (No by default), writes `<name>.zip.tmp-<guid>` in `Themes`, verifies it, then swaps it in with `ThemeFileStore.ReplaceZip`, keeping `<name>.zip.bak`. Layouts, the restore point, theme names, the thumbnail write and `ModifiedUtc` move only after the swap (the one earlier change: `ResolveLayout` fills missing values on the live active layout, which changes nothing visible).
 - **Delete Theme:** `ThemeFileStore.DeleteTheme` renames the working folder aside, then moves the zip to `Themes\Deleted` (not the Recycle Bin: removable drives have none), with rollback. Deleting the loaded theme clears `LoadedThemeName` and `ActiveThemeName`, so the next launch loads `default`.
 - **`LoadedThemeName`** (`MainViewModel`) names the theme whose values are in memory. Save refuses any other existing theme, because the zip name comes from the dropdown but the data comes from memory. Set it only in the same step as the layouts.
+- **Theme names become paths only through `ThemePaths`** (decision 73). A typed new name gets Check 1 (strict rules); every name gets Check 2 (resolved-path backstop) inside each path. Never apply Check 1 to an existing theme's name.
 - **Stored asset paths:** only a path starting with `assets/` or `assets\` is inside the zip (`RewriteThemeAssetPath`). Anything else stays exactly as stored; prefixing it is what made paths grow on every save and load.
 - **Keep the active layout object across a save.** `_currentLayout` adds and removes custom layers through it; only its `Layers` list may change.
 - **Theme lists read only `*.zip` directly in `Themes`,** which keeps `.bak` and `.tmp-` files, `_staging` and `Deleted` out of them. Keep it that way.
-- **`4rcade5tick_files/logs/theme.log`** (`ThemeLog`) has one line per Load, Save, Delete, SaveBlocked or SwapRollback. Check it first after any theme file incident.
+- **`4rcade5tick_files/logs/theme.log`** (`ThemeLog`) has one line per Load, Save, Delete, SaveBlocked, SwapRollback or PathRefused (a rollback that succeeds during Delete logs as "Delete failed"). Check it first after any theme file incident.
+
+### Restore Defaults (decision 70)
+The sets come from the default theme's `theme.json` through the embedded `Models/DefaultLayerSets.json`. If the default theme changes, regenerate that file by hand (no tool exists). `default.png`, `default_background.png`, `default_background.gif` and `no_preview.png` must ship in `4rcade5tick_files/assets`, or Everything shows blank images.
+
+### Release checklist
+- The four default images above are in `4rcade5tick_files/assets`.
+- The shipped Default theme has the two 16:9 sizes (1280x720 and 1920x1080).
+- Runtime files are not shipped: `theme.log`, `.bak` files and `Themes\Deleted`. `*.log` is already in `.gitignore`; `.bak` and `Deleted` live in the data folder outside the repo, so they are a shipping concern, not a commit risk.
 
 ### Rompath safety rule
 Boot-time sync (`SyncMameRomPathsAsync`) and user-triggered save (`MAMEiniTabControl.UpdateMameIniSettings`) are two separate writers **by design**. `BtnSaveOptions_Click` must never call the MAME.ini tab's rompath sync. Do not consolidate these without explicit approval.
@@ -155,6 +164,8 @@ Built: Main Window Background (color, wallpaper), Games List (folders, game titl
 - Play Button (Game Info part): launches the selected game; text, fill, border, hover colors and separate text and button shadows.
 - Favorites Star (Game Info part): solid or outline glyph that toggles the selected game's favorite; size and each state's color and shadow.
 - Theme Info view (themes.md 3.22): the default content while no layer is selected, with a captured thumbnail, author, description and last saved date.
+- Restore Defaults on the layer list (decision 70): a pop-up with Layout only, Everything and Cancel, applying the 720p or 1080p set to the active size only.
+- Safe theme file handling (see Theme file safety): Load, Save and Delete Theme never remove the old files before the replacement is confirmed, with `theme.log` recording each action.
 
 Smart fullscreen (themes.md 3.17 to 3.19, decisions 63 and 64) is built and tested on a 1080p monitor at 100/125/150/175%; 1440p, 4K and mixed-DPI monitor moves are untested on hardware. Remaining: a theme browser on the THEME BROWSER tab, then replacing registry defaults with the finished default theme. The Footer is intentionally not themed (it stays as is). A WYSIWYG edit mode is planned for beta.5 (no drag handles in beta.4).
 
