@@ -478,7 +478,12 @@ namespace ArcadeStick.Views
         // [END SECTION: Theme Serialization Logic]
 
         // [SECTION: New Theme]
-        // Opens the New Theme menu under the button. It is built on every open, so each entry is one MakeNewThemeMenuItem line.
+        // Set by the Theme Builder window: shows the Theme Saved flash and nothing else. A template creation changes nothing
+        // live before its load, so it must not run _themeSavedCallback, which moves the restore points.
+        public Action? ThemeCreatedFlash;
+
+        // Opens the New Theme menu under the button: Copy Current Theme, then a separator and the valid templates, if any.
+        // It is built on every open, so a file added to the Templates folder appears with no code change.
         private void BtnNewTheme_Click(object sender, RoutedEventArgs e)
         {
             var menu = new ContextMenu
@@ -488,6 +493,15 @@ namespace ArcadeStick.Views
                 Placement = PlacementMode.Bottom
             };
             menu.Items.Add(MakeNewThemeMenuItem("Copy Current Theme", CopyCurrentTheme));
+
+            string templatesDir = Path.Combine(_settings.GetArcadeStickFilesPath(), ArcadeStick.Services.ThemeTemplateStore.FolderName);
+            var templates = ArcadeStick.Services.ThemeTemplateStore.ListValid(templatesDir, _viewModel.LoadedThemeName);
+            if (templates.Count > 0) menu.Items.Add(new Separator { Style = (Style)FindResource("BuilderMenuSeparatorStyle") });
+            foreach (var template in templates)
+            {
+                menu.Items.Add(MakeNewThemeMenuItem(template.Name, () => CreateFromTemplate(template)));
+            }
+
             menu.IsOpen = true;
         }
 
@@ -510,6 +524,101 @@ namespace ArcadeStick.Views
             string dropdown = CboThemePresets.SelectedItem as string ?? "";
             if (!SaveThemeCore(themeName, isNewTheme: true, dropdown)) return;
 
+            string copiedFrom = string.IsNullOrWhiteSpace(previousTheme) ? "-" : previousTheme;
+            LoadCreatedTheme(
+                themeName,
+                $"'{themeName}' was created and saved, but couldn't be loaded. It is still using the previous theme's image files. Press Load to try again.",
+                loaded => ArcadeStick.Services.ThemeLog.Write("Create", themeName, dropdown, _viewModel.LoadedThemeName, "ok", loaded ? $"Copied from {copiedFrom}" : "saved, load failed"));
+        }
+
+        // Asks for a name, re-reads the template and writes a new zip holding only its theme.json, shows the flash, then loads
+        // the new theme. Never goes through SaveThemeCore: nothing live changes until the load succeeds. Unsaved edits on the
+        // old theme are dropped, as with Load. Cancel, or a template or write failure, leaves everything as it was.
+        private void CreateFromTemplate(ArcadeStick.Services.ThemeTemplate template)
+        {
+            string? themeName = PromptForNewThemeName();
+            if (themeName == null) return;
+
+            string previousTheme = _viewModel.LoadedThemeName;
+            string dropdown = CboThemePresets.SelectedItem as string ?? "";
+
+            try
+            {
+                string themeJson = ArcadeStick.Services.ThemeTemplateStore.BuildThemeJson(template.FilePath, previousTheme);
+                WriteThemeOnlyZip(themeName, themeJson);
+            }
+            catch (ArcadeStick.Services.ThemeTemplateException ex)
+            {
+                ArcadeStick.Services.ThemeLog.Write("Create", themeName, dropdown, previousTheme, "failed", $"From template {template.Name}: {ex.Reason}");
+                MessageBox.Show($"Couldn't read the template '{template.Name}'. Nothing was created.", "Theme Not Created", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            catch (Exception ex)
+            {
+                if (ex is ArcadeStick.Services.ThemePathException refused)
+                {
+                    ArcadeStick.Services.ThemeLog.Write("PathRefused", themeName, dropdown, previousTheme, "failed", $"Create: {refused.Reason}");
+                }
+                else
+                {
+                    ArcadeStick.Services.ThemeLog.Write("Create", themeName, dropdown, previousTheme, "failed", $"From template {template.Name}: {ex.Message}");
+                }
+
+                string message = ex is ArcadeStick.Services.ThemeFileException
+                    ? ex.Message
+                    : $"Couldn't create '{themeName}'. Nothing was created. Another program may be using the Themes folder. Close it and try again.\n\nDetails: {ex.Message}";
+                MessageBox.Show(message, "Theme Not Created", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            ThemeCreatedFlash?.Invoke();
+
+            string stillLoaded = string.IsNullOrWhiteSpace(previousTheme) ? "" : $" '{previousTheme}' is still the loaded theme.";
+            LoadCreatedTheme(
+                themeName,
+                $"'{themeName}' was created, but couldn't be loaded.{stillLoaded} Press Load to try again.",
+                loaded => ArcadeStick.Services.ThemeLog.Write("Create", themeName, dropdown, _viewModel.LoadedThemeName, "ok", loaded ? $"From template {template.Name}" : $"From template {template.Name}; created, load failed"));
+        }
+
+        // Writes a new theme zip holding only theme.json: staging in Temp, then the same temp zip, verify and swap steps as a save
+        private void WriteThemeOnlyZip(string themeName, string themeJson)
+        {
+            string stagingDir = Path.Combine(Path.GetTempPath(), $"4rcstick_theme_{Guid.NewGuid():N}");
+            string? tempZip = null;
+
+            try
+            {
+                string themeFile = _settings.GetThemePath(themeName);
+                string themesDir = Path.GetDirectoryName(themeFile) ?? throw new InvalidOperationException($"Invalid theme path: {themeFile}");
+                string backupZip = ArcadeStick.Services.ThemePaths.Backup(themesDir, themeName);
+                Directory.CreateDirectory(themesDir);
+                ArcadeStick.Services.ThemeFileStore.CleanStaleTempZips(themesDir);
+
+                Directory.CreateDirectory(stagingDir);
+                File.WriteAllText(Path.Combine(stagingDir, "theme.json"), themeJson);
+
+                tempZip = ArcadeStick.Services.ThemePaths.TempZip(themesDir, themeName);
+                ZipFile.CreateFromDirectory(stagingDir, tempZip);
+                ArcadeStick.Services.ThemeFileStore.VerifyZip(tempZip, stagingDir);
+                ArcadeStick.Services.ThemeFileStore.ReplaceZip(tempZip, themeFile, backupZip);
+            }
+            finally
+            {
+                ArcadeStick.Services.ThemeFolderSwap.TryDeleteFolder(stagingDir);
+                try
+                {
+                    if (tempZip != null && File.Exists(tempZip)) File.Delete(tempZip);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        // Loads a just-created theme through ThemeLoadRunner, logs through writeLog (true when the load finished), shows
+        // failureMessage if it did not, then refreshes the combo with the new name selected so Load can retry.
+        private void LoadCreatedTheme(string themeName, string failureMessage, Action<bool> writeLog)
+        {
             bool loaded = false;
             try
             {
@@ -531,14 +640,14 @@ namespace ArcadeStick.Views
                 if (loaded) MessageBox.Show($"'{themeName}' was created and loaded, but the display did not finish updating. Restart the app if it looks wrong.\n\nDetails: {ex.Message}", "Theme Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
-            string copiedFrom = string.IsNullOrWhiteSpace(previousTheme) ? "-" : previousTheme;
-            ArcadeStick.Services.ThemeLog.Write("Create", themeName, dropdown, _viewModel.LoadedThemeName, "ok", loaded ? $"Copied from {copiedFrom}" : "saved, load failed");
+            writeLog(loaded);
             if (!loaded)
             {
-                MessageBox.Show($"'{themeName}' was created and saved, but couldn't be loaded. It is still using the previous theme's image files. Press Load to try again.", "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(failureMessage, "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
             RefreshThemeList();
+            if (!loaded) CboThemePresets.SelectedItem = themeName; // the active theme may still be the old one
         }
 
         // Small name prompt built in code like the Advanced tab's (Create / Cancel, Enter creates, Esc cancels). Create closes it

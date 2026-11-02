@@ -48,6 +48,7 @@ namespace ArcadeStick.Views
                 AdvancedTab.RefreshThemeInfo();
                 ShowThemeSavedFlash();
             });
+            ThemesManager.ThemeCreatedFlash = ShowThemeSavedFlash;
             AdvancedTab.Initialize(_settings);
             AdvancedTab.ThumbnailCaptureRunner = () => (Owner as MainWindow)?.CaptureThemeThumbnail();
             GlobalTab.Initialize(_settings);
