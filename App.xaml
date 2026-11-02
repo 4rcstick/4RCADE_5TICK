@@ -19,6 +19,7 @@
         <SolidColorBrush x:Key="ChromeAccent" Color="#FF00D4FF"/>
         <SolidColorBrush x:Key="ChromeText" Color="#FFF2F2F7"/>
         <SolidColorBrush x:Key="ChromeTextMuted" Color="#FFA0A0A2"/>
+        <SolidColorBrush x:Key="ChromeError" Color="#FFFF6B6B"/>
         <SolidColorBrush x:Key="ChromeItemHoverBg" Color="#1F00D4FF"/>
         <SolidColorBrush x:Key="ChromeItemHoverBorder" Color="#A800D4FF"/>
         <SolidColorBrush x:Key="ChromeSelectedBg" Color="#3D00D4FF"/>

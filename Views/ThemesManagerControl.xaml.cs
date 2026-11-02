@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace ArcadeStick.Views
 {
@@ -36,7 +37,7 @@ namespace ArcadeStick.Views
             _persistToDisk = persistToDisk;
             _refreshOptionsBindings = refreshOptionsBindings;
 
-            CboThemePresets.SelectionChanged += CboThemePresets_SelectionChanged;
+            BtnNewTheme.Click += BtnNewTheme_Click;
             BtnLoadTheme.Click += BtnLoadTheme_Click;
             BtnSaveTheme.Click += BtnSaveTheme_Click;
             BtnDeleteTheme.Click += BtnDeleteTheme_Click;
@@ -53,45 +54,29 @@ namespace ArcadeStick.Views
         // [END SECTION: Constructor & Initialization]
 
         // [SECTION: Theme List Management]
-        // Rebuilds the theme dropdown from *.zip files in the Themes folder, plus a "[New Theme...]"
-        // entry, and re-selects the currently active theme if it still exists (matched case-insensitively,
-        // selecting the listed file name).
+        // Rebuilds the theme dropdown from *.zip files in the Themes folder and re-selects the currently active theme if it
+        // still exists (matched case-insensitively, selecting the listed file name). With no active theme listed it stays empty.
         private void RefreshThemeList()
         {
             CboThemePresets.Items.Clear();
+            foreach (string themeName in GetThemeNames())
+            {
+                CboThemePresets.Items.Add(themeName);
+            }
+
+            CboThemePresets.SelectedItem = string.IsNullOrWhiteSpace(_settings.ActiveThemeName) ? null
+                : CboThemePresets.Items.OfType<string>().FirstOrDefault(name => string.Equals(name, _settings.ActiveThemeName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Returns the name of every theme: the *.zip files directly in the Themes folder
+        private List<string> GetThemeNames()
+        {
             string themeDirectory = Path.Combine(_settings.GetArcadeStickFilesPath(), "Themes");
+            if (!Directory.Exists(themeDirectory)) return new List<string>();
 
-            if (Directory.Exists(themeDirectory))
-            {
-                var files = Directory.GetFiles(themeDirectory, "*.zip");
-                foreach (var file in files)
-                {
-                    CboThemePresets.Items.Add(Path.GetFileNameWithoutExtension(file));
-                }
-            }
-            CboThemePresets.Items.Add("[New Theme...]");
-
-            string? listedActiveTheme = string.IsNullOrWhiteSpace(_settings.ActiveThemeName) ? null
-                : CboThemePresets.Items.OfType<string>().FirstOrDefault(name => name != "[New Theme...]" && string.Equals(name, _settings.ActiveThemeName, StringComparison.OrdinalIgnoreCase));
-            if (listedActiveTheme != null)
-            {
-                CboThemePresets.SelectedItem = listedActiveTheme;
-            }
-            else
-            {
-                CboThemePresets.SelectedItem = "[New Theme...]";
-            }
+            return Directory.GetFiles(themeDirectory, "*.zip").Select(file => Path.GetFileNameWithoutExtension(file)).ToList();
         }
         // [END SECTION: Theme List Management]
-
-        // Shows/hides the "New Theme Name" input based on whether "[New Theme...]" is selected
-        private void CboThemePresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (CboThemePresets.SelectedItem is string selectedTheme)
-            {
-                PnlNewThemeName.Visibility = (selectedTheme == "[New Theme...]") ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }
 
         // [SECTION: Theme Serialization Logic]
 
@@ -104,7 +89,7 @@ namespace ArcadeStick.Views
         // then refreshes the hosting window's bindings and persists settings.json, all through ThemeLoadRunner when set.
         private void BtnLoadTheme_Click(object sender, RoutedEventArgs e)
         {
-            if (CboThemePresets.SelectedItem is string selectedTheme && selectedTheme != "[New Theme...]")
+            if (CboThemePresets.SelectedItem is string selectedTheme)
             {
                 try
                 {
@@ -209,57 +194,40 @@ namespace ArcadeStick.Views
         // [END SECTION: Theme Archive Asset Bundling]
 
         // [SUB-SECTION: Save Theme]
-        // Validates the theme name (prompting for one if "[New Theme...]" is selected, confirming before overwriting an existing
-        // theme, and refusing an existing theme that is not the loaded one), builds a ThemeSettings DTO
-        // from _settings, bundles every layout entry's ImagePath into a staging assets/ folder (rewriting the DTO's
-        // copies of those paths to archive-relative paths), asks before saving with missing files, then writes a temp zip,
-        // verifies it and swaps it in, keeping the old zip as <name>.zip.bak. DANGER: any new flat theme property must be
-        // added to this DTO too (and to ThemeSettings and LoadTheme). The info block's thumbnail is bundled the same way.
-        // Nothing live changes until the swap succeeds, so a failed or cancelled save leaves everything as it was.
+        // Saves the selected theme: needs a selection and refuses an existing theme that is not the loaded one, then writes it
         private void BtnSaveTheme_Click(object sender, RoutedEventArgs e)
         {
-            string? themeName = CboThemePresets.SelectedItem as string;
-            string dropdown = themeName ?? "";
-            bool isNewTheme = themeName == "[New Theme...]";
-            if (isNewTheme)
+            if (CboThemePresets.SelectedItem is not string themeName)
             {
-                themeName = TxtNewThemeName.Text.Trim();
-                if (string.IsNullOrEmpty(themeName))
-                {
-                    MessageBox.Show("Please enter a valid theme name.", "Validation Halt", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                if (!ArcadeStick.Services.ThemePaths.TryValidateNewName(themeName, out string nameProblem))
-                {
-                    ArcadeStick.Services.ThemeLog.Write("SaveBlocked", themeName, dropdown, _viewModel.LoadedThemeName, "blocked", nameProblem);
-                    MessageBox.Show("Theme names can't contain \\ / : * ? \" < > | or \"..\", can't start with a dot, can't end with a dot or a space, can't be a reserved Windows name like CON, and can be at most 50 characters.", "Invalid Theme Name", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                if (File.Exists(_settings.GetThemePath(themeName))
-                    && MessageBox.Show($"A theme named '{themeName}' already exists. Overwrite it with the theme currently loaded?", "Overwrite Theme", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
-                {
-                    ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, _viewModel.LoadedThemeName, "cancelled", "Declined to overwrite an existing theme.");
-                    return;
-                }
+                MessageBox.Show("Select a theme, or use New Theme.", "Theme Not Saved", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
             }
-
-            if (string.IsNullOrEmpty(themeName)) return;
 
             // The zip name comes from the dropdown but everything written comes from memory, so an existing theme can only
             // be saved over by the theme that is actually loaded.
             string loadedTheme = _viewModel.LoadedThemeName;
-            if (!isNewTheme && !string.Equals(themeName, loadedTheme, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(themeName, loadedTheme, StringComparison.OrdinalIgnoreCase))
             {
                 string mismatchMessage = string.IsNullOrWhiteSpace(loadedTheme)
-                    ? $"The theme list shows '{themeName}' but no theme is loaded. Press Load Theme on '{themeName}' first, so nothing gets overwritten."
-                    : $"The theme list shows '{themeName}' but the loaded theme is '{loadedTheme}'. Press Load Theme on '{themeName}' first, or select '{loadedTheme}', so nothing gets overwritten.";
-                ArcadeStick.Services.ThemeLog.Write("SaveBlocked", themeName, dropdown, loadedTheme, "blocked", "The selected theme is not the loaded theme.");
+                    ? $"The theme list shows '{themeName}' but no theme is loaded. Press Load on '{themeName}' first, so nothing gets overwritten."
+                    : $"The theme list shows '{themeName}' but the loaded theme is '{loadedTheme}'. Press Load on '{themeName}' first, or select '{loadedTheme}', so nothing gets overwritten.";
+                ArcadeStick.Services.ThemeLog.Write("SaveBlocked", themeName, themeName, loadedTheme, "blocked", "The selected theme is not the loaded theme.");
                 MessageBox.Show(mismatchMessage, "Theme Not Saved", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
+            SaveThemeCore(themeName, isNewTheme: false, themeName);
+        }
+
+        // Writes memory to the named theme and returns true once its zip is written: builds a ThemeSettings DTO from _settings,
+        // bundles every layout entry's ImagePath into a staging assets/ folder (rewriting the DTO's copies of those paths to
+        // archive-relative paths), asks before saving with missing files, then writes a temp zip, verifies it and swaps it in,
+        // keeping the old zip as <name>.zip.bak. DANGER: any new flat theme property must be added to this DTO too (and to
+        // ThemeSettings and LoadTheme). The info block's thumbnail is bundled the same way. Nothing live changes until the
+        // swap succeeds, so a failed or cancelled save leaves everything as it was. The caller has already checked the name.
+        private bool SaveThemeCore(string themeName, bool isNewTheme, string dropdown)
+        {
+            string loadedTheme = _viewModel.LoadedThemeName;
             string stagingDir = Path.Combine(Path.GetTempPath(), $"4rcstick_theme_{Guid.NewGuid():N}");
             string? tempZip = null;
             bool zipWritten = false; // from here on the theme is saved, whatever a later refresh does
@@ -399,7 +367,7 @@ namespace ArcadeStick.Views
                 if (missingAssets.Count > 0 && !ConfirmSaveWithMissingAssets(missingAssets))
                 {
                     ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, loadedTheme, "cancelled", $"Missing: {string.Join(", ", missingAssets)}");
-                    return;
+                    return false;
                 }
 
                 var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
@@ -492,6 +460,8 @@ namespace ArcadeStick.Views
                 {
                 }
             }
+
+            return zipWritten;
         }
 
         // Asks whether to save without the files that could not be found (No is the default), listing at most 8 of them
@@ -507,13 +477,177 @@ namespace ArcadeStick.Views
 
         // [END SECTION: Theme Serialization Logic]
 
+        // [SECTION: New Theme]
+        // Opens the New Theme menu under the button. It is built on every open, so each entry is one MakeNewThemeMenuItem line.
+        private void BtnNewTheme_Click(object sender, RoutedEventArgs e)
+        {
+            var menu = new ContextMenu
+            {
+                Style = (Style)FindResource("BuilderContextMenuStyle"),
+                PlacementTarget = BtnNewTheme,
+                Placement = PlacementMode.Bottom
+            };
+            menu.Items.Add(MakeNewThemeMenuItem("Copy Current Theme", CopyCurrentTheme));
+            menu.IsOpen = true;
+        }
+
+        // Builds one menu entry on the Theme Builder menu style. Its action runs after the menu has closed.
+        private MenuItem MakeNewThemeMenuItem(string header, Action onClick)
+        {
+            var item = new MenuItem { Header = header, Style = (Style)FindResource("BuilderMenuItemStyle") };
+            item.Click += (_, _) => Dispatcher.BeginInvoke(onClick);
+            return item;
+        }
+
+        // Asks for a name, saves what is in memory under it through the safe Save path (unsaved edits included), then loads
+        // the new theme so it runs from its own folder. Cancel, or a save that is declined or fails, changes nothing else.
+        private void CopyCurrentTheme()
+        {
+            string? themeName = PromptForNewThemeName();
+            if (themeName == null) return;
+
+            string previousTheme = _viewModel.LoadedThemeName;
+            string dropdown = CboThemePresets.SelectedItem as string ?? "";
+            if (!SaveThemeCore(themeName, isNewTheme: true, dropdown)) return;
+
+            bool loaded = false;
+            try
+            {
+                Func<bool> load = () =>
+                {
+                    loaded = _viewModel.LoadTheme(themeName);
+                    if (!loaded) return false;
+                    _refreshOptionsBindings?.Invoke();
+                    _persistToDisk?.Invoke();
+                    return true;
+                };
+
+                if (ThemeLoadRunner != null) ThemeLoadRunner(load);
+                else load();
+            }
+            catch (Exception ex)
+            {
+                // A failure after the load itself finished means the theme is running from its own folder already
+                if (loaded) MessageBox.Show($"'{themeName}' was created and loaded, but the display did not finish updating. Restart the app if it looks wrong.\n\nDetails: {ex.Message}", "Theme Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            string copiedFrom = string.IsNullOrWhiteSpace(previousTheme) ? "-" : previousTheme;
+            ArcadeStick.Services.ThemeLog.Write("Create", themeName, dropdown, _viewModel.LoadedThemeName, "ok", loaded ? $"Copied from {copiedFrom}" : "saved, load failed");
+            if (!loaded)
+            {
+                MessageBox.Show($"'{themeName}' was created and saved, but couldn't be loaded. It is still using the previous theme's image files. Press Load to try again.", "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            RefreshThemeList();
+        }
+
+        // Small name prompt built in code like the Advanced tab's (Create / Cancel, Enter creates, Esc cancels). Create closes it
+        // only for an accepted name; otherwise the problem shows inline and it stays open. Returns the name, or null if cancelled.
+        private string? PromptForNewThemeName()
+        {
+            var nameBox = new TextBox { Margin = new Thickness(0, 6, 0, 12), Style = (Style)FindResource("GLTextBoxStyle") };
+            var createButton = MakePromptButton("Create");
+            createButton.IsDefault = true;
+            createButton.Margin = new Thickness(0, 0, 8, 0);
+            var cancelButton = MakePromptButton("Cancel");
+            cancelButton.IsCancel = true;
+
+            var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            buttons.Children.Add(createButton);
+            buttons.Children.Add(cancelButton);
+
+            var labelText = new TextBlock { Text = "Theme Name" };
+            labelText.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardColor);
+            labelText.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardSize);
+
+            var errorText = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, -6, 0, 12), Visibility = Visibility.Collapsed };
+            errorText.SetResourceReference(TextBlock.ForegroundProperty, "ChromeError");
+            errorText.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontStandardSize);
+
+            var panel = new StackPanel { Margin = new Thickness(14) };
+            panel.Children.Add(labelText);
+            panel.Children.Add(nameBox);
+            panel.Children.Add(errorText);
+            panel.Children.Add(buttons);
+
+            var prompt = new Window
+            {
+                Title = "Create New Theme",
+                Content = panel,
+                Width = 320,
+                SizeToContent = SizeToContent.Height,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                ShowInTaskbar = false
+            };
+            prompt.SetResourceReference(Window.BackgroundProperty, "ChromeWindowBg");
+
+            createButton.Click += (s, args) =>
+            {
+                string? problem = FindNewThemeNameProblem(nameBox.Text.Trim());
+                if (problem == null)
+                {
+                    prompt.DialogResult = true;
+                    return;
+                }
+
+                errorText.Text = problem;
+                errorText.Visibility = Visibility.Visible;
+                nameBox.Focus();
+                nameBox.SelectAll();
+            };
+            prompt.Loaded += (s, args) => nameBox.Focus();
+
+            return prompt.ShowDialog() == true ? nameBox.Text.Trim() : null;
+        }
+
+        // Builds one name prompt button on the shared action button style (the Global button values come from the style)
+        private Button MakePromptButton(string content) =>
+            new Button { Content = content, Width = 70, Padding = new Thickness(0, 3, 0, 3), Style = (Style)FindResource("ThemedActionButtonStyle") };
+
+        // Returns why a typed name cannot be used for a new theme (Check 1, then "default", then an existing theme in any case),
+        // logging a SaveBlocked line, or null when it can. Only typed names come here, never existing themes' names.
+        private string? FindNewThemeNameProblem(string name)
+        {
+            string reason;
+            string message;
+            if (!ArcadeStick.Services.ThemePaths.TryValidateNewName(name, out reason))
+            {
+                message = reason == "empty"
+                    ? "Please enter a theme name."
+                    : "Theme names can't contain \\ / : * ? \" < > | or \"..\", can't start with a dot, can't end with a dot or a space, can't be a reserved Windows name like CON, and can be at most 50 characters.";
+            }
+            else if (string.Equals(name, DefaultThemeName, StringComparison.OrdinalIgnoreCase))
+            {
+                reason = "the name of the launch fallback theme";
+                message = $"The name '{DefaultThemeName}' is reserved. Choose another name.";
+            }
+            else if (GetThemeNames().Any(existing => string.Equals(existing, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                reason = "a theme with this name already exists";
+                message = $"A theme named '{name}' already exists. Choose another name.";
+            }
+            else
+            {
+                return null;
+            }
+
+            ArcadeStick.Services.ThemeLog.Write("SaveBlocked", name, CboThemePresets.SelectedItem as string ?? "", _viewModel.LoadedThemeName, "blocked", reason);
+            return message;
+        }
+
+        // The theme the app falls back to at launch, which a new theme may never take the name of
+        private const string DefaultThemeName = "default";
+        // [END SECTION: New Theme]
+
         // [SECTION: Delete Theme]
         // Prompts for confirmation (No is the default), then removes the selected theme through ThemeFileStore.DeleteTheme: the
         // zip moves to Themes\Deleted and the working folder is removed, or nothing changes. Deleting the loaded theme clears
         // the loaded and active names, so nothing keeps targeting it.
         private void BtnDeleteTheme_Click(object sender, RoutedEventArgs e)
         {
-            if (CboThemePresets.SelectedItem is not string selectedTheme || selectedTheme == "[New Theme...]") return;
+            if (CboThemePresets.SelectedItem is not string selectedTheme) return;
 
             string loadedTheme = _viewModel.LoadedThemeName;
             bool isLoadedTheme = string.Equals(selectedTheme, loadedTheme, StringComparison.OrdinalIgnoreCase);

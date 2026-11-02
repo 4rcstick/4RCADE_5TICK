@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800">
-    <!-- The top of the THEME BUILDER tab: a one-line intro, then the Themes Manager row (theme load, save and delete only). -->
+    <!-- The top of the THEME BUILDER tab: a one-line intro, then the Themes Manager row (theme create, load, save and delete only). -->
     <Grid Margin="15,15,15,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -12,41 +12,39 @@
         </Grid.RowDefinitions>
 
         <!-- [SECTION: Intro] -->
-        <TextBlock Grid.Row="0" Text="Load, save or delete a theme here, then pick a layer below to edit it. Edits preview live: Save Adjustments keeps them for next launch, Save Changes writes them into the theme."
+        <TextBlock Grid.Row="0" Text="Create, load, save or delete a theme here, then pick a layer below to edit it. Edits preview live: Save Adjustments keeps them for next launch, Save Changes writes them into the theme."
                    Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}" TextWrapping="Wrap" Margin="0,0,0,10"/>
         <!-- [END SECTION: Intro] -->
 
         <!-- [SECTION: Themes Manager] -->
-        <!-- Theme combo (saved themes + "[New Theme...]") and the conditional New Theme Name field wrap on the left;
-             the Load / Save Changes / Delete buttons stay right-aligned. -->
+        <!-- Theme combo (saved themes only) on the left; the New Theme / Load / Save Changes / Delete buttons stay right-aligned. -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" Margin="0,0,15,0">
-                    <TextBlock Text="Active Theme:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <ComboBox x:Name="CboThemePresets" Width="180" Height="25" Style="{StaticResource ChromeComboBoxStyle}"/>
-                </StackPanel>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,0">
+                <TextBlock Text="Active Theme:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <ComboBox x:Name="CboThemePresets" Width="180" Height="25" Style="{StaticResource ChromeComboBoxStyle}"/>
+            </StackPanel>
 
-                <!-- Only visible when "[New Theme...]" is selected in the combo -->
-                <StackPanel x:Name="PnlNewThemeName" Orientation="Horizontal" Margin="0,8,0,0" Visibility="Collapsed">
-                    <TextBlock Text="New Theme Name:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <TextBox x:Name="TxtNewThemeName" Width="151" Height="25" Style="{StaticResource GLTextBoxStyle}"/>
-                </StackPanel>
-            </WrapPanel>
-
-            <!-- Load / Save Changes / Delete theme actions -->
+            <!-- New Theme / Load / Save Changes / Delete theme actions -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="5,0,0,0">
-                <Button x:Name="BtnLoadTheme" Content="Load Theme" Width="Auto" Height="Auto"
+                <Button x:Name="BtnNewTheme" Content="New Theme" Width="Auto" Height="Auto"
+                    ToolTip="Create a new theme"
+                    Style="{StaticResource ThemedActionButtonStyle}"
+                    FontWeight="SemiBold" Padding="7,3" Margin="0,0,5,0"/>
+                <Button x:Name="BtnLoadTheme" Content="Load" Width="Auto" Height="Auto"
+                    ToolTip="Load the selected theme"
                     Style="{StaticResource ThemedActionButtonStyle}"
                     FontWeight="SemiBold" Padding="7,3" Margin="0,0,5,0"/>
                 <Button x:Name="BtnSaveTheme" Content="Save Changes" Width="Auto" Height="Auto"
+                    ToolTip="Write your changes into the selected theme's file"
                     Style="{StaticResource ThemedActionButtonStyle}"
                     FontWeight="SemiBold" Padding="7,3" Margin="0,0,5,0"/>
-                <Button x:Name="BtnDeleteTheme" Content="Delete Theme" Width="Auto" Height="Auto"
+                <Button x:Name="BtnDeleteTheme" Content="Delete" Width="Auto" Height="Auto"
+                    ToolTip="Delete the selected theme"
                     Style="{StaticResource ThemedActionButtonStyle}"
                     FontWeight="SemiBold" Padding="7,3"/>
             </StackPanel>
