@@ -1740,7 +1740,7 @@
 
                     <!-- [SECTION: Splash Image - Image Tab] -->
                     <!-- The splash file shown while no game is selected, stored in the Splash Image entry's ImagePath
-                         (empty = the built-in splash). Sits before the Border tab so the order is Position, Image, Border. -->
+                         (empty = no splash). Sits before the Border tab so the order is Position, Image, Border. -->
                     <TabItem x:Name="TabSplashImage" Header="IMAGE" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
@@ -1759,7 +1759,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Text="Leave empty to use the built-in splash." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
+                                <TextBlock Text="Leave empty to show no splash." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -2052,7 +2052,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Text="Leave empty to use the built-in logo." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
+                                <TextBlock Text="Leave empty to show no logo." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -2306,7 +2306,7 @@
                         Style="{StaticResource ThemedActionButtonStyle}"
                         FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
-                                <TextBlock Text="Leave empty to use the built-in background image." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
+                                <TextBlock Text="Leave empty to use the background color only." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
                                 <CheckBox x:Name="ChkMainBgImageDisabled" Content="Disable background image (use the color only)"
                                           HorizontalAlignment="Left" Margin="0,12,0,0" Style="{StaticResource GLCheckBoxStyle}" Click="ChkMainBgImageDisabled_Click"/>
                             </StackPanel>

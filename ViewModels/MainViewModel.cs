@@ -201,8 +201,8 @@ namespace ArcadeStick.ViewModels
             // Fresh install (settings.json didn't exist above) or any other case where no theme is
             // active - extract and apply the bundled default.zip through the same pipeline a user-saved
             // theme goes through. Swallows failure silently: a missing/corrupt default.zip just leaves
-            // Configuration at its compiled defaults (loose default_marquee.png/no_preview.png fallbacks
-            // still cover the logo/missing-preview art; the boot splash panel is simply blank).
+            // Configuration at its compiled defaults (the loose no_preview.png fallback still covers the
+            // missing-preview art; the logo, wallpaper and boot splash panel are simply blank).
             if (string.IsNullOrWhiteSpace(Configuration.ActiveThemeName))
             {
                 try { LoadTheme("default"); } catch { }
@@ -1007,19 +1007,16 @@ namespace ArcadeStick.ViewModels
         // [END SECTION: Theme Property Forwarders]
 
         // [SECTION: Theme Wallpaper & Asset Loading]
-        // Resolves theme-configured image paths to ImageSource, falling back to bundled defaults in
-        // 4rcade5tick_files/assets when a theme doesn't specify its own asset.
+        // Resolves theme-configured image paths to ImageSource. The wallpaper and logo have no fallback image: an empty
+        // or missing file shows nothing (the wallpaper's background color shows instead).
         // The main window wallpaper lives on the Main Window Background layer entry (per resolution): the file in
-        // ImagePath (empty = the built-in default image) and the Disable flag in ImageDisabled.
+        // ImagePath (empty = no image, the background color only) and the Disable flag in ImageDisabled.
         private string MainWallpaperPath => GetLayerEntry(LayerRegistry.MainBackground).ImagePath ?? "";
         private bool MainWallpaperDisabled => GetLayerEntry(LayerRegistry.MainBackground).ImageDisabled ?? LayerRegistry.DefaultImageDisabled;
 
         public ImageSource? ThemeMainWallpaper => (MainWallpaperDisabled || IsMainWallpaperVideo)
     ? null
-    : LoadThemeImage(
-        !string.IsNullOrWhiteSpace(MainWallpaperPath)
-            ? MainWallpaperPath
-            : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_background.png"));
+    : LoadThemeImage(MainWallpaperPath);
 
         // True when the main window wallpaper is an mp4 - played by WPF's MediaElement, since
         // MediaElement renders as a normal WPF element that respects z-order and can sit behind every panel.
@@ -1046,14 +1043,12 @@ namespace ArcadeStick.ViewModels
         }
         
 
-        // The logo path currently set on the Marquee layer (empty = use the built-in logo). MainWindow compares
+        // The logo path currently set on the Marquee layer (empty = no logo). MainWindow compares
         // this between ApplyLayout runs to know when the logo needs refreshing.
         public string MarqueeLogoPath => GetLayerEntry(LayerRegistry.MarqueePanel).ImagePath ?? "";
 
-        public ImageSource? ThemeLogoAsset => LoadThemeImage(
-            !string.IsNullOrWhiteSpace(MarqueeLogoPath)
-                ? MarqueeLogoPath
-                : Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets", "default_marquee.png"));
+        // The idle logo image; null (nothing shown) when the path is empty or the file is missing
+        public ImageSource? ThemeLogoAsset => LoadThemeImage(MarqueeLogoPath);
 
         // Re-raises the logo binding after the Marquee layer's logo path changed.
         public void RefreshMarqueeLogo()
@@ -1149,7 +1144,7 @@ namespace ArcadeStick.ViewModels
         }
         // [END SECTION: Marquee Banner Forwarders]
 
-        // The splash file set on the Splash Image layer for the active resolution (empty = the built-in splash).
+        // The splash file set on the Splash Image layer for the active resolution (empty = no splash).
         // MainWindow compares this between ApplyLayout runs to know when the splash needs refreshing.
         public string SplashImagePath => GetLayerEntry(LayerRegistry.SplashImage).ImagePath ?? "";
 
@@ -1163,26 +1158,18 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeBootSplashAnimatedAsset));
         }
 
-        // Resolves the boot splash to the Splash Image layer's file if set, else the bundled default - preferring
-        // an mp4 companion file over the png when falling back to the default asset
+        // Resolves the boot splash to the Splash Image layer's file as a full path; empty when no splash is set
+        // (no fallback file, so nothing shows)
         private string ResolveBootSplashPath()
         {
-            if (!string.IsNullOrWhiteSpace(SplashImagePath))
+            if (string.IsNullOrWhiteSpace(SplashImagePath)) return "";
+
+            string splashPath = SplashImagePath;
+            if (!Path.IsPathRooted(splashPath))
             {
-                string splashPath = SplashImagePath;
-                if (!Path.IsPathRooted(splashPath))
-                {
-                    splashPath = Path.GetFullPath(Path.Combine(Configuration.BaseDirectory, splashPath));
-                }
-                return splashPath;
+                splashPath = Path.GetFullPath(Path.Combine(Configuration.BaseDirectory, splashPath));
             }
-
-            string assetsDir = Path.Combine(Configuration.GetArcadeStickFilesPath(), "assets");
-            string defaultVideoPath = Path.Combine(assetsDir, "default_mediabg.mp4");
-
-            return File.Exists(defaultVideoPath)
-                ? defaultVideoPath
-                : Path.Combine(assetsDir, "default_mediabg.png");
+            return splashPath;
         }
 
         // True when the resolved boot splash asset is an mp4 file
@@ -3755,52 +3742,6 @@ namespace ArcadeStick.ViewModels
             }
         }
         // [END SECTION: Instant Media Loading]
-
-        // Resolves a static fallback image for the options-open state, walking the same PreviewPriorityOrder
-        // as ResolvePreviewMedia but skipping "videos" - falls back to the missing-preview asset if nothing matches
-        private ImageSource? ResolveOptionsFallbackImage()
-        {
-            if (SelectedGame == null) return null;
-
-            foreach (var category in PreviewPriorityOrder)
-            {
-                if (category == "videos") continue;
-
-                string folder = string.Empty;
-                string[] extensions = { ".png", ".jpg" };
-
-                switch (category)
-                {
-                    case "flyers":
-                        folder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.FlyersPath) ? "flyers" : Configuration.FlyersPath);
-                        break;
-                    case "screenshots":
-                    case "snapshots":
-                    case "gameplay":
-                        folder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.ScreenshotsPath) ? "snap" : Configuration.ScreenshotsPath);
-                        break;
-                    case "titlescreens":
-                        folder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.TitlescreensPath) ? "titles" : Configuration.TitlescreensPath);
-                        break;
-                    case "cabinets":
-                        folder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.CabinetsPath) ? "cabinets" : Configuration.CabinetsPath);
-                        break;
-                    case "marquees":
-                        folder = Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.MarqueesPath) ? "marquees" : Configuration.MarqueesPath);
-                        break;
-                    default:
-                        continue;
-                }
-
-                string? matchedPath = TryResolveMediaFile(folder, SelectedGame.RomName, SelectedGame.CloneOf, extensions);
-                if (matchedPath != null)
-                {
-                    return LoadThemeImage(matchedPath);
-                }
-            }
-
-            return ThemeMissingPreviewAsset;
-        }
         // [END SECTION: Media Preview Resolution]
 
         // [SECTION: Game Launch]

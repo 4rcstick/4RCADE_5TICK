@@ -130,10 +130,16 @@ The `SelectedGame` setter runs the instant part (marquee, `MarqueeMissing`, flye
 - **`4rcade5tick_files/logs/theme.log`** (`ThemeLog`) has one line per Load, Save, Delete, SaveBlocked, SwapRollback, PathRefused or Create, plus TemplateSkipped and TemplateWarning once per session (a rollback that succeeds during Delete logs as "Delete failed"). Check it first after any theme file incident.
 
 ### Restore Defaults (decision 70)
-The sets come from the default theme's `theme.json` through the embedded `Models/DefaultLayerSets.json`. If the default theme changes, regenerate that file by hand (no tool exists). `default_logo.png`, `default_background.png`, `default_splash.gif` and `no_preview.png` must ship in `4rcade5tick_files/assets`, or Everything shows blank images.
+The sets come from the default theme's `theme.json` through the embedded `Models/DefaultLayerSets.json`. If the default theme changes, regenerate that file by hand (no tool exists). Everything needs exactly one file in `4rcade5tick_files/assets` for each of the names `default_background`, `default_logo`, `default_splash` and `no_preview`, in any type that layer supports; a missing one leaves that image empty and is named in the warning.
+
+### Default images (themes.md decision 70, change log 2026-11-03)
+- An empty image path shows nothing (the background shows its color; the logo and splash show nothing). Do not add built-in fallback images for theme layers. The one exception is `no_preview.png` on the Video Preview layer (`ThemeMissingPreviewAsset`).
+- Restore Defaults finds each default by exact name (case-insensitive, name part only, so `default_splash2.gif` is ignored) among the types that layer supports. Several matches: it uses the fixed priority order png, jpg, jpeg, gif, bmp, mp4 and warns. No match: the path stays empty and one warning lists everything missing. Layout only never touches image paths.
+- Never hard-code a default image file name in code. The extension in a `DefaultLayerSets.json` value (for example `assets/default_splash.gif`) is only a hint and is stripped.
+- A default image for a new layer needs its `assets/<name>.<ext>` value in both sets of `DefaultLayerSets.json` and the layer's supported types in `[SECTION: Default Image Lookup]` in `Models/DefaultLayerSets.cs`.
 
 ### Release checklist
-- All five assets are in `4rcade5tick_files/assets`: `default_logo.png`, `default_background.png`, `default_splash.gif`, `no_preview.png` and `bmac.png`.
+- `4rcade5tick_files/assets` has exactly one file, in any supported type, for each of `default_background`, `default_logo`, `default_splash` and `no_preview` (Restore Defaults), plus `bmac.png` (the About tab button image).
 - The shipped Default theme has the two 16:9 sizes (1280x720 and 1920x1080).
 - `Templates\<name>.json` ships in the data folder, outside the repo.
 - The first template, `template.json`, is renamed before release, because the menu label is the file name (for example `Blank.json`).

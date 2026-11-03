@@ -292,7 +292,7 @@ namespace ArcadeStick.Models
         public int? SectionHeaderShadowDepth { get; set; }
 
         // Main Window Background layer only: true = no image or video, the solid Background Color shows instead
-        // (ImagePath holds the wallpaper; empty means the built-in default image). Null on every other layer.
+        // (ImagePath holds the wallpaper; empty means no image, the color only). Null on every other layer.
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool? ImageDisabled { get; set; }
 
@@ -511,7 +511,7 @@ namespace ArcadeStick.Models
         public const int DefaultShapeCornerRadius = 0;
         public const int DefaultFileOpacity = 100;
 
-        // Main Window Background: the image (or the built-in default) shows unless the user disables it
+        // Main Window Background: the image (when one is set) shows unless the user disables it
         public const bool DefaultImageDisabled = false;
 
         // Main Window Background color (the former flat BackgroundColor default). Also the app's popup and dialog
@@ -608,7 +608,7 @@ namespace ArcadeStick.Models
             {
                 if (!def.IsPositionable)
                 {
-                    // Fill layers (the Main Window Background): image on by default, empty path = built-in image, and the
+                    // Fill layers (the Main Window Background): image on by default, empty path = no image, and the
                     // background color (BgColorHex) under it
                     layout.Layers.Add(new LayerLayoutEntry { Id = def.Id, X = 0, Y = 0, Width = width, Height = height, Z = def.Z, Visible = true, ImageDisabled = DefaultImageDisabled, BgColorHex = DefaultMainBackgroundColorHex });
                     continue;

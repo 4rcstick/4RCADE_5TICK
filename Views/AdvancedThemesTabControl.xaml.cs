@@ -1715,7 +1715,7 @@ namespace ArcadeStick.Views
         // [SECTION: Splash Image and Video Preview Files]
         // Splash Image's Image tab and Video Preview's Background and Fallback Image tabs. Browse stores the file in
         // the layer entry's ImagePath (relative to the app folder when inside it); a cancelled dialog changes nothing.
-        // Clear empties it, which brings back the built-in file. The main window picks both up through ApplyLayout's
+        // Clear empties it: the splash then shows nothing, the fallback goes back to no_preview.png. The main window picks both up through ApplyLayout's
         // _lastSplashPath / _lastVideoFallbackPath keys; the background color is pushed on every ApplyLayout.
 
         // Opens a file dialog and returns the chosen path in the stored convention, or null when cancelled
@@ -1753,7 +1753,7 @@ namespace ArcadeStick.Views
             LoadSelectedLayerIntoFields();
         }
 
-        // Empties the splash path so the built-in splash shows
+        // Empties the splash path so no splash shows
         private void BtnClearSplashFile_Click(object sender, RoutedEventArgs e)
         {
             if (GetEntry(LayerRegistry.SplashImage) is not LayerLayoutEntry entry) return;
@@ -1795,7 +1795,7 @@ namespace ArcadeStick.Views
         // [SECTION: Main Window Background Image]
         // Browse stores the wallpaper in the Main Window Background entry's ImagePath (relative to the app folder when
         // inside it, same convention as the other file fields); a cancelled dialog changes nothing. Clear empties it,
-        // which brings back the built-in default image. The main window picks both up through ApplyLayout's key.
+        // which leaves no image (the background color only). The main window picks both up through ApplyLayout's key.
         private void BtnBrowseMainBgFile_Click(object sender, RoutedEventArgs e)
         {
             if (GetEntry(LayerRegistry.MainBackground) is not LayerLayoutEntry entry) return;
@@ -1821,7 +1821,7 @@ namespace ArcadeStick.Views
             LoadSelectedLayerIntoFields();
         }
 
-        // Empties the wallpaper path so the built-in default image shows
+        // Empties the wallpaper path so no image shows (the background color only)
         private void BtnClearMainBgFile_Click(object sender, RoutedEventArgs e)
         {
             if (GetEntry(LayerRegistry.MainBackground) is not LayerLayoutEntry entry) return;
@@ -4559,6 +4559,7 @@ namespace ArcadeStick.Views
 
         // Restore Defaults: applies the default set for this layout's height to the active layout only. Layers with no default
         // (custom layers) are skipped, theme-wide values are not touched, and NormalizeZ renumbers Z in the restored order.
+        // Everything finds each default image by name; one message afterwards lists any missing or doubled default files.
         private void BtnRestoreDefaults_Click(object sender, RoutedEventArgs e)
         {
             var defaults = DefaultLayerSets.GetDefaultsForHeight(_currentLayout.Height);
@@ -4566,6 +4567,7 @@ namespace ArcadeStick.Views
             if (mode == null) return;
 
             string? selectedId = (LstLayers.SelectedItem as LayerListItem)?.Id;
+            var imageProblems = new List<string>();
 
             foreach (var entry in _currentLayout.Layers)
             {
@@ -4573,11 +4575,24 @@ namespace ArcadeStick.Views
                 if (defEntry == null) continue;
 
                 DefaultLayerSets.ApplyLayout(entry, defEntry, _currentLayout);
-                if (mode == RestoreDefaultsMode.Everything) DefaultLayerSets.ApplyStyle(entry, defEntry, _settings);
+                if (mode == RestoreDefaultsMode.Everything) DefaultLayerSets.ApplyStyle(entry, defEntry, _settings, imageProblems);
             }
 
             NormalizeZ(GetAscendingOrder());
             RebuildLayerList(selectedId);
+
+            if (imageProblems.Count > 0) ShowRestoreDefaultsImageProblems(imageProblems);
+        }
+
+        // Shows one message listing every default image Restore Defaults could not find, or found more than once
+        private void ShowRestoreDefaultsImageProblems(List<string> problems)
+        {
+            string folder = DefaultLayerSets.GetAssetsFolder(_settings);
+            string folderNote = System.IO.Directory.Exists(folder) ? "" : " (this folder does not exist)";
+            MessageBox.Show(
+                $"Restore Defaults finished, but some default images need attention.\n\nAssets folder: {folder}{folderNote}\n\n"
+                + string.Join("\n\n", problems.Select(p => "- " + p)),
+                "Restore Defaults", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         // Restore Defaults pop-up built in code like the other prompts: one button per mode with its explanation, plus Cancel.

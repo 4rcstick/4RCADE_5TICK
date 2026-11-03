@@ -44,24 +44,86 @@ namespace ArcadeStick.Models
             entry.Visible = true;
         }
 
-        // Does the rest of the Everything reset: name, file and every style field, on top of ApplyLayout
-        public static void ApplyStyle(LayerLayoutEntry entry, LayerLayoutEntry defaults, ConfigurationSettings settings)
+        // Does the rest of the Everything reset: name, file and every style field, on top of ApplyLayout. A default image
+        // is found by name in the assets folder (ResolveImagePath); a missing file or extra matches add a line to problems.
+        public static void ApplyStyle(LayerLayoutEntry entry, LayerLayoutEntry defaults, ConfigurationSettings settings, List<string> problems)
         {
             entry.Name = defaults.Name;
-            entry.ImagePath = ResolveImagePath(defaults.ImagePath, settings);
+            entry.ImagePath = ResolveImagePath(entry.Id, defaults.ImagePath, settings, problems);
             entry.CopyStyleFrom(defaults);
         }
 
-        // Points a set's "assets/x.png" at the app's own 4rcade5tick_files/assets folder, relative to the base directory
-        // like every other working ImagePath, so it follows a drive letter change and bundles normally on save
-        private static string ResolveImagePath(string imagePath, ConfigurationSettings settings)
+        // [SECTION: Default Image Lookup]
+        // The file types each layer can show (its Browse filter and display code), listed in the fixed priority order used
+        // when more than one file has the default's name. A layer not listed here accepts every type in PriorityOrder.
+        private static readonly string[] PriorityOrder = { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".mp4" };
+        private static readonly Dictionary<string, string[]> LayerExtensions = new()
+        {
+            [LayerRegistry.MainBackground] = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".mp4" },
+            [LayerRegistry.MarqueePanel] = new[] { ".png", ".jpg", ".jpeg" },
+            [LayerRegistry.SplashImage] = new[] { ".png", ".jpg", ".jpeg", ".gif", ".mp4" },
+            [LayerRegistry.VideoPreview] = new[] { ".png", ".jpg", ".jpeg", ".bmp" }
+        };
+
+        // Returns the app's own 4rcade5tick_files/assets folder, where the default images live
+        public static string GetAssetsFolder(ConfigurationSettings settings) => Path.Combine(settings.GetArcadeStickFilesPath(), "assets");
+
+        // Finds a set's "assets/x.ext" default by its name x alone (the extension in the set is only a hint and is ignored):
+        // the file in the assets folder named exactly x with a type the layer can show, returned relative to the base
+        // directory like every other working ImagePath, so it follows a drive letter change and bundles normally on save.
+        // Empty when nothing matches. Paths not starting with "assets/" (including empty) are returned unchanged.
+        private static string ResolveImagePath(string layerId, string imagePath, ConfigurationSettings settings, List<string> problems)
         {
             if (!imagePath.StartsWith(AssetPrefix, StringComparison.Ordinal)) return imagePath;
 
-            string fileName = imagePath.Substring(AssetPrefix.Length);
-            string fullPath = Path.Combine(settings.GetArcadeStickFilesPath(), "assets", fileName);
-            return Path.GetRelativePath(settings.BaseDirectory, fullPath);
+            string defaultName = Path.GetFileNameWithoutExtension(imagePath.Substring(AssetPrefix.Length));
+            string[] extensions = LayerExtensions.TryGetValue(layerId, out var layerList) ? layerList : PriorityOrder;
+            string layerName = LayerRegistry.GetDefinition(layerId)?.DisplayName ?? layerId;
+
+            List<string> named = FindFilesNamed(GetAssetsFolder(settings), defaultName);
+            List<string> usable = named
+                .Where(file => IndexOfExtension(extensions, file) >= 0)
+                .OrderBy(file => IndexOfExtension(extensions, file))
+                .ToList();
+            List<string> unsupported = named.Except(usable).Select(Path.GetFileName).Select(name => name!).ToList();
+
+            if (usable.Count == 0)
+            {
+                string line = $"{layerName}: no file named {defaultName} found in the assets folder (looked for {string.Join(", ", extensions.Select(e => e.TrimStart('.')))}). The image was left empty.";
+                if (unsupported.Count > 0) line += $" Ignored, unsupported type: {string.Join(", ", unsupported)}.";
+                problems.Add(line);
+                return "";
+            }
+
+            if (usable.Count > 1)
+            {
+                problems.Add($"{layerName}: more than one file named {defaultName}. Used {Path.GetFileName(usable[0])}; not used: {string.Join(", ", usable.Skip(1).Select(Path.GetFileName))}.");
+            }
+
+            return Path.GetRelativePath(settings.BaseDirectory, usable[0]);
         }
+
+        // Returns where file's extension sits in extensions (case-insensitive), or -1 when the layer cannot show it
+        private static int IndexOfExtension(string[] extensions, string file)
+        {
+            string ext = Path.GetExtension(file);
+            return Array.FindIndex(extensions, e => e.Equals(ext, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Lists the files in folder whose name without extension is exactly name (case-insensitive); none when the folder is
+        // missing or cannot be read. "x2.gif", "x_old.png" and "x.png.bak" do not match "x".
+        private static List<string> FindFilesNamed(string folder, string name)
+        {
+            try
+            {
+                if (!Directory.Exists(folder)) return new List<string>();
+                return Directory.EnumerateFiles(folder)
+                    .Where(file => Path.GetFileNameWithoutExtension(file).Equals(name, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            catch { return new List<string>(); }
+        }
+        // [END SECTION: Default Image Lookup]
 
         // Reads both sets from the embedded resource (once, on the first restore)
         private static List<ThemeLayout> LoadSets()
