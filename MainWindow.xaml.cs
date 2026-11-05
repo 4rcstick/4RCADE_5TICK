@@ -209,8 +209,21 @@ namespace ArcadeStick
         // [SECTION: Theme Builder Alignment Guides]
         private Views.AdvancedThemesTabControl.GuideInfo? _lastGuideInfo; // redrawn when the overlay resizes (fullscreen toggle)
 
-        // Draws (or hides, when info is null) the guides on the full-window GuideOverlay: four 1px lines at the
-        // selected layer's pending rect (ShowRect) and a cross at that rect's center (ShowCenter). Every line runs
+        // Guide dash pattern: 4 on, 4 off. WPF counts dash lengths in multiples of StrokeThickness (1 here), so these are 4 px.
+        private const double GuideDashLength = 4;
+        private const double GuideGapLength = 4;
+        private static readonly DoubleCollection GuideDashPattern = CreateGuideDashPattern();
+
+        // Builds the shared, frozen dash pattern used by every guide line
+        private static DoubleCollection CreateGuideDashPattern()
+        {
+            var pattern = new DoubleCollection { GuideDashLength, GuideGapLength };
+            pattern.Freeze();
+            return pattern;
+        }
+
+        // Draws (or hides, when info is null) the guides on the full-window GuideOverlay: four dashed 1px lines at the
+        // selected layer's pending rect (ShowRect) and a dashed cross at that rect's center (ShowCenter). Every line runs
         // to the window edge; coordinates are offset by LayoutCanvas' origin in the overlay. Right and bottom
         // lines sit on the last pixel inside the layer (X + Width - 0.5) so they hug its edge.
         public void ShowGuides(Views.AdvancedThemesTabControl.GuideInfo? info)
@@ -235,6 +248,7 @@ namespace ArcadeStick
             {
                 line.X1 = x1; line.Y1 = y1; line.X2 = x2; line.Y2 = y2;
                 line.Stroke = brush;
+                line.StrokeDashArray = GuideDashPattern;
                 line.Visibility = Visibility.Visible;
             }
 
