@@ -4,7 +4,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
-             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              xmlns:local="clr-namespace:ArcadeStick.Views"
              mc:Ignorable="d">
 
@@ -14,9 +13,8 @@
 
     <UserControl.Resources>
         <!-- [SECTION: Layers Help] -->
-        <!-- The Layers header's help: the tooltip text (one line per point; edit it only here) and the circled ? glyph's look
-             (Global Sub-Text color; the ring and the ? turn the Global Sub-Header color on hover). The tooltip is the default Windows tooltip. -->
-        <sys:String x:Key="LayersHelpText" xml:space="preserve">Right-click a layer to copy its position, size or border, then right-click another layer (or one of several selected layers) to paste. Search &amp; Buttons, Game Info, the Footer, the Main Window Background and Scrollbars have no copy or paste.&#10;Ctrl-click or Shift-click to select several layers and move them together with the Move X / Move Y boxes.&#10;Use the arrows beside the list to bring a layer forward or send it backward. Double-click a shape or custom layer to rename it.&#10;A | before a layer's name marks the shape and custom layers, the only layers that can be renamed.</sys:String>
+        <!-- The Layers header's help: the circled ? glyph's look (Global Sub-Text color; the ring and the ? turn the Global
+             Sub-Header color on hover). The tooltip's rich text and its dark look are on the glyph itself (Layers header below). -->
 
         <Style x:Key="LayersHelpGlyphStyle" TargetType="Border">
             <Setter Property="Width" Value="16"/>
@@ -36,18 +34,25 @@
         <!-- [END SECTION: Layers Help] -->
 
         <!-- [SECTION: Layer List Rows] -->
-        <!-- LstLayers rows. The "|" marker (ChromeLayerRenameMarker) shows only on rows that can be renamed (ShowRenameMarker,
-             from LayerRegistry.CanRename); it is display-only and never part of DisplayName. The name keeps the row's
+        <!-- LstLayers rows. The "|" marker shows only on rows that can be renamed (ShowRenameMarker, from
+             LayerRegistry.CanRename): blue (ChromeLayerRenameMarker) on the shape layers, magenta (ChromeLayerCustomMarker,
+             IsCustomLayer) on the custom layers, drawn 1px higher by a render transform that leaves the row's layout alone.
+             It is display-only and never part of DisplayName. The name keeps the row's
              Foreground, so the selected-row color still applies. The container style turns on the shared template's separator
              line above the first pinned row (StartsPinnedBlock). Values come from the row item itself, no ancestor bindings. -->
         <DataTemplate x:Key="LayerListItemTemplate">
             <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="RenameMarker" Text="|" FontWeight="Bold" Foreground="{StaticResource ChromeLayerRenameMarker}" Margin="0,0,0,0" Visibility="Collapsed"/>
+                <TextBlock x:Name="RenameMarker" Text="|" FontWeight="Bold" Foreground="{StaticResource ChromeLayerRenameMarker}" Margin="0,0,0,0" Visibility="Collapsed">
+                    <TextBlock.RenderTransform><TranslateTransform Y="-1"/></TextBlock.RenderTransform>
+                </TextBlock>
                 <TextBlock Text="{Binding DisplayName}"/>
             </StackPanel>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding ShowRenameMarker}" Value="True">
                     <Setter TargetName="RenameMarker" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsCustomLayer}" Value="True">
+                    <Setter TargetName="RenameMarker" Property="Foreground" Value="{StaticResource ChromeLayerCustomMarker}"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
@@ -219,8 +224,32 @@
                                Foreground="{DynamicResource Global.Font.Header.Color}" FontWeight="Bold" FontSize="{DynamicResource Global.Font.Header.Size}"/>
                     <Border Style="{StaticResource LayersHelpGlyphStyle}" Margin="8,0,0,0" VerticalAlignment="Center"
                             ToolTipService.InitialShowDelay="300" ToolTipService.ShowDuration="60000">
+                        <!-- Help text, one line per line shown (no wrapping). Its dark look is local to this tooltip (Chrome Palette
+                             ChromeTooltip* brushes); the two pipes use the layer list's marker brushes so they always match. -->
                         <Border.ToolTip>
-                            <TextBlock Text="{StaticResource LayersHelpText}" TextWrapping="Wrap" MaxWidth="380"/>
+                            <ToolTip Background="{StaticResource ChromeTooltipBackground}" Foreground="{StaticResource ChromeTooltipText}"
+                                     BorderBrush="{StaticResource ChromeTooltipBorder}" BorderThickness="1" Padding="10,8">
+                                <TextBlock TextWrapping="NoWrap" Foreground="{StaticResource ChromeTooltipText}">
+                                    <Bold>LAYER ORDER &amp; CUSTOM LAYERS</Bold><LineBreak/>
+                                    <Run Text="Use the arrows beside the layer list to move layers forward or backward in the Z-order."/><LineBreak/>
+                                    <Run Text="Use the + button to add a custom layer."/><LineBreak/>
+                                    <LineBreak/>
+                                    <Bold>MOVE MULTIPLE LAYERS AT ONCE</Bold><LineBreak/>
+                                    <Run Text="Ctrl-click or Shift-click to select multiple layers,"/><LineBreak/>
+                                    <Run Text="then move them together using the Move X / Move Y boxes to the right."/><LineBreak/>
+                                    <LineBreak/>
+                                    <Bold>COPY LAYER PROPERTIES TO OTHER LAYERS</Bold><LineBreak/>
+                                    <Run Text="Right-click a layer to copy its position, size, or border properties."/><LineBreak/>
+                                    <Run Text="Right-click another layer, or multiple selected layers, to paste them."/><LineBreak/>
+                                    <Italic>Search &amp; Buttons, Game Info, Footer, Main Window Background,</Italic><LineBreak/>
+                                    <Italic>and Scrollbars do not support Copy &amp; Paste.</Italic><LineBreak/>
+                                    <LineBreak/>
+                                    <Bold>DEFAULT &amp; CUSTOM LAYER HELPERS</Bold><LineBreak/>
+                                    <Run Text="Blue "/><Run Text="|" FontWeight="Black" Foreground="{StaticResource ChromeLayerRenameMarker}"/><Run Text=" — Default layer; can be renamed."/><LineBreak/>
+                                    <Run Text="Magenta "/><Run Text="|" FontWeight="Black" Foreground="{StaticResource ChromeLayerCustomMarker}"/><Run Text=" — Custom layer; can be renamed or deleted."/><LineBreak/>
+                                    <Run Text="Double-click a default or custom layer to rename it."/>
+                                </TextBlock>
+                            </ToolTip>
                         </Border.ToolTip>
                         <TextBlock Text="?" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>

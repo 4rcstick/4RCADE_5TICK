@@ -136,6 +136,9 @@ namespace ArcadeStick.Views
             // True for the rows that can be renamed (LayerRegistry.CanRename): the list shows a "|" before the name
             public bool ShowRenameMarker { get; init; }
 
+            // True for the custom layers (LayerRegistry.IsCustomId): the "|" is drawn magenta instead of blue
+            public bool IsCustomLayer { get; init; }
+
             // True for the first pinned row (IsPinnedRow): the separator line is drawn above it
             public bool StartsPinnedBlock { get; init; }
         }
@@ -316,6 +319,7 @@ namespace ArcadeStick.Views
                         Id = key,
                         DisplayName = name,
                         ShowRenameMarker = LayerRegistry.CanRename(key),
+                        IsCustomLayer = LayerRegistry.IsCustomId(key),
                         // No line when nothing movable sits above the pinned block
                         StartsPinnedBlock = index == firstPinned && index > 0
                     };

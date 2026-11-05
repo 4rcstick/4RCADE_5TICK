@@ -8,9 +8,11 @@
         <!-- [SECTION: Chrome Palette] -->
         <!-- The fixed (not themeable) colors of the app's input chrome: text boxes, combo boxes and their dropdowns,
              list boxes, checkboxes, sliders, the color picker popups and the small dialogs (Manage Playlists, the
-             name prompts, RomCopyPath). Every Chrome* and Theme Builder shared style below references these keys and
-             holds no hex values of its own, so the whole palette is retuned by editing only this block. Disabled
-             controls use opacity 0.5 instead of a color. Text size and family stay themeable (Global Fonts). -->
+             name prompts, RomCopyPath), plus a few fixed colors outside it (the preview sound glyph, the theme thumbnail
+             placeholder, the Theme Builder layer list markers and the Layers help tooltip). Every Chrome* and Theme
+             Builder shared style below references these keys and holds no hex values of its own, so the whole palette
+             is retuned by editing only this block. Disabled controls use opacity 0.5 instead of a color. Text size and
+             family stay themeable (Global Fonts). -->
         <SolidColorBrush x:Key="ChromeWindowBg" Color="#FF1C1C1E"/>
         <SolidColorBrush x:Key="ChromeBg" Color="#FF000000"/>
         <SolidColorBrush x:Key="ChromeBgHover" Color="#FF1C1C1E"/>
@@ -36,8 +38,15 @@
         <SolidColorBrush x:Key="ChromeThumbnailPlaceholderBg" Color="#FF1C1C1E"/>
         <SolidColorBrush x:Key="ChromeThumbnailPlaceholderBorder" Color="#FFA0A0A2"/>
         <SolidColorBrush x:Key="ChromeThumbnailPlaceholderText" Color="#FFF2F2F7"/>
-        <!-- Theme Builder layer list: the "|" marker in front of the layers that can be renamed (shape and custom layers) -->
+        <!-- Theme Builder layer list: the "|" marker in front of the layers that can be renamed. Blue marks the shape
+             (default) layers; magenta marks the custom layers. The Layers help tooltip uses the same two brushes. -->
         <SolidColorBrush x:Key="ChromeLayerRenameMarker" Color="#FF4FC3F7"/>
+        <!-- The custom layer marker (layers added with the + button) -->
+        <SolidColorBrush x:Key="ChromeLayerCustomMarker" Color="#FFE040FB"/>
+        <!-- Theme Builder Layers help tooltip (the ? glyph): its own dark look, set locally on that one tooltip -->
+        <SolidColorBrush x:Key="ChromeTooltipBackground" Color="#FF1E1E1E"/>
+        <SolidColorBrush x:Key="ChromeTooltipBorder" Color="#FF555555"/>
+        <SolidColorBrush x:Key="ChromeTooltipText" Color="#FFFFFFFF"/>
         <!-- [END SECTION: Chrome Palette] -->
 
         <!-- [SECTION: Global Theme Resources] -->
@@ -700,7 +709,7 @@
         <!-- [END SECTION: ThemedActionButtonStyle] -->
 
         <!-- [SECTION: Builder Context Menu Styles] -->
-        <!-- Keyed menu styles for the Theme Builder window (the Advanced tab's layer list Copy / Paste menu). The main window's
+        <!-- Keyed menu styles for the Theme Builder's menus (the layer list Copy / Paste menu and the New Theme menu). The main window's
              menus use its own implicit styles in MainWindow.xaml Window.Resources, which never reach the builder; these copy
              their look for plain text items only (no icon column, check marks or submenus) and read only the Global Context
              Menus resources (Global.Menu.*), so the Global tab edits them live. No Smart fullscreen scale: the builder is a
@@ -735,8 +744,10 @@
             </Setter>
         </Style>
         <!-- The separator row is filled with the menu background edge to edge: the Windows ContextMenu template underneath
-             draws a light icon gutter (a 28px #FFF1F1F1 rectangle and two 1px lines at the left), which items cover with their
-             own background and which showed through a transparent separator row as white stubs. -->
+             draws a light icon gutter (a 28px #FFF1F1F1 rectangle and two 1px lines at the left), which showed through a
+             transparent separator row as white stubs. The items' background covers most of it, but a 1px left edge line and short
+             stubs at fractional-pixel seams can still show; a menu that needs it gone hides the gutter on Loaded (HideMenuGutter,
+             as the New Theme menu does). -->
         <Style x:Key="BuilderMenuSeparatorStyle" TargetType="Separator">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="Template">
@@ -749,8 +760,9 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <!-- A heading line at the top of a builder menu (the Random Game Display state): Icon color, bold, never highlighted,
-             not clickable and skipped by keyboard navigation. -->
+        <!-- A heading line in a builder menu (the Random Game Display state at the top of the layer list menu, and the
+             Templates heading in the New Theme menu): Icon color, bold, never highlighted, not clickable and skipped by
+             keyboard navigation. -->
         <Style x:Key="BuilderMenuHeadingStyle" TargetType="MenuItem">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="Focusable" Value="False"/>

@@ -482,7 +482,9 @@ namespace ArcadeStick.Views
         // live before its load, so it must not run _themeSavedCallback, which moves the restore points.
         public Action? ThemeCreatedFlash;
 
-        // Opens the New Theme menu under the button: Copy Current Theme, then a separator and the valid templates, if any.
+        // Opens the New Theme menu under the button: Copy Current Theme, then, if there are valid templates, a separator, a
+        // Templates heading (BuilderMenuHeadingStyle: not clickable, never highlighted) and the templates. The Windows
+        // template's light icon gutter is hidden (HideMenuGutter) so it cannot show at the left edge or between items.
         // It is built on every open, so a file added to the Templates folder appears with no code change.
         private void BtnNewTheme_Click(object sender, RoutedEventArgs e)
         {
@@ -492,17 +494,36 @@ namespace ArcadeStick.Views
                 PlacementTarget = BtnNewTheme,
                 Placement = PlacementMode.Bottom
             };
+            menu.Loaded += (_, _) => HideMenuGutter(menu);
             menu.Items.Add(MakeNewThemeMenuItem("Copy Current Theme", CopyCurrentTheme));
 
             string templatesDir = Path.Combine(_settings.GetArcadeStickFilesPath(), ArcadeStick.Services.ThemeTemplateStore.FolderName);
             var templates = ArcadeStick.Services.ThemeTemplateStore.ListValid(templatesDir, _viewModel.LoadedThemeName);
-            if (templates.Count > 0) menu.Items.Add(new Separator { Style = (Style)FindResource("BuilderMenuSeparatorStyle") });
+            if (templates.Count > 0)
+            {
+                menu.Items.Add(new Separator { Style = (Style)FindResource("BuilderMenuSeparatorStyle") });
+                menu.Items.Add(new MenuItem { Header = "Templates", Style = (Style)FindResource("BuilderMenuHeadingStyle") });
+            }
             foreach (var template in templates)
             {
                 menu.Items.Add(MakeNewThemeMenuItem(template.Name, () => CreateFromTemplate(template)));
             }
 
             menu.IsOpen = true;
+        }
+
+        // Does the gutter hide for this menu only: collapses the light icon gutter (three Rectangles beside the ItemsPresenter)
+        // that the Windows ContextMenu template draws behind the items. It showed as a light line at the menu's left edge and,
+        // where item edges fall on fractional pixels, as short stubs between items. Runs on Loaded, before the first frame; the
+        // item layout is unchanged.
+        private static void HideMenuGutter(ContextMenu menu)
+        {
+            if (menu.Template?.FindName("ItemsPresenter", menu) is not FrameworkElement presenter) return;
+            if (System.Windows.Media.VisualTreeHelper.GetParent(presenter) is not Panel host) return;
+            foreach (var gutterPart in host.Children.OfType<System.Windows.Shapes.Rectangle>())
+            {
+                gutterPart.Visibility = Visibility.Collapsed;
+            }
         }
 
         // Builds one menu entry on the Theme Builder menu style. Its action runs after the menu has closed.
