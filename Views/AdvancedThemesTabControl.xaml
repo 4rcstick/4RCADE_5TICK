@@ -42,7 +42,7 @@
              line above the first pinned row (StartsPinnedBlock). Values come from the row item itself, no ancestor bindings. -->
         <DataTemplate x:Key="LayerListItemTemplate">
             <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="RenameMarker" Text="|" Foreground="{StaticResource ChromeLayerRenameMarker}" Margin="0,0,5,0" Visibility="Collapsed"/>
+                <TextBlock x:Name="RenameMarker" Text="|" FontWeight="Bold" Foreground="{StaticResource ChromeLayerRenameMarker}" Margin="0,0,0,0" Visibility="Collapsed"/>
                 <TextBlock Text="{Binding DisplayName}"/>
             </StackPanel>
             <DataTemplate.Triggers>

@@ -114,6 +114,14 @@ Closing without saving restores layouts to the last saved snapshot; anything sto
 - **Marquee banner card** is a `ControlTemplate` (`MarqueeBannerCardTemplate`): its elements bind view model forwarders directly and read the title through `TemplatedParent`; a DataTemplate would lose the DataContext.
 - **Global resources are typed** (font sizes `double`, border sizes `Thickness`, radii `CornerRadius`, colors `Brush`); a wrong type fails silently. **Do not set Background, Foreground, BorderBrush or BorderThickness on a `ThemedActionButtonStyle` button** (the one intended exception is the active saved-size button, which may set Background and Foreground, the hover pair, and nothing else). **Chrome Palette:** a new fixed color is a named brush in `[SECTION: Chrome Palette]`, never a hex inside a style, and App.xaml gets no implicit (keyless) styles.
 
+### Scrollbar overrides (themes.md 3.24)
+- The Games List and Game Info scrollbars can override `Global.Scroll.*` by putting the same keys, with the same types, in `GamesListHost` and `GameInfoLayer.PartInfoBody` resources, through `GlobalThemeResources.ApplyScrollOverride` only. Never copy the scrollbar template, and never put these keys anywhere else.
+- The Scrollbars layer is settings-only (`IsSettingsOnly`): it is pinned below the Main Window Background, draws nothing and takes no Z (`NormalizeZ` and `MoveSelectedLayer` skip it). A new non-positionable layer must not pick up the Main Window Background's fill values in `BuildDefaultLayout`.
+
+### Layer list marker and separator (decision 77)
+- The bold "|" on renamable rows is drawn by `LayerListItemTemplate` from `ShowRenameMarker` (`LayerRegistry.CanRename`) and is never part of `DisplayName` (the Remove Layer prompt reads `DisplayName`).
+- The separator is a line in the shared `ChromeListBoxItemStyle`, shown by Tag `PinnedBlockStart` on the first pinned row; the list has no extra separator item. Pinned rows (Main Window Background, then Scrollbars) cannot move and layers cannot pass them.
+
 ### Theme Info (themes.md 3.22)
 - The `ThemeInfo` block lives on both `ThemeSettings` and `ConfigurationSettings.Info`, and the Theme Builder's restore point holds a copy. `LoadTheme` uses a blank block for a theme without one, so values never carry over. A normal launch gets the block through its line in `ApplyThemeSettings`.
 - A capture stays in memory (`PendingThemeThumbnail`) until Save Adjustments or Save Changes writes it. Only Save Changes sets `ModifiedUtc`, and the live value moves only after the zip is written.
@@ -196,6 +204,8 @@ Built: Main Window Background (color, wallpaper), Games List (folders, game titl
 - Restore Defaults on the layer list (decision 70): a pop-up with Layout only, Everything and Cancel, applying the 720p or 1080p set to the active size only.
 - Safe theme file handling (see Theme file safety): Load, Save and Delete Theme never remove the old files before the replacement is confirmed, with `theme.log` recording each action.
 - New Theme (themes.md 3.23): the button's menu offers Copy Current Theme and any `Templates\*.json`, through a name popup that never overwrites.
+- Layer list (decision 77): a bold "|" marker on renamable layers and a separator line above the pinned rows.
+- Scrollbars row (themes.md 3.24, decision 78): a pinned, settings-only row with per-resolution scrollbar overrides for the Games List and Game Info.
 
 Smart fullscreen (themes.md 3.17 to 3.19, decisions 63 and 64) is built and tested on a 1080p monitor at 100/125/150/175%; 1440p, 4K and mixed-DPI monitor moves are untested on hardware. Remaining: a theme browser on the THEME BROWSER tab, then replacing registry defaults with the finished default theme. The Footer is intentionally not themed (it stays as is). A WYSIWYG edit mode is planned for beta.5 (no drag handles in beta.4).
 
