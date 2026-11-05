@@ -94,8 +94,8 @@ namespace ArcadeStick.Models
         // theme save). Missing resolutions/layers fall back to LayerRegistry defaults.
         public List<ThemeLayout> Layouts { get; set; } = new();
 
-        // Theme Builder alignment guides (editor preferences, not part of any theme file): four 1px lines
-        // drawn at the selected layer's edges, and a cross at that layer's center, while the Advanced tab is open.
+        // Theme Builder alignment guides (editor preferences, not part of any theme file): four dashed 1px lines
+        // drawn at the selected layer's edges, and a dashed cross at that layer's center, while the Advanced tab is open.
         public bool ShowGuideLines { get; set; } = true;
         public bool ShowCenterGuide { get; set; } = false;
         public string GuideLineColorHex { get; set; } = "#FF00FFFF";
