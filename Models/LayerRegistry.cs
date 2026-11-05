@@ -296,6 +296,51 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool? ImageDisabled { get; set; }
 
+        // Scrollbars row only (themes.md 3.24): the Games List and Game Info scrollbar overrides. UseGlobal true (the default,
+        // filled by FillScrollbarOverrideStyle) means that area follows the Global SCROLLBARS values; false uses the Width and
+        // colors below (null = not set yet, the page pre-fills them from the Global values). Null on every other layer.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? GamesListScrollUseGlobal { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public double? GamesListScrollWidth { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GamesListScrollThumbColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GamesListScrollThumbHoverColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GamesListScrollThumbDragColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GamesListScrollTrackColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GamesListScrollTrackHoverColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? GameInfoScrollUseGlobal { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public double? GameInfoScrollWidth { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameInfoScrollThumbColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameInfoScrollThumbHoverColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameInfoScrollThumbDragColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameInfoScrollTrackColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? GameInfoScrollTrackHoverColorHex { get; set; }
+
         // [SECTION: Style Copy]
         // Copies every styling field (everything except Id, rect, Z, Visible, Name and ImagePath) from source.
         // The one place entry styling is copied: CloneLayouts, the resolution-switch copy and Reset Layer all
@@ -380,6 +425,20 @@ namespace ArcadeStick.Models
             SectionHeaderShadowBlur = source.SectionHeaderShadowBlur;
             SectionHeaderShadowDepth = source.SectionHeaderShadowDepth;
             ImageDisabled = source.ImageDisabled;
+            GamesListScrollUseGlobal = source.GamesListScrollUseGlobal;
+            GamesListScrollWidth = source.GamesListScrollWidth;
+            GamesListScrollThumbColorHex = source.GamesListScrollThumbColorHex;
+            GamesListScrollThumbHoverColorHex = source.GamesListScrollThumbHoverColorHex;
+            GamesListScrollThumbDragColorHex = source.GamesListScrollThumbDragColorHex;
+            GamesListScrollTrackColorHex = source.GamesListScrollTrackColorHex;
+            GamesListScrollTrackHoverColorHex = source.GamesListScrollTrackHoverColorHex;
+            GameInfoScrollUseGlobal = source.GameInfoScrollUseGlobal;
+            GameInfoScrollWidth = source.GameInfoScrollWidth;
+            GameInfoScrollThumbColorHex = source.GameInfoScrollThumbColorHex;
+            GameInfoScrollThumbHoverColorHex = source.GameInfoScrollThumbHoverColorHex;
+            GameInfoScrollThumbDragColorHex = source.GameInfoScrollThumbDragColorHex;
+            GameInfoScrollTrackColorHex = source.GameInfoScrollTrackColorHex;
+            GameInfoScrollTrackHoverColorHex = source.GameInfoScrollTrackHoverColorHex;
         }
         // [END SECTION: Style Copy]
     }
@@ -437,6 +496,7 @@ namespace ArcadeStick.Models
 
         // Layer Ids (used as keys in theme files - don't rename once released)
         public const string MainBackground = "MainBackground";
+        public const string Scrollbars = "Scrollbars";
         public const string SearchLabel = "SearchLabel";
         public const string SearchBox = "SearchBox";
         public const string RandomButton = "RandomButton";
@@ -492,6 +552,10 @@ namespace ArcadeStick.Models
         // Does the rename rule check: true for the layers the user can rename (the box layers). The Rename button, the
         // double-click rename and the layer list's rename marker all read this, so they cannot drift apart.
         public static bool CanRename(string id) => IsBoxId(id);
+
+        // Does the settings-only check: true for a row that holds values but draws nothing and takes no Z (the Scrollbars
+        // row). It is pinned below the Main Window Background and skipped when Z is numbered, so other layers' Z never move.
+        public static bool IsSettingsOnly(string id) => id == Scrollbars;
 
         // Where a newly added custom layer starts (the layer then resizes itself when a file is chosen)
         public const double NewLayerX = 20;
@@ -564,6 +628,8 @@ namespace ArcadeStick.Models
         public static readonly IReadOnlyList<LayerDefinition> AllLayers = new List<LayerDefinition>
         {
             new() { Id = MainBackground, DisplayName = "Main Window Background", X = 0, Y = 0, Width = 1280, Height = 720, Z = 0, IsPositionable = false, CanHide = false },
+            // Settings-only row (IsSettingsOnly): the Games List and Game Info scrollbar overrides; nothing on the canvas
+            new() { Id = Scrollbars,     DisplayName = "Scrollbars",             X = 0, Y = 0, Width = 1280, Height = 720, Z = 0, IsPositionable = false, CanHide = false },
 
             new() { Id = ShapeLayer01,   DisplayName = "Shape Layer 01",    X = 20,  Y = 60,  Width = 353, Height = 640, Z = 4 },
             new() { Id = ShapeLayer02,   DisplayName = "Shape Layer 02",    X = 393, Y = 177, Width = 867, Height = 523, Z = 3 },
@@ -612,9 +678,16 @@ namespace ArcadeStick.Models
             {
                 if (!def.IsPositionable)
                 {
-                    // Fill layers (the Main Window Background): image on by default, empty path = no image, and the
-                    // background color (BgColorHex) under it
-                    layout.Layers.Add(new LayerLayoutEntry { Id = def.Id, X = 0, Y = 0, Width = width, Height = height, Z = def.Z, Visible = true, ImageDisabled = DefaultImageDisabled, BgColorHex = DefaultMainBackgroundColorHex });
+                    // Non-positionable rows fill the layout. The Main Window Background: image on by default, empty path =
+                    // no image, and the background color (BgColorHex) under it. The Scrollbars row: both areas use global.
+                    var fill = new LayerLayoutEntry { Id = def.Id, X = 0, Y = 0, Width = width, Height = height, Z = def.Z, Visible = true };
+                    if (def.Id == MainBackground)
+                    {
+                        fill.ImageDisabled = DefaultImageDisabled;
+                        fill.BgColorHex = DefaultMainBackgroundColorHex;
+                    }
+                    FillScrollbarOverrideStyle(fill);
+                    layout.Layers.Add(fill);
                     continue;
                 }
 
@@ -711,6 +784,15 @@ namespace ArcadeStick.Models
                 layout.Layers.Add(entry);
             }
             return layout;
+        }
+
+        // Does the Scrollbars row fill: "use global" for both areas when missing. The override Width and colors are never
+        // filled (null = not set yet; the page pre-fills them from the Global values). Other entries are left untouched.
+        private static void FillScrollbarOverrideStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id != Scrollbars) return;
+            entry.GamesListScrollUseGlobal ??= true;
+            entry.GameInfoScrollUseGlobal ??= true;
         }
 
         // Fills any missing Search & Buttons style value from defaults. Label values live on the SearchLabel
@@ -1024,6 +1106,9 @@ namespace ArcadeStick.Models
                     entry.ImageDisabled ??= DefaultImageDisabled;
                     if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultMainBackgroundColorHex;
                 }
+
+                // Scrollbars row: an older file has none, so both areas come up as "use global"
+                FillScrollbarOverrideStyle(entry);
 
                 result.Layers.Add(entry);
             }

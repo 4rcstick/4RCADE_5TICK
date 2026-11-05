@@ -528,7 +528,7 @@
 
                         <TextBlock TextWrapping="Wrap" Margin="0,15,0,0"
                                    Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"
-                                   Text="Scrollbars are the vertical scrollbars of the Games List, the Options, Sorting and Theme Builder windows, and the lists and dropdowns. The thumb is the part you drag; the track is the strip behind it. Hover on the track shows above or below the thumb."/>
+                                   Text="Scrollbars are the vertical scrollbars of the Games List, Game Info, the Options, Sorting and Theme Builder windows, and the lists and dropdowns. The Games List and Game Info follow these values unless the Advanced tab's Scrollbars row gives them their own. The thumb is the part you drag; the track is the strip behind it. Hover on the track shows above or below the thumb."/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

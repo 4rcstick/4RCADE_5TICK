@@ -77,6 +77,10 @@ namespace ArcadeStick.Services
         public const string MenuBorderColor = "Global.Menu.BorderColor";
         // The scrollbar's grab area never gets narrower than this; a narrower Scrollbar Width is drawn inside it.
         private const double MinScrollHitWidth = 8;
+
+        // The Scrollbar Width editor range, shared by the Global tab's SCROLLBARS subtab and the Advanced tab's Scrollbars row
+        public const double MinScrollbarWidth = 2;
+        public const double MaxScrollbarWidth = 40;
         // [END SECTION: Resource Keys]
 
         // [SECTION: Apply]
@@ -165,6 +169,58 @@ namespace ArcadeStick.Services
             Application.Current.Resources[key] = value;
         }
         // [END SECTION: Apply]
+
+        // [SECTION: Scoped Scrollbar Override]
+        // The seven scrollbar keys, in the order an override sets them
+        private static readonly string[] ScrollKeys = { ScrollWidth, ScrollHitWidth, ScrollThumb, ScrollThumbHover, ScrollThumbDrag, ScrollTrack, ScrollTrackHover };
+
+        // Does the per-area scrollbar override (themes.md 3.24): with useGlobal, removes the seven Global.Scroll keys from the
+        // scope element's own resources so its scrollbars read the app-level Global values again; otherwise writes the same
+        // keys with the same types (double, frozen brush) there, so every scrollbar inside that element (and nothing outside
+        // it) uses the override. A missing width or a blank / unreadable color uses the Global value currently in effect.
+        public static void ApplyScrollOverride(FrameworkElement scope, ConfigurationSettings s, bool useGlobal, double? width,
+            string? thumb, string? thumbHover, string? thumbDrag, string? track, string? trackHover)
+        {
+            if (scope == null || s == null) return;
+            var resources = scope.Resources;
+
+            if (useGlobal)
+            {
+                foreach (string key in ScrollKeys)
+                {
+                    if (resources.Contains(key)) resources.Remove(key);
+                }
+                return;
+            }
+
+            var d = Defaults.Value;
+            double w = Math.Clamp(width ?? s.ScrollbarWidth, MinScrollbarWidth, MaxScrollbarWidth);
+            SetScopedValue(resources, ScrollWidth, w);
+            SetScopedValue(resources, ScrollHitWidth, Math.Max(w, MinScrollHitWidth));
+            SetScopedBrush(resources, ScrollThumb, thumb, s.ScrollThumbColor, d.ScrollThumbColor);
+            SetScopedBrush(resources, ScrollThumbHover, thumbHover, s.ScrollThumbHoverColor, d.ScrollThumbHoverColor);
+            SetScopedBrush(resources, ScrollThumbDrag, thumbDrag, s.ScrollThumbDragColor, d.ScrollThumbDragColor);
+            SetScopedBrush(resources, ScrollTrack, track, s.ScrollTrackColor, d.ScrollTrackColor);
+            SetScopedBrush(resources, ScrollTrackHover, trackHover, s.ScrollTrackHoverColor, d.ScrollTrackHoverColor);
+        }
+
+        // Does one scoped brush: the override color, else the Global color, else the default; unchanged colors are not replaced
+        private static void SetScopedBrush(ResourceDictionary resources, string key, string? value, string globalHex, string defaultHex)
+        {
+            Color color = ParseColor(value) ?? ParseColor(globalHex) ?? ParseColor(defaultHex) ?? Colors.Gray;
+            if (resources.Contains(key) && resources[key] is SolidColorBrush current && current.Color == color) return;
+            var brush = new SolidColorBrush(color);
+            brush.Freeze();
+            resources[key] = brush;
+        }
+
+        // Does one scoped double, unless the scope already holds an equal value
+        private static void SetScopedValue(ResourceDictionary resources, string key, double value)
+        {
+            if (resources.Contains(key) && Equals(resources[key], value)) return;
+            resources[key] = value;
+        }
+        // [END SECTION: Scoped Scrollbar Override]
 
         // [SECTION: Snapshot, Restore and Defaults]
         // Code defaults: a fresh ConfigurationSettings holds the property initializers, the one source of defaults.

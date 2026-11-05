@@ -38,7 +38,7 @@ namespace ArcadeStick.Views
         private const double MinFontSize = 6, MaxFontSize = 72;
         private const double MinBorderSize = 0, MaxBorderSize = 50;
         private const double MinBorderRadius = 0, MaxBorderRadius = 200;
-        private const double MinScrollWidth = 2, MaxScrollWidth = 40;
+        private const double MinScrollWidth = GlobalThemeResources.MinScrollbarWidth, MaxScrollWidth = GlobalThemeResources.MaxScrollbarWidth;
 
         public GlobalThemesTabControl()
         {

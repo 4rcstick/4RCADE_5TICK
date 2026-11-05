@@ -148,6 +148,9 @@ namespace ArcadeStick.Views
             ThemeInfoAuthor.ValueApplied += value => _settings.Info.Author = value;
             ThemeInfoDescription.ValueApplied += value => _settings.Info.Description = value;
             ThemeInfoThumbnail.ThumbnailChanged += image => _settings.PendingThemeThumbnail = image;
+
+            // Scrollbars row: its two tabs' controls, listed by name
+            BuildScrollbarFieldTable();
         }
 
         // [SECTION: Initialization]
@@ -223,6 +226,10 @@ namespace ArcadeStick.Views
         // (today only the Main Window Background)
         private static bool IsPinnedRow(string unitKey) => IsBackground(unitKey);
 
+        // Does the bottom-to-top rank for the sort: the settings-only Scrollbars row lowest, then the Main Window Background,
+        // then every movable layer, so the list ends with the Main Window Background, then Scrollbars
+        private static int PinnedRank(string id) => LayerRegistry.IsSettingsOnly(id) ? 0 : IsBackground(id) ? 1 : 2;
+
         // The key of a list row: the group's Id when the layer belongs to a group, otherwise the layer's own Id.
         private static string UnitKey(string id)
         {
@@ -247,8 +254,8 @@ namespace ArcadeStick.Views
             return parts;
         }
 
-        // Bottom-to-top order: background always first, then by Z, ties broken by registry order. The parts
-        // of a group always stay together, ordered by the group's lowest Z.
+        // Bottom-to-top order: the pinned rows first (PinnedRank: Scrollbars, then the background), then by Z, ties broken
+        // by registry order. The parts of a group always stay together, ordered by the group's lowest Z.
         private List<LayerLayoutEntry> GetAscendingOrder()
         {
             var registry = LayerRegistry.AllLayers.Select((d, i) => (d.Id, i)).ToDictionary(x => x.Id, x => x.i);
@@ -259,21 +266,24 @@ namespace ArcadeStick.Views
             var unitFirstIndex = layers.GroupBy(e => UnitKey(e.Id)).ToDictionary(g => g.Key, g => g.Min(e => RegistryIndex(e.Id)));
 
             return layers
-                .OrderBy(e => IsBackground(e.Id) ? 0 : 1)
+                .OrderBy(e => PinnedRank(e.Id))
                 .ThenBy(e => unitZ[UnitKey(e.Id)])
                 .ThenBy(e => unitFirstIndex[UnitKey(e.Id)])
                 .ThenBy(e => RegistryIndex(e.Id))
                 .ToList();
         }
 
-        // Rewrites every Z as a unique number from list position (bottom = 0), keeping the current order.
-        // Every part of a group gets the same Z, since the group is one row in the list.
+        // Does the Z renumbering: every Z becomes a unique number from list position (bottom = 0), keeping the current order.
+        // Every part of a group gets the same Z, since the group is one row in the list. The settings-only Scrollbars row
+        // draws nothing and is skipped (its Z stays as stored), so it never shifts the other layers' Z.
         private void NormalizeZ(List<LayerLayoutEntry> ascending)
         {
             int z = -1;
             string? lastKey = null;
             foreach (var entry in ascending)
             {
+                if (LayerRegistry.IsSettingsOnly(entry.Id)) continue;
+
                 string key = UnitKey(entry.Id);
                 if (key != lastKey)
                 {
@@ -736,8 +746,10 @@ namespace ArcadeStick.Views
             if (SingleSelectedLayer is not LayerListItem selected) return;
             if (IsPinnedRow(selected.Id)) return;
 
-            // Rows (a group counts once), top-to-bottom
-            var display = GetAscendingOrder().Select(e => UnitKey(e.Id)).Distinct().Reverse().ToList();
+            // Rows (a group counts once), top-to-bottom, without the settings-only Scrollbars row (it takes no Z, so the
+            // numbering below stays the same as before that row existed)
+            var display = GetAscendingOrder().Select(e => UnitKey(e.Id)).Distinct().Reverse()
+                .Where(key => !LayerRegistry.IsSettingsOnly(key)).ToList();
             int firstPinned = display.FindIndex(IsPinnedRow);
             int lastMovable = (firstPinned < 0 ? display.Count : firstPinned) - 1;
             int index = display.IndexOf(selected.Id);
@@ -754,6 +766,186 @@ namespace ArcadeStick.Views
 
             RebuildLayerList(selected.Id);
         }
+        // [SECTION: Scrollbar Override Fields]
+        // The Scrollbars row's GAMES LIST and GAME INFO tabs (themes.md 3.24). Each tab is one "area": a "Use global scrollbar"
+        // checkbox, then Width and five colors stored on the Scrollbars entry (per resolution). Ticked: the fields are grayed and
+        // show the Global SCROLLBARS values in effect. Unticked: the stored values; any value never stored is pre-filled from
+        // the Global values first. Re-ticking keeps the stored values; only Reset Layer (and Restore Defaults Everything) clears
+        // them. Every edit ends in RaiseGuides, whose LayoutChanged lets MainWindow.ApplyLayout re-apply the scoped keys.
+        // The controls are listed by name in BuildScrollbarFieldTable, so a renamed control is a build error.
+        private sealed record ScrollColorField(ColorPicker.PortableColorPicker Picker, TextBox HexBox,
+            Func<LayerLayoutEntry, string?> Get, Action<LayerLayoutEntry, string> Set, Func<ConfigurationSettings, string> Global);
+
+        private sealed record ScrollArea(CheckBox UseGlobalBox, FrameworkElement Fields, TextBox WidthBox,
+            Func<LayerLayoutEntry, bool?> GetUseGlobal, Action<LayerLayoutEntry, bool> SetUseGlobal,
+            Func<LayerLayoutEntry, double?> GetWidth, Action<LayerLayoutEntry, double> SetWidth, ScrollColorField[] Colors);
+
+        private readonly List<ScrollArea> _scrollAreas = new();
+        private readonly Dictionary<object, ScrollArea> _scrollAreaByControl = new();
+        private readonly Dictionary<object, (ScrollArea Area, ScrollColorField Field)> _scrollColorByControl = new();
+
+        // Does the table of both tabs' controls with the entry fields and the Global value each one mirrors
+        private void BuildScrollbarFieldTable()
+        {
+            AddScrollArea(ChkScrGLUseGlobal, PnlScrGLFields, TxtScrGLWidth,
+                e => e.GamesListScrollUseGlobal, (e, v) => e.GamesListScrollUseGlobal = v,
+                e => e.GamesListScrollWidth, (e, v) => e.GamesListScrollWidth = v,
+                new ScrollColorField(ScrGLThumbColorPicker, TxtScrGLThumbColorHex, e => e.GamesListScrollThumbColorHex, (e, v) => e.GamesListScrollThumbColorHex = v, s => s.ScrollThumbColor),
+                new ScrollColorField(ScrGLThumbHoverColorPicker, TxtScrGLThumbHoverColorHex, e => e.GamesListScrollThumbHoverColorHex, (e, v) => e.GamesListScrollThumbHoverColorHex = v, s => s.ScrollThumbHoverColor),
+                new ScrollColorField(ScrGLThumbDragColorPicker, TxtScrGLThumbDragColorHex, e => e.GamesListScrollThumbDragColorHex, (e, v) => e.GamesListScrollThumbDragColorHex = v, s => s.ScrollThumbDragColor),
+                new ScrollColorField(ScrGLTrackColorPicker, TxtScrGLTrackColorHex, e => e.GamesListScrollTrackColorHex, (e, v) => e.GamesListScrollTrackColorHex = v, s => s.ScrollTrackColor),
+                new ScrollColorField(ScrGLTrackHoverColorPicker, TxtScrGLTrackHoverColorHex, e => e.GamesListScrollTrackHoverColorHex, (e, v) => e.GamesListScrollTrackHoverColorHex = v, s => s.ScrollTrackHoverColor));
+
+            AddScrollArea(ChkScrGIUseGlobal, PnlScrGIFields, TxtScrGIWidth,
+                e => e.GameInfoScrollUseGlobal, (e, v) => e.GameInfoScrollUseGlobal = v,
+                e => e.GameInfoScrollWidth, (e, v) => e.GameInfoScrollWidth = v,
+                new ScrollColorField(ScrGIThumbColorPicker, TxtScrGIThumbColorHex, e => e.GameInfoScrollThumbColorHex, (e, v) => e.GameInfoScrollThumbColorHex = v, s => s.ScrollThumbColor),
+                new ScrollColorField(ScrGIThumbHoverColorPicker, TxtScrGIThumbHoverColorHex, e => e.GameInfoScrollThumbHoverColorHex, (e, v) => e.GameInfoScrollThumbHoverColorHex = v, s => s.ScrollThumbHoverColor),
+                new ScrollColorField(ScrGIThumbDragColorPicker, TxtScrGIThumbDragColorHex, e => e.GameInfoScrollThumbDragColorHex, (e, v) => e.GameInfoScrollThumbDragColorHex = v, s => s.ScrollThumbDragColor),
+                new ScrollColorField(ScrGITrackColorPicker, TxtScrGITrackColorHex, e => e.GameInfoScrollTrackColorHex, (e, v) => e.GameInfoScrollTrackColorHex = v, s => s.ScrollTrackColor),
+                new ScrollColorField(ScrGITrackHoverColorPicker, TxtScrGITrackHoverColorHex, e => e.GameInfoScrollTrackHoverColorHex, (e, v) => e.GameInfoScrollTrackHoverColorHex = v, s => s.ScrollTrackHoverColor));
+        }
+
+        // Does one area's registration: the checkbox and width box map to the area, each picker and hex box to its color field
+        private void AddScrollArea(CheckBox useGlobalBox, FrameworkElement fields, TextBox widthBox,
+            Func<LayerLayoutEntry, bool?> getUseGlobal, Action<LayerLayoutEntry, bool> setUseGlobal,
+            Func<LayerLayoutEntry, double?> getWidth, Action<LayerLayoutEntry, double> setWidth, params ScrollColorField[] colors)
+        {
+            var area = new ScrollArea(useGlobalBox, fields, widthBox, getUseGlobal, setUseGlobal, getWidth, setWidth, colors);
+            _scrollAreas.Add(area);
+            _scrollAreaByControl[useGlobalBox] = area;
+            _scrollAreaByControl[widthBox] = area;
+            foreach (var field in colors)
+            {
+                _scrollColorByControl[field.Picker] = (area, field);
+                _scrollColorByControl[field.HexBox] = (area, field);
+            }
+        }
+
+        // Does the Scrollbars entry lookup: the entry while the Scrollbars row is the single selection, else null
+        private LayerLayoutEntry? GetSelectedScrollbarsEntry() =>
+            SingleSelectedLayer is LayerListItem selected && selected.Id == LayerRegistry.Scrollbars ? GetEntry(LayerRegistry.Scrollbars) : null;
+
+        // Does the editable entry for an area: the Scrollbars entry while that area is not on "use global", else null
+        private LayerLayoutEntry? GetScrollEditEntry(ScrollArea area) =>
+            GetSelectedScrollbarsEntry() is LayerLayoutEntry entry && area.GetUseGlobal(entry) == false ? entry : null;
+
+        // Does the Global color in effect for a field as #AARRGGBB (the stored Global value, or its default when blank or unreadable)
+        private string GetGlobalScrollColorHex(ScrollColorField field)
+        {
+            Color color = GlobalThemeResources.ParseColor(field.Global(_settings))
+                ?? GlobalThemeResources.ParseColor(field.Global(GlobalThemeResources.DefaultSettings)) ?? Colors.Gray;
+            return $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+        }
+
+        // Does the Global width in effect, clamped to the editor range
+        private double GetGlobalScrollWidth() =>
+            Math.Clamp(_settings.ScrollbarWidth, GlobalThemeResources.MinScrollbarWidth, GlobalThemeResources.MaxScrollbarWidth);
+
+        // Fills both tabs from the Scrollbars entry when that row is selected
+        private void LoadScrollbarFields()
+        {
+            if (GetSelectedScrollbarsEntry() is not LayerLayoutEntry entry) return;
+
+            _loading = true;
+            foreach (var area in _scrollAreas) ShowScrollArea(area, entry);
+            _loading = false;
+        }
+
+        // Does one area's display: the checkbox, the gray-out, and the values in effect (Global while ticked, stored otherwise)
+        private void ShowScrollArea(ScrollArea area, LayerLayoutEntry entry)
+        {
+            bool useGlobal = area.GetUseGlobal(entry) ?? true;
+            area.UseGlobalBox.IsChecked = useGlobal;
+            area.Fields.IsEnabled = !useGlobal;
+            area.Fields.Opacity = useGlobal ? 0.5 : 1;
+
+            area.WidthBox.Text = Fmt(useGlobal ? GetGlobalScrollWidth() : area.GetWidth(entry) ?? GetGlobalScrollWidth());
+            foreach (var field in area.Colors)
+            {
+                string? stored = field.Get(entry);
+                bool showStored = !useGlobal && GlobalThemeResources.ParseColor(stored) != null;
+                ShowColor(field.Picker, field.HexBox, showStored ? stored! : GetGlobalScrollColorHex(field));
+            }
+        }
+
+        // Does the "Use global scrollbar" toggle: unticking pre-fills every value never stored from the Global values, then
+        // uses the area's own values; ticking goes back to Global and keeps the stored values
+        private void ChkScrUseGlobal_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || !_scrollAreaByControl.TryGetValue(sender, out var area)) return;
+            if (GetSelectedScrollbarsEntry() is not LayerLayoutEntry entry) return;
+
+            bool useGlobal = area.UseGlobalBox.IsChecked == true;
+            if (!useGlobal)
+            {
+                if (area.GetWidth(entry) == null) area.SetWidth(entry, GetGlobalScrollWidth());
+                foreach (var field in area.Colors)
+                {
+                    if (GlobalThemeResources.ParseColor(field.Get(entry)) == null) field.Set(entry, GetGlobalScrollColorHex(field));
+                }
+            }
+            area.SetUseGlobal(entry, useGlobal);
+
+            _loading = true;
+            ShowScrollArea(area, entry);
+            _loading = false;
+            RaiseGuides();
+        }
+
+        // Stores a picked override color
+        private void ScrColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (!_scrollColorByControl.TryGetValue(sender, out var hit)) return;
+            ApplyPickerColor(hit.Field.Picker, hit.Field.HexBox, GetScrollEditEntry(hit.Area), hit.Field.Set);
+        }
+
+        // Stores a typed override color; invalid input reverts to the stored value
+        private void ScrColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (!_scrollColorByControl.TryGetValue(sender, out var hit)) return;
+            var field = hit.Field;
+            ApplyHexColor(field.Picker, field.HexBox, GetScrollEditEntry(hit.Area), entry => field.Get(entry) ?? GetGlobalScrollColorHex(field), field.Set);
+        }
+
+        // Enter applies the override width
+        private void ScrWidth_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyScrollWidth(sender);
+        }
+
+        // Focus loss applies the override width
+        private void ScrWidth_LostFocus(object sender, RoutedEventArgs e) => ApplyScrollWidth(sender);
+
+        // Does the width edit: 2 to 40, decimals accepted (the Global tab's range); anything else reverts to the stored value
+        private void ApplyScrollWidth(object sender)
+        {
+            if (_loading || !_scrollAreaByControl.TryGetValue(sender, out var area)) return;
+            if (GetScrollEditEntry(area) is not LayerLayoutEntry entry) return;
+
+            if (double.TryParse(area.WidthBox.Text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double width)
+                && double.IsFinite(width) && width >= GlobalThemeResources.MinScrollbarWidth && width <= GlobalThemeResources.MaxScrollbarWidth
+                && width != area.GetWidth(entry))
+            {
+                area.SetWidth(entry, width);
+                RaiseGuides();
+            }
+            area.WidthBox.Text = Fmt(area.GetWidth(entry) ?? GetGlobalScrollWidth());
+        }
+
+        // Does the Scrollbars reset (Reset Layer on that row, Restore Defaults Everything): both areas back to "use global"
+        // with the custom values cleared, from the registry default entry rather than the saved theme
+        private void ResetScrollbarsRowToGlobal()
+        {
+            if (GetEntry(LayerRegistry.Scrollbars) is not LayerLayoutEntry entry) return;
+            var defaults = LayerRegistry.BuildDefaultLayout(_currentLayout.Width, _currentLayout.Height).Layers
+                .FirstOrDefault(l => l.Id == LayerRegistry.Scrollbars);
+            if (defaults != null) entry.CopyStyleFrom(defaults);
+        }
+        // [END SECTION: Scrollbar Override Fields]
+
         // [SECTION: Custom Image Layers]
         // Reads a video's native pixel size by opening it in a MediaPlayer and waiting briefly for it to load
         // (BitmapDecoder can't read video). Returns false if the file can't be opened as video on this PC.
@@ -1003,12 +1195,15 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner, TabScrollGamesList, TabScrollGameInfo };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
             // Main Window Background gets the Image tab (wallpaper file and the Disable flag)
             if (unitKey == LayerRegistry.MainBackground) return new[] { TabMainBgImage };
+
+            // Scrollbars row (settings only): the Games List and Game Info scrollbar overrides
+            if (unitKey == LayerRegistry.Scrollbars) return new[] { TabScrollGamesList, TabScrollGameInfo };
 
             if (unitKey == LayerRegistry.GamesList) return new[] { TabGLFolders, TabGLGameTitles };
 
@@ -1168,6 +1363,9 @@ namespace ArcadeStick.Views
 
             // Marquee image shadow (SHADOW tab): filled when the Marquee layer is selected
             LoadMarqueeShadowFields();
+
+            // Scrollbars row (GAMES LIST and GAME INFO tabs): filled when that row is selected
+            LoadScrollbarFields();
 
             // Marquee no-art banner (BANNER tab): filled when the Marquee layer is selected
             LoadMarqueeBannerFields();
@@ -4502,10 +4700,13 @@ namespace ArcadeStick.Views
             return resolved;
         }
 
-        // Restores one layer to registry defaults for the active resolution, then renumbers Z so the
+        // Restores one layer to the active theme's saved values for the active resolution (GetRestoreLayout), then renumbers Z so the
         // stacking order stays unique.
         private void BtnResetLayer_Click(object sender, RoutedEventArgs e)
         {
+            // The Scrollbars row resets to "use global" with its custom values cleared, not to the saved theme (themes.md 3.24)
+            if (SingleSelectedLayer?.Id == LayerRegistry.Scrollbars) { ResetScrollbarsRowToGlobal(); RebuildLayerList(LayerRegistry.Scrollbars); return; }
+
             // A group resets every one of its parts
             if (SingleSelectedLayer is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition resetGroup)
             {
@@ -4601,6 +4802,10 @@ namespace ArcadeStick.Views
                 DefaultLayerSets.ApplyLayout(entry, defEntry, _currentLayout);
                 if (mode == RestoreDefaultsMode.Everything) DefaultLayerSets.ApplyStyle(entry, defEntry, _settings, imageProblems);
             }
+
+            // The Scrollbars row has no default set entry: Everything puts both areas back to "use global" in code, Layout only
+            // leaves it alone
+            if (mode == RestoreDefaultsMode.Everything) ResetScrollbarsRowToGlobal();
 
             NormalizeZ(GetAscendingOrder());
             RebuildLayerList(selectedId);

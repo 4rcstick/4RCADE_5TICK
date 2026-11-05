@@ -202,6 +202,7 @@ namespace ArcadeStick
         private string? _lastFavoritesStarStyleKey;
         private string? _lastRandomDisplayStyleKey;
         private string? _lastMarqueeBannerStyleKey;
+        private string? _lastScrollbarOverrideKey;
         private string? _lastMainBackgroundKey;
         private string? _lastMainBackgroundColor;
 
@@ -397,6 +398,19 @@ namespace ArcadeStick
         // [END SECTION: Theme Builder Background Grid]
 
         // [SECTION: Layout Application]
+        // Does the two scrollbar overrides: the Games List (GamesListHost, the TreeView's own scrollbar) and Game Info
+        // (PartInfoBody, all four page scrollers together). A missing entry or "use global" removes the scoped keys.
+        private void ApplyScrollbarOverrides(Models.LayerLayoutEntry? e)
+        {
+            var settings = _viewModel.Configuration;
+            Services.GlobalThemeResources.ApplyScrollOverride(GamesListHost, settings, e?.GamesListScrollUseGlobal ?? true, e?.GamesListScrollWidth,
+                e?.GamesListScrollThumbColorHex, e?.GamesListScrollThumbHoverColorHex, e?.GamesListScrollThumbDragColorHex,
+                e?.GamesListScrollTrackColorHex, e?.GamesListScrollTrackHoverColorHex);
+            Services.GlobalThemeResources.ApplyScrollOverride(GameInfoLayer.PartInfoBody, settings, e?.GameInfoScrollUseGlobal ?? true, e?.GameInfoScrollWidth,
+                e?.GameInfoScrollThumbColorHex, e?.GameInfoScrollThumbHoverColorHex, e?.GameInfoScrollThumbDragColorHex,
+                e?.GameInfoScrollTrackColorHex, e?.GameInfoScrollTrackHoverColorHex);
+        }
+
         // Positions every layer on LayoutCanvas from the active resolution's layout (saved entries plus
         // registry defaults for anything missing). Runs at startup and on every ThemeBindingsRefreshed,
         // so Save Adjustments and theme loads reposition live. The window itself sizes to the canvas
@@ -569,6 +583,18 @@ namespace ArcadeStick
             {
                 _lastRandomDisplayStyleKey = randomDisplayStyleKey;
                 _viewModel.RefreshRandomDisplayBindings();
+            }
+
+            // Scrollbar overrides (themes.md 3.24): the Scrollbars row's values go into the Games List host's and the Game Info
+            // body's own resources (same Global.Scroll keys), or are removed so those areas follow the Global values again.
+            // Only when a value changed; nothing else in the app reads these scoped keys.
+            var scrollEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.Scrollbars);
+            string scrollbarOverrideKey = $"{scrollEntry?.GamesListScrollUseGlobal}|{scrollEntry?.GamesListScrollWidth}|{scrollEntry?.GamesListScrollThumbColorHex}|{scrollEntry?.GamesListScrollThumbHoverColorHex}|{scrollEntry?.GamesListScrollThumbDragColorHex}|{scrollEntry?.GamesListScrollTrackColorHex}|{scrollEntry?.GamesListScrollTrackHoverColorHex}"
+                + $"#{scrollEntry?.GameInfoScrollUseGlobal}|{scrollEntry?.GameInfoScrollWidth}|{scrollEntry?.GameInfoScrollThumbColorHex}|{scrollEntry?.GameInfoScrollThumbHoverColorHex}|{scrollEntry?.GameInfoScrollThumbDragColorHex}|{scrollEntry?.GameInfoScrollTrackColorHex}|{scrollEntry?.GameInfoScrollTrackHoverColorHex}";
+            if (scrollbarOverrideKey != _lastScrollbarOverrideKey)
+            {
+                _lastScrollbarOverrideKey = scrollbarOverrideKey;
+                ApplyScrollbarOverrides(scrollEntry);
             }
 
             LayoutCanvas.Width = width;

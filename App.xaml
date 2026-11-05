@@ -103,7 +103,9 @@
              Global.Scroll.HitWidth (the same value, but at least 8, so a thin bar is still easy to grab). Used by
              ArcadeDarkScrollViewer: the Options window tabs, Sorting, the Theme Builder's Basic and Global tabs, and the
              Chrome Palette lists and combo dropdowns; and through ArcadeDarkScrollViewerThemed by the Games List,
-             GameInfoLayerControl and the Advanced tab. App.xaml is the only scrollbar template in the app. -->
+             GameInfoLayerControl and the Advanced tab. App.xaml is the only scrollbar template in the app. The Games List
+             (GamesListHost) and Game Info (PartInfoBody) may override the same keys in their own resources (the Advanced
+             tab's Scrollbars row, GlobalThemeResources.ApplyScrollOverride); everything else reads the app-level values. -->
         <Style x:Key="ArcadeDarkScrollBar" TargetType="{x:Type ScrollBar}">
             <!-- The Windows theme style still applies under this one and sets MinWidth to the system scrollbar width
                  (17), which made any width below 17 draw at 17. -->
