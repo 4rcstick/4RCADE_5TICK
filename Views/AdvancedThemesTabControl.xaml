@@ -16,7 +16,7 @@
         <!-- [SECTION: Layers Help] -->
         <!-- The Layers header's help: the tooltip text (one line per point; edit it only here) and the circled ? glyph's look
              (Global Sub-Text color; the ring and the ? turn the Global Sub-Header color on hover). The tooltip is the default Windows tooltip. -->
-        <sys:String x:Key="LayersHelpText" xml:space="preserve">Right-click a layer to copy its position, size or border, then right-click another layer (or one of several selected layers) to paste. Search &amp; Buttons, Game Info, the Footer and the Main Window Background have no copy or paste.&#10;Ctrl-click or Shift-click to select several layers and move them together with the Move X / Move Y boxes.&#10;Use the arrows beside the list to bring a layer forward or send it backward. Double-click a shape or custom layer to rename it.</sys:String>
+        <sys:String x:Key="LayersHelpText" xml:space="preserve">Right-click a layer to copy its position, size or border, then right-click another layer (or one of several selected layers) to paste. Search &amp; Buttons, Game Info, the Footer and the Main Window Background have no copy or paste.&#10;Ctrl-click or Shift-click to select several layers and move them together with the Move X / Move Y boxes.&#10;Use the arrows beside the list to bring a layer forward or send it backward. Double-click a shape or custom layer to rename it.&#10;A | before a layer's name marks the shape and custom layers, the only layers that can be renamed.</sys:String>
 
         <Style x:Key="LayersHelpGlyphStyle" TargetType="Border">
             <Setter Property="Width" Value="16"/>
@@ -34,6 +34,32 @@
             </Style.Triggers>
         </Style>
         <!-- [END SECTION: Layers Help] -->
+
+        <!-- [SECTION: Layer List Rows] -->
+        <!-- LstLayers rows. The "|" marker (ChromeLayerRenameMarker) shows only on rows that can be renamed (ShowRenameMarker,
+             from LayerRegistry.CanRename); it is display-only and never part of DisplayName. The name keeps the row's
+             Foreground, so the selected-row color still applies. The container style turns on the shared template's separator
+             line above the first pinned row (StartsPinnedBlock). Values come from the row item itself, no ancestor bindings. -->
+        <DataTemplate x:Key="LayerListItemTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="RenameMarker" Text="|" Foreground="{StaticResource ChromeLayerRenameMarker}" Margin="0,0,5,0" Visibility="Collapsed"/>
+                <TextBlock Text="{Binding DisplayName}"/>
+            </StackPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding ShowRenameMarker}" Value="True">
+                    <Setter TargetName="RenameMarker" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <Style x:Key="LayerListItemStyle" TargetType="ListBoxItem" BasedOn="{StaticResource ChromeListBoxItemStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding StartsPinnedBlock}" Value="True">
+                    <Setter Property="Tag" Value="PinnedBlockStart"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <!-- [END SECTION: Layer List Rows] -->
 
         <!-- Theme info view headings: the Global Header font on the shared label style -->
         <Style x:Key="ThemeInfoHeadingStyle" TargetType="TextBlock" BasedOn="{StaticResource GLLabelStyle}">
@@ -201,10 +227,11 @@
                 </StackPanel>
 
                 <!-- Right-click Copy / Paste: the items are built in code each time the menu opens (LstLayers_ContextMenuOpening);
-                     right-clicking a row outside the selection selects it first (the ListBox's own behavior). -->
-                <ListBox x:Name="LstLayers" Grid.Row="1" Grid.Column="0" DisplayMemberPath="DisplayName" SelectionMode="Extended" SelectionChanged="LstLayers_SelectionChanged" MouseDoubleClick="LstLayers_MouseDoubleClick"
+                     right-clicking a row outside the selection selects it first (the ListBox's own behavior). Rows: [SECTION: Layer List Rows]. -->
+                <ListBox x:Name="LstLayers" Grid.Row="1" Grid.Column="0" SelectionMode="Extended" SelectionChanged="LstLayers_SelectionChanged" MouseDoubleClick="LstLayers_MouseDoubleClick"
                          ContextMenuOpening="LstLayers_ContextMenuOpening"
-                         Style="{StaticResource ChromeListBoxStyle}">
+                         Style="{StaticResource ChromeListBoxStyle}"
+                         ItemTemplate="{StaticResource LayerListItemTemplate}" ItemContainerStyle="{StaticResource LayerListItemStyle}">
                     <ListBox.ContextMenu>
                         <ContextMenu Style="{StaticResource BuilderContextMenuStyle}"/>
                     </ListBox.ContextMenu>

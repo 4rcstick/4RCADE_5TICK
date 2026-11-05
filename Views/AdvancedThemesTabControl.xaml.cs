@@ -126,10 +126,18 @@ namespace ArcadeStick.Views
             return new Rect(entry.X, entry.Y, entry.Width + (border * 2), entry.Height + (border * 2));
         }
 
+        // One layer list row. DisplayName is the plain name (also used by the Remove Layer prompt); the rename marker and the
+        // separator are display-only flags read by the list's item template and container style, never part of the name.
         private class LayerListItem
         {
             public string Id { get; init; } = "";
             public string DisplayName { get; init; } = "";
+
+            // True for the rows that can be renamed (LayerRegistry.CanRename): the list shows a "|" before the name
+            public bool ShowRenameMarker { get; init; }
+
+            // True for the first pinned row (IsPinnedRow): the separator line is drawn above it
+            public bool StartsPinnedBlock { get; init; }
         }
 
         public AdvancedThemesTabControl()
@@ -211,6 +219,10 @@ namespace ArcadeStick.Views
 
         private static bool IsBackground(string id) => LayerRegistry.GetDefinition(id)?.IsPositionable == false;
 
+        // Does the pinned row check: true for a list row that stays at the bottom and cannot be moved or passed
+        // (today only the Main Window Background)
+        private static bool IsPinnedRow(string unitKey) => IsBackground(unitKey);
+
         // The key of a list row: the group's Id when the layer belongs to a group, otherwise the layer's own Id.
         private static string UnitKey(string id)
         {
@@ -274,19 +286,29 @@ namespace ArcadeStick.Views
         // [END SECTION: Layout Helpers]
 
         // [SECTION: Layer List]
-        // Shown frontmost-first (top of list = drawn on top). Optionally reselects a layer by Id.
+        // Does the list rebuild: rows frontmost-first (top of list = drawn on top), the rename marker and the separator
+        // flags set per row, then optionally reselects a layer by Id
         private void RebuildLayerList(string? selectId)
         {
             _loading = true;
 
             // One row per list unit (a group counts once). The row's Id is the group's Id for a group,
-            // or the layer's own Id for a single layer.
-            var display = GetAscendingOrder().Select(e => UnitKey(e.Id)).Distinct().Reverse()
-                .Select(key =>
+            // or the layer's own Id for a single layer. The pinned rows come last (GetAscendingOrder puts them first).
+            var keys = GetAscendingOrder().Select(e => UnitKey(e.Id)).Distinct().Reverse().ToList();
+            int firstPinned = keys.FindIndex(IsPinnedRow);
+            var display = keys
+                .Select((key, index) =>
                 {
                     var group = GetGroup(key);
                     string name = group != null ? group.DisplayName : GetLayerDisplayName(key);
-                    return new LayerListItem { Id = key, DisplayName = name };
+                    return new LayerListItem
+                    {
+                        Id = key,
+                        DisplayName = name,
+                        ShowRenameMarker = LayerRegistry.CanRename(key),
+                        // No line when nothing movable sits above the pinned block
+                        StartsPinnedBlock = index == firstPinned && index > 0
+                    };
                 })
                 .ToList();
             LstLayers.ItemsSource = display;
@@ -658,7 +680,7 @@ namespace ArcadeStick.Views
             if (source is not ListBoxItem row) return;
 
             if (row.DataContext is not LayerListItem item || !ReferenceEquals(item, SingleSelectedLayer)) return;
-            if (!LayerRegistry.IsBoxId(item.Id)) return;
+            if (!LayerRegistry.CanRename(item.Id)) return;
 
             RenameSelectedLayer();
         }
@@ -667,7 +689,7 @@ namespace ArcadeStick.Views
         // resolution (empty clears the name everywhere, back to the registry name)
         private void RenameSelectedLayer()
         {
-            if (SingleSelectedLayer is not LayerListItem selected || !LayerRegistry.IsBoxId(selected.Id)) return;
+            if (SingleSelectedLayer is not LayerListItem selected || !LayerRegistry.CanRename(selected.Id)) return;
             if (GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
 
             bool isCustom = LayerRegistry.IsCustomId(selected.Id);
@@ -707,18 +729,20 @@ namespace ArcadeStick.Views
         private void BtnLayerUp_Click(object sender, RoutedEventArgs e) => MoveSelectedLayer(-1);
         private void BtnLayerDown_Click(object sender, RoutedEventArgs e) => MoveSelectedLayer(1);
 
-        // Swaps the selected layer with its neighbor in the stacking order. The background stays pinned
-        // at the bottom and can't be moved or passed.
+        // Does the move: swaps the selected layer with its neighbor in the stacking order. The pinned rows (IsPinnedRow)
+        // stay at the bottom and can't be moved or passed: the lowest target is the row before the first pinned row.
         private void MoveSelectedLayer(int direction)
         {
             if (SingleSelectedLayer is not LayerListItem selected) return;
-            if (IsBackground(selected.Id)) return;
+            if (IsPinnedRow(selected.Id)) return;
 
             // Rows (a group counts once), top-to-bottom
             var display = GetAscendingOrder().Select(e => UnitKey(e.Id)).Distinct().Reverse().ToList();
+            int firstPinned = display.FindIndex(IsPinnedRow);
+            int lastMovable = (firstPinned < 0 ? display.Count : firstPinned) - 1;
             int index = display.IndexOf(selected.Id);
             int target = index + direction;
-            if (index < 0 || target < 0 || target > display.Count - 2) return;
+            if (index < 0 || target < 0 || target > lastMovable) return;
 
             (display[index], display[target]) = (display[target], display[index]);
 
@@ -1208,7 +1232,7 @@ namespace ArcadeStick.Views
             TxtLayerName.Text = GetLayerDisplayName(entry.Id);
             BtnRemoveLayer.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
             // Rename: shape layers and custom layers only
-            BtnRenameLayer.Visibility = LayerRegistry.IsBoxId(entry.Id) ? Visibility.Visible : Visibility.Collapsed;
+            BtnRenameLayer.Visibility = LayerRegistry.CanRename(entry.Id) ? Visibility.Visible : Visibility.Collapsed;
 
             PnlRectFields.Visibility = positionable ? Visibility.Visible : Visibility.Collapsed;
             bool isShape = LayerRegistry.IsBoxId(entry.Id);

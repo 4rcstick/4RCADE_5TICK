@@ -489,6 +489,10 @@ namespace ArcadeStick.Models
         // custom layers. They share one renderer, one tab set and the visibility dropdown.
         public static bool IsBoxId(string id) => IsShapeId(id) || IsCustomId(id);
 
+        // Does the rename rule check: true for the layers the user can rename (the box layers). The Rename button, the
+        // double-click rename and the layer list's rename marker all read this, so they cannot drift apart.
+        public static bool CanRename(string id) => IsBoxId(id);
+
         // Where a newly added custom layer starts (the layer then resizes itself when a file is chosen)
         public const double NewLayerX = 20;
         public const double NewLayerY = 20;

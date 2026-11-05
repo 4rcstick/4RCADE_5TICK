@@ -36,6 +36,24 @@ This is a solo-developer project, converted from a ~1600-line PowerShell prototy
 - Confirm scope before non-trivial changes, one logical change at a time, and no unrelated fixes bundled into an edit pass. Report in this form after a pass: files changed, anything that did not match the instructions, anything changed beyond them, and the test checklist.
 - Grammar: "MAME®" is capitalized with the registered trademark symbol in user-facing text. Literal filenames stay lowercase in prose: `roms`, `mame.ini`.
 
+## Boundaries and Privacy (read first)
+
+The user keeps personal windows open (a browser, chat apps) while Claude Code works. Nothing in this project may read, capture or type into anything outside the launcher.
+
+### Stay inside the project folder
+- Work only inside the project folder. Never look in a parent folder, a sibling folder or anywhere else on the machine unless the user names that folder and asks.
+- **If an expected file is missing, stop and ask.** Say which file, where you looked, and wait. Do not search other locations, and do not use an older copy found elsewhere (a copy in a parent folder, an old backup, a previous version) in its place, even if it looks identical.
+- If a tool refuses a path outside the project (the settings block reads and writes there), do not work around it with another command or a script. Tell the user which folder is needed and let them add it.
+
+### Scripts that capture the screen or send input
+This covers any script, in any language, that takes screenshots, sends clicks or keystrokes, or drives another window (typically a UI test script).
+- **Tell the user first.** Before running one, say what it will capture or send and which window it targets, and wait for the go-ahead. The user closes personal windows before approving. Never start one while the user is away or after a handoff that did not mention it.
+- **Launcher window only.** A capture is of the launcher's own window, never the full screen or a screen region. Input goes to the launcher's window, never to whichever window is on top.
+- **Check before every action.** Confirm the launcher process is running and its window is in front before each capture, click or keystroke. If either check fails, abort at once: capture nothing, send nothing, and report it. Never fall through to the next step.
+- **Delete what you captured.** Save screenshots only to a temp folder inside the project, view only the ones you need, and delete them when the test ends. Never commit them.
+- Do not use computer use or any browser tool to look at the user's other windows. The built-in browser pane may be used for tasks the user asks for.
+- Python runs always prompt the user (an ask rule in `.claude/settings.local.json`). That prompt is how the user gets a chance to close personal windows, so never try to avoid it by launching Python another way (a full path, `py`, a different shell or a wrapper).
+
 ## Architecture in Brief
 
 Settings and themes
