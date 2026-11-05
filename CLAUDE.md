@@ -43,7 +43,8 @@ The user keeps personal windows open (a browser, chat apps) while Claude Code wo
 ### Stay inside the project folder
 - Work only inside the project folder. Never look in a parent folder, a sibling folder or anywhere else on the machine unless the user names that folder and asks.
 - **If an expected file is missing, stop and ask.** Say which file, where you looked, and wait. Do not search other locations, and do not use an older copy found elsewhere (a copy in a parent folder, an old backup, a previous version) in its place, even if it looks identical.
-- If a tool refuses a path outside the project (the settings block reads and writes there), do not work around it with another command or a script. Tell the user which folder is needed and let them add it.
+- If a tool refuses a path outside the project (the settings block the file tools there, but not shell commands), do not work around it with another command or a script. Tell the user which folder is needed and let them add it.
+- Those settings do not fence shell commands, so the rule is yours to keep: never run a shell command (ls, grep, rm, Remove-Item, mv, cp and the rest) that reads, lists, moves, copies or deletes anything outside the project folder unless the user names that path in the request.
 
 ### Scripts that capture the screen or send input
 This covers any script, in any language, that takes screenshots, sends clicks or keystrokes, or drives another window (typically a UI test script).
