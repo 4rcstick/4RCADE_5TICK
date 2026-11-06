@@ -2636,6 +2636,16 @@
                         </StackPanel>
                     </StackPanel>
                     <local:ThemeDescriptionControl x:Name="ThemeInfoDescription"/>
+
+                    <!-- Show Theme In: where the theme is offered (ThemeInfo.ShowIn). Its height counts in ThemeInfoLayout_SizeChanged. -->
+                    <StackPanel x:Name="PnlThemeInfoShowIn" SizeChanged="ThemeInfoLayout_SizeChanged">
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,8">
+                            <TextBlock Text="Show Theme In:" Style="{StaticResource ThemeInfoHeadingStyle}"/>
+                        </StackPanel>
+                        <ComboBox x:Name="CboThemeShowIn" Width="220" Height="25" HorizontalAlignment="Left"
+                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboThemeShowIn_SelectionChanged"/>
+                    </StackPanel>
+
                     <local:ThemeModifiedControl x:Name="ThemeInfoModified" Margin="0,10,0,0"/>
                 </StackPanel>
             </ScrollViewer>

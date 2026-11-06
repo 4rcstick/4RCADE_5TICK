@@ -3506,21 +3506,30 @@ namespace ArcadeStick
                 soundItem.Icon = config.PreviewSoundEnabled ? CreateCheckIcon() : null;
             }
 
-            // Themes: every .zip in the Themes folder, check mark on the active one
+            // Themes: every .zip in the Themes folder, check mark on the active one. A theme whose saved Show Theme In value
+            // (read from its zip by ThemeShowInReader, so only Save Changes counts) leaves it out of the hamburger menu is
+            // skipped, except the active theme, which is always listed. With no active theme nothing is filtered, so
+            // something can always be picked. The Theme Builder's Load Theme combo is never filtered.
             if (menu.Items.OfType<MenuItem>().FirstOrDefault(mi => mi.Tag as string == "ThemesMenu") is MenuItem themesMenu)
             {
                 themesMenu.Items.Clear();
 
                 string themeDirectory = System.IO.Path.Combine(config.GetArcadeStickFilesPath(), "Themes");
-                var themeNames = Directory.Exists(themeDirectory)
+                var themeFiles = Directory.Exists(themeDirectory)
                     ? Directory.GetFiles(themeDirectory, "*.zip")
-                        .Select(f => System.IO.Path.GetFileNameWithoutExtension(f))
-                        .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                        .Select(f => (Path: f, Name: System.IO.Path.GetFileNameWithoutExtension(f)))
+                        .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
                         .ToList()
-                    : new List<string>();
+                    : new List<(string Path, string Name)>();
 
-                foreach (var themeName in themeNames)
+                bool filterByShowIn = !string.IsNullOrEmpty(config.ActiveThemeName);
+
+                foreach (var (themePath, themeName) in themeFiles)
                 {
+                    bool isActive = string.Equals(themeName, config.ActiveThemeName, StringComparison.OrdinalIgnoreCase);
+                    if (filterByShowIn && !isActive
+                        && !Models.ThemeShowIn.ShowsInHamburgerMenu(Services.ThemeShowInReader.Read(themePath))) continue;
+
                     var item = new MenuItem { Header = themeName, Tag = themeName };
                     if (string.Equals(themeName, config.ActiveThemeName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -3530,7 +3539,7 @@ namespace ArcadeStick
                     themesMenu.Items.Add(item);
                 }
 
-                themesMenu.IsEnabled = themeNames.Count > 0;
+                themesMenu.IsEnabled = themesMenu.Items.Count > 0; // the filtered count
             }
 
             // Layout size: every size saved in the active theme's zip, hidden when there are fewer than two

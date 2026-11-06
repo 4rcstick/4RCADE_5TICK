@@ -1648,6 +1648,7 @@ namespace ArcadeStick.ViewModels
             var themeInfo = themeData.Info ?? new ThemeInfo();
             themeInfo.Author ??= "";
             themeInfo.Description ??= "";
+            themeInfo.ShowIn = ThemeShowIn.Normalize(themeInfo.ShowIn);
             themeInfo.ThumbnailPath = RewriteAssetPath(themeInfo.ThumbnailPath) ?? "";
             if (!File.Exists(ThemeThumbnailStore.ResolvePath(Configuration, themeInfo.ThumbnailPath)))
             {

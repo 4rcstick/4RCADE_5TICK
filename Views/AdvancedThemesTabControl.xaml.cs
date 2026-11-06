@@ -1283,7 +1283,7 @@ namespace ArcadeStick.Views
             BtnThemeInfo.FontWeight = show ? FontWeights.Bold : FontWeights.Normal;
         }
 
-        // Fills the four display controls from the live info block and any pending capture. Also closes an open edit box.
+        // Fills the four display controls and the Show Theme In combo from the live info block and any pending capture. Also closes an open edit box.
         public void RefreshThemeInfo()
         {
             if (_settings.PendingThemeThumbnail != null) ThemeInfoThumbnail.ShowImage(_settings.PendingThemeThumbnail);
@@ -1292,6 +1292,28 @@ namespace ArcadeStick.Views
             ThemeInfoAuthor.ShowValue(_settings.Info.Author);
             ThemeInfoDescription.ShowValue(_settings.Info.Description);
             ThemeInfoModified.ShowValue(_settings.Info.ModifiedUtc);
+
+            // Show Theme In: filled once from the table, then selected without writing back (restoring the caller's guard)
+            bool wasLoading = _loading;
+            _loading = true;
+            if (CboThemeShowIn.Items.Count == 0)
+            {
+                foreach (var choice in ThemeShowInChoices) CboThemeShowIn.Items.Add(choice.Label);
+            }
+            string showIn = ThemeShowIn.Normalize(_settings.Info.ShowIn);
+            int index = Array.FindIndex(ThemeShowInChoices, c => c.Value == showIn);
+            CboThemeShowIn.SelectedIndex = index >= 0 ? index : 0;
+            _loading = wasLoading;
+        }
+
+        // Does the Show Theme In edit: memory only, like the author and description (Save Adjustments / Save Changes write it)
+        private void CboThemeShowIn_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading) return;
+            int index = CboThemeShowIn.SelectedIndex;
+            if (index < 0 || index >= ThemeShowInChoices.Length) return;
+
+            _settings.Info.ShowIn = ThemeShowInChoices[index].Value;
         }
 
         // Does the discard of unapplied text in the author and description boxes
@@ -1304,7 +1326,9 @@ namespace ArcadeStick.Views
         // Gives the description whatever height the other rows leave in the view, never less than its minimum
         private void ThemeInfoLayout_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            double rest = PnlThemeInfoTop.ActualHeight + ThemeInfoModified.ActualHeight + ThemeInfoModified.Margin.Top;
+            double rest = PnlThemeInfoTop.ActualHeight
+                + PnlThemeInfoShowIn.ActualHeight + PnlThemeInfoShowIn.Margin.Top + PnlThemeInfoShowIn.Margin.Bottom
+                + ThemeInfoModified.ActualHeight + ThemeInfoModified.Margin.Top;
             ThemeInfoDescription.Height = Math.Max(ThemeInfoDescriptionMinHeight, PnlThemeInfo.ActualHeight - rest);
         }
 
@@ -1746,6 +1770,15 @@ namespace ArcadeStick.Views
             (LayerRegistry.VisibilityGameSelected, "Only when a game is selected"),
             (LayerRegistry.VisibilityNoGameSelected, "Only when no game is selected"),
             (LayerRegistry.VisibilityNever, "Never (hidden)")
+        };
+
+        // Show Theme In choices (stored value, combo label), in combo order. The Theme Info view's combo is filled from this.
+        private static readonly (string Value, string Label)[] ThemeShowInChoices =
+        {
+            (ThemeShowIn.Both, "Both"),
+            (ThemeShowIn.BrowserOnly, "Theme Browser only"),
+            (ThemeShowIn.MenuOnly, "Hamburger menu only"),
+            (ThemeShowIn.Neither, "Neither")
         };
 
         private LayerLayoutEntry? GetSelectedShapeEntry()
