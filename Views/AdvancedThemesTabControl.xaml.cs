@@ -1243,12 +1243,11 @@ namespace ArcadeStick.Views
         // own tab when Position is hidden) only when this changes, not on every committed edit (edits reload the fields too).
         private string? _tabsUnitKey;
 
-        // Shows the selected layer's tabs, names the Position tab ("POSITION" on group pages, "POSITION & SIZE" on single
-        // layers) and, when the layer changed, selects its first visible tab
+        // Shows the selected layer's tabs (the Position & Size tab on every positionable layer) and, when the layer
+        // changed, selects its first visible tab
         private void ApplyLayerTabs(string? unitKey)
         {
             TabPosition.Visibility = unitKey != null && IsBackground(unitKey) ? Visibility.Collapsed : Visibility.Visible;
-            TabPosition.Header = unitKey != null && GetGroup(unitKey) != null ? "POSITION" : "POSITION & SIZE";
 
             var wanted = GetLayerTabs(unitKey);
             foreach (var tab in AllLayerTabs)
@@ -1520,14 +1519,21 @@ namespace ArcadeStick.Views
             RaiseGuides();
         }
 
-        // Builds one section per part: X / Y / Width / Height boxes (with a ratio lock between Width and Height when
-        // the group allows it) and a Hide checkbox
+        // Builds one section per part: a layout-rounded heading row (part name with its Hide checkbox 12px after it),
+        // then X / Y / Width / Height boxes on one row with labels centered underneath (a ratio lock between Width and
+        // Height when the group allows it)
         private void BuildGroupParts(LayerGroupDefinition group)
         {
             PnlGroupParts.Children.Clear();
             _partControls.Clear();
 
             var fieldStyle = (Style)FindResource("GLTextBoxStyle");
+            var labelStyle = (Style)FindResource("GLLabelStyle");
+
+            // Gap columns between the four box columns. Groups with a ratio lock use the single-layer row's spacing
+            // (PnlRectFields: 12, 12, then the 36px lock column); the others double only the Y-to-Width gap (6, 12, 6).
+            double[] gaps = group.AllowRatioLock ? new double[] { 12, 12, 36 } : new double[] { 6, 12, 6 };
+            const int lockColumn = 5;
 
             TextBox MakeBox(string partId, int column, Grid host)
             {
@@ -1535,13 +1541,12 @@ namespace ArcadeStick.Views
                 {
                     Tag = partId,
                     HorizontalContentAlignment = HorizontalAlignment.Center,
-                    Style = fieldStyle,
-                    Margin = new Thickness(column == 0 ? 0 : 6, 0, 0, 0)
+                    Style = fieldStyle
                 };
                 box.GotFocus += PartField_GotFocus;
                 box.LostFocus += PartField_LostFocus;
                 box.KeyDown += PartField_KeyDown;
-                Grid.SetRow(box, 1);
+                Grid.SetRow(box, 0);
                 Grid.SetColumn(box, column);
                 host.Children.Add(box);
                 return box;
@@ -1551,41 +1556,66 @@ namespace ArcadeStick.Views
             {
                 string partName = LayerRegistry.GetDefinition(partId)?.DisplayName ?? partId;
 
-                var heading = new TextBlock { Text = partName, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 4, 0, 4) };
+                // Heading row: the part name, then its Hide checkbox 12px after the text, both centered vertically.
+                // UseLayoutRounding puts the row and everything in it (heading, checkbox, its square and "Hide") on whole
+                // pixels relative to the parts panel. Without it each part starts at a different fractional Y (the
+                // sections are not whole pixels tall), and the snapped square and the pixel-snapped text baselines each
+                // rounded their own way, so the square and "Hide" sat a pixel higher or lower on some rows than others.
+                var headerRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 4), UseLayoutRounding = true };
+                var heading = new TextBlock { Text = partName, FontWeight = FontWeights.Bold, VerticalAlignment = VerticalAlignment.Center };
                 heading.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontHeaderColor);
                 heading.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontHeaderSize);
-                PnlGroupParts.Children.Add(heading);
+                headerRow.Children.Add(heading);
 
-                // Columns: X, Y, Width, [lock], Height. The narrow lock column is only added when the group allows it.
-                var host = new Grid { Margin = new Thickness(0, 0, 0, 4) };
-                for (int i = 0; i < 3; i++) host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                if (group.AllowRatioLock) host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(32) });
-                host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                int heightColumn = group.AllowRatioLock ? 4 : 3;
+                // GLCheckBoxStyle: palette box, label in the themed Standard font color and size
+                var hide = new CheckBox
+                {
+                    Content = "Hide",
+                    Tag = partId,
+                    Margin = new Thickness(12, 0, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Style = (Style)FindResource("GLCheckBoxStyle")
+                };
+                hide.Click += PartHide_Click;
+                headerRow.Children.Add(hide);
+                PnlGroupParts.Children.Add(headerRow);
 
-                string[] labels = { "X:", "Y:", "Width:", "Height:" };
-                int[] labelColumns = { 0, 1, 2, heightColumn };
+                // Columns: X, gap, Y, gap, Width, gap or lock, Height. Four equal star columns for the boxes (no minimum
+                // width). The 14px bottom margin plus the next heading's 4px keeps 18px between sections.
+                var host = new Grid { Margin = new Thickness(0, 0, 0, 14) };
                 for (int i = 0; i < 4; i++)
                 {
-                    var label = new TextBlock { Text = labels[i], Margin = new Thickness(i == 0 ? 0 : 6, 0, 0, 3) };
-                    label.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontSubHeaderColor);
-                    label.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontSubHeaderSize);
-                    Grid.SetRow(label, 0);
-                    Grid.SetColumn(label, labelColumns[i]);
+                    host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    if (i < 3) host.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(gaps[i]) });
+                }
+                host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+                string[] labels = { "X", "Y", "Width", "Height" };
+                for (int i = 0; i < 4; i++)
+                {
+                    var label = new TextBlock
+                    {
+                        Text = labels[i],
+                        Style = labelStyle,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Margin = new Thickness(0, 3, 0, 0)
+                    };
+                    Grid.SetRow(label, 1);
+                    Grid.SetColumn(label, i * 2);
                     host.Children.Add(label);
                 }
 
                 var controls = new PartControls
                 {
                     X = MakeBox(partId, 0, host),
-                    Y = MakeBox(partId, 1, host),
-                    Width = MakeBox(partId, 2, host),
-                    Height = MakeBox(partId, heightColumn, host)
+                    Y = MakeBox(partId, 2, host),
+                    Width = MakeBox(partId, 4, host),
+                    Height = MakeBox(partId, 6, host),
+                    Hide = hide
                 };
 
-                // Ratio lock: same glyph toggle and behavior as BtnRatioLock, one per part
+                // Ratio lock: same glyph toggle and behavior as BtnRatioLock, one per part, centered in its 36px column
                 if (group.AllowRatioLock)
                 {
                     var ratioLock = new System.Windows.Controls.Primitives.ToggleButton
@@ -1593,7 +1623,6 @@ namespace ArcadeStick.Views
                         Tag = partId,
                         Width = 26,
                         Height = 26,
-                        Margin = new Thickness(6, 0, 0, 0),
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         ToolTip = "Lock aspect ratio",
@@ -1601,20 +1630,14 @@ namespace ArcadeStick.Views
                         IsChecked = _partRatioLocks.GetValueOrDefault(partId)
                     };
                     ratioLock.Click += PartRatioLock_Click;
-                    Grid.SetRow(ratioLock, 1);
-                    Grid.SetColumn(ratioLock, 3);
+                    Grid.SetRow(ratioLock, 0);
+                    Grid.SetColumn(ratioLock, lockColumn);
                     host.Children.Add(ratioLock);
                     controls.RatioLock = ratioLock;
                 }
 
-                // GLCheckBoxStyle: palette box, label in the themed Standard font color and size
-                var hide = new CheckBox { Content = "Hide", Tag = partId, Margin = new Thickness(0, 6, 0, 14), Style = (Style)FindResource("GLCheckBoxStyle") };
-                hide.Click += PartHide_Click;
-                controls.Hide = hide;
-
                 _partControls[partId] = controls;
                 PnlGroupParts.Children.Add(host);
-                PnlGroupParts.Children.Add(hide);
             }
         }
 
