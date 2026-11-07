@@ -1199,7 +1199,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoBackground, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner, TabScrollGamesList, TabScrollGameInfo };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner, TabScrollGamesList, TabScrollGameInfo };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -1222,9 +1222,9 @@ namespace ArcadeStick.Views
             // (mapped to the RandomGameDisplay entry by GetSelectedBorderEntry)
             if (unitKey == LayerRegistry.RandomGameGroup) return new[] { TabRGText, TabRGBackground, TabShapeBorder };
 
-            // Marquee gets the Logo tab (the logo shown when no game is selected), the shared image shadow and the
-            // no-art title card's Banner tab
-            if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo, TabMarqueeShadow, TabMarqueeBanner };
+            // Marquee gets the SPLASH LOGO tab (the logo shown when no game is selected), the no-art title card's
+            // TEXT MARQUEE tab and the shared image SHADOW tab (shown in XAML declaration order, which matches this list)
+            if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo, TabMarqueeBanner, TabMarqueeShadow };
 
             // Shape Layers 01 to 04 share one tab set
             if (unitKey != null && LayerRegistry.IsBoxId(unitKey)) return new[] { TabShapeBackground, TabShapeBorder };
@@ -1232,8 +1232,8 @@ namespace ArcadeStick.Views
             // Splash Image: the splash file, then the shared Border tab
             if (unitKey == LayerRegistry.SplashImage) return new[] { TabSplashImage, TabShapeBorder };
 
-            // Video Preview: the shared Border tab, the letterbox background color and the fallback image
-            if (unitKey == LayerRegistry.VideoPreview) return new[] { TabShapeBorder, TabVideoBackground, TabVideoFallback };
+            // Video Preview: the fallback image with the letterbox background color, then the shared Border tab
+            if (unitKey == LayerRegistry.VideoPreview) return new[] { TabVideoFallback, TabShapeBorder };
 
             // Every other layer (custom image layers included) shows Position only for now.
             return Array.Empty<TabItem>();
@@ -1997,7 +1997,7 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: Splash Image and Video Preview Files]
-        // Splash Image's Image tab and Video Preview's Background and Fallback Image tabs. Browse stores the file in
+        // Splash Image's Image tab and Video Preview's Fallback Image tab (file and background color). Browse stores the file in
         // the layer entry's ImagePath (relative to the app folder when inside it); a cancelled dialog changes nothing.
         // Clear empties it: the splash then shows nothing, the fallback goes back to no_preview.png. The main window picks both up through ApplyLayout's
         // _lastSplashPath / _lastVideoFallbackPath keys; the background color is pushed on every ApplyLayout.
@@ -3281,7 +3281,7 @@ namespace ArcadeStick.Views
         // [SECTION: Random Game Display Styling Fields]
         // Shown while the Random Game Display group is selected. The text style shared by both states (and the file)
         // lives on the RandomGameDisplay entry; each state's max text size, background color and border on its own
-        // part, the latter two picked with the State combo on the Background and Border tabs. Colors, checkboxes and
+        // part, the latter two picked with the State combo on the Content and Border tabs. Colors, checkboxes and
         // combos apply immediately; the message and number fields apply on Enter or focus loss, and invalid numbers revert.
         private bool IsRandomDisplaySelected => SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.RandomGameGroup;
         private LayerLayoutEntry? RGEntry => IsRandomDisplaySelected ? GetEntry(LayerRegistry.RandomGameDisplay) : null;
@@ -3296,7 +3296,7 @@ namespace ArcadeStick.Views
             (LayerRegistry.RandomGameDisplaySplash, "When on the splash page")
         };
 
-        // Fills the Text and Background tabs from the two parts' entries, and both State combos
+        // Fills the Text and Content tabs from the two parts' entries, and both State combos
         private void LoadRandomDisplayStyleFields()
         {
             var stateVisibility = IsRandomDisplaySelected ? Visibility.Visible : Visibility.Collapsed;
@@ -3394,7 +3394,7 @@ namespace ArcadeStick.Views
             ChkRandomPreview.IsChecked = false;
         }
 
-        // Switches which state the Border tab and the Background tab's color row edit (both combos stay in step)
+        // Switches which state the Border tab and the Content tab's color row edit (both combos stay in step)
         private void CboRGState_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading || _settings == null || sender is not ComboBox combo) return;
@@ -3897,7 +3897,7 @@ namespace ArcadeStick.Views
         // One block's storage: the entry it lives on, whether it uses the SectionHeader* fields, and its defaults.
         // SelectUnit is the list row that shows the block's tab; ShadowOnly blocks have no size or color controls.
         // DefaultAlign set = the block has a GI{Block}Align combo (Left / Center / Right, stored in Text* TextAlign).
-        // HasShadowTarget = the block has a GI{Block}ShadowTarget combo (Both / Logo only / Marquees only, ShadowTarget).
+        // HasShadowTarget = the block has a GI{Block}ShadowTarget combo (Both / Splash logo only / Marquees only, ShadowTarget).
         // DefaultRightMargin set = the block has a GI{Block}RightMargin box (text to scrollbar gap, stored in Text* TextRightMargin).
         private sealed record GIBlockDef(string EntryId, bool UsesSectionHeader, bool HasFont, string DefaultFamily, bool DefaultBold,
             int DefaultSize, int MinSize, int MaxSize, bool DefaultShadowEnabled, string DefaultShadowColorHex, int DefaultShadowBlur, int DefaultShadowDepth)
@@ -3913,7 +3913,7 @@ namespace ArcadeStick.Views
         private static readonly (string Value, string Label)[] ShadowTargetChoices =
         {
             (LayerRegistry.ShadowTargetBoth, "Both"),
-            (LayerRegistry.ShadowTargetLogo, "Logo only"),
+            (LayerRegistry.ShadowTargetLogo, "Splash logo only"),
             (LayerRegistry.ShadowTargetMarquees, "Marquees only")
         };
 
