@@ -306,34 +306,52 @@
                 <TabControl Grid.Row="1" x:Name="TabsLayer" Style="{StaticResource ThemedTabControlStyle}" Background="Transparent">
 
                     <!-- [SECTION: Position Tab] -->
+                    <!-- Header: "POSITION & SIZE" on single layers, "POSITION" on group pages (set in ApplyLayerTabs). -->
                     <TabItem x:Name="TabPosition" Header="POSITION">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
 
-                                <!-- X / Y on one row, Width / Height on the next. The lock toggle sits between Width and Height;
-                                     when on, editing one of them resizes the other to keep the ratio (not saved). -->
-                                <Grid x:Name="PnlRectFields" HorizontalAlignment="Left" Margin="0,0,0,12">
+                                <!-- Visibility slot, above the position / size row: Hide this layer on single layers that can be
+                                     hidden, or the Visibility dropdown on shape and custom layers (at most one shows; neither on
+                                     group pages or the Games List). -->
+                                <CheckBox x:Name="ChkLayerHidden" Content="Hide this layer" Click="ChkLayerHidden_Click" HorizontalAlignment="Left"
+                                          Style="{StaticResource GLCheckBoxStyle}" Margin="0,0,0,12"/>
+
+                                <!-- Visibility mode: replaces the Hide checkbox on Shape Layers. Items are filled from code-behind. -->
+                                <StackPanel x:Name="PnlVisibilityMode" Margin="0,0,0,12" Visibility="Collapsed">
+                                    <TextBlock Text="Visibility:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <ComboBox x:Name="CboVisibilityMode" Width="220" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboVisibilityMode_SelectionChanged"/>
+                                </StackPanel>
+
+                                <!-- X / Y / Width / Height on one row filling the tab's width: four equal star columns (boxes
+                                     stretch, 50px minimum = 5 characters), fixed 12px gaps, labels centered underneath with no
+                                     colons. The lock toggle has its own fixed 36px column between Width and Height, centered on
+                                     the boxes; when on, editing one of them resizes the other to keep the ratio (not saved). -->
+                                <Grid x:Name="PnlRectFields" Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="*" MinWidth="50"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*" MinWidth="50"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*" MinWidth="50"/>
                                         <ColumnDefinition Width="36"/>
-                                        <ColumnDefinition Width="90"/>
+                                        <ColumnDefinition Width="*" MinWidth="50"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="X:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Y:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                    <TextBox Grid.Row="1" Grid.Column="0" x:Name="TxtLayerX" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
-                                    <TextBox Grid.Row="1" Grid.Column="2" x:Name="TxtLayerY" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Width:" Style="{StaticResource GLLabelStyle}"/>
-                                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Height:" Style="{StaticResource GLLabelStyle}"/>
-                                    <TextBox Grid.Row="3" Grid.Column="0" x:Name="TxtLayerWidth" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
-                                    <ToggleButton Grid.Row="3" Grid.Column="1" x:Name="BtnRatioLock" Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    <TextBox Grid.Row="0" Grid.Column="0" x:Name="TxtLayerX" MinWidth="50" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
+                                    <TextBox Grid.Row="0" Grid.Column="2" x:Name="TxtLayerY" MinWidth="50" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
+                                    <TextBox Grid.Row="0" Grid.Column="4" x:Name="TxtLayerWidth" MinWidth="50" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
+                                    <ToggleButton Grid.Row="0" Grid.Column="5" x:Name="BtnRatioLock" Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                   Style="{StaticResource GlyphToggleStyle}" ToolTip="Lock aspect ratio"/>
-                                    <TextBox Grid.Row="3" Grid.Column="2" x:Name="TxtLayerHeight" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
+                                    <TextBox Grid.Row="0" Grid.Column="6" x:Name="TxtLayerHeight" MinWidth="50" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Style="{StaticResource GLTextBoxStyle}" LostFocus="LayerField_LostFocus" KeyDown="LayerField_KeyDown"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="X" HorizontalAlignment="Center" Style="{StaticResource GLLabelStyle}" Margin="0,3,0,0"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Y" HorizontalAlignment="Center" Style="{StaticResource GLLabelStyle}" Margin="0,3,0,0"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="4" Text="Width" HorizontalAlignment="Center" Style="{StaticResource GLLabelStyle}" Margin="0,3,0,0"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="6" Text="Height" HorizontalAlignment="Center" Style="{StaticResource GLLabelStyle}" Margin="0,3,0,0"/>
                                 </Grid>
 
                                 <!-- Group move: for groups that allow it (Search & Buttons, Game Info), an X or Y edit on one
@@ -345,16 +363,6 @@
                                      per part is built here in code-behind, all visible at once (with a per-part ratio lock where
                                      the group allows it). Hidden for single layers. -->
                                 <StackPanel x:Name="PnlGroupParts" Margin="0,0,0,12" Visibility="Collapsed"/>
-
-                                <CheckBox x:Name="ChkLayerHidden" Content="Hide this layer" Click="ChkLayerHidden_Click" HorizontalAlignment="Left"
-                                          Style="{StaticResource GLCheckBoxStyle}" Margin="0,6,0,0"/>
-
-                                <!-- Visibility mode: replaces the Hide checkbox on Shape Layers. Items are filled from code-behind. -->
-                                <StackPanel x:Name="PnlVisibilityMode" Margin="0,6,0,0" Visibility="Collapsed">
-                                    <TextBlock Text="Visibility:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                    <ComboBox x:Name="CboVisibilityMode" Width="220" Height="25" HorizontalAlignment="Left"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboVisibilityMode_SelectionChanged"/>
-                                </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -1754,11 +1762,32 @@
                     </TabItem>
                     <!-- [END SECTION: Game Info - Favorites Star Tab] -->
 
-                    <!-- [SECTION: Shape Layer - Background Tab] -->
-                    <TabItem x:Name="TabShapeBackground" Header="BACKGROUND" Visibility="Collapsed">
+                    <!-- [SECTION: Shape Layer - Content Tab] -->
+                    <!-- Shape and custom layers' CONTENT tab (formerly BACKGROUND): the file, its opacity, then the fill color. -->
+                    <TabItem x:Name="TabShapeBackground" Header="CONTENT" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
-                                <TextBlock Text="Image / video file (png, jpg, gif, mp4):" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <!-- File label with the circled ? glyph (LayersHelpGlyphStyle). The supported-formats tooltip is local to
+                                     the glyph, with the same dark look as the Layers help (ChromeTooltip* brushes). It omits JPEG on
+                                     purpose (BtnBrowseShapeFile_Click's filter still accepts .jpeg); revisit it if the filter changes. -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                    <TextBlock Text="Image / video file:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                                    <Border Style="{StaticResource LayersHelpGlyphStyle}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                            ToolTipService.InitialShowDelay="300" ToolTipService.ShowDuration="60000">
+                                        <Border.ToolTip>
+                                            <ToolTip Background="{StaticResource ChromeTooltipBackground}" Foreground="{StaticResource ChromeTooltipText}"
+                                                     BorderBrush="{StaticResource ChromeTooltipBorder}" BorderThickness="1" Padding="10,8">
+                                                <TextBlock TextWrapping="NoWrap" Foreground="{StaticResource ChromeTooltipText}">
+                                                    <Bold>Supported file formats:</Bold><LineBreak/>
+                                                    <LineBreak/>
+                                                    <Run Text="Images: PNG, JPG, GIF"/><LineBreak/>
+                                                    <Run Text="Videos: MP4"/>
+                                                </TextBlock>
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Text="?" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -1774,9 +1803,12 @@
                                             FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
 
-                                <TextBlock Text="Image / video opacity (0 to 100):" Style="{StaticResource GLLabelStyle}" Margin="0,16,0,3"/>
-                                <TextBox x:Name="TxtShapeOpacity" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
-                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeOpacityField_LostFocus" KeyDown="ShapeOpacityField_KeyDown"/>
+                                <!-- Opacity: the box on the left, its label to the right (the one label beside its control here) -->
+                                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                    <TextBox x:Name="TxtShapeOpacity" Width="43" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeOpacityField_LostFocus" KeyDown="ShapeOpacityField_KeyDown"/>
+                                    <TextBlock Text="Image / video opacity (0 to 100):" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
 
                                 <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,16,0,3"/>
                                 <StackPanel Orientation="Horizontal">
@@ -1787,12 +1819,12 @@
                                             </colorpicker:PortableColorPicker.Resources>
                                         </colorpicker:PortableColorPicker>
                                     </Border>
-                                    <TextBox x:Name="TxtShapeBgColorHex" Width="100" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtShapeBgColorHex_LostFocus"/>
+                                    <TextBox x:Name="TxtShapeBgColorHex" Width="104" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtShapeBgColorHex_LostFocus"/>
                                 </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
-                    <!-- [END SECTION: Shape Layer - Background Tab] -->
+                    <!-- [END SECTION: Shape Layer - Content Tab] -->
 
                     <!-- [SECTION: Splash Image - Image Tab] -->
                     <!-- The splash file shown while no game is selected, stored in the Splash Image entry's ImagePath
@@ -1988,13 +2020,16 @@
                                 <ComboBox x:Name="CboRGBorderState" Width="200" Height="25"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGState_SelectionChanged"/>
                             </StackPanel>
+                            <!-- Column 0 holds the 26px swatch, a 4px gap and the 104px hex box (10 characters); Size and
+                                 Radius are 36px boxes (3 characters) in Auto columns (the wider of label and box, so "Radius:"
+                                 is never clipped), with an even 22px gap column before each so the visible gaps match. -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="52"/>
-                                    <ColumnDefinition Width="6"/>
-                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="134"/>
+                                    <ColumnDefinition Width="22"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="22"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -2013,11 +2048,11 @@
                                             </colorpicker:PortableColorPicker.Resources>
                                         </colorpicker:PortableColorPicker>
                                     </Border>
-                                    <TextBox x:Name="TxtShapeBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtShapeBorderColorHex_LostFocus"/>
+                                    <TextBox x:Name="TxtShapeBorderColorHex" Width="104" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtShapeBorderColorHex_LostFocus"/>
                                 </StackPanel>
-                                <TextBox x:Name="TxtShapeBorderSize" Grid.Row="1" Grid.Column="2" HorizontalContentAlignment="Center"
+                                <TextBox x:Name="TxtShapeBorderSize" Grid.Row="1" Grid.Column="2" Width="36" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeBorderField_LostFocus" KeyDown="ShapeBorderField_KeyDown"/>
-                                <TextBox x:Name="TxtShapeCornerRadius" Grid.Row="1" Grid.Column="4" HorizontalContentAlignment="Center"
+                                <TextBox x:Name="TxtShapeCornerRadius" Grid.Row="1" Grid.Column="4" Width="36" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeBorderField_LostFocus" KeyDown="ShapeBorderField_KeyDown"/>
 
                                 <!-- Hover border color: Search & Buttons only (the four buttons' border while the mouse is over them) -->
@@ -2031,7 +2066,7 @@
                                                 </colorpicker:PortableColorPicker.Resources>
                                             </colorpicker:PortableColorPicker>
                                         </Border>
-                                        <TextBox x:Name="TxtSBHoverBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBHoverBorderColorHex_LostFocus"/>
+                                        <TextBox x:Name="TxtSBHoverBorderColorHex" Width="104" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBHoverBorderColorHex_LostFocus"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>

@@ -1243,10 +1243,12 @@ namespace ArcadeStick.Views
         // own tab when Position is hidden) only when this changes, not on every committed edit (edits reload the fields too).
         private string? _tabsUnitKey;
 
-        // Shows the selected layer's tabs and, when the layer changed, selects its first visible tab
+        // Shows the selected layer's tabs, names the Position tab ("POSITION" on group pages, "POSITION & SIZE" on single
+        // layers) and, when the layer changed, selects its first visible tab
         private void ApplyLayerTabs(string? unitKey)
         {
             TabPosition.Visibility = unitKey != null && IsBackground(unitKey) ? Visibility.Collapsed : Visibility.Visible;
+            TabPosition.Header = unitKey != null && GetGroup(unitKey) != null ? "POSITION" : "POSITION & SIZE";
 
             var wanted = GetLayerTabs(unitKey);
             foreach (var tab in AllLayerTabs)
