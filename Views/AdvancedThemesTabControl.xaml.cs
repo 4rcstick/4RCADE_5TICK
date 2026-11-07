@@ -1222,7 +1222,7 @@ namespace ArcadeStick.Views
             // (mapped to the RandomGameDisplay entry by GetSelectedBorderEntry)
             if (unitKey == LayerRegistry.RandomGameGroup) return new[] { TabRGText, TabRGBackground, TabShapeBorder };
 
-            // Marquee gets the SPLASH LOGO tab (the logo shown when no game is selected), the no-art title card's
+            // Marquee gets the LOGO tab (the splash logo shown when no game is selected), the no-art title card's
             // TEXT MARQUEE tab and the shared image SHADOW tab (shown in XAML declaration order, which matches this list)
             if (unitKey == LayerRegistry.MarqueePanel) return new[] { TabMarqueeLogo, TabMarqueeBanner, TabMarqueeShadow };
 

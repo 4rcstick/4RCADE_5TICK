@@ -459,7 +459,7 @@
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="GLShadowField_LostFocus" KeyDown="GLShadowField_KeyDown"/>
 
                                 <!-- Divider: normal appearance above, selected appearance below -->
-                                <Separator Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
+                                <Separator Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Selected state: text color, background -->
                                 <TextBlock Grid.Row="7" Grid.Column="0" Text="Selected text:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
@@ -612,7 +612,7 @@
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="GLShadowField_LostFocus" KeyDown="GLShadowField_KeyDown"/>
 
                                 <!-- Divider: normal appearance above, selected appearance below -->
-                                <Separator Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
+                                <Separator Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Selected state: text color, background -->
                                 <TextBlock Grid.Row="7" Grid.Column="0" Text="Selected text:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
@@ -683,7 +683,7 @@
                          the Games List tabs; column 5 lets the divider span the tab. -->
                     <TabItem x:Name="TabSBSearch" Header="SEARCH" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
-                            <Grid Margin="10">
+                            <Grid Margin="10" UseLayoutRounding="True">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
@@ -710,26 +710,30 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Label: Font (with Bold beside its header) and Alignment, both combos on one row -->
+                                <!-- Label: Font (with Bold beside its header) and Alignment, both combos on one row. Same columns as the
+                                     size / color / background row beneath (48 | 14 | 110 | 14 | 110): Font spans the size and color
+                                     columns (ends at the Color hex's right edge), Alignment fills the Background column. -->
                                 <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Label" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="160"/>
+                                        <ColumnDefinition Width="48"/>
                                         <ColumnDefinition Width="14"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="ChkSBLabelBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkSBLabelBold_Click"/>
                                     </StackPanel>
-                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
-                                    <ComboBox x:Name="CboSBLabelFont" Grid.Row="1" Grid.Column="0" Width="160" Height="25" HorizontalAlignment="Left"
+                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="CboSBLabelFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Width="172" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelFont_SelectionChanged"/>
-                                    <ComboBox x:Name="CboSBLabelAlign" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="CboSBLabelAlign" Grid.Row="1" Grid.Column="4" Width="110" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelAlign_SelectionChanged"/>
                                 </Grid>
 
@@ -802,7 +806,7 @@
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
 
                                 <!-- Divider: Label above, Search box below -->
-                                <Separator Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="6" Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
+                                <Separator Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="6" Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Search box: size, color, background (one row, same widths as the Label row) -->
                                 <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5" Text="Search box" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
@@ -1018,7 +1022,8 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
                                 <!-- Publisher: Font header with Bold beside it and the Alignment header, both combos on one row; size / color;
-                                     compact drop shadow -->
+                                     compact drop shadow. Column 5 gives the Font / Alignment row the full pane width so the Alignment
+                                     combo is never clipped. -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
@@ -1026,6 +1031,7 @@
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="6"/>
                                         <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -1038,7 +1044,7 @@
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Publisher, Year, Rating" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
                                     <!-- Font (with Bold beside its header) and Alignment of all five publisher lines (Left / Center / Right) -->
-                                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Margin="0,4,0,0">
+                                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="160"/>
                                             <ColumnDefinition Width="14"/>
@@ -1185,7 +1191,7 @@
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                 </Grid>
                                 <!-- Divider: Navigation Arrows and Dots / Headers -->
-                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
+                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Headers: Font header with Bold beside it; font combo; size / color; compact drop shadow -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True">
@@ -1264,7 +1270,7 @@
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                 </Grid>
                                 <!-- Divider: Headers / Body Text -->
-                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
+                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Body: Font header with Bold beside it; font combo; size / color; compact drop shadow; gap to scrollbar -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True">
@@ -1409,7 +1415,8 @@
                     <TabItem x:Name="TabGIPlayButton" Header="PLAY BUTTON" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
-                                <!-- Text: Font header with Bold; font combo; size / color; button text and vertical nudge; compact drop shadow -->
+                                <!-- Text: Font header with Bold; font combo; size / color; button text and vertical nudge; compact drop shadow.
+                                     Column 5 gives the button text row the full pane width so the nudge label is never clipped. -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
@@ -1417,6 +1424,7 @@
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="6"/>
                                         <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -1465,12 +1473,13 @@
                                         </StackPanel>
                                     </Grid>
 
-                                    <!-- Button text (empty = no text; sized to show "Launch Game") and the vertical nudge (-10 to 10): the
-                                         nudge box with its label to the right -->
-                                    <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <!-- Button text (empty = no text) and the vertical nudge (-10 to 10), lined up with the drop shadow row:
+                                         the text box ends at Blur's right edge (170), the nudge box takes Depth's place (x 176, 52 wide),
+                                         its label to the right -->
+                                    <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="140"/>
-                                            <ColumnDefinition Width="12"/>
+                                            <ColumnDefinition Width="170"/>
+                                            <ColumnDefinition Width="6"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -1480,7 +1489,7 @@
                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Button text:" Style="{StaticResource GLLabelStyle}"/>
                                         <TextBox x:Name="TxtPlayButtonText" Grid.Row="1" Grid.Column="0" MaxLength="24" Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <TextBox x:Name="TxtPlayButtonNudge" Width="48" HorizontalContentAlignment="Center"
+                                            <TextBox x:Name="TxtPlayButtonNudge" Width="52" HorizontalContentAlignment="Center"
                                                      Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
                                             <TextBlock Text="Vertical nudge (px)" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                         </StackPanel>
@@ -1508,7 +1517,7 @@
                                 </Grid>
 
                                 <!-- Divider: Text / Button -->
-                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
+                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Button: fill and the box's own compact drop shadow (it draws outside the button; independent of the text shadow) -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True">
@@ -1560,15 +1569,15 @@
                                 </Grid>
 
                                 <!-- Divider: Button / Border -->
-                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
+                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
-                                <!-- Border: color, size (0 to 50), radius (0 to 200). Same 22 / 50 / 22 / 60 spacing as the shared Border tab. -->
+                                <!-- Border: color, size (0 to 50), radius (0 to 200). The 50px size box starts under the drop shadow rows'
+                                     Blur (x 118) and the 60px radius box under their Depth (x 176). -->
                                 <Grid Margin="0,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
-                                        <ColumnDefinition Width="22"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="58"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1577,10 +1586,10 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Border" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Text="Border" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="3" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
                                         <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                                             <colorpicker:PortableColorPicker x:Name="PlayButtonBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonBorderColorPicker_ColorChanged">
@@ -1593,12 +1602,12 @@
                                     </StackPanel>
                                     <TextBox x:Name="TxtPlayButtonBorderSize" Grid.Row="2" Grid.Column="2" Width="50" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
-                                    <TextBox x:Name="TxtPlayButtonCornerRadius" Grid.Row="2" Grid.Column="4" Width="60" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtPlayButtonCornerRadius" Grid.Row="2" Grid.Column="3" Width="60" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
                                 </Grid>
 
                                 <!-- Divider: Border / Hover States -->
-                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
+                                <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Hover States: text, fill and border colors while the mouse is over the button, on one row
                                      (three 110px groups with 12px gaps to fit the pane; flagged for visual review) -->
@@ -1888,16 +1897,20 @@
 
                     <!-- [SECTION: Random Game Display - Text Tab] -->
                     <!-- The spin card's message and text style, shared by both states and stored on the RandomGameDisplay
-                         entry; the max text size is per state (each part's own TextFontSize). Empty message = no text. -->
+                         entry; the max text size is per state (each part's own TextFontSize). Empty message = no text. Top to
+                         bottom: Font (Bold beside its header) and Alignment (Wrap text beside its header) with both combos on one
+                         row; message; max text size per state; color; compact drop shadow. Column 5 gives the Font / Alignment
+                         row the full pane width so the Alignment combo and Wrap text are never clipped. -->
                     <TabItem x:Name="TabRGText" Header="TEXT" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
-                            <Grid Margin="10">
+                            <Grid Margin="10" UseLayoutRounding="True">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
                                     <ColumnDefinition Width="6"/>
                                     <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -1909,35 +1922,12 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Message (max 60 characters; applies on Enter or focus loss) -->
-                                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Message (leave empty for no text):" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                <TextBox x:Name="TxtRGMessage" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" MaxLength="60"
-                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGMessage_LostFocus" KeyDown="TxtRGMessage_KeyDown"/>
-
-                                <!-- Max text size per state (6 to 200): the text shrinks below it only when it does not fit. One shared
-                                     heading, each state's box on the left with its label to the right. -->
-                                <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Text="Max text size (px):" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
-                                <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBox x:Name="TxtRGFontSize" Width="52" HorizontalContentAlignment="Center"
-                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
-                                        <TextBlock Text="When a game is selected" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                        <TextBox x:Name="TxtRGSplashFontSize" Width="52" HorizontalContentAlignment="Center"
-                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
-                                        <TextBlock Text="When on the splash page" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </StackPanel>
-
                                 <!-- Font (with Bold beside its header) and Alignment (with Wrap text beside its header; wrap at the box
-                                     width, shared by both states), both combos on one row -->
-                                <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Margin="0,12,0,0">
+                                     width, shared by both states), both combos on one row. Unequal columns: 160 for Font, Auto for
+                                     Alignment (as wide as its header and checkbox, at least the 110 combo). -->
+                                <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="160"/>
                                         <ColumnDefinition Width="14"/>
@@ -1961,8 +1951,29 @@
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGAlign_SelectionChanged"/>
                                 </Grid>
 
+                                <!-- Message (max 60 characters; applies on Enter or focus loss) -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Message (leave empty for no text):" Style="{StaticResource GLLabelStyle}"/>
+                                <TextBox x:Name="TxtRGMessage" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" MaxLength="60"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGMessage_LostFocus" KeyDown="TxtRGMessage_KeyDown"/>
+
+                                <!-- Max text size per state (6 to 200): the text shrinks below it only when it does not fit. One shared
+                                     heading, each state's box on the left with its label to the right. -->
+                                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" Text="Max text size (px):" Style="{StaticResource GLLabelStyle}"/>
+                                <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBox x:Name="TxtRGFontSize" Width="52" HorizontalContentAlignment="Center"
+                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
+                                        <TextBlock Text="When a game is selected" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <TextBox x:Name="TxtRGSplashFontSize" Width="52" HorizontalContentAlignment="Center"
+                                                 Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
+                                        <TextBlock Text="When on the splash page" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </StackPanel>
+
                                 <!-- Color, on its own row -->
-                                <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
                                 <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
                                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                                             <colorpicker:PortableColorPicker x:Name="RGTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGTextColorPicker_ColorChanged">
@@ -1974,13 +1985,12 @@
                                     <TextBox x:Name="TxtRGTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGTextColorHex_LostFocus"/>
                                 </StackPanel>
 
-                                <!-- Drop shadow (standalone toggle kept; extra gap above it, no divider) -->
-                                <CheckBox x:Name="ChkRGShadow" Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,18,0,0"
+                                <!-- Drop shadow, compact (color, blur and depth are enabled while the toggle is on) -->
+                                <CheckBox x:Name="ChkRGShadow" Grid.Row="7" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
                                           Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGShadow_Click"/>
-                                <TextBlock Grid.Row="8" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                <TextBlock Grid.Row="8" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                <TextBlock Grid.Row="8" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
-                                <StackPanel Grid.Row="9" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}">
+                                <TextBlock Grid.Row="7" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="7" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Row="8" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}">
                                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                                             <colorpicker:PortableColorPicker x:Name="RGShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
@@ -1990,9 +2000,9 @@
                                         </Border>
                                     <TextBox x:Name="TxtRGShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGShadowColorHex_LostFocus"/>
                                 </StackPanel>
-                                <TextBox x:Name="TxtRGShadowBlur" Grid.Row="9" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}"
+                                <TextBox x:Name="TxtRGShadowBlur" Grid.Row="8" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
-                                <TextBox x:Name="TxtRGShadowDepth" Grid.Row="9" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}"
+                                <TextBox x:Name="TxtRGShadowDepth" Grid.Row="8" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="RGField_LostFocus" KeyDown="RGField_KeyDown"/>
                             </Grid>
                         </ScrollViewer>
@@ -2001,9 +2011,10 @@
 
                     <!-- [SECTION: Random Game Display - Content Tab] -->
                     <!-- CONTENT tab (formerly BACKGROUND; x:Name unchanged). Top to bottom: the file (shared by both states,
-                         RandomGameDisplay's ImagePath) drawn over the background color and under the message; the State combo;
-                         then the background color of the state it picks (each part's BgColorHex; its alpha decides how much of
-                         the layers behind shows through). State switches only the color, never the file. -->
+                         RandomGameDisplay's ImagePath) drawn over the background color and under the message; the background
+                         color (each part's BgColorHex; its alpha decides how much of the layers behind shows through) and its
+                         alpha note; then the Background color state combo that picks which state's color the row above edits.
+                         State switches only the color, never the file. -->
                     <TabItem x:Name="TabRGBackground" Header="CONTENT" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
@@ -2039,12 +2050,6 @@
                         FontWeight="SemiBold" Padding="7,3" Margin="6,0,0,0"/>
                                 </Grid>
 
-                                <!-- Which state's background color the row below edits (session-only); label above the combo -->
-                                <StackPanel x:Name="PnlRGBgState" Margin="0,0,0,16" Visibility="Collapsed">
-                                    <TextBlock Text="State:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                    <ComboBox x:Name="CboRGBgState" Width="200" Height="25" HorizontalAlignment="Left"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGState_SelectionChanged"/>
-                                </StackPanel>
                                 <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <StackPanel Orientation="Horizontal">
                                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
@@ -2057,6 +2062,13 @@
                                     <TextBox x:Name="TxtRGBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGBgColorHex_LostFocus"/>
                                 </StackPanel>
                                 <TextBlock Text="Lower the alpha to let the layers behind the card show through." Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}" Margin="0,6,0,0"/>
+
+                                <!-- Which state's background color the row above edits (session-only); label above the combo -->
+                                <StackPanel x:Name="PnlRGBgState" Margin="0,12,0,0" Visibility="Collapsed">
+                                    <TextBlock Text="Background color state:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <ComboBox x:Name="CboRGBgState" Width="200" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGState_SelectionChanged"/>
+                                </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
                     </TabItem>
@@ -2200,12 +2212,12 @@
                     <!-- [END SECTION: Shape Layer - Border Tab] -->
 
                     <!-- [SECTION: Marquee - Logo Tab] -->
-                    <TabItem x:Name="TabMarqueeLogo" Header="SPLASH LOGO" Visibility="Collapsed">
+                    <TabItem x:Name="TabMarqueeLogo" Header="LOGO" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
                                 <!-- Header with the circled ? glyph (same look as the shape Content tab's file help) -->
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
-                                    <TextBlock Text="Logo image:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Splash logo image:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <Border Style="{StaticResource LayersHelpGlyphStyle}" Margin="8,0,0,0" VerticalAlignment="Center"
                                             ToolTipService.InitialShowDelay="300" ToolTipService.ShowDuration="60000">
                                         <Border.ToolTip>
@@ -2284,12 +2296,13 @@
                                 <ComboBox x:Name="CboBannerFont" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" Width="160" Height="25" HorizontalAlignment="Left"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboBannerFont_SelectionChanged"/>
 
-                                <!-- Color, then max size (6 to 200, inside the card's 400x100 reference box) -->
+                                <!-- Color, then max size (6 to 200, inside the card's 400x100 reference box); the max size box sits in
+                                     the drop shadow row's Blur column (x 118, 52 wide) -->
                                 <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
-                                        <ColumnDefinition Width="22"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -2307,20 +2320,26 @@
                                         </Border>
                                         <TextBox x:Name="TxtBannerColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBannerColorHex_LostFocus"/>
                                     </StackPanel>
-                                    <TextBox x:Name="TxtBannerFontSize" Grid.Row="1" Grid.Column="2" Width="48" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtBannerFontSize" Grid.Row="1" Grid.Column="2" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
                                 </Grid>
 
                                 <!-- Wrap at the card's width (on: the block shrinks only when taller than the card), and the one-line
                                      title's left and right inset in reference box units (0 to 100; the box is disabled in code while wrap
-                                     is on). The margin box comes first, its label to the right. -->
-                                <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" Margin="0,12,0,0">
-                                    <CheckBox x:Name="ChkBannerWrap" Content="Wrap text" VerticalAlignment="Center"
+                                     is on). The margin box sits in the drop shadow row's Blur column (x 118, 52 wide), its label to the right. -->
+                                <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox x:Name="ChkBannerWrap" Grid.Column="0" Content="Wrap text" VerticalAlignment="Center"
                                               Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerWrap_Click"/>
-                                    <TextBox x:Name="TxtBannerTextMargin" Width="48" Margin="24,0,0,0" HorizontalContentAlignment="Center" ToolTip="One-line title only: the gap at each side of the card"
+                                    <TextBox x:Name="TxtBannerTextMargin" Grid.Column="2" HorizontalContentAlignment="Center" ToolTip="One-line title only: the gap at each side of the card"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
-                                    <TextBlock Text="Text margin (units)" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                </StackPanel>
+                                    <TextBlock Grid.Column="3" Text="Text margin (units)" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </Grid>
 
                                 <!-- Title drop shadow, compact (its own BannerShadow* values; the card's image shadow is the Shadow tab's) -->
                                 <CheckBox x:Name="ChkBannerShadow" Grid.Row="5" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
@@ -2355,14 +2374,14 @@
                                     <TextBox x:Name="TxtBannerBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBannerBgColorHex_LostFocus"/>
                                 </StackPanel>
 
-                                <!-- Card border: color, size (0 to 50), radius (0 to 200); never scales with the marquee box. Same 22 / 50 /
-                                     22 / 60 spacing as the shared Border tab, left edge aligned with Background above. -->
+                                <!-- Card border: color, size (0 to 50), radius (0 to 200); never scales with the marquee box. Color is left
+                                     aligned with Background above; the 50px size box starts at the drop shadow row's Blur (x 118) and the
+                                     60px radius box at its Depth (x 176). -->
                                 <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
-                                        <ColumnDefinition Width="22"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="22"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="58"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -2371,7 +2390,7 @@
                                     </Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
                                     <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
                                         <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
                                             <colorpicker:PortableColorPicker x:Name="BannerBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerBorderColorPicker_ColorChanged">
@@ -2384,7 +2403,7 @@
                                     </StackPanel>
                                     <TextBox x:Name="TxtBannerBorderSize" Grid.Row="1" Grid.Column="2" Width="50" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
-                                    <TextBox x:Name="TxtBannerCornerRadius" Grid.Row="1" Grid.Column="4" Width="60" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtBannerCornerRadius" Grid.Row="1" Grid.Column="3" Width="60" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
                                 </Grid>
                             </Grid>
