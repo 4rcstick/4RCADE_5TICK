@@ -518,7 +518,7 @@
                                     </Border>
                                     <TextBox x:Name="TxtGLArrowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtGLArrowColorHex_LostFocus"/>
                                 </StackPanel>
-                                <TextBox x:Name="TxtGLArrowNudge" Grid.Row="12" Grid.Column="2" Grid.ColumnSpan="3" Width="48" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                <TextBox x:Name="TxtGLArrowNudge" Grid.Row="12" Grid.Column="2" Grid.ColumnSpan="3" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="GLArrowNudge_LostFocus" KeyDown="GLArrowNudge_KeyDown"/>
                             </Grid>
                         </ScrollViewer>
@@ -2155,16 +2155,17 @@
                                 <ComboBox x:Name="CboRGBorderState" Width="200" Height="25"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGState_SelectionChanged"/>
                             </StackPanel>
-                            <!-- Column 0 holds the 26px swatch, a 4px gap and the 104px hex box (10 characters); Size is a
-                                 50px box and Radius a 60px box (wide enough that neither label overhangs its box) in Auto
-                                 columns, with an even 22px gap column before each so the visible gaps match. The local
-                                 Text Marquee and Play Button border rows use the same 22 / 50 / 22 / 60 spacing. -->
+                            <!-- Column 0 holds the 26px swatch, a 4px gap and the 80px hex box (the 110px color group used on
+                                 the other styling tabs); Size is a 50px box and Radius a 60px box (wide enough that neither
+                                 label overhangs its box) in Auto columns, each after an 8px gap, so Size starts at x 118 and
+                                 Radius at x 176 (the drop shadow rows' Blur and Depth). The local Text Marquee and Play
+                                 Button border rows line up the same way. -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="134"/>
-                                    <ColumnDefinition Width="22"/>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="22"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
@@ -2184,7 +2185,7 @@
                                             </colorpicker:PortableColorPicker.Resources>
                                         </colorpicker:PortableColorPicker>
                                     </Border>
-                                    <TextBox x:Name="TxtShapeBorderColorHex" Width="104" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtShapeBorderColorHex_LostFocus"/>
+                                    <TextBox x:Name="TxtShapeBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtShapeBorderColorHex_LostFocus"/>
                                 </StackPanel>
                                 <TextBox x:Name="TxtShapeBorderSize" Grid.Row="1" Grid.Column="2" Width="50" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeBorderField_LostFocus" KeyDown="ShapeBorderField_KeyDown"/>
@@ -2202,7 +2203,7 @@
                                                 </colorpicker:PortableColorPicker.Resources>
                                             </colorpicker:PortableColorPicker>
                                         </Border>
-                                        <TextBox x:Name="TxtSBHoverBorderColorHex" Width="104" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBHoverBorderColorHex_LostFocus"/>
+                                        <TextBox x:Name="TxtSBHoverBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBHoverBorderColorHex_LostFocus"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Grid>
@@ -2288,12 +2289,13 @@
                                 <CheckBox x:Name="ChkBannerPreview" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Content="Preview text marquee"
                                           Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerPreview_Click"/>
 
-                                <!-- Font header with Bold beside it, the font combo beneath -->
+                                <!-- Font header with Bold beside it, the font combo beneath (170 wide, so it ends at the Max size box's
+                                     right edge below) -->
                                 <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,10,0,3">
                                     <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <CheckBox x:Name="ChkBannerBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerBold_Click"/>
                                 </StackPanel>
-                                <ComboBox x:Name="CboBannerFont" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" Width="160" Height="25" HorizontalAlignment="Left"
+                                <ComboBox x:Name="CboBannerFont" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" Width="170" Height="25" HorizontalAlignment="Left"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboBannerFont_SelectionChanged"/>
 
                                 <!-- Color, then max size (6 to 200, inside the card's 400x100 reference box); the max size box sits in
