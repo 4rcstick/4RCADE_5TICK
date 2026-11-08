@@ -102,14 +102,15 @@
         <!-- [SECTION: Resolution Row] -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
 
-            <!-- Theme sizes: one button per size saved in the theme file (filled from code-behind) -->
+            <!-- Theme sizes: one button per size saved in the theme file (filled from code-behind). The Theme sizes and
+                 Resolution labels share MinWidth 83 with the Themes Manager's Active Theme label, so the controls line up. -->
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Theme sizes:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="0" Text="Theme sizes:" MinWidth="83" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <WrapPanel Grid.Column="1" x:Name="PnlSavedSizes" VerticalAlignment="Center"/>
                 <!-- Outside PnlSavedSizes, which RebuildSavedSizes clears. No right margin, so its right edge lines up with
                      Delete Theme in the Active Theme row. Bold while the info view shows (no background). -->
@@ -141,7 +142,7 @@
                             FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
                 </StackPanel>
 
-                <TextBlock Grid.Column="0" Text="Resolution:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="0" Text="Resolution:" MinWidth="83" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
 
                 <ComboBox Grid.Column="1" x:Name="CboResolution" Width="140" Height="25"
                           Style="{StaticResource ChromeComboBoxStyle}"
@@ -155,7 +156,7 @@
                     <CheckBox x:Name="ChkCenterGuides" Content="Center guides" Click="ChkCenterGuides_Click" Margin="0,0,15,0"
                               Style="{StaticResource GLCheckBoxStyle}"/>
                     <TextBlock Text="Color:" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                         <colorpicker:PortableColorPicker x:Name="GuideColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GuideColorPicker_ColorChanged">
                             <colorpicker:PortableColorPicker.Resources>
                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -382,7 +383,7 @@
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
-                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
@@ -408,14 +409,14 @@
                                     <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <CheckBox x:Name="ChkGLFolderBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLFolderBold_Click"/>
                                 </StackPanel>
-                                <ComboBox x:Name="CboGLFolderFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="160" Height="25" HorizontalAlignment="Left"
+                                <ComboBox x:Name="CboGLFolderFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="170" Height="25" HorizontalAlignment="Left"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLFolderFont_SelectionChanged"/>
 
                                 <!-- Normal state: size, color (side by side) -->
-                                <Grid Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5">
+                                <Grid Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="48"/>
-                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -427,7 +428,7 @@
                                     <TextBox x:Name="TxtGLFolderFontSize" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GLStyleField_LostFocus" KeyDown="GLStyleField_KeyDown"/>
                                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GLFolderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -444,7 +445,7 @@
                                 <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkGLFolderShadow}">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLFolderShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderShadowColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -465,7 +466,7 @@
                                 <TextBlock Grid.Row="7" Grid.Column="0" Text="Selected text:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <TextBlock Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="3" Text="Selected BG:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <StackPanel Grid.Row="8" Grid.Column="0" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLFolderSelectedColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderSelectedColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -475,7 +476,7 @@
                                     <TextBox x:Name="TxtGLFolderSelectedColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtGLFolderSelectedColorHex_LostFocus"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="3" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLFolderSelectedBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderSelectedBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -491,7 +492,7 @@
                                 <TextBlock Grid.Row="9" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="9" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="10" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkGLFolderSelShadow}">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLFolderSelShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLFolderSelShadowColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -509,7 +510,7 @@
                                 <TextBlock Grid.Row="11" Grid.Column="0" Text="Arrow color:" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
                                 <TextBlock Grid.Row="11" Grid.Column="2" Grid.ColumnSpan="3" Text="Nudge (px):" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
                                 <StackPanel Grid.Row="12" Grid.Column="0" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLArrowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLArrowColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -535,7 +536,7 @@
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
-                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
@@ -561,14 +562,14 @@
                                     <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <CheckBox x:Name="ChkGLGameBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLGameBold_Click"/>
                                 </StackPanel>
-                                <ComboBox x:Name="CboGLGameFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="160" Height="25" HorizontalAlignment="Left"
+                                <ComboBox x:Name="CboGLGameFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="170" Height="25" HorizontalAlignment="Left"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLGameFont_SelectionChanged"/>
 
                                 <!-- Normal state: size, color (side by side) -->
-                                <Grid Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5">
+                                <Grid Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="48"/>
-                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -580,7 +581,7 @@
                                     <TextBox x:Name="TxtGLGameFontSize" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GLGameSizeField_LostFocus" KeyDown="GLGameSizeField_KeyDown"/>
                                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GLGameColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -597,7 +598,7 @@
                                 <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkGLGameShadow}">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLGameShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameShadowColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -618,7 +619,7 @@
                                 <TextBlock Grid.Row="7" Grid.Column="0" Text="Selected text:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <TextBlock Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="3" Text="Selected BG:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <StackPanel Grid.Row="8" Grid.Column="0" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLGameSelectedColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameSelectedColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -628,7 +629,7 @@
                                     <TextBox x:Name="TxtGLGameSelectedColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtGLGameSelectedColorHex_LostFocus"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="3" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLGameSelectedBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameSelectedBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -644,7 +645,7 @@
                                 <TextBlock Grid.Row="9" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="9" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="10" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkGLGameSelShadow}">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLGameSelShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameSelShadowColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -661,7 +662,7 @@
                                 <!-- Hover color (color only, no shadow) -->
                                 <TextBlock Grid.Row="11" Grid.Column="0" Text="Hover color:" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
                                 <StackPanel Grid.Row="12" Grid.Column="0" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="GLGameHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GLGameHoverColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -688,7 +689,7 @@
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
-                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
@@ -711,15 +712,15 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Label: Font (with Bold beside its header) and Alignment, both combos on one row. Same columns as the
-                                     size / color / background row beneath (48 | 14 | 110 | 14 | 110): Font spans the size and color
-                                     columns (ends at the Color hex's right edge), Alignment fills the Background column. -->
+                                     size / color / background row beneath (52 | 8 | 110 | 8 | 110): Font spans the size and color
+                                     columns (0 to 170, ending at the Color hex's right edge), Alignment fills the Background column (x 178). -->
                                 <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Label" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0">
+                                <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="48"/>
-                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="110"/>
-                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -731,20 +732,20 @@
                                         <CheckBox x:Name="ChkSBLabelBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkSBLabelBold_Click"/>
                                     </StackPanel>
                                     <TextBlock Grid.Row="0" Grid.Column="4" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
-                                    <ComboBox x:Name="CboSBLabelFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Width="172" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="CboSBLabelFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Width="170" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelFont_SelectionChanged"/>
                                     <ComboBox x:Name="CboSBLabelAlign" Grid.Row="1" Grid.Column="4" Width="110" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelAlign_SelectionChanged"/>
                                 </Grid>
 
                                 <!-- Label: size, color, background (one row; the search box row below uses the same widths) -->
-                                <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6">
+                                <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="48"/>
-                                        <ColumnDefinition Width="14"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="14"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -756,7 +757,7 @@
                                     <TextBox x:Name="TxtSBLabelFontSize" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
                                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="SBLabelColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBLabelColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -766,7 +767,7 @@
                                         <TextBox x:Name="TxtSBLabelColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBLabelColorHex_LostFocus"/>
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="4" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="SBLabelBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBLabelBgColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -779,7 +780,7 @@
 
                                 <!-- Label: vertical nudge (moves only the text, -10 to 10 px): the box, its label to the right -->
                                 <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" Margin="0,10,0,0">
-                                    <TextBox x:Name="TxtSBLabelNudge" Width="48" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtSBLabelNudge" Width="52" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
                                     <TextBlock Text="Vertical nudge (px)" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
@@ -791,7 +792,7 @@
                                 <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
                                 <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
                                 <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkSBLabelShadow}">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="SBLabelShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBLabelShadowColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -810,13 +811,13 @@
 
                                 <!-- Search box: size, color, background (one row, same widths as the Label row) -->
                                 <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5" Text="Search box" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
-                                <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="6">
+                                <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="48"/>
-                                        <ColumnDefinition Width="14"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="14"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -828,7 +829,7 @@
                                     <TextBox x:Name="TxtSBBoxFontSize" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
                                     <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="SBBoxColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBBoxColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -838,7 +839,7 @@
                                         <TextBox x:Name="TxtSBBoxColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBBoxColorHex_LostFocus"/>
                                     </StackPanel>
                                     <StackPanel Grid.Row="1" Grid.Column="4" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="SBBoxBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBBoxBgColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -862,10 +863,10 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <Grid Margin="10">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="48"/>
-                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="110"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
@@ -882,7 +883,7 @@
                                 <TextBox x:Name="TxtSBButtonFontSize" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
                                 <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="SBButtonColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -892,7 +893,7 @@
                                     <TextBox x:Name="TxtSBButtonColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonColorHex_LostFocus"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="1" Grid.Column="4" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="SBButtonBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -902,21 +903,21 @@
                                     <TextBox x:Name="TxtSBButtonBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonBgColorHex_LostFocus"/>
                                 </StackPanel>
 
-                                <!-- Hover state: icon color (spans size + color; its hex box fills the 172px span: 26 + 4 + 142), background -->
+                                <!-- Hover state: icon color (spans size + color; its hex box fills the 170px span: 26 + 4 + 140), background -->
                                 <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Text="Hover color:" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
                                 <TextBlock Grid.Row="2" Grid.Column="4" Text="Hover BG:" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
                                 <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="SBButtonHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonHoverColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
                                             </colorpicker:PortableColorPicker.Resources>
                                         </colorpicker:PortableColorPicker>
                                     </Border>
-                                    <TextBox x:Name="TxtSBButtonHoverColorHex" Width="142" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonHoverColorHex_LostFocus"/>
+                                    <TextBox x:Name="TxtSBButtonHoverColorHex" Width="140" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonHoverColorHex_LostFocus"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="3" Grid.Column="4" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="SBButtonHoverBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonHoverBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -936,12 +937,12 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
                                 <!-- Title: Font header with Bold beside it; font combo; size / color; compact drop shadow -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -961,14 +962,14 @@
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="GITitleBold" Tag="Title" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="GITitleFont" Tag="Title" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="160" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="GITitleFont" Tag="Title" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="170" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
 
                                     <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="52"/>
+                                            <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -980,7 +981,7 @@
                                         <TextBox x:Name="GITitleSize" Tag="Title" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                                 <colorpicker:PortableColorPicker x:Name="GITitleColorPicker" Tag="Title" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
                                                     <colorpicker:PortableColorPicker.Resources>
                                                         <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -997,7 +998,7 @@
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GITitleShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GITitleShadowColorPicker" Tag="Title" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1029,7 +1030,7 @@
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
@@ -1043,11 +1044,12 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Publisher, Year, Rating" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
-                                    <!-- Font (with Bold beside its header) and Alignment of all five publisher lines (Left / Center / Right) -->
-                                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0">
+                                    <!-- Font (with Bold beside its header) and Alignment of all five publisher lines (Left / Center / Right);
+                                         the Font combo ends at 170 and the Alignment combo starts at the Depth edge (x 178) -->
+                                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="160"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="170"/>
+                                            <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -1059,17 +1061,17 @@
                                             <CheckBox x:Name="GIPublisherBold" Tag="Publisher" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                         </StackPanel>
                                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
-                                        <ComboBox x:Name="GIPublisherFont" Tag="Publisher" Grid.Row="1" Grid.Column="0" Width="160" Height="25" HorizontalAlignment="Left"
+                                        <ComboBox x:Name="GIPublisherFont" Tag="Publisher" Grid.Row="1" Grid.Column="0" Width="170" Height="25" HorizontalAlignment="Left"
                                                   Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
                                         <ComboBox x:Name="GIPublisherAlign" Tag="Publisher" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
                                                   Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIAlign_SelectionChanged"/>
                                     </Grid>
 
                                     <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="52"/>
+                                            <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -1081,7 +1083,7 @@
                                         <TextBox x:Name="GIPublisherSize" Tag="Publisher" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                                 <colorpicker:PortableColorPicker x:Name="GIPublisherColorPicker" Tag="Publisher" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
                                                     <colorpicker:PortableColorPicker.Resources>
                                                         <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1098,7 +1100,7 @@
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIPublisherShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GIPublisherShadowColorPicker" Tag="Publisher" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1123,12 +1125,12 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
                                 <!-- Navigation Arrows and Dots (the Game Info Nav entry): size / color; compact drop shadow -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1144,10 +1146,10 @@
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Navigation Arrows and Dots" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
                                     <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="52"/>
+                                            <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -1159,7 +1161,7 @@
                                         <TextBox x:Name="GINavSize" Tag="Nav" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                                 <colorpicker:PortableColorPicker x:Name="GINavColorPicker" Tag="Nav" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
                                                     <colorpicker:PortableColorPicker.Resources>
                                                         <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1176,7 +1178,7 @@
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GINavShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GINavShadowColorPicker" Tag="Nav" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1194,12 +1196,12 @@
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Headers: Font header with Bold beside it; font combo; size / color; compact drop shadow -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1219,14 +1221,14 @@
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="GIInfoHeaderBold" Tag="InfoHeader" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="GIInfoHeaderFont" Tag="InfoHeader" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="160" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="GIInfoHeaderFont" Tag="InfoHeader" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="170" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
 
                                     <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="52"/>
+                                            <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -1238,7 +1240,7 @@
                                         <TextBox x:Name="GIInfoHeaderSize" Tag="InfoHeader" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                                 <colorpicker:PortableColorPicker x:Name="GIInfoHeaderColorPicker" Tag="InfoHeader" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
                                                     <colorpicker:PortableColorPicker.Resources>
                                                         <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1255,7 +1257,7 @@
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIInfoHeaderShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GIInfoHeaderShadowColorPicker" Tag="InfoHeader" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1273,12 +1275,12 @@
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Body: Font header with Bold beside it; font combo; size / color; compact drop shadow; gap to scrollbar -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1300,14 +1302,14 @@
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="GIInfoBodyBold" Tag="InfoBody" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="GIInfoBodyFont" Tag="InfoBody" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="160" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="GIInfoBodyFont" Tag="InfoBody" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="170" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
 
                                     <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="52"/>
+                                            <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -1319,7 +1321,7 @@
                                         <TextBox x:Name="GIInfoBodySize" Tag="InfoBody" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                                 <colorpicker:PortableColorPicker x:Name="GIInfoBodyColorPicker" Tag="InfoBody" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
                                                     <colorpicker:PortableColorPicker.Resources>
                                                         <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1336,7 +1338,7 @@
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIInfoBodyShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GIInfoBodyShadowColorPicker" Tag="InfoBody" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1353,7 +1355,7 @@
                                     <!-- Right margin: the gap between the body text and the scrollbar (or the panel's right edge), 0 to 100 px.
                                          The box on the left, its label to the right, with extra space above (no divider). -->
                                     <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal" Margin="0,18,0,0">
-                                        <TextBox x:Name="GIInfoBodyRightMargin" Tag="InfoBody" Width="48" HorizontalContentAlignment="Center"
+                                        <TextBox x:Name="GIInfoBodyRightMargin" Tag="InfoBody" Width="52" HorizontalContentAlignment="Center"
                                                  ToolTip="Space between the body text and the scrollbar; also applies when no scrollbar shows"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <TextBlock Text="Gap to scrollbar (px)" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
@@ -1369,12 +1371,12 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
                             <StackPanel Margin="10">
                                 <!-- Artwork previews: compact drop shadow (a glow is a shadow with depth 0 and a bright color) -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1388,7 +1390,7 @@
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="0" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIPreviewsShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GIPreviewsShadowColorPicker" Tag="Previews" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1422,7 +1424,7 @@
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
@@ -1443,14 +1445,14 @@
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="GIPlayButtonBold" Tag="PlayButton" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="GIPlayButtonFont" Tag="PlayButton" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="160" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="GIPlayButtonFont" Tag="PlayButton" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="170" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
 
                                     <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
+                                    <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="48"/>
-                                            <ColumnDefinition Width="14"/>
+                                            <ColumnDefinition Width="52"/>
+                                            <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -1462,7 +1464,7 @@
                                         <TextBox x:Name="GIPlayButtonSize" Tag="PlayButton" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                            <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                                 <colorpicker:PortableColorPicker x:Name="GIPlayButtonColorPicker" Tag="PlayButton" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
                                                     <colorpicker:PortableColorPicker.Resources>
                                                         <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1474,12 +1476,12 @@
                                     </Grid>
 
                                     <!-- Button text (empty = no text) and the vertical nudge (-10 to 10), lined up with the drop shadow row:
-                                         the text box ends at Blur's right edge (170), the nudge box takes Depth's place (x 176, 52 wide),
+                                         the text box ends at Blur's right edge (170), the nudge box takes Depth's place (x 178, 52 wide),
                                          its label to the right -->
-                                    <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6">
+                                    <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="170"/>
-                                            <ColumnDefinition Width="6"/>
+                                            <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
@@ -1501,7 +1503,7 @@
                                     <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="6" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=GIPlayButtonShadow}" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GIPlayButtonShadowColorPicker" Tag="PlayButton" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1520,12 +1522,12 @@
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Button: fill and the box's own compact drop shadow (it draws outside the button; independent of the text shadow) -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1539,7 +1541,7 @@
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Button" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="PlayButtonBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonBgColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1553,7 +1555,7 @@
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=ChkPlayButtonBoxShadow}" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="PlayButtonBoxShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonBoxShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1571,14 +1573,15 @@
                                 <!-- Divider: Button / Border -->
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
-                                <!-- Border: color, size (0 to 50), radius (0 to 200). The 50px size box starts under the drop shadow rows'
-                                     Blur (x 118) and the 60px radius box under their Depth (x 176). -->
+                                <!-- Border: color, size (0 to 50), radius (0 to 200). The 52px size box sits in the drop shadow rows'
+                                     Blur column (x 118 to 170) and the 52px radius box in their Depth column (x 178 to 230). -->
                                 <Grid Margin="0,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="58"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -1586,12 +1589,12 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Text="Border" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Border" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
-                                    <TextBlock Grid.Row="1" Grid.Column="3" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="PlayButtonBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonBorderColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1600,9 +1603,9 @@
                                         </Border>
                                         <TextBox x:Name="TxtPlayButtonBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonBorderColorHex_LostFocus"/>
                                     </StackPanel>
-                                    <TextBox x:Name="TxtPlayButtonBorderSize" Grid.Row="2" Grid.Column="2" Width="50" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtPlayButtonBorderSize" Grid.Row="2" Grid.Column="2" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
-                                    <TextBox x:Name="TxtPlayButtonCornerRadius" Grid.Row="2" Grid.Column="3" Width="60" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtPlayButtonCornerRadius" Grid.Row="2" Grid.Column="4" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="PlayButtonField_LostFocus" KeyDown="PlayButtonField_KeyDown"/>
                                 </Grid>
 
@@ -1610,13 +1613,13 @@
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
                                 <!-- Hover States: text, fill and border colors while the mouse is over the button, on one row
-                                     (three 110px groups with 12px gaps to fit the pane; flagged for visual review) -->
+                                     (three 110px groups with 8px gaps, at x 0, 118 and 236) -->
                                 <Grid Margin="0,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
-                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="110"/>
-                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1630,7 +1633,7 @@
                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="4" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="PlayButtonHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonHoverColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1640,7 +1643,7 @@
                                         <TextBox x:Name="TxtPlayButtonHoverColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonHoverColorHex_LostFocus"/>
                                     </StackPanel>
                                     <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="PlayButtonHoverBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonHoverBgColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1650,7 +1653,7 @@
                                         <TextBox x:Name="TxtPlayButtonHoverBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonHoverBgColorHex_LostFocus"/>
                                     </StackPanel>
                                     <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="PlayButtonHoverBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="PlayButtonHoverBorderColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1674,7 +1677,7 @@
                                 <!-- Star size (shared by both states): the label to the left of its box -->
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Star size:" Style="{StaticResource GLLabelStyle}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="GIFavStarSize" Tag="FavStar" Width="48" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="GIFavStarSize" Tag="FavStar" Width="52" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                 </StackPanel>
 
@@ -1682,12 +1685,12 @@
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
 
                                 <!-- Solid star: color and compact drop shadow (color, blur and depth are enabled while the toggle is on) -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1702,7 +1705,7 @@
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Solid Star (Favorited)" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GIFavStarColorPicker" Tag="FavStar" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1716,7 +1719,7 @@
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=GIFavStarShadow}" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GIFavStarShadowColorPicker" Tag="FavStar" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1735,12 +1738,12 @@
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,10,0,10"/>
 
                                 <!-- Outline star: color and compact drop shadow (independent values; color, blur and depth are enabled while the toggle is on) -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1755,7 +1758,7 @@
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Outline Star (Not Favorited)" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,4,0,3"/>
                                     <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="FavStarOutlineColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="FavStarOutlineColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1769,7 +1772,7 @@
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=ChkFavStarOutlineShadow}" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="FavStarOutlineShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="FavStarOutlineShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1838,7 +1841,7 @@
 
                                 <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,16,0,3"/>
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="ShapeBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ShapeBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1908,7 +1911,7 @@
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
-                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
@@ -1925,12 +1928,12 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Font (with Bold beside its header) and Alignment (with Wrap text beside its header; wrap at the box
-                                     width, shared by both states), both combos on one row. Unequal columns: 160 for Font, Auto for
-                                     Alignment (as wide as its header and checkbox, at least the 110 combo). -->
-                                <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6">
+                                     width, shared by both states), both combos on one row. Unequal columns: 170 for Font, Auto for
+                                     Alignment (as wide as its header and checkbox, at least the 110 combo), which starts at x 178. -->
+                                <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="160"/>
-                                        <ColumnDefinition Width="14"/>
+                                        <ColumnDefinition Width="170"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -1945,7 +1948,7 @@
                                         <TextBlock Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="ChkRGWrap" Content="Wrap text" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGWrap_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="CboRGFont" Grid.Row="1" Grid.Column="0" Width="160" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="CboRGFont" Grid.Row="1" Grid.Column="0" Width="170" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGFont_SelectionChanged"/>
                                     <ComboBox x:Name="CboRGAlign" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGAlign_SelectionChanged"/>
@@ -1975,7 +1978,7 @@
                                 <!-- Color, on its own row -->
                                 <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
                                 <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="RGTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGTextColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -1991,7 +1994,7 @@
                                 <TextBlock Grid.Row="7" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="7" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="8" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="RGShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2052,7 +2055,7 @@
 
                                 <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="RGBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2131,7 +2134,7 @@
                                     </Border>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="VPBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="VPBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2156,17 +2159,16 @@
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGState_SelectionChanged"/>
                             </StackPanel>
                             <!-- Column 0 holds the 26px swatch, a 4px gap and the 80px hex box (the 110px color group used on
-                                 the other styling tabs); Size is a 50px box and Radius a 60px box (wide enough that neither
-                                 label overhangs its box) in Auto columns, each after an 8px gap, so Size starts at x 118 and
-                                 Radius at x 176 (the drop shadow rows' Blur and Depth). The local Text Marquee and Play
-                                 Button border rows line up the same way. -->
+                                 the other styling tabs); Size and Radius are 52px boxes in 52px columns, each after an 8px gap,
+                                 so Size is x 118 to 170 and Radius x 178 to 230 (the drop shadow rows' Blur and Depth). The
+                                 local Text Marquee and Play Button border rows line up the same way. -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="52"/>
                                     <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="52"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -2178,7 +2180,7 @@
                                 <TextBlock Grid.Row="0" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <TextBlock Grid.Row="0" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="ShapeBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ShapeBorderColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2187,16 +2189,16 @@
                                     </Border>
                                     <TextBox x:Name="TxtShapeBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtShapeBorderColorHex_LostFocus"/>
                                 </StackPanel>
-                                <TextBox x:Name="TxtShapeBorderSize" Grid.Row="1" Grid.Column="2" Width="50" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                <TextBox x:Name="TxtShapeBorderSize" Grid.Row="1" Grid.Column="2" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeBorderField_LostFocus" KeyDown="ShapeBorderField_KeyDown"/>
-                                <TextBox x:Name="TxtShapeCornerRadius" Grid.Row="1" Grid.Column="4" Width="60" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                <TextBox x:Name="TxtShapeCornerRadius" Grid.Row="1" Grid.Column="4" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                          Style="{StaticResource GLTextBoxStyle}" LostFocus="ShapeBorderField_LostFocus" KeyDown="ShapeBorderField_KeyDown"/>
 
                                 <!-- Hover border color: Search & Buttons only (the four buttons' border while the mouse is over them) -->
                                 <StackPanel x:Name="PnlSBHoverBorder" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Visibility="Collapsed">
                                     <TextBlock Text="Hover border color:" Style="{StaticResource GLLabelStyle}" Margin="0,20,0,3"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="SBHoverBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBHoverBorderColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2266,7 +2268,7 @@
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
-                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="8"/>
                                     <ColumnDefinition Width="52"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
@@ -2299,21 +2301,23 @@
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboBannerFont_SelectionChanged"/>
 
                                 <!-- Color, then max size (6 to 200, inside the card's 400x100 reference box); the max size box sits in
-                                     the drop shadow row's Blur column (x 118, 52 wide) -->
-                                <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5">
+                                     the drop shadow row's Blur column (x 118, 52 wide). The trailing * column lets the "Max size:" label
+                                     run past the box (it is wider than 52) and keeps layout rounding from widening the fixed columns. -->
+                                <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="6">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Max size:" Style="{StaticResource GLLabelStyle}"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="Max size:" Style="{StaticResource GLLabelStyle}"/>
                                     <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="BannerColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2349,7 +2353,7 @@
                                 <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkBannerShadow}">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="BannerShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerShadowColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2366,7 +2370,7 @@
                                 <!-- Background color (alpha shows the marquee panel behind the card), on its own row -->
                                 <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="5" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,14,0,3"/>
                                 <StackPanel Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="BannerBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2377,14 +2381,15 @@
                                 </StackPanel>
 
                                 <!-- Card border: color, size (0 to 50), radius (0 to 200); never scales with the marquee box. Color is left
-                                     aligned with Background above; the 50px size box starts at the drop shadow row's Blur (x 118) and the
-                                     60px radius box at its Depth (x 176). -->
-                                <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="6">
+                                     aligned with Background above; the 52px size box sits in the drop shadow row's Blur column (x 118 to 170)
+                                     and the 52px radius box in its Depth column (x 178 to 230). -->
+                                <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="58"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -2392,9 +2397,9 @@
                                     </Grid.RowDefinitions>
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
-                                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
                                     <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="BannerBorderColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="BannerBorderColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2403,9 +2408,9 @@
                                         </Border>
                                         <TextBox x:Name="TxtBannerBorderColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtBannerBorderColorHex_LostFocus"/>
                                     </StackPanel>
-                                    <TextBox x:Name="TxtBannerBorderSize" Grid.Row="1" Grid.Column="2" Width="50" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtBannerBorderSize" Grid.Row="1" Grid.Column="2" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
-                                    <TextBox x:Name="TxtBannerCornerRadius" Grid.Row="1" Grid.Column="3" Width="60" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtBannerCornerRadius" Grid.Row="1" Grid.Column="4" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="BannerField_LostFocus" KeyDown="BannerField_KeyDown"/>
                                 </Grid>
                             </Grid>
@@ -2424,7 +2429,7 @@
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="6"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
@@ -2451,7 +2456,7 @@
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIMarqueeShadow}">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="GIMarqueeShadowColorPicker" Tag="Marquee" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="GIShadowColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2514,7 +2519,7 @@
                                      app's popup and dialog background -->
                                 <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0,16,0,3"/>
                                 <StackPanel Orientation="Horizontal">
-                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                         <colorpicker:PortableColorPicker x:Name="MainBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="MainBgColorPicker_ColorChanged">
                                             <colorpicker:PortableColorPicker.Resources>
                                                 <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2556,7 +2561,7 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Width:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="TxtScrGLWidth" Grid.Row="0" Grid.Column="2" Width="48" HorizontalAlignment="Left" Margin="0,0,0,8" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtScrGLWidth" Grid.Row="0" Grid.Column="2" Width="52" HorizontalAlignment="Left" Margin="0,0,0,8" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="ScrWidth_LostFocus" KeyDown="ScrWidth_KeyDown"/>
 
                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="Thumb:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
@@ -2564,7 +2569,7 @@
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Resting:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGLThumbColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2574,7 +2579,7 @@
                                         <TextBox x:Name="TxtScrGLThumbColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="ScrColorHex_LostFocus"/>
                                     </StackPanel>
                                     <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGLTrackColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2586,7 +2591,7 @@
 
                                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Hover:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGLThumbHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2596,7 +2601,7 @@
                                         <TextBox x:Name="TxtScrGLThumbHoverColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="ScrColorHex_LostFocus"/>
                                     </StackPanel>
                                     <StackPanel Grid.Row="3" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGLTrackHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2608,7 +2613,7 @@
 
                                     <TextBlock Grid.Row="4" Grid.Column="0" Text="Dragging:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGLThumbDragColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2652,7 +2657,7 @@
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Width:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
-                                    <TextBox x:Name="TxtScrGIWidth" Grid.Row="0" Grid.Column="2" Width="48" HorizontalAlignment="Left" Margin="0,0,0,8" HorizontalContentAlignment="Center"
+                                    <TextBox x:Name="TxtScrGIWidth" Grid.Row="0" Grid.Column="2" Width="52" HorizontalAlignment="Left" Margin="0,0,0,8" HorizontalContentAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="ScrWidth_LostFocus" KeyDown="ScrWidth_KeyDown"/>
 
                                     <TextBlock Grid.Row="1" Grid.Column="2" Text="Thumb:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
@@ -2660,7 +2665,7 @@
 
                                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Resting:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="2" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGIThumbColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2670,7 +2675,7 @@
                                         <TextBox x:Name="TxtScrGIThumbColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="ScrColorHex_LostFocus"/>
                                     </StackPanel>
                                     <StackPanel Grid.Row="2" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGITrackColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2682,7 +2687,7 @@
 
                                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Hover:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,8" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGIThumbHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2692,7 +2697,7 @@
                                         <TextBox x:Name="TxtScrGIThumbHoverColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="ScrColorHex_LostFocus"/>
                                     </StackPanel>
                                     <StackPanel Grid.Row="3" Grid.Column="4" Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGITrackHoverColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
@@ -2704,7 +2709,7 @@
 
                                     <TextBlock Grid.Row="4" Grid.Column="0" Text="Dragging:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="2" Orientation="Horizontal">
-                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="ScrGIThumbDragColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="ScrColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
                                                     <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
