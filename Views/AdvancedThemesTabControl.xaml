@@ -441,7 +441,7 @@
 
                                 <!-- Normal state: compact drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                 <CheckBox x:Name="ChkGLFolderShadow" Grid.Row="4" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLFolderShadow_Click"/>
+                                          Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkGLFolderShadow_Click"/>
                                 <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkGLFolderShadow}">
@@ -488,7 +488,7 @@
 
                                 <!-- Selected state: compact drop shadow (independent of the normal one) -->
                                 <CheckBox x:Name="ChkGLFolderSelShadow" Grid.Row="9" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLFolderSelShadow_Click"/>
+                                          Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkGLFolderSelShadow_Click"/>
                                 <TextBlock Grid.Row="9" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="9" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="10" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkGLFolderSelShadow}">
@@ -594,7 +594,7 @@
 
                                 <!-- Normal state: compact drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                 <CheckBox x:Name="ChkGLGameShadow" Grid.Row="4" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLGameShadow_Click"/>
+                                          Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkGLGameShadow_Click"/>
                                 <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkGLGameShadow}">
@@ -641,7 +641,7 @@
 
                                 <!-- Selected state: compact drop shadow (independent of the normal one) -->
                                 <CheckBox x:Name="ChkGLGameSelShadow" Grid.Row="9" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLGameSelShadow_Click"/>
+                                          Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkGLGameSelShadow_Click"/>
                                 <TextBlock Grid.Row="9" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="9" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="10" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkGLGameSelShadow}">
@@ -787,7 +787,7 @@
 
                                 <!-- Label: drop shadow (standalone toggle kept; extra gap above it, no divider) -->
                                 <CheckBox x:Name="ChkSBLabelShadow" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,16,0,0"
-                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkSBLabelShadow_Click"/>
+                                          Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkSBLabelShadow_Click"/>
                                 <TextBlock Grid.Row="5" Grid.Column="0" Text="Shadow color:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
                                 <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
                                 <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3"/>
@@ -994,7 +994,7 @@
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GITitleShadow" Tag="Title" Grid.Row="4" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GITitleShadow}">
@@ -1096,7 +1096,7 @@
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIPublisherShadow" Tag="Publisher" Grid.Row="3" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIPublisherShadow}">
@@ -1174,7 +1174,7 @@
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GINavShadow" Tag="Nav" Grid.Row="4" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GINavShadow}">
@@ -1253,7 +1253,7 @@
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIInfoHeaderShadow" Tag="InfoHeader" Grid.Row="4" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIInfoHeaderShadow}">
@@ -1334,7 +1334,7 @@
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIInfoBodyShadow" Tag="InfoBody" Grid.Row="4" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <TextBlock Grid.Row="4" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="4" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIInfoBodyShadow}">
@@ -1386,7 +1386,7 @@
 
                                     <!-- Drop shadow (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIPreviewsShadow" Tag="Previews" Grid.Row="0" Grid.Column="0" Content="Drop shadow" Margin="0,0,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <TextBlock Grid.Row="0" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="0" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=GIPreviewsShadow}">
@@ -1499,7 +1499,7 @@
 
                                     <!-- Text drop shadow, compact (color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIPlayButtonShadow" Tag="PlayButton" Grid.Row="5" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="6" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=GIPlayButtonShadow}" Orientation="Horizontal">
@@ -1551,7 +1551,7 @@
                                         <TextBox x:Name="TxtPlayButtonBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtPlayButtonBgColorHex_LostFocus"/>
                                     </StackPanel>
                                     <CheckBox x:Name="ChkPlayButtonBoxShadow" Grid.Row="3" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="ChkPlayButtonBoxShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkPlayButtonBoxShadow_Click"/>
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=ChkPlayButtonBoxShadow}" Orientation="Horizontal">
@@ -1715,7 +1715,7 @@
                                         <TextBox x:Name="GIFavStarColorHex" Tag="FavStar" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="GIColorHex_LostFocus"/>
                                     </StackPanel>
                                     <CheckBox x:Name="GIFavStarShadow" Tag="FavStar" Grid.Row="3" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=GIFavStarShadow}" Orientation="Horizontal">
@@ -1768,7 +1768,7 @@
                                         <TextBox x:Name="TxtFavStarOutlineColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtFavStarOutlineColorHex_LostFocus"/>
                                     </StackPanel>
                                     <CheckBox x:Name="ChkFavStarOutlineShadow" Grid.Row="3" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="ChkFavStarOutlineShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkFavStarOutlineShadow_Click"/>
                                     <TextBlock Grid.Row="3" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <TextBlock Grid.Row="3" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Row="4" Grid.Column="0" IsEnabled="{Binding IsChecked, ElementName=ChkFavStarOutlineShadow}" Orientation="Horizontal">
@@ -1990,7 +1990,7 @@
 
                                 <!-- Drop shadow, compact (color, blur and depth are enabled while the toggle is on) -->
                                 <CheckBox x:Name="ChkRGShadow" Grid.Row="7" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGShadow_Click"/>
+                                          Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkRGShadow_Click"/>
                                 <TextBlock Grid.Row="7" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="7" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="8" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkRGShadow}">
@@ -2349,7 +2349,7 @@
 
                                 <!-- Title drop shadow, compact (its own BannerShadow* values; the card's image shadow is the Shadow tab's) -->
                                 <CheckBox x:Name="ChkBannerShadow" Grid.Row="5" Grid.Column="0" Content="Drop shadow" Margin="0,10,0,3" VerticalAlignment="Center"
-                                          Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerShadow_Click"/>
+                                          Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkBannerShadow_Click"/>
                                 <TextBlock Grid.Row="5" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <TextBlock Grid.Row="5" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkBannerShadow}">
@@ -2442,7 +2442,7 @@
 
                                     <!-- Drop shadow (target, color, blur and depth are enabled while the toggle is on) -->
                                     <CheckBox x:Name="GIMarqueeShadow" Tag="Marquee" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow"
-                                              Style="{StaticResource GLCheckBoxStyle}" Click="GIShadow_Click"/>
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="GIShadow_Click"/>
                                     <!-- Which images get the shadow: Both, Splash logo only, Marquees only (game marquee, spin frames and the Text Marquee) -->
                                     <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Apply shadow to:" Style="{StaticResource GLLabelStyle}" Margin="0,8,0,3"/>
                                     <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5">

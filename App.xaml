@@ -559,6 +559,13 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
 
+        <!-- A checkbox whose label is a section heading (the Drop shadow toggles): the themed Sub-Header font values,
+             matching the GLLabelStyle labels beside it. -->
+        <Style x:Key="GLSubHeaderCheckBoxStyle" TargetType="CheckBox" BasedOn="{StaticResource GLCheckBoxStyle}">
+            <Setter Property="Foreground" Value="{DynamicResource Global.Font.SubHeader.Color}"/>
+            <Setter Property="FontSize" Value="{DynamicResource Global.Font.SubHeader.Size}"/>
+        </Style>
+
         <!-- Small square toggle with a link glyph (Segoe MDL2 Assets), used for the aspect-ratio lock. Checked shows the
              selected chrome look. -->
         <Style x:Key="GlyphToggleStyle" TargetType="ToggleButton">
