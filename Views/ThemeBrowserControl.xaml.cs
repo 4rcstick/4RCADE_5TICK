@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -21,7 +22,9 @@ namespace ArcadeStick.Views
         // [SECTION: Layout Constants]
         // Every entry layout number in one place, for tuning by eye
         private const double SidePadding = 15;               // left and right padding of the tab, as the Theme Builder tab content
-        private const double InstructionLineBottomGap = 12;  // gap between the instruction line and the list
+        private const double InstructionLineBottomGap = 10;   // gap between the instruction line and the divider
+        private const double DividerToListGap = 10;           // gap between the divider and the first entry (scrolls with the list)
+        private const double ScrollEdgeGap = 3;              // distance from the scrollbar and the scroll region to the inside edge of the right and bottom borders
         private const double RowPaddingVertical = 12;        // padding above and below each entry's content, around the dividers
         private const double ColumnGap = 16;                 // gap between the thumbnail column and the text column
         private const double LineGap = 4;                    // gap between the text lines of an entry
@@ -73,6 +76,8 @@ namespace ArcadeStick.Views
             InitializeComponent();
             RootGrid.Margin = new Thickness(SidePadding);
             TxtInstruction.Margin = new Thickness(0, 0, 0, InstructionLineBottomGap);
+            ScrollEntries.Margin = new Thickness(0, 0, -(SidePadding - ScrollEdgeGap), -(SidePadding - ScrollEdgeGap));
+            PnlEntries.Margin = new Thickness(0, DividerToListGap, SidePadding - ScrollEdgeGap, SidePadding - ScrollEdgeGap);
             Unloaded += (_, _) => _savedOffset = ScrollEntries.VerticalOffset;
         }
 
@@ -148,22 +153,53 @@ namespace ArcadeStick.Views
         }
 
         // Does the selected look exactly as the Theme Builder's saved-size buttons (RebuildSavedSizes): the active one rests on
-        // the hover pair (Background and Foreground, the one allowed exception to the ThemedActionButtonStyle rule) and is Bold;
-        // the others clear the pair and are explicitly Normal, as the Builder sets them. Never disabled.
+        // the hover pair (Background and Foreground, the one allowed exception to the ThemedActionButtonStyle rule) and shows
+        // the Bold layer of its two-layer label (MakeSizeLabel); the others clear the pair and show the Normal layer. The
+        // button itself stays Normal, so its size never changes. Never disabled.
         private static void ApplySelectedLook(Button button, bool selected)
         {
             if (selected)
             {
                 button.SetResourceReference(Button.BackgroundProperty, GlobalThemeResources.ButtonBgHover);
                 button.SetResourceReference(Button.ForegroundProperty, GlobalThemeResources.ButtonTextHover);
-                button.FontWeight = FontWeights.Bold;
             }
             else
             {
                 button.ClearValue(Button.BackgroundProperty);
                 button.ClearValue(Button.ForegroundProperty);
-                button.FontWeight = FontWeights.Normal;
             }
+
+            if (button.Content is Grid label && label.Children.Count == 2)
+            {
+                label.Children[0].Visibility = selected ? Visibility.Hidden : Visibility.Visible;
+                label.Children[1].Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+
+        // Returns the two-layer label of a resolution button (a matching copy is in AdvancedThemesTabControl): the Normal
+        // layer is the only one that sizes the button (Hidden, not Collapsed, while selected, so it keeps its space); the Bold
+        // layer has a -1000 margin on every side, so it adds no width or height, and is centered on the Normal layer, spilling
+        // into the button's padding without clipping. Neither layer sets Foreground or FontSize, so the hover color and the
+        // Global Button font size are inherited.
+        private static Grid MakeSizeLabel(string text, bool selected)
+        {
+            var label = new Grid();
+            label.Children.Add(new TextBlock
+            {
+                Text = text,
+                FontWeight = FontWeights.Normal,
+                Visibility = selected ? Visibility.Hidden : Visibility.Visible
+            });
+            label.Children.Add(new TextBlock
+            {
+                Text = text,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(-1000),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Visibility = selected ? Visibility.Visible : Visibility.Collapsed
+            });
+            return label;
         }
 
         // Returns true when the name is the active theme (ActiveThemeName, any case)
@@ -389,15 +425,19 @@ namespace ArcadeStick.Views
                 var sizeButtons = new WrapPanel();
                 foreach (var (width, height) in entry.Sizes)
                 {
-                    // The Builder's saved-size button values (RebuildSavedSizes): style, padding, margin, label, Normal weight
+                    // The Builder's saved-size button values (RebuildSavedSizes): style, padding, margin, the two-layer label
+                    // (sized by its Normal layer; RefreshActiveMarks shows the Bold one) and the button always Normal. The
+                    // automation name keeps the plain "W x H" text that string content used to give.
+                    string text = $"{width} x {height}";
                     var button = new Button
                     {
-                        Content = $"{width} x {height}",
+                        Content = MakeSizeLabel(text, false),
                         Style = (Style)FindResource("ThemedActionButtonStyle"),
                         Padding = new Thickness(7, 3, 7, 3),
                         Margin = new Thickness(0, 0, 6, 4),
                         FontWeight = FontWeights.Normal
                     };
+                    AutomationProperties.SetName(button, text);
                     string themeName = entry.Name;
                     int buttonWidth = width;
                     int buttonHeight = height;

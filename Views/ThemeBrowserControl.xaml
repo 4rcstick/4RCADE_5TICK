@@ -2,11 +2,13 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- [SECTION: Theme Browser Layout] -->
-    <!-- The THEME BROWSER tab: a stationary instruction line, then the scrolling catalog of theme entries built in
-         code-behind (ThemeBrowserControl.xaml.cs). Every color and size is a Global resource; the side padding and the gap
-         below the instruction line come from the constants block in code-behind. -->
+    <!-- The THEME BROWSER tab: a stationary instruction line and a 2 px divider under it, then the scrolling catalog of
+         theme entries built in code-behind (ThemeBrowserControl.xaml.cs). Every color and size is a Global resource; the
+         padding, the gaps around the divider and the scroll region's reach (to ScrollEdgeGap from the inside of the right and bottom
+         borders, through negative margins set in the constructor) come from the constants block in code-behind. -->
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
@@ -17,9 +19,13 @@
                    Text="Select a resolution to load a theme, and click a thumbnail to enlarge the preview."
                    Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
 
+        <!-- Header divider: stationary (outside the ScrollViewer), Global divider color, fixed 2 px height. -->
+        <Border x:Name="BrdHeaderDivider" Grid.Row="1" Height="2" SnapsToDevicePixels="True"
+                Background="{DynamicResource Global.Options.Separator}"/>
+
         <!-- Pixel scrolling (not the item-scrolling Themed variant), following the Global scrollbar values. The shared size
              scope lets every entry's thumbnail column take the same width, so the text column starts at one x. -->
-        <ScrollViewer x:Name="ScrollEntries" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+        <ScrollViewer x:Name="ScrollEntries" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                       Style="{StaticResource ArcadeDarkScrollViewer}">
             <StackPanel x:Name="PnlEntries" Grid.IsSharedSizeScope="True"/>
         </ScrollViewer>

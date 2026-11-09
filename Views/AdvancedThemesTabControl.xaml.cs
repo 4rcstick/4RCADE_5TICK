@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -4695,6 +4696,8 @@ namespace ArcadeStick.Views
         // Pending or unsaved sizes never appear here until Save Changes writes them to the zip.
         public void RefreshSavedSizes() => RebuildSavedSizes();
 
+        // Does the Resolutions row rebuild: one button per saved size, the active one on the hover pair with the Bold layer of
+        // its two-layer label shown (MakeSizeLabel), so selecting never changes a button's size
         private void RebuildSavedSizes()
         {
             if (_settings == null || _currentLayout == null) return;
@@ -4705,15 +4708,19 @@ namespace ArcadeStick.Views
             {
                 bool active = layout.Width == _currentLayout.Width && layout.Height == _currentLayout.Height;
 
+                // The button is always Normal; the label's layers carry the weight. The automation name keeps the plain
+                // "W x H" text that string content used to give.
+                string text = $"{layout.Width} x {layout.Height}";
                 var button = new Button
                 {
-                    Content = $"{layout.Width} x {layout.Height}",
+                    Content = MakeSizeLabel(text, active),
                     Tag = new ResolutionPreset(layout.Width, layout.Height),
                     Style = (Style)FindResource("ThemedActionButtonStyle"),
                     Padding = new Thickness(7, 3, 7, 3),
                     Margin = new Thickness(0, 0, 6, 4),
-                    FontWeight = active ? FontWeights.Bold : FontWeights.Normal
+                    FontWeight = FontWeights.Normal
                 };
+                AutomationProperties.SetName(button, text);
                 // The style gives the Global button look; the active size rests on the hover pair (background and text)
                 if (active)
                 {
@@ -4724,6 +4731,32 @@ namespace ArcadeStick.Views
 
                 PnlSavedSizes.Children.Add(button);
             }
+        }
+
+        // Returns the two-layer label of a resolution button (a matching copy is in ThemeBrowserControl): the Normal layer is
+        // the only one that sizes the button (Hidden, not Collapsed, while selected, so it keeps its space); the Bold layer has
+        // a -1000 margin on every side, so it adds no width or height, and is centered on the Normal layer, spilling into the
+        // button's padding without clipping. Neither layer sets Foreground or FontSize, so the hover color and the Global
+        // Button font size are inherited.
+        private static Grid MakeSizeLabel(string text, bool selected)
+        {
+            var label = new Grid();
+            label.Children.Add(new TextBlock
+            {
+                Text = text,
+                FontWeight = FontWeights.Normal,
+                Visibility = selected ? Visibility.Hidden : Visibility.Visible
+            });
+            label.Children.Add(new TextBlock
+            {
+                Text = text,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(-1000),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Visibility = selected ? Visibility.Visible : Visibility.Collapsed
+            });
+            return label;
         }
 
         // Same path as picking the size from the combo box: window resizes, layers move, and any pending
