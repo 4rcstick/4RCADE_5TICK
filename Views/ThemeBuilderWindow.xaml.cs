@@ -53,6 +53,7 @@ namespace ArcadeStick.Views
             AdvancedTab.ThumbnailCaptureRunner = () => (Owner as MainWindow)?.CaptureThemeThumbnail();
             GlobalTab.Initialize(_settings);
             ThemeBrowser.Initialize(_settings); // before the tab handler below can call RefreshCatalog
+            ThemeBrowser.LoadRequested += LoadThemeFromBrowser;
 
             // Alignment guides: forward the Advanced tab's guide info to the main window, but only while the
             // THEME BUILDER tab (ThemeBuilderPage) is selected. Cleared when switching to another tab or closing.
@@ -181,6 +182,7 @@ namespace ArcadeStick.Views
         {
             ThemesManager.ReloadFromSettings();
             RefreshAfterThemeLoad();
+            ThemeBrowser.RefreshActiveMarks(); // the Browser's highlight and active marker follow the new theme and size
         }
 
         // Called by MainWindow when a real spin ended the card preview, so the checkbox unchecks
@@ -203,6 +205,7 @@ namespace ArcadeStick.Views
             AdvancedTab.ReloadFromSettings();
             _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
             _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
+            ThemeBrowser.RefreshActiveMarks(); // the Browser's highlight follows the new active size
         }
 
         // Called by MainWindow right after creating the builder when its open adopted Smart fullscreen's shown size as the
@@ -235,6 +238,66 @@ namespace ArcadeStick.Views
             ThemeBuilderTabControl.SelectedItem = TabThemeBrowser;
         }
         // [END SECTION: Tab Selection]
+
+        // [SECTION: Theme Browser Load]
+        // Does a Browser load: the saved theme at the chosen size in one step (LoadTheme with a target size), through
+        // RunThemeSwitch with explicitSize, so Smart fullscreen follows the size pick rules (an exact 1x fit goes fullscreen,
+        // anything else windowed). Unsaved edits are
+        // dropped without a prompt, as Load does. After the Builder refresh, settings.json is written once in its own
+        // try/catch, so a failed write is reported and logged but still lets the fullscreen handling run. A failed load
+        // saves nothing, keeps the previous theme, and refreshes the catalog so a vanished or broken theme drops out.
+        private void LoadThemeFromBrowser(string themeName, int width, int height)
+        {
+            bool zipMissing = false;
+            try
+            {
+                Func<bool> load = () =>
+                {
+                    if (!_viewModel.LoadTheme(themeName, (width, height)))
+                    {
+                        zipMissing = true;
+                        return false;
+                    }
+
+                    RefreshAfterExternalThemeSwitch();
+
+                    try
+                    {
+                        PersistSettingsToDisk();
+                    }
+                    catch (Exception persistEx)
+                    {
+                        ArcadeStick.Services.ThemeLog.Write("Load", themeName, "-", _viewModel.LoadedThemeName, "ok", $"Loaded, but settings.json could not be saved: {persistEx.Message}");
+                        MessageBox.Show($"'{themeName}' was loaded, but the setting couldn't be saved. It will not be remembered the next time you start the app.\n\nDetails: {persistEx.Message}",
+                            "Theme Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                    return true;
+                };
+
+                // explicitSize: the user picked this size, so the size pick rules decide fullscreen (not the theme switch rules)
+                if (Owner is MainWindow m) m.RunThemeSwitch(load, explicitSize: true);
+                else load();
+            }
+            catch (ArcadeStick.Services.ThemeLoadException ex)
+            {
+                MessageBox.Show(ex.Message, "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ThemeBrowser.RefreshCatalog();
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reading theme properties: {ex.Message}", "Processing Failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                ThemeBrowser.RefreshCatalog();
+                return;
+            }
+
+            if (zipMissing)
+            {
+                MessageBox.Show($"'{themeName}' couldn't be found. It may have been moved or deleted.", "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ThemeBrowser.RefreshCatalog();
+            }
+        }
+        // [END SECTION: Theme Browser Load]
 
         // [SECTION: Theme Saved Flash]
         // Shows the "Theme Saved" text beside the tab headers for 2 seconds (a repeat save restarts the timer)

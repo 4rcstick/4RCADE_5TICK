@@ -1493,6 +1493,11 @@ namespace ArcadeStick.ViewModels
         // writes the zip, and never by a failed load; Save Changes refuses to write any other existing theme.
         public string LoadedThemeName { get; set; } = "";
 
+        // The size the last loaded theme was saved at (its zip's ActiveWidth / ActiveHeight), even when a load used another
+        // target size; null for an older theme without one. Set only by a completed load. The Theme Browser's fullscreen
+        // handling falls back to it for the F11-out size (MainWindow.HandleExplicitSizeLoadForFullscreen).
+        public (int Width, int Height)? LoadedThemeSavedSize { get; private set; }
+
         // Converts a stored asset path for use after extraction. Only a path inside the zip ("assets/x.png", either slash,
         // any case) moves to the extracted folder, relative to Configuration.BaseDirectory (not absolute) so the theme
         // survives a USB drive-letter change. Anything else is rooted or relative to the app folder (for example a file
@@ -1509,12 +1514,13 @@ namespace ArcadeStick.ViewModels
             return Path.GetRelativePath(Configuration.BaseDirectory, absolutePath);
         }
 
-        // Loads a theme (LoadThemeCore) and logs the outcome
-        public bool LoadTheme(string themeName)
+        // Loads a theme (LoadThemeCore) and logs the outcome. targetSize (the Theme Browser) makes that size the active size,
+        // but only when the theme has a layout at it; null keeps the theme's own saved size, as every other caller does.
+        public bool LoadTheme(string themeName, (int Width, int Height)? targetSize = null)
         {
             try
             {
-                bool loaded = LoadThemeCore(themeName);
+                bool loaded = LoadThemeCore(themeName, targetSize);
                 ThemeLog.Write("Load", themeName, "-", LoadedThemeName, loaded ? "ok" : "failed", loaded ? "" : "The theme's zip was not found.");
                 return loaded;
             }
@@ -1530,8 +1536,9 @@ namespace ArcadeStick.ViewModels
             }
         }
 
-        // Does the load: checks and extracts the zip to staging, swaps it into place, then applies it to memory
-        private bool LoadThemeCore(string themeName)
+        // Does the load: checks and extracts the zip to staging, swaps it into place, then applies it to memory at the theme's
+        // saved size, or at targetSize when the theme has a layout at it (a theme and size load in one step, one refresh)
+        private bool LoadThemeCore(string themeName, (int Width, int Height)? targetSize)
         {
             string themeFile = Configuration.GetThemePath(themeName);
             if (!File.Exists(themeFile)) return false;
@@ -1657,15 +1664,23 @@ namespace ArcadeStick.ViewModels
             }
             Configuration.Info = themeInfo;
 
-            // Any resolution or layer not saved in the theme falls back to LayerRegistry defaults at resolve time. The active
-            // resolution (a user choice stored in settings.json) is deliberately left alone. The names move in the same step
-            // as the layouts, before the display refresh, so LoadedThemeName always names the theme whose layouts are in memory.
+            // Any resolution or layer not saved in the theme falls back to LayerRegistry defaults at resolve time. The names
+            // move in the same step as the layouts, before the display refresh, so LoadedThemeName always names the theme
+            // whose layouts are in memory.
             Configuration.Layouts = themeLayouts;
             Configuration.ActiveThemeName = themeName;
             LoadedThemeName = themeName;
+            LoadedThemeSavedSize = themeData.ActiveWidth > 0 && themeData.ActiveHeight > 0 ? (themeData.ActiveWidth, themeData.ActiveHeight) : null;
 
-            // The window follows the theme: switch to the size the theme was saved at (older themes keep the current size)
-            if (themeData.ActiveWidth > 0 && themeData.ActiveHeight > 0)
+            // The window follows the theme: the requested size when the theme has a layout at it (never a size it would have
+            // to invent from registry defaults), otherwise the size the theme was saved at (older themes keep the current size)
+            if (targetSize is (int targetWidth, int targetHeight)
+                && themeLayouts.Any(l => l.Width == targetWidth && l.Height == targetHeight))
+            {
+                Configuration.ActiveResolutionWidth = targetWidth;
+                Configuration.ActiveResolutionHeight = targetHeight;
+            }
+            else if (themeData.ActiveWidth > 0 && themeData.ActiveHeight > 0)
             {
                 Configuration.ActiveResolutionWidth = themeData.ActiveWidth;
                 Configuration.ActiveResolutionHeight = themeData.ActiveHeight;

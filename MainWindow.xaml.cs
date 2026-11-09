@@ -3614,11 +3614,16 @@ namespace ArcadeStick
             }));
         }
 
-        // Does a theme switch (hamburger theme item, Theme Builder Load Theme) with the Smart fullscreen theme switch rules: the
-        // Theme Builder size check in ApplyLayout waits (_deferBuilderDrop) so HandleThemeSwitchForFullscreen decides once, after
-        // the load. doLoad returns true when the theme loaded.
-        public void RunThemeSwitch(Func<bool> doLoad)
+        // Does a theme switch: the Theme Builder size check in ApplyLayout waits (_deferBuilderDrop) so the fullscreen handling
+        // decides once, after the load. doLoad returns true when the theme loaded. A theme-only load (hamburger theme item,
+        // Theme Builder Load, New Theme) follows the theme switch rules (HandleThemeSwitchForFullscreen); explicitSize (a Theme
+        // Browser resolution button, where the user picked the size) follows the size pick rules instead
+        // (HandleExplicitSizeLoadForFullscreen).
+        public void RunThemeSwitch(Func<bool> doLoad, bool explicitSize = false)
         {
+            var config = _viewModel.Configuration;
+            (int Width, int Height) previousSize = (config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+
             bool loaded;
             _deferBuilderDrop = true;
             try
@@ -3630,7 +3635,29 @@ namespace ArcadeStick
                 _deferBuilderDrop = false;
             }
 
-            if (loaded) HandleThemeSwitchForFullscreen(); // the new theme's sizes decide the fullscreen layout
+            if (!loaded) return;
+
+            if (explicitSize) HandleExplicitSizeLoadForFullscreen(previousSize);
+            else HandleThemeSwitchForFullscreen(); // the new theme's sizes decide the fullscreen layout
+        }
+
+        // Does the Smart fullscreen part of a Theme Browser load, whose size the user picked: the size pick rules
+        // (HandleLayoutSizePickForFullscreen, unchanged), run on every Browser load even at the same size, so an exact 1x fit
+        // enters or keeps Smart fullscreen and anything else ends windowed at the picked size, whatever the window state was.
+        // The F11-out size it leaves must exist in the loaded theme: the size before the load when the theme has it, otherwise
+        // the theme's own saved size (when it has that layout), otherwise none. The active size is never changed here.
+        private void HandleExplicitSizeLoadForFullscreen((int Width, int Height) previousSize)
+        {
+            var config = _viewModel.Configuration;
+            HandleLayoutSizePickForFullscreen(config.ActiveResolutionWidth, config.ActiveResolutionHeight, previousSize);
+
+            if (_fullscreenEntrySize is not (int entryWidth, int entryHeight)) return;
+            if (config.SavedThemeLayouts.Any(l => l.Width == entryWidth && l.Height == entryHeight)) return;
+
+            _fullscreenEntrySize = _viewModel.LoadedThemeSavedSize is (int savedWidth, int savedHeight)
+                && config.SavedThemeLayouts.Any(l => l.Width == savedWidth && l.Height == savedHeight)
+                ? (savedWidth, savedHeight)
+                : null;
         }
 
         private void HamburgerLayoutSizeItem_Click(object sender, RoutedEventArgs e)
