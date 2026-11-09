@@ -37,7 +37,7 @@ namespace ArcadeStick.Models
         // Does the hamburger menu check: true for Both and MenuOnly
         public static bool ShowsInHamburgerMenu(string? value) => Normalize(value) is Both or MenuOnly;
 
-        // Does the Theme Browser check: true for Both and BrowserOnly (for the future browser; nothing calls it yet)
+        // Does the Theme Browser check: true for Both and BrowserOnly (ThemeCatalogReader filters the catalog with it)
         public static bool ShowsInThemeBrowser(string? value) => Normalize(value) is Both or BrowserOnly;
     }
     // [END SECTION: Theme Show In Values]

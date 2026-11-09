@@ -26,6 +26,10 @@ namespace ArcadeStick.Services
         public const double BrowserMaxHeight = 90;
         public const double PopOutMaxWidth = 480;  // the Theme Browser enlarged preview, in DIPs
         public const double PopOutMaxHeight = 270;
+        // A Theme Browser tile is decoded to fit inside this box (pixels): about twice the 160 x 90 display box, so it
+        // stays sharp at 150% to 200% Windows scaling
+        public const int BrowserTileDecodeMaxWidth = 320;
+        public const int BrowserTileDecodeMaxHeight = 180;
         // [END SECTION: Thumbnail Sizes]
 
         // Writes the pending capture (if any) and points the live ThumbnailPath at it. Retakes overwrite the same file:

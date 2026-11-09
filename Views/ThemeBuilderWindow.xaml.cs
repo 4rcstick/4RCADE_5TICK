@@ -52,6 +52,7 @@ namespace ArcadeStick.Views
             AdvancedTab.Initialize(_settings);
             AdvancedTab.ThumbnailCaptureRunner = () => (Owner as MainWindow)?.CaptureThemeThumbnail();
             GlobalTab.Initialize(_settings);
+            ThemeBrowser.Initialize(_settings); // before the tab handler below can call RefreshCatalog
 
             // Alignment guides: forward the Advanced tab's guide info to the main window, but only while the
             // THEME BUILDER tab (ThemeBuilderPage) is selected. Cleared when switching to another tab or closing.
