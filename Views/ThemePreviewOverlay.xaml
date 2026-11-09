@@ -1,0 +1,18 @@
+<UserControl x:Class="ArcadeStick.Views.ThemePreviewOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed" Focusable="True" FocusVisualStyle="{x:Null}">
+    <!-- [SECTION: Theme Preview Overlay] -->
+    <!-- The Theme Browser's enlarged preview, hosted above everything in ThemeBuilderWindow: a full-window dim layer (fixed
+         Chrome Palette color) that takes every click, and the centered pop-out frame (Global Options background and border
+         color, fixed border thickness and padding from the constants in code-behind, square corners) around the image.
+         Collapsed, and so taking no input, while closed. No animation. -->
+    <Grid x:Name="DimLayer" Background="{StaticResource ChromeBrowserPreviewDim}">
+        <Border x:Name="Frame" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="{DynamicResource Global.Options.Bg}" BorderBrush="{DynamicResource Global.Options.BorderColor}"
+                SnapsToDevicePixels="True" UseLayoutRounding="True">
+            <Image x:Name="ImgPreview" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant"/>
+        </Border>
+    </Grid>
+    <!-- [END SECTION: Theme Preview Overlay] -->
+</UserControl>

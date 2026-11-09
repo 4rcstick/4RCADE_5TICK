@@ -38,6 +38,11 @@
         <SolidColorBrush x:Key="ChromeThumbnailPlaceholderBg" Color="#FF1C1C1E"/>
         <SolidColorBrush x:Key="ChromeThumbnailPlaceholderBorder" Color="#FFA0A0A2"/>
         <SolidColorBrush x:Key="ChromeThumbnailPlaceholderText" Color="#FFF2F2F7"/>
+        <!-- Theme Browser thumbnail hover: black at 60% over the image, and its magnifier-plus glyph (off-white) -->
+        <SolidColorBrush x:Key="ChromeBrowserThumbnailHover" Color="#99000000"/>
+        <SolidColorBrush x:Key="ChromeBrowserThumbnailGlyph" Color="#FFE8E8E8"/>
+        <!-- Theme Browser enlarged preview: black at 60% over the whole Theme Builder window behind the pop-out -->
+        <SolidColorBrush x:Key="ChromeBrowserPreviewDim" Color="#99000000"/>
         <!-- Theme Builder layer list: the "|" marker in front of the layers that can be renamed. Blue marks the shape
              (default) layers; magenta marks the custom layers. The Layers help tooltip uses the same two brushes. -->
         <SolidColorBrush x:Key="ChromeLayerRenameMarker" Color="#FF4FC3F7"/>

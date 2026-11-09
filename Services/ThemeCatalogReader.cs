@@ -288,6 +288,97 @@ namespace ArcadeStick.Services
             }
         }
 
+        // [SUB-SECTION: Full-Size Thumbnail]
+        // The enlarged preview reads the saved thumbnail again, on demand: entries larger than this are refused, and images
+        // larger than the decode box are decoded down to fit it (twice the 480 x 270 pop-out box, sharp at 200% scaling)
+        private const long MaxFullThumbnailBytes = 16 * 1024 * 1024;
+        private const int FullThumbnailDecodeMaxWidth = 960;
+        private const int FullThumbnailDecodeMaxHeight = 540;
+
+        // Returns a theme's saved thumbnail for the enlarged preview, frozen, or null on any failure (zip gone or unreadable,
+        // no theme file, invalid JSON, no thumbnail entry, an entry over 16 MB, an undecodable image). Uses the same entry
+        // lookup as the catalog (FindThumbnailEntry, reading Info.ThumbnailPath again), copies the bytes to memory and closes
+        // the zip before decoding, so no lock lingers. Not cached; never touches the catalog cache. Never throws.
+        public static BitmapSource? ReadFullThumbnail(string zipPath)
+        {
+            byte[] bytes;
+            try
+            {
+                using (var zip = ZipFile.OpenRead(zipPath))
+                {
+                    var themeEntry = FindEntry(zip, "theme.json") ?? FindEntry(zip, "theme.cfg");
+                    if (themeEntry == null) return null;
+
+                    string? storedThumbnail = null;
+                    using (var themeStream = themeEntry.Open())
+                    using (var document = JsonDocument.Parse(themeStream))
+                    {
+                        var root = document.RootElement;
+                        if (root.ValueKind != JsonValueKind.Object) return null;
+                        if (root.TryGetProperty("Info", out JsonElement info) && info.ValueKind == JsonValueKind.Object)
+                        {
+                            storedThumbnail = ReadString(info, "ThumbnailPath");
+                        }
+                    }
+
+                    var thumbnailEntry = FindThumbnailEntry(zip, storedThumbnail);
+                    if (thumbnailEntry == null || thumbnailEntry.Length > MaxFullThumbnailBytes) return null;
+
+                    using var thumbnailStream = thumbnailEntry.Open();
+                    using var buffer = new MemoryStream();
+                    thumbnailStream.CopyTo(buffer);
+                    bytes = buffer.ToArray();
+                }
+            }
+            catch
+            {
+                return null;
+            }
+
+            return DecodeFull(bytes);
+        }
+
+        // Does the full-size decode from memory: its own size, or decoded down to fit the full decode box with one DecodePixel
+        // value when larger (aspect kept, never upscaled), frozen. Null when the image can't be decoded.
+        private static BitmapSource? DecodeFull(byte[] bytes)
+        {
+            try
+            {
+                int sourceWidth;
+                int sourceHeight;
+                using (var probe = new MemoryStream(bytes))
+                {
+                    var decoder = BitmapDecoder.Create(probe, BitmapCreateOptions.DelayCreation, BitmapCacheOption.None);
+                    sourceWidth = decoder.Frames[0].PixelWidth;
+                    sourceHeight = decoder.Frames[0].PixelHeight;
+                }
+                if (sourceWidth <= 0 || sourceHeight <= 0) return null;
+
+                double widthFit = (double)FullThumbnailDecodeMaxWidth / sourceWidth;
+                double heightFit = (double)FullThumbnailDecodeMaxHeight / sourceHeight;
+                double scale = Math.Min(1.0, Math.Min(widthFit, heightFit));
+
+                var bitmap = new BitmapImage();
+                using var stream = new MemoryStream(bytes);
+                bitmap.BeginInit();
+                bitmap.StreamSource = stream;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                if (scale < 1.0)
+                {
+                    if (widthFit <= heightFit) bitmap.DecodePixelWidth = Math.Max(1, (int)Math.Round(sourceWidth * scale));
+                    else bitmap.DecodePixelHeight = Math.Max(1, (int)Math.Round(sourceHeight * scale));
+                }
+                bitmap.EndInit();
+                bitmap.Freeze();
+                return bitmap;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        // [END SUB-SECTION: Full-Size Thumbnail]
+
         // Writes one BrowserSkipped line per file state per session: the zip's file name, the active theme and the reason
         private static void LogSkipOnce(ConfigurationSettings settings, string zipPath, string key, string reason)
         {

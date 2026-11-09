@@ -54,6 +54,11 @@ namespace ArcadeStick.Views
             GlobalTab.Initialize(_settings);
             ThemeBrowser.Initialize(_settings); // before the tab handler below can call RefreshCatalog
             ThemeBrowser.LoadRequested += LoadThemeFromBrowser;
+            ThemeBrowser.PreviewRequested += ShowThemePreview;
+
+            // The preview never outlives the window's focus: losing activation or closing dismisses it first
+            Deactivated += (s, e) => PreviewOverlay.Hide();
+            Closing += (s, e) => PreviewOverlay.Hide();
 
             // Alignment guides: forward the Advanced tab's guide info to the main window, but only while the
             // THEME BUILDER tab (ThemeBuilderPage) is selected. Cleared when switching to another tab or closing.
@@ -298,6 +303,23 @@ namespace ArcadeStick.Views
             }
         }
         // [END SECTION: Theme Browser Load]
+
+        // [SECTION: Theme Browser Preview]
+        // Does a thumbnail click: reads the theme's saved thumbnail at full size from its zip (no lock kept) and opens the
+        // preview over the window. On any failure (zip gone, unreadable, no or oversized thumbnail) nothing opens, no message,
+        // and the catalog refreshes so a vanished theme drops out (scroll kept). Loads and saves nothing.
+        private void ShowThemePreview(ArcadeStick.Models.ThemeCatalogEntry entry)
+        {
+            var image = ArcadeStick.Services.ThemeCatalogReader.ReadFullThumbnail(entry.ZipPath);
+            if (image == null)
+            {
+                ThemeBrowser.RefreshCatalog();
+                return;
+            }
+
+            PreviewOverlay.Show(image);
+        }
+        // [END SECTION: Theme Browser Preview]
 
         // [SECTION: Theme Saved Flash]
         // Shows the "Theme Saved" text beside the tab headers for 2 seconds (a repeat save restarts the timer)

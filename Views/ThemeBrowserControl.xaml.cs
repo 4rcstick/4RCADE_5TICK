@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using ArcadeStick.Models;
 using ArcadeStick.Services;
@@ -28,7 +30,7 @@ namespace ArcadeStick.Views
         private const double NameToGlyphGap = 4;             // gap between the theme name and the active check-circle
         private const double InlineFallbackGap = 4;          // gap between a label and its muted fallback text
         private const double FallbackOpacity = 0.6;          // the muted "no value" look of the Theme Info controls
-        private const string ActiveGlyph = "";         // Segoe MDL2 Assets "Completed" (check in a circle)
+        private const string ActiveGlyph = "\uE930";         // Segoe MDL2 Assets "Completed" (check in a circle)
         // [END SECTION: Layout Constants]
 
         private ConfigurationSettings? _settings;
@@ -44,6 +46,16 @@ namespace ArcadeStick.Views
 
         // True from a load request until the dispatcher is idle again, so clicks queued during the (blocking) load are ignored
         private bool _loadBusy;
+
+        // Raised by a left click (press and release on the same thumbnail) with that entry. ThemeBuilderWindow reads the
+        // full-size thumbnail and opens the preview; this control holds no preview logic.
+        public event Action<ThemeCatalogEntry>? PreviewRequested;
+
+        // The thumbnail tile the left button went down on, so a click opens a preview only when released on the same tile
+        private FrameworkElement? _pressedTile;
+
+        // Shared converter for the hover overlay's IsMouseOver binding
+        private static readonly BooleanToVisibilityConverter HoverVisibility = new();
 
         // What RefreshActiveMarks updates in place on one row: its entry, its check-circle and its size buttons
         private sealed class RowMarks
@@ -243,9 +255,10 @@ namespace ArcadeStick.Views
         }
 
         // Does the thumbnail cell: the cached tile in the shared ThemeThumbnailControl (fit inside 160 x 90, never upscaled)
-        // inside a square-cornered Global Options border drawn outside the image, or the control's own "No Image" box with no
-        // extra border. Centered both ways; it reads no file (ShowImage only).
-        private static FrameworkElement MakeThumbnail(ThemeCatalogEntry entry)
+        // with its hover and click layer (MakePreviewTile) inside a square-cornered Global Options border drawn outside the
+        // image, or the control's own "No Image" box with no extra border, no hover and no click. Centered both ways; it reads
+        // no file (ShowImage only).
+        private FrameworkElement MakeThumbnail(ThemeCatalogEntry entry)
         {
             var view = new ThemeThumbnailControl
             {
@@ -259,7 +272,7 @@ namespace ArcadeStick.Views
 
             var frame = new Border
             {
-                Child = view,
+                Child = MakePreviewTile(view, entry),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 SnapsToDevicePixels = true
@@ -267,6 +280,49 @@ namespace ArcadeStick.Views
             frame.SetResourceReference(Border.BorderBrushProperty, GlobalThemeResources.OptionsBorderColor);
             frame.SetResourceReference(Border.BorderThicknessProperty, GlobalThemeResources.OptionsBorderSize);
             return frame;
+        }
+
+        // Does the hover and click layer over a thumbnail image: a Grid sized by the control (which is exactly the displayed
+        // image, inside the Options border) holding the control and, on top, the hover overlay (Chrome black at 60% with the
+        // centered off-white magnifier-plus, ZoomIn E8A3). The overlay follows the tile's IsMouseOver through a binding, so
+        // WPF keeps it right after the preview closes (no stuck hover); no animation. The glyph hides on an image smaller than
+        // its box. Hand cursor; a left press and release on the same tile raises PreviewRequested.
+        private FrameworkElement MakePreviewTile(ThemeThumbnailControl view, ThemeCatalogEntry entry)
+        {
+            // The transparent background makes the whole image area hit-testable for IsMouseOver and the click
+            var tile = new Grid { Background = Brushes.Transparent, Cursor = Cursors.Hand };
+            tile.Children.Add(view);
+
+            var hover = new Grid { IsHitTestVisible = false };
+            hover.SetResourceReference(Panel.BackgroundProperty, "ChromeBrowserThumbnailHover");
+            hover.SetBinding(VisibilityProperty, new Binding(nameof(IsMouseOver)) { Source = tile, Converter = HoverVisibility });
+
+            var glyph = new TextBlock
+            {
+                Text = "\uE8A3",
+                FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                FontSize = ThemePreviewOverlay.HoverGlyphSize,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            glyph.SetResourceReference(TextBlock.ForegroundProperty, "ChromeBrowserThumbnailGlyph");
+            hover.Children.Add(glyph);
+            tile.Children.Add(hover);
+
+            tile.SizeChanged += (_, _) =>
+                glyph.Visibility = tile.ActualWidth < ThemePreviewOverlay.HoverGlyphSize || tile.ActualHeight < ThemePreviewOverlay.HoverGlyphSize
+                    ? Visibility.Collapsed : Visibility.Visible;
+
+            tile.MouseLeftButtonDown += (_, _) => _pressedTile = tile;
+            tile.MouseLeave += (_, _) => { if (ReferenceEquals(_pressedTile, tile)) _pressedTile = null; };
+            tile.MouseLeftButtonUp += (_, _) =>
+            {
+                if (!ReferenceEquals(_pressedTile, tile)) return;
+                _pressedTile = null;
+                PreviewRequested?.Invoke(entry);
+            };
+
+            return tile;
         }
 
         // Does the name line: the name in capitals for display only (the real name is what loads), Bold in the Global Header

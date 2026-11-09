@@ -11,6 +11,9 @@
         BorderBrush="{StaticResource ChromeBorder}"
         BorderThickness="1">
 
+    <!-- Root: the window content, then the Theme Browser's preview overlay above all of it (outer margin, tabs and bottom
+         buttons), collapsed until a thumbnail is clicked -->
+    <Grid>
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -76,5 +79,10 @@
                     Padding="15,6"/>
         </StackPanel>
         <!-- [END SECTION: Save / Close Button Row] -->
+    </Grid>
+
+    <!-- [SECTION: Theme Preview Overlay] -->
+    <views:ThemePreviewOverlay x:Name="PreviewOverlay"/>
+    <!-- [END SECTION: Theme Preview Overlay] -->
     </Grid>
 </Window>
