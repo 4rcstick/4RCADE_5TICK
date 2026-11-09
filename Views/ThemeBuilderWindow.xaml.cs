@@ -76,6 +76,12 @@ namespace ArcadeStick.Views
                     (Owner as MainWindow)?.ShowGuides(null);
                     (Owner as MainWindow)?.SetBackgroundGrid(false, 0); // hidden, not unchecked: it returns with THEME BUILDER
                     AdvancedTab.StopPreviews(); // leaving THEME BUILDER turns the card and banner previews off
+
+                    // The Browser refreshes once each time it is shown (ShowBrowserTab covers an already selected tab)
+                    if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBrowser))
+                    {
+                        ThemeBrowser.RefreshCatalog();
+                    }
                 }
             };
 
@@ -207,6 +213,27 @@ namespace ArcadeStick.Views
             _resolutionHeightAtLastSave = height;
         }
         // [END SECTION: Constructor & Tab Initialization]
+
+        // [SECTION: Tab Selection]
+        // Does the switch to THEME BUILDER; an already selected tab needs nothing more (its selection logic already ran)
+        public void ShowBuilderTab()
+        {
+            if (ReferenceEquals(ThemeBuilderTabControl.SelectedItem, TabThemeBuilder)) return;
+            ThemeBuilderTabControl.SelectedItem = TabThemeBuilder;
+        }
+
+        // Does the switch to THEME BROWSER: selecting it lets the SelectionChanged handler refresh the catalog; an already
+        // selected tab gets no SelectionChanged, so it refreshes here instead (never both)
+        public void ShowBrowserTab()
+        {
+            if (ReferenceEquals(ThemeBuilderTabControl.SelectedItem, TabThemeBrowser))
+            {
+                ThemeBrowser.RefreshCatalog();
+                return;
+            }
+            ThemeBuilderTabControl.SelectedItem = TabThemeBrowser;
+        }
+        // [END SECTION: Tab Selection]
 
         // [SECTION: Theme Saved Flash]
         // Shows the "Theme Saved" text beside the tab headers for 2 seconds (a repeat save restarts the timer)

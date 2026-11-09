@@ -3705,7 +3705,13 @@ namespace ArcadeStick
 
         private void HamburgerThemeBuilderMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Dispatcher.BeginInvoke(new Action(() => OpenThemeBuilderWindow()));
+            Dispatcher.BeginInvoke(new Action(() => OpenThemeBuilderWindow(ThemeBuilderStartTab.Builder)));
+        }
+
+        // Opens or activates the shared Theme Builder window on its THEME BROWSER tab, after the hamburger menu has closed
+        private void HamburgerThemeBrowserMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() => OpenThemeBuilderWindow(ThemeBuilderStartTab.Browser)));
         }
 
         // Non-modal and single-instance: if Theme Builder is already open, bring it forward instead of
@@ -3713,7 +3719,11 @@ namespace ArcadeStick
         // Options window, this deliberately does not pause video or block gamepad input.
         private Views.ThemeBuilderWindow? _themeBuilderWindow;
 
-        private void OpenThemeBuilderWindow()
+        // The Theme Builder window's tab to show when it is opened or activated
+        private enum ThemeBuilderStartTab { Builder, Browser }
+
+        // Does the open or activate of the one Theme Builder window on the given tab (Builder for Ctrl+T and the Theme Builder item)
+        private void OpenThemeBuilderWindow(ThemeBuilderStartTab startTab = ThemeBuilderStartTab.Builder)
         {
             if (_themeBuilderWindow != null)
             {
@@ -3722,6 +3732,7 @@ namespace ArcadeStick
                     _themeBuilderWindow.WindowState = WindowState.Normal;
                 }
                 _themeBuilderWindow.Activate();
+                ShowThemeBuilderTab(_themeBuilderWindow, startTab);
                 return;
             }
 
@@ -3741,6 +3752,9 @@ namespace ArcadeStick
 
             _themeBuilderWindow = new Views.ThemeBuilderWindow(_viewModel) { Owner = this };
             if (sizeBeforeAdopt is (int adoptWidth, int adoptHeight)) _themeBuilderWindow.SetSizeRestorePoint(adoptWidth, adoptHeight);
+
+            // Owner is set, so the tab's selection logic can reach this window; before Show, so it opens on that tab
+            ShowThemeBuilderTab(_themeBuilderWindow, startTab);
 
             // The active size just before the builder's own Closed handler puts back its restore point
             (int Width, int Height) sizeBeforeClose = default;
@@ -3768,6 +3782,13 @@ namespace ArcadeStick
             // The fractional fallback never applies while the builder is on screen: rerun so it opens at the whole-number
             // scale (the size already matches, so the ApplyLayout check would not); the close rerun brings the fallback back
             if (_smartFullscreenFromFallback) ApplySmartFullscreen();
+        }
+
+        // Does the tab pick on the Theme Builder window (by tab, never by index)
+        private static void ShowThemeBuilderTab(Views.ThemeBuilderWindow window, ThemeBuilderStartTab startTab)
+        {
+            if (startTab == ThemeBuilderStartTab.Browser) window.ShowBrowserTab();
+            else window.ShowBuilderTab();
         }
 
         private void HamburgerFullscreenMenuItem_Click(object sender, RoutedEventArgs e)

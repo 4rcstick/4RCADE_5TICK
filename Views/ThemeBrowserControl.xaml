@@ -1,0 +1,12 @@
+<UserControl x:Class="ArcadeStick.Views.ThemeBrowserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- [SECTION: Placeholder] -->
+    <!-- Temporary THEME BROWSER content: one line that counts catalog refreshes, so tab navigation can be tested.
+         Replaced by the real catalog in handoff 3. -->
+    <Grid Margin="15">
+        <TextBlock x:Name="TxtPlaceholder" TextWrapping="Wrap"
+                   Foreground="{DynamicResource Global.Font.Standard.Color}" FontSize="{DynamicResource Global.Font.Standard.Size}"/>
+    </Grid>
+    <!-- [END SECTION: Placeholder] -->
+</UserControl>

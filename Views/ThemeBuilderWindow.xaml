@@ -24,7 +24,8 @@
             <!-- [SECTION: Tab Pages] -->
             <!-- THEME BUILDER: the Themes Manager row (load, save, delete) on top, then the layer list and
                  per-layer property tabs. Code-behind compares the selected tab's Content to ThemeBuilderPage.
-                 THEME BROWSER: empty placeholder reserved for the theme browser.
+                 THEME BROWSER: ThemeBrowserControl (a placeholder until the catalog arrives); selected through
+                 ShowBuilderTab / ShowBrowserTab, never by index.
                  GLOBAL: the theme-wide values (not per resolution). -->
 
             <TabItem x:Name="TabThemeBuilder" Header="THEME BUILDER">
@@ -40,9 +41,8 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="THEME BROWSER">
-                <!-- Reserved for the theme browser control, which will replace this Grid -->
-                <Grid x:Name="ThemeBrowserTab"/>
+            <TabItem x:Name="TabThemeBrowser" Header="THEME BROWSER">
+                <views:ThemeBrowserControl x:Name="ThemeBrowser"/>
             </TabItem>
 
             <TabItem Header="GLOBAL">
