@@ -8,11 +8,25 @@ namespace ArcadeStick.Services
     // [SECTION: Theme Thumbnail Store]
     // Disk side of the theme thumbnail: a captured image stays in memory (ConfigurationSettings.PendingThemeThumbnail)
     // until Save Adjustments or Save Changes writes it to Themes/Thumbnails/<guid>/theme-thumbnail.png. Not under
-    // Themes/Extracted, which LoadTheme deletes. The folder's GUID is the theme's only unique ID.
+    // Themes/Extracted, because LoadTheme replaces the loaded theme's own extracted folder on every load. The folder's
+    // GUID is the theme's only unique ID.
     public static class ThemeThumbnailStore
     {
         public const string FileName = "theme-thumbnail.png";
         private const string FolderName = "Thumbnails";
+
+        // [SECTION: Thumbnail Sizes]
+        // Every thumbnail box in one place. Each is a maximum box: an image is fit inside keeping its aspect ratio, never
+        // stretched, cropped or upscaled. A future return to 640 x 360 changes these constants only.
+        public const int CaptureMaxWidth = 480;   // a new capture, in physical image pixels
+        public const int CaptureMaxHeight = 270;
+        public const double InfoMaxWidth = 320;   // the Theme Info thumbnail, in DIPs
+        public const double InfoMaxHeight = 180;
+        public const double BrowserMaxWidth = 160; // a Theme Browser tile, in DIPs
+        public const double BrowserMaxHeight = 90;
+        public const double PopOutMaxWidth = 480;  // the Theme Browser enlarged preview, in DIPs
+        public const double PopOutMaxHeight = 270;
+        // [END SECTION: Thumbnail Sizes]
 
         // Writes the pending capture (if any) and points the live ThumbnailPath at it. Retakes overwrite the same file:
         // the GUID comes from the current ThumbnailPath's folder when it has one, otherwise a new one is made.

@@ -137,6 +137,7 @@ Closing without saving restores layouts to the last saved snapshot; anything sto
 - A capture stays in memory (`PendingThemeThumbnail`) until Save Adjustments or Save Changes writes it. Only Save Changes sets `ModifiedUtc`, and the live value moves only after the zip is written.
 - `ThemeThumbnailStore.RemoveUnusedFolders` runs only after a successful save, right after the restore point moves, and keeps the live and restore point folders. Do not call it from a load or close.
 - The four display controls hold content only (no headings or glyphs) so the Theme Browser can reuse them.
+- Thumbnail box sizes are constants in `ThemeThumbnailStore` `[SECTION: Thumbnail Sizes]` (`Capture*`, `Info*`, `Browser*`, `PopOut*` Max sizes). A capture fits inside the capture box (physical pixels, 96 DPI) and never upscales; display boxes are maximum DIP boxes shown with `StretchDirection="DownOnly"`.
 - **Show Theme In** is `ThemeInfo.ShowIn`, text with the `ThemeShowIn` constants (`Both`, `BrowserOnly`, `MenuOnly`, `Neither`); null or unknown reads as Both, so readers go through `ThemeShowIn.Normalize`. Its label and combo live in the host view, not in a display control.
 - The hamburger menu reads each theme zip through `ThemeShowInReader` (saved values only, so a change counts after Save Changes), always shows the active theme, and applies no filter when no theme is active. The Load Theme combo and the duplicate-name check (`GetThemeNames`, `FindNewThemeNameProblem`) stay unfiltered.
 

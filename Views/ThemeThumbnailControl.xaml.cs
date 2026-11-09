@@ -1,4 +1,5 @@
 ﻿using ArcadeStick.Models;
+using ArcadeStick.Services;
 using System;
 using System.IO;
 using System.Windows;
@@ -7,11 +8,12 @@ using System.Windows.Media.Imaging;
 
 namespace ArcadeStick.Views
 {
-    // Shows a theme's thumbnail at a fixed display height, or the "No Image" box. Content only: headings and glyphs belong to the host.
+    // Shows a theme's thumbnail inside a maximum box (never upscaled), or the "No Image" box. Content only: headings and glyphs belong to the host.
     public partial class ThemeThumbnailControl : UserControl
     {
         private const double NoImageAspect = 320.0 / 180.0;
-        private double _displayHeight = 180;
+        private double _displayHeight = ThemeThumbnailStore.InfoMaxHeight;
+        private double _maxDisplayWidth = ThemeThumbnailStore.InfoMaxWidth;
 
         // Raised when a new image is set through SetNewImage (not when the host shows a stored value)
         public event Action<BitmapSource>? ThumbnailChanged;
@@ -23,7 +25,7 @@ namespace ArcadeStick.Views
             ApplyDisplayHeight();
         }
 
-        // The height the image is shown at; the width follows its aspect ratio
+        // The maximum height the image is shown at; the width follows its aspect ratio
         public double DisplayHeight
         {
             get => _displayHeight;
@@ -34,10 +36,22 @@ namespace ArcadeStick.Views
             }
         }
 
-        // Does the sizing of the image limit and the "No Image" box from the display height
+        // The maximum width the image is shown at
+        public double MaxDisplayWidth
+        {
+            get => _maxDisplayWidth;
+            set
+            {
+                _maxDisplayWidth = value;
+                ApplyDisplayHeight();
+            }
+        }
+
+        // Does the sizing of the image's maximum box (width and height) and of the "No Image" box from the display height
         private void ApplyDisplayHeight()
         {
             ImgThumbnail.MaxHeight = _displayHeight;
+            ImgThumbnail.MaxWidth = _maxDisplayWidth;
             BdNoImage.Height = _displayHeight;
             BdNoImage.Width = _displayHeight * NoImageAspect;
         }

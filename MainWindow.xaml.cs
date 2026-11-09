@@ -334,12 +334,11 @@ namespace ArcadeStick
             BackgroundGridLayer.Visibility = Visibility.Visible;
         }
 
-        // Renders the main window preview to a frozen image ThumbnailHeight px tall, with the background grid hidden for
+        // Renders the main window preview to a frozen 96 DPI image that fits inside the capture box (ThemeThumbnailStore
+        // CaptureMaxWidth x CaptureMaxHeight physical pixels, aspect kept, never upscaled), with the background grid hidden for
         // the render only (all inside this one UI-thread call, so nothing paints in between). Null if it has no size yet.
         public BitmapSource? CaptureThemeThumbnail()
         {
-            const int ThumbnailHeight = 360;
-
             bool gridWasOn = _backgroundGridOn;
             if (gridWasOn)
             {
@@ -371,19 +370,25 @@ namespace ArcadeStick
                 }
 
                 DpiScale dpi = VisualTreeHelper.GetDpi(RootLayoutGrid);
-                var fullSize = new RenderTargetBitmap((int)Math.Round(width * dpi.DpiScaleX), (int)Math.Round(height * dpi.DpiScaleY), dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
+                int pxW = (int)Math.Round(width * dpi.DpiScaleX);
+                int pxH = (int)Math.Round(height * dpi.DpiScaleY);
+                var fullSize = new RenderTargetBitmap(pxW, pxH, dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
                 fullSize.Render(windowVisual);
 
-                // Scale down, keeping the aspect ratio
-                int thumbnailWidth = Math.Max(1, (int)Math.Round(ThumbnailHeight * width / height));
+                // Fit inside the capture box, keeping the aspect ratio. A render already inside it keeps its pixel size
+                // (drawn 1:1, no resampling or upscale); a larger one is scaled down once with high-quality scaling.
+                double scale = Math.Min(1.0, Math.Min((double)Services.ThemeThumbnailStore.CaptureMaxWidth / pxW, (double)Services.ThemeThumbnailStore.CaptureMaxHeight / pxH));
+                int thumbnailWidth = scale >= 1 ? pxW : Math.Max(1, (int)Math.Round(pxW * scale));
+                int thumbnailHeight = scale >= 1 ? pxH : Math.Max(1, (int)Math.Round(pxH * scale));
                 var scaledVisual = new DrawingVisual();
                 RenderOptions.SetBitmapScalingMode(scaledVisual, BitmapScalingMode.HighQuality);
                 using (var context = scaledVisual.RenderOpen())
                 {
-                    context.DrawImage(fullSize, new Rect(0, 0, thumbnailWidth, ThumbnailHeight));
+                    context.DrawImage(fullSize, new Rect(0, 0, thumbnailWidth, thumbnailHeight));
                 }
 
-                var thumbnail = new RenderTargetBitmap(thumbnailWidth, ThumbnailHeight, 96, 96, PixelFormats.Pbgra32);
+                // Always saved at 96 DPI, so the image's DIP size equals its pixel size
+                var thumbnail = new RenderTargetBitmap(thumbnailWidth, thumbnailHeight, 96, 96, PixelFormats.Pbgra32);
                 thumbnail.Render(scaledVisual);
                 thumbnail.Freeze();
                 return thumbnail;

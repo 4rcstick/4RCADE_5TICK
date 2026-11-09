@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              HorizontalAlignment="Left">
     <Grid>
-        <!-- Uniform inside MaxHeight: the display height rules until the width runs out, then the height shrinks instead -->
-        <Image x:Name="ImgThumbnail" Stretch="Uniform" HorizontalAlignment="Left" Visibility="Collapsed"
+        <!-- Uniform and DownOnly inside MaxWidth / MaxHeight: fit inside the box, never stretched or upscaled -->
+        <Image x:Name="ImgThumbnail" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left" Visibility="Collapsed"
                RenderOptions.BitmapScalingMode="HighQuality"/>
 
         <!-- The Viewbox shrinks the box in a pane narrower than it, and never enlarges it -->
