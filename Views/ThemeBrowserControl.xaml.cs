@@ -1,18 +1,36 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Media;
 using ArcadeStick.Models;
 using ArcadeStick.Services;
 
 namespace ArcadeStick.Views
 {
-    // The THEME BROWSER tab's content: a bare, scrollable list of the installed themes, read from their saved zips by
-    // ThemeCatalogReader. A resolution button asks the host to load that theme at that size (LoadRequested); the final
-    // layout and styling and the pop-out come in later handoffs.
+    // The THEME BROWSER tab's content: the scrolling catalog of installed themes, read from their saved zips by
+    // ThemeCatalogReader, one two-column entry per theme (thumbnail left, name, resolutions, author and description right).
+    // A resolution button asks the host to load that theme at that size (LoadRequested). Every color and size is a Global
+    // resource, so the Browser restyles live; the layout numbers are in the constants block below.
     public partial class ThemeBrowserControl : UserControl
     {
+        // [SECTION: Layout Constants]
+        // Every entry layout number in one place, for tuning by eye
+        private const double SidePadding = 15;               // left and right padding of the tab, as the Theme Builder tab content
+        private const double InstructionLineBottomGap = 12;  // gap between the instruction line and the list
+        private const double RowPaddingVertical = 12;        // padding above and below each entry's content, around the dividers
+        private const double ColumnGap = 16;                 // gap between the thumbnail column and the text column
+        private const double LineGap = 4;                    // gap between the text lines of an entry
+        private const double LabelToValueGap = 10;           // gap from "Resolutions:" to its buttons (as the Builder's row)
+        private const double ResolutionLabelTopOffset = 4;   // moves "Resolutions:" down to line up with the first row of buttons
+        private const double NameToGlyphGap = 4;             // gap between the theme name and the active check-circle
+        private const double InlineFallbackGap = 4;          // gap between a label and its muted fallback text
+        private const double FallbackOpacity = 0.6;          // the muted "no value" look of the Theme Info controls
+        private const string ActiveGlyph = "";         // Segoe MDL2 Assets "Completed" (check in a circle)
+        // [END SECTION: Layout Constants]
+
         private ConfigurationSettings? _settings;
         // The entries the list shows now, in order (the cache's shared instances)
         private List<ThemeCatalogEntry> _shownEntries = new();
@@ -27,11 +45,11 @@ namespace ArcadeStick.Views
         // True from a load request until the dispatcher is idle again, so clicks queued during the (blocking) load are ignored
         private bool _loadBusy;
 
-        // What RefreshActiveMarks updates in place on one row: its entry, its name text and its size buttons
+        // What RefreshActiveMarks updates in place on one row: its entry, its check-circle and its size buttons
         private sealed class RowMarks
         {
             public ThemeCatalogEntry Entry { get; init; } = null!;
-            public TextBlock NameText { get; init; } = null!;
+            public TextBlock Glyph { get; init; } = null!;
             public List<(Button Button, int Width, int Height)> Buttons { get; } = new();
         }
 
@@ -41,6 +59,8 @@ namespace ArcadeStick.Views
         public ThemeBrowserControl()
         {
             InitializeComponent();
+            RootGrid.Margin = new Thickness(SidePadding);
+            TxtInstruction.Margin = new Thickness(0, 0, 0, InstructionLineBottomGap);
             Unloaded += (_, _) => _savedOffset = ScrollEntries.VerticalOffset;
         }
 
@@ -51,15 +71,14 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: Catalog Refresh]
-        // Does the catalog refresh each time the tab is shown: reads the catalog through the cache, updates the diagnostics
-        // line, and rebuilds the list only when the entries changed (instances or order). The scroll position is kept either way,
-        // and the active marks are refreshed every time (a skipped rebuild would otherwise leave them stale after a theme swap).
+        // Does the catalog refresh each time the tab is shown: reads the catalog through the cache and rebuilds the list only
+        // when the entries changed (instances or order). The scroll position is kept either way, and the active marks are
+        // refreshed every time (a skipped rebuild would otherwise leave them stale after a theme swap).
         public void RefreshCatalog()
         {
             if (_settings == null) return;
 
-            var entries = ThemeCatalogReader.BuildCatalog(_settings, out var stats);
-            ShowDiagnostics(entries.Count, stats);
+            var entries = ThemeCatalogReader.BuildCatalog(_settings, out _);
 
             // Shown already (ShowBrowserTab on a selected tab): the live offset; coming back to the tab: the one saved on leaving
             double offset = ScrollEntries.IsLoaded ? ScrollEntries.VerticalOffset : _savedOffset;
@@ -93,19 +112,13 @@ namespace ArcadeStick.Views
             Dispatcher.BeginInvoke(new Action(() => ScrollEntries.ScrollToVerticalOffset(Math.Min(offset, ScrollEntries.ScrollableHeight))),
                 System.Windows.Threading.DispatcherPriority.Loaded);
         }
-
-        // Does the TEMPORARY diagnostics line (removed in handoff 5)
-        private void ShowDiagnostics(int shown, ThemeCatalogStats stats)
-        {
-            TxtDiagnostics.Text = $"{shown} themes shown | read {stats.Read}, from cache {stats.FromCache}, skipped {stats.Skipped}, hidden {stats.Hidden}";
-        }
         // [END SECTION: Catalog Refresh]
 
         // [SECTION: Active Marks]
         // Does the active marks in place, with no zip read, no rebuild and no scroll change: the button for the active theme at
-        // the active size gets the selected look, and the active theme's name gets the TEMPORARY " (active)" text (handoff 5
-        // replaces it with the check-circle glyph). The active theme is matched by ActiveThemeName in any case; one hidden
-        // from the Browser or deleted is simply not marked. Safe before the list has been shown.
+        // the active size gets the selected look, and the active theme's name shows the check-circle right after it. The
+        // active theme is matched by ActiveThemeName in any case; one hidden from the Browser or deleted is simply not marked.
+        // Safe before the list has been shown.
         public void RefreshActiveMarks()
         {
             if (_settings == null) return;
@@ -113,7 +126,7 @@ namespace ArcadeStick.Views
             foreach (var row in _rows)
             {
                 bool activeTheme = IsActiveTheme(row.Entry.Name);
-                row.NameText.Text = activeTheme ? $"{row.Entry.Name} (active)" : row.Entry.Name;
+                row.Glyph.Visibility = activeTheme ? Visibility.Visible : Visibility.Collapsed;
 
                 foreach (var (button, width, height) in row.Buttons)
                 {
@@ -122,9 +135,9 @@ namespace ArcadeStick.Views
             }
         }
 
-        // Does the selected look exactly as the Theme Builder's active saved-size button (RebuildSavedSizes): the hover pair
-        // as Background and Foreground plus Bold, the one allowed exception to the ThemedActionButtonStyle rule. Off clears
-        // the three values so the style applies again. Never disabled.
+        // Does the selected look exactly as the Theme Builder's saved-size buttons (RebuildSavedSizes): the active one rests on
+        // the hover pair (Background and Foreground, the one allowed exception to the ThemedActionButtonStyle rule) and is Bold;
+        // the others clear the pair and are explicitly Normal, as the Builder sets them. Never disabled.
         private static void ApplySelectedLook(Button button, bool selected)
         {
             if (selected)
@@ -137,7 +150,7 @@ namespace ArcadeStick.Views
             {
                 button.ClearValue(Button.BackgroundProperty);
                 button.ClearValue(Button.ForegroundProperty);
-                button.ClearValue(Button.FontWeightProperty);
+                button.FontWeight = FontWeights.Normal;
             }
         }
 
@@ -172,8 +185,9 @@ namespace ArcadeStick.Views
         }
         // [END SECTION: Load Requests]
 
-        // [SECTION: Bare List]
-        // Does the list rebuild: one bare row per entry, or "No themes found." when there are none
+        // [SECTION: Entry List]
+        // Does the list rebuild: one entry per theme with a Global divider between entries (none above the first or below the
+        // last), or "No themes found." when there are none
         private void RebuildList(List<ThemeCatalogEntry> entries)
         {
             PnlEntries.Children.Clear();
@@ -181,83 +195,152 @@ namespace ArcadeStick.Views
 
             if (entries.Count == 0)
             {
-                PnlEntries.Children.Add(MakeText("No themes found."));
+                PnlEntries.Children.Add(MakeText("No themes found.", GlobalThemeResources.FontStandardColor, GlobalThemeResources.FontStandardSize));
                 return;
             }
 
-            foreach (var entry in entries)
+            for (int i = 0; i < entries.Count; i++)
             {
-                PnlEntries.Children.Add(MakeEntryRow(entry));
+                if (i > 0)
+                {
+                    var divider = new Separator { Margin = new Thickness(0) };
+                    divider.SetResourceReference(Separator.BackgroundProperty, GlobalThemeResources.OptionsSeparator);
+                    PnlEntries.Children.Add(divider);
+                }
+
+                var row = MakeEntryRow(entries[i]);
+                row.Margin = new Thickness(0, i == 0 ? 0 : RowPaddingVertical, 0, i == entries.Count - 1 ? 0 : RowPaddingVertical);
+                PnlEntries.Children.Add(row);
             }
         }
 
-        // Does one bare row: the tile (or "No Image") on the left, then the name, the resolution buttons, the author and the description
-        private UIElement MakeEntryRow(ThemeCatalogEntry entry)
+        // Does one entry: the thumbnail centered in a column every entry shares (so the text column starts at one x), then
+        // the name with its check-circle, the Resolutions row, the author and the description
+        private FrameworkElement MakeEntryRow(ThemeCatalogEntry entry)
         {
-            var row = new Grid { Margin = new Thickness(0, 0, 0, 16) };
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(ThemeThumbnailStore.BrowserMaxWidth) });
+            var row = new Grid();
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "Thumb" });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(ColumnGap) });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-            UIElement thumbnail;
-            if (entry.Tile != null)
-            {
-                var image = new Image
-                {
-                    Source = entry.Tile,
-                    Stretch = Stretch.Uniform,
-                    StretchDirection = StretchDirection.DownOnly,
-                    MaxWidth = ThemeThumbnailStore.BrowserMaxWidth,
-                    MaxHeight = ThemeThumbnailStore.BrowserMaxHeight,
-                    HorizontalAlignment = HorizontalAlignment.Left,
-                    VerticalAlignment = VerticalAlignment.Top
-                };
-                RenderOptions.SetBitmapScalingMode(image, BitmapScalingMode.Fant);
-                thumbnail = image;
-            }
-            else
-            {
-                thumbnail = MakeText(ThemeInfoFallbacks.NoImage);
-            }
+            var thumbnail = MakeThumbnail(entry);
             Grid.SetColumn(thumbnail, 0);
             row.Children.Add(thumbnail);
 
-            var details = new StackPanel { Margin = new Thickness(12, 0, 0, 0) };
-            Grid.SetColumn(details, 1);
+            var details = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
+            Grid.SetColumn(details, 2);
             row.Children.Add(details);
 
-            var name = MakeText(entry.Name);
-            name.FontWeight = FontWeights.Bold;
-            details.Children.Add(name);
-
-            var marks = new RowMarks { Entry = entry, NameText = name };
+            var glyph = MakeNameLine(entry, details);
+            var marks = new RowMarks { Entry = entry, Glyph = glyph };
             _rows.Add(marks);
 
-            // Resolutions: one plain button per saved size; a click loads the theme at that size (SizeButton_Click). Never
-            // disabled (a disabled button dims to 50%); the active one only gets the selected look (RefreshActiveMarks).
-            var sizesRow = new DockPanel { Margin = new Thickness(0, 4, 0, 0) };
-            var sizesLabel = MakeText("Resolutions:");
-            sizesLabel.Margin = new Thickness(0, 3, 8, 0);
-            DockPanel.SetDock(sizesLabel, Dock.Left);
-            sizesRow.Children.Add(sizesLabel);
+            details.Children.Add(MakeResolutionsRow(entry, marks));
+            details.Children.Add(MakeAuthorLine(entry));
+            details.Children.Add(MakeDescriptionLine(entry));
+
+            return row;
+        }
+
+        // Does the thumbnail cell: the cached tile in the shared ThemeThumbnailControl (fit inside 160 x 90, never upscaled)
+        // inside a square-cornered Global Options border drawn outside the image, or the control's own "No Image" box with no
+        // extra border. Centered both ways; it reads no file (ShowImage only).
+        private static FrameworkElement MakeThumbnail(ThemeCatalogEntry entry)
+        {
+            var view = new ThemeThumbnailControl
+            {
+                DisplayHeight = ThemeThumbnailStore.BrowserMaxHeight,
+                MaxDisplayWidth = ThemeThumbnailStore.BrowserMaxWidth,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            view.ShowImage(entry.Tile);
+            if (entry.Tile == null) return view;
+
+            var frame = new Border
+            {
+                Child = view,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                SnapsToDevicePixels = true
+            };
+            frame.SetResourceReference(Border.BorderBrushProperty, GlobalThemeResources.OptionsBorderColor);
+            frame.SetResourceReference(Border.BorderThicknessProperty, GlobalThemeResources.OptionsBorderSize);
+            return frame;
+        }
+
+        // Does the name line: the name in capitals for display only (the real name is what loads), Bold in the Global Header
+        // color and size, on one line with an ellipsis when too long, and the check-circle right after it (shown only for the
+        // active theme). The Left-aligned DockPanel sizes to the name, so the glyph sits after the last letter, and the name
+        // is trimmed first when space runs out, so the glyph always stays visible. Returns the glyph for RefreshActiveMarks.
+        private static TextBlock MakeNameLine(ThemeCatalogEntry entry, Panel details)
+        {
+            var line = new DockPanel { HorizontalAlignment = HorizontalAlignment.Left };
+
+            var glyph = new TextBlock
+            {
+                Text = ActiveGlyph,
+                FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                Margin = new Thickness(NameToGlyphGap, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Visibility = Visibility.Collapsed
+            };
+            glyph.SetResourceReference(TextBlock.ForegroundProperty, GlobalThemeResources.FontHeaderColor);
+            glyph.SetResourceReference(TextBlock.FontSizeProperty, GlobalThemeResources.FontHeaderSize);
+            DockPanel.SetDock(glyph, Dock.Right);
+            line.Children.Add(glyph);
+
+            var name = new TextBlock
+            {
+                Text = entry.Name.ToUpper(CultureInfo.InvariantCulture),
+                FontWeight = FontWeights.Bold,
+                TextWrapping = TextWrapping.NoWrap,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            name.SetResourceReference(TextBlock.ForegroundProperty, GlobalThemeResources.FontHeaderColor);
+            name.SetResourceReference(TextBlock.FontSizeProperty, GlobalThemeResources.FontHeaderSize);
+            line.Children.Add(name);
+
+            details.Children.Add(line);
+            return glyph;
+        }
+
+        // Does the Resolutions row as the Theme Builder's: the label in an Auto column, the buttons in a WrapPanel in the next
+        // column so wrapped buttons start under the first one. A legacy theme with no saved layouts shows the muted
+        // "No saved resolutions" instead and is not loadable from the Browser (decision 83).
+        private FrameworkElement MakeResolutionsRow(ThemeCatalogEntry entry, RowMarks marks)
+        {
+            var grid = new Grid { Margin = new Thickness(0, LineGap, 0, 0) };
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var label = MakeText("Resolutions:", GlobalThemeResources.FontSubHeaderColor, GlobalThemeResources.FontSubHeaderSize);
+            label.VerticalAlignment = VerticalAlignment.Top;
+            label.Margin = new Thickness(0, ResolutionLabelTopOffset, LabelToValueGap, 0);
+            grid.Children.Add(label);
+
+            FrameworkElement content;
             if (entry.Sizes.Count == 0)
             {
-                // A legacy theme with no saved layouts is listed but not loadable from the Browser (decision 83): there is no
-                // size to load, highlight or keep inert. It still loads from the Builder's Load button and the hamburger.
-                var noSizes = MakeText("No saved resolutions");
-                noSizes.Margin = new Thickness(0, 3, 0, 0);
-                sizesRow.Children.Add(noSizes);
+                var noSizes = MakeFallbackText("No saved resolutions");
+                noSizes.VerticalAlignment = VerticalAlignment.Top;
+                noSizes.Margin = new Thickness(0, ResolutionLabelTopOffset, 0, 0);
+                content = noSizes;
             }
             else
             {
                 var sizeButtons = new WrapPanel();
                 foreach (var (width, height) in entry.Sizes)
                 {
+                    // The Builder's saved-size button values (RebuildSavedSizes): style, padding, margin, label, Normal weight
                     var button = new Button
                     {
                         Content = $"{width} x {height}",
                         Style = (Style)FindResource("ThemedActionButtonStyle"),
                         Padding = new Thickness(7, 3, 7, 3),
-                        Margin = new Thickness(0, 0, 6, 4)
+                        Margin = new Thickness(0, 0, 6, 4),
+                        FontWeight = FontWeights.Normal
                     };
                     string themeName = entry.Name;
                     int buttonWidth = width;
@@ -266,25 +349,74 @@ namespace ArcadeStick.Views
                     sizeButtons.Children.Add(button);
                     marks.Buttons.Add((button, width, height));
                 }
-                sizesRow.Children.Add(sizeButtons);
+                content = sizeButtons;
             }
-            details.Children.Add(sizesRow);
-
-            details.Children.Add(MakeText($"Author: {entry.Author}"));
-            string description = string.IsNullOrWhiteSpace(entry.Description) ? ThemeInfoFallbacks.NoDescription : entry.Description;
-            details.Children.Add(MakeText($"Description: {description}"));
-
-            return row;
+            Grid.SetColumn(content, 1);
+            grid.Children.Add(content);
+            return grid;
         }
 
-        // Returns a wrapping TextBlock in the Global Standard Text size and color
-        private static TextBlock MakeText(string text)
+        // Does the author line: "Author:" (Sub-Header) and the value (Standard) inline, wrapping; an empty author shows
+        // nothing after the label, as the Theme Info author control does
+        private static FrameworkElement MakeAuthorLine(ThemeCatalogEntry entry)
+        {
+            var line = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, LineGap, 0, 0) };
+            line.Inlines.Add(MakeRun("Author:", GlobalThemeResources.FontSubHeaderColor, GlobalThemeResources.FontSubHeaderSize));
+            if (!string.IsNullOrWhiteSpace(entry.Author))
+            {
+                line.Inlines.Add(MakeRun(" " + entry.Author, GlobalThemeResources.FontStandardColor, GlobalThemeResources.FontStandardSize));
+            }
+            return line;
+        }
+
+        // Does the description line: "Description:" (Sub-Header) and the text (Standard) inline in one wrapping TextBlock, so
+        // later lines wrap naturally. An empty description shows the label and the muted "No description" side by side.
+        private static FrameworkElement MakeDescriptionLine(ThemeCatalogEntry entry)
+        {
+            if (string.IsNullOrWhiteSpace(entry.Description))
+            {
+                var empty = new WrapPanel { Margin = new Thickness(0, LineGap, 0, 0) };
+                var label = MakeText("Description:", GlobalThemeResources.FontSubHeaderColor, GlobalThemeResources.FontSubHeaderSize);
+                label.VerticalAlignment = VerticalAlignment.Center;
+                empty.Children.Add(label);
+                var fallback = MakeFallbackText(ThemeInfoFallbacks.NoDescription);
+                fallback.VerticalAlignment = VerticalAlignment.Center;
+                fallback.Margin = new Thickness(InlineFallbackGap, 0, 0, 0);
+                empty.Children.Add(fallback);
+                return empty;
+            }
+
+            var line = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, LineGap, 0, 0) };
+            line.Inlines.Add(MakeRun("Description:", GlobalThemeResources.FontSubHeaderColor, GlobalThemeResources.FontSubHeaderSize));
+            line.Inlines.Add(MakeRun(" " + entry.Description, GlobalThemeResources.FontStandardColor, GlobalThemeResources.FontStandardSize));
+            return line;
+        }
+
+        // Returns a wrapping TextBlock with the given Global color and size resources
+        private static TextBlock MakeText(string text, string colorKey, string sizeKey)
         {
             var block = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap };
-            block.SetResourceReference(TextBlock.ForegroundProperty, GlobalThemeResources.FontStandardColor);
-            block.SetResourceReference(TextBlock.FontSizeProperty, GlobalThemeResources.FontStandardSize);
+            block.SetResourceReference(TextBlock.ForegroundProperty, colorKey);
+            block.SetResourceReference(TextBlock.FontSizeProperty, sizeKey);
             return block;
         }
-        // [END SECTION: Bare List]
+
+        // Returns the muted "no value" text of the Theme Info controls: Global Sub-Text color and size at 60% opacity
+        private static TextBlock MakeFallbackText(string text)
+        {
+            var block = MakeText(text, GlobalThemeResources.FontSubTextColor, GlobalThemeResources.FontSubTextSize);
+            block.Opacity = FallbackOpacity;
+            return block;
+        }
+
+        // Returns a Run with the given Global color and size resources (live, like the elements)
+        private static Run MakeRun(string text, string colorKey, string sizeKey)
+        {
+            var run = new Run(text);
+            run.SetResourceReference(TextElement.ForegroundProperty, colorKey);
+            run.SetResourceReference(TextElement.FontSizeProperty, sizeKey);
+            return run;
+        }
+        // [END SECTION: Entry List]
     }
 }
