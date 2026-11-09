@@ -100,17 +100,19 @@
         </Grid.RowDefinitions>
 
         <!-- [SECTION: Resolution Row] -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+        <!-- The Resolutions and New Resolution labels share one column (SharedSizeGroup ResolutionLabel), so the first saved-size
+             button and the combo always start at the same x, at any Sub-Header size. Both labels and the Themes Manager's
+             Active Theme label have MinWidth 100, so all three rows line up at the default font size. -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15" Grid.IsSharedSizeScope="True">
 
-            <!-- Theme sizes: one button per size saved in the theme file (filled from code-behind). The Theme sizes and
-                 Resolution labels share MinWidth 83 with the Themes Manager's Active Theme label, so the controls line up. -->
+            <!-- Resolutions: one button per size saved in the theme file (filled from code-behind) -->
             <Grid Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ResolutionLabel"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Theme sizes:" MinWidth="83" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="0" Text="Resolutions:" MinWidth="100" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <WrapPanel Grid.Column="1" x:Name="PnlSavedSizes" VerticalAlignment="Center"/>
                 <!-- Outside PnlSavedSizes, which RebuildSavedSizes clears. No right margin, so its right edge lines up with
                      Delete Theme in the Active Theme row. Bold while the info view shows (no background). -->
@@ -120,7 +122,7 @@
 
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="ResolutionLabel"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
@@ -142,7 +144,7 @@
                             FontWeight="SemiBold" Padding="10,3" Margin="10,0,0,0"/>
                 </StackPanel>
 
-                <TextBlock Grid.Column="0" Text="Resolution:" MinWidth="83" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="0" Text="New Resolution:" MinWidth="100" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
 
                 <ComboBox Grid.Column="1" x:Name="CboResolution" Width="140" Height="25"
                           Style="{StaticResource ChromeComboBoxStyle}"

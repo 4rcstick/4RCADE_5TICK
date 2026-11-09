@@ -214,7 +214,7 @@ namespace ArcadeStick.ViewModels
 
         // [SECTION: Saved Theme Snapshot]
         // On a normal launch the theme isn't loaded through LoadTheme (settings come from settings.json),
-        // so the restore point and the Theme sizes row would be empty until a theme was loaded by hand.
+        // so the restore point and the Resolutions row would be empty until a theme was loaded by hand.
         // This reads the active theme's zip directly (no extraction) and fills the snapshot from it.
         private void LoadSavedThemeSnapshot()
         {

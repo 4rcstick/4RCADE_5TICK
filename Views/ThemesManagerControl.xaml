@@ -25,9 +25,9 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,0">
-                <!-- MinWidth 83 (the widest header label at the default font) is shared with the Theme sizes and Resolution
-                     labels in AdvancedThemesTabControl, so the three rows' controls start at one left edge -->
-                <TextBlock Text="Active Theme:" MinWidth="83" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <!-- MinWidth 100 (fits "New Resolution:" at the default font) is shared with the Resolutions and New Resolution
+                     labels in AdvancedThemesTabControl, so the three rows' controls start at one left edge at the default size -->
+                <TextBlock Text="Active Theme:" MinWidth="100" Foreground="{DynamicResource Global.Font.SubHeader.Color}" FontSize="{DynamicResource Global.Font.SubHeader.Size}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <ComboBox x:Name="CboThemePresets" Width="180" Height="25" Style="{StaticResource ChromeComboBoxStyle}"/>
             </StackPanel>
 

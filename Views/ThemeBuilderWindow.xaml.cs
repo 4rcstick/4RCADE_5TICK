@@ -103,7 +103,7 @@ namespace ArcadeStick.Views
             // Nothing is written to disk here - only Save Adjustments / Save Changes do that.
             AdvancedTab.LayoutChanged += () => (Owner as MainWindow)?.ApplyLayoutNow();
 
-            // Size switches (Theme sizes buttons, size combo) follow the same Smart fullscreen pick rules as the hamburger Layout size
+            // Size switches (Resolutions buttons, size combo) follow the same Smart fullscreen pick rules as the hamburger Layout size
             AdvancedTab.SizePickRunner = run =>
             {
                 if (Owner is MainWindow m) m.RunSizePick(run);

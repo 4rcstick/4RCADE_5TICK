@@ -3248,7 +3248,7 @@ namespace ArcadeStick
         // size check, so HandleLayoutSizePickForFullscreen / HandleThemeSwitchForFullscreen decide right after the switch
         private bool _deferBuilderDrop;
 
-        // Does a size pick (hamburger Layout size, Theme Builder Theme sizes button or size combo) with the Smart fullscreen pick
+        // Does a size pick (hamburger Layout size, Theme Builder Resolutions button or size combo) with the Smart fullscreen pick
         // rules in HandleLayoutSizePickForFullscreen. The handler is skipped only when nothing changed: same active size and
         // no Smart fullscreen showing another size.
         public void RunSizePick(Action doSwitch)

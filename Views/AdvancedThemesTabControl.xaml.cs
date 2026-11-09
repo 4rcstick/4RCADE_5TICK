@@ -4468,7 +4468,7 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: Custom Resolutions]
-        // A new custom size not yet committed. Apply commits it at once; a Theme sizes button for a custom size removed but not
+        // A new custom size not yet committed. Apply commits it at once; a Resolutions button for a custom size removed but not
         // saved leaves it pending until Apply, Save Adjustments or a theme save calls CommitPendingSize; switching to any other
         // size before that discards it.
         private ResolutionPreset? _pendingSize;
@@ -4662,7 +4662,7 @@ namespace ArcadeStick.Views
 
             SwitchToResolution(back.Width, back.Height);
 
-            // Rebuild the list so a removed custom size leaves the combo box, and the Theme sizes row's highlight moves
+            // Rebuild the list so a removed custom size leaves the combo box, and the Resolutions row's highlight moves
             _loading = true;
             RebuildResolutionCombo(back.Width, back.Height);
             _loading = false;
