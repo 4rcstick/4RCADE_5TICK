@@ -473,27 +473,28 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: New Size Auto-Save]
-        // Returns why the loaded theme can't be saved by a new-size auto-save (no theme loaded, or its zip is gone or its name is
-        // refused), or null when it can. Never creates a theme: the auto-save only writes over the loaded theme's existing zip.
-        public string? GetLoadedThemeSaveProblem()
+        // Returns why the loaded theme can't be saved by a size auto-save (no theme loaded, or its zip is gone or its name is
+        // refused), ending with consequence (for example "the new size can't be created"), or null when it can. Never creates
+        // a theme: the auto-save only writes over the loaded theme's existing zip.
+        public string? GetLoadedThemeSaveProblem(string consequence)
         {
             string loadedTheme = _viewModel.LoadedThemeName;
             if (string.IsNullOrWhiteSpace(loadedTheme))
-                return "No saved theme is loaded, so the new size can't be created. Load a theme first.";
+                return $"No saved theme is loaded, so {consequence}. Load a theme first.";
 
             try
             {
                 if (!File.Exists(_settings.GetThemePath(loadedTheme)))
-                    return $"The theme file for '{loadedTheme}' couldn't be found, so the new size can't be created. Load a theme first.";
+                    return $"The theme file for '{loadedTheme}' couldn't be found, so {consequence}. Load a theme first.";
             }
             catch (ArcadeStick.Services.ThemePathException ex)
             {
-                return $"'{loadedTheme}' can't be saved, so the new size can't be created.\n\nDetails: {ex.Reason}";
+                return $"'{loadedTheme}' can't be saved, so {consequence}.\n\nDetails: {ex.Reason}";
             }
             return null;
         }
 
-        // Does the new-size auto-save: saves memory over the loaded theme through the normal Save path (SaveThemeCore: the
+        // Does the size auto-save (a new or removed size): saves memory over the loaded theme through the normal Save path (SaveThemeCore: the
         // missing-files question, the safe zip swap, settings.json, the saved callback and its flash) and returns the outcome
         public ThemeSaveOutcome SaveLoadedTheme()
         {

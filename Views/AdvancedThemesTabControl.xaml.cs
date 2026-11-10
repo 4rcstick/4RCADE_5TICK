@@ -4350,6 +4350,12 @@ namespace ArcadeStick.Views
         public Func<bool>? CanAutoSaveNewSize;
         public Func<int, int, Action, bool>? AutoSaveNewSizeRunner;
 
+        // Removing the active size is a theme save too (window management Pass 4.2): the Remove Resolution popup warns, then
+        // AutoSaveSizeRemovalRunner discards the unsaved edits, runs the removal against the restored layouts, saves the loaded
+        // theme and puts everything back if the save does not happen. The same undo state and reload are used.
+        public Func<bool>? CanAutoSaveSizeRemoval;
+        public Func<int, int, Func<bool>, bool>? AutoSaveSizeRemovalRunner;
+
         // The editing state a failed new-size auto-save puts back beside the settings: the pending size and the selected row
         public sealed record NewSizeEditState(ResolutionPreset? PendingSize, string? SelectedId);
 
@@ -4625,7 +4631,7 @@ namespace ArcadeStick.Views
             BtnDeleteCustomRes.IsEnabled = !lastSize;
             BtnDeleteCustomRes.ToolTip = lastSize
                 ? "The theme needs at least one size, so the last one cannot be removed."
-                : "Removes this size's layout from the theme (Save Changes writes it; closing without saving brings it back).";
+                : "Removes this size's layout from the theme and saves the theme at once (other unsaved changes are discarded).";
         }
 
         // Returns how many sizes have a layout, not counting a pending (not yet kept) custom size
@@ -4734,37 +4740,96 @@ namespace ArcadeStick.Views
             BtnAddCustomRes_Click(sender, e);
         }
 
-        // Delete Size / Remove Size: removes the active size's layout from the working layouts (any size, preset or custom,
-        // except the last one), then switches to another size that has a layout. An ordinary working edit: Save Changes writes
-        // it to the theme, and closing the builder without saving brings the layout back. A removed preset stays in the combo
-        // and starts as a fresh copy of the layout being edited if picked again; a removed custom size leaves the combo.
+        // Delete Size / Remove Size: removes the active size (any size, preset or custom, except the last one) as a theme save
+        // (window management Pass 4.2): the loaded-theme check, the Remove Resolution popup, then the builder's
+        // AutoSaveSizeRemovalRunner discards every unsaved edit to the restore point, runs RemoveActiveSize and saves the loaded
+        // theme. Cancel, or a save that does not happen, leaves everything as it was. A removed preset stays in the combo; a
+        // removed custom size leaves it. Without a builder runner the removal stays an in-memory edit.
         private void BtnDeleteCustomRes_Click(object sender, RoutedEventArgs e)
         {
             int w = _currentLayout.Width;
             int h = _currentLayout.Height;
             if (CountRemovableSizes() <= 1) return;
+            if (PickSizeAfterRemoval(w, h) == null) return;
 
-            bool preset = IsPresetSize(w, h);
-            string verb = preset ? "Remove" : "Delete";
-            var back = PickSizeAfterRemoval(w, h);
-            if (back == null) return;
+            if (AutoSaveSizeRemovalRunner != null && !(CanAutoSaveSizeRemoval?.Invoke() ?? true)) return;
+            if (!ConfirmRemoveSize(w, h)) return;
 
-            var result = MessageBox.Show(
-                $"{verb} the {w} x {h} layout from this theme?\n\nIts layer positions are discarded and the {back.Width} x {back.Height} layout is shown instead. "
-                + "Save Changes writes this to the theme file; closing the Theme Builder without saving brings it back.",
-                $"Confirm {verb} Size", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes) return;
-
-            _settings.Layouts.RemoveAll(l => l.Width == w && l.Height == h);
-            _pendingSize = null;
-
-            SwitchToResolution(back.Width, back.Height);
+            bool removed = AutoSaveSizeRemovalRunner != null
+                ? AutoSaveSizeRemovalRunner(w, h, () => RemoveActiveSize(w, h))
+                : RemoveActiveSize(w, h);
+            if (!removed) return;
 
             // Rebuild the list so a removed custom size leaves the combo box, and the Resolutions row's highlight moves
             _loading = true;
-            RebuildResolutionCombo(back.Width, back.Height);
+            RebuildResolutionCombo(_currentLayout.Width, _currentLayout.Height);
             _loading = false;
             RebuildSavedSizes();
+        }
+
+        // Removes the active size's layout (width x height) and switches to the size PickSizeAfterRemoval picks, using the
+        // layouts as they are now (the restored ones during an auto-save). Returns false, changing nothing, when width x height
+        // is no longer the active size or no other size would be left.
+        private bool RemoveActiveSize(int width, int height)
+        {
+            if (_currentLayout.Width != width || _currentLayout.Height != height) return false;
+            if (CountRemovableSizes() <= 1) return false;
+            var back = PickSizeAfterRemoval(width, height);
+            if (back == null) return false;
+
+            _settings.Layouts.RemoveAll(l => l.Width == width && l.Height == height);
+            _pendingSize = null;
+
+            SwitchToResolution(back.Width, back.Height);
+            return true;
+        }
+
+        // "Remove Resolution?" popup built in code like the New size layout prompt: names the size and warns that the removal
+        // saves the theme and discards every other unsaved change. Cancel is the default; Escape and closing count as Cancel.
+        // Returns true only for Remove.
+        private bool ConfirmRemoveSize(int width, int height)
+        {
+            var panel = new StackPanel { Margin = new Thickness(14) };
+
+            var heading = MakePromptLine("");
+            heading.Inlines.Clear();
+            heading.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run($"Remove {width} x {height}?")));
+            heading.Margin = new Thickness(0, 0, 0, 8);
+            panel.Children.Add(heading);
+
+            panel.Children.Add(MakePromptLine("Removing this resolution will permanently delete its layout from the theme and automatically save the change."));
+            var warning = MakePromptLine("Any other unsaved changes will be discarded. To keep them, click Cancel and save them first.");
+            warning.Margin = new Thickness(0, 4, 0, 12);
+            panel.Children.Add(warning);
+
+            var removeButton = MakePromptButton("Remove");
+            removeButton.Margin = new Thickness(0, 0, 8, 0);
+            var cancelButton = MakePromptButton("Cancel");
+            cancelButton.IsDefault = true;
+            cancelButton.IsCancel = true;
+
+            var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+            buttons.Children.Add(removeButton);
+            buttons.Children.Add(cancelButton);
+            panel.Children.Add(buttons);
+
+            var prompt = new Window
+            {
+                Title = "Remove Resolution?",
+                Content = panel,
+                Width = 420,
+                SizeToContent = SizeToContent.Height,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                ShowInTaskbar = false
+            };
+            prompt.SetResourceReference(Window.BackgroundProperty, "ChromeWindowBg");
+
+            removeButton.Click += (s, args) => prompt.DialogResult = true;
+            prompt.Loaded += (s, args) => cancelButton.Focus();
+
+            return prompt.ShowDialog() == true;
         }
 
         // Returns the size to show after removing width x height: the theme's saved size when it still has a layout (the old
