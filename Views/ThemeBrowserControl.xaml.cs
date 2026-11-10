@@ -380,7 +380,7 @@ namespace ArcadeStick.Views
                 VerticalAlignment = VerticalAlignment.Center,
                 Visibility = Visibility.Collapsed
             };
-            glyph.SetResourceReference(TextBlock.ForegroundProperty, GlobalThemeResources.FontHeaderColor);
+            glyph.SetResourceReference(TextBlock.ForegroundProperty, GlobalThemeResources.FontStandardColor);
             glyph.SetResourceReference(TextBlock.FontSizeProperty, GlobalThemeResources.FontHeaderSize);
             DockPanel.SetDock(glyph, Dock.Right);
             line.Children.Add(glyph);

@@ -32,6 +32,12 @@ namespace ArcadeStick.Views
             // was holding the only remaining reference keeping it alive.
             this.Closed += OptionsWindow_Closed;
 
+            // Modeless: a keybind capture ends when the window loses activation (the main window's gamepad actions run only
+            // while it is active, so a press reaches one or the other), and the Folder Order lists catch up with folder
+            // changes made in the main window when this window is activated again.
+            this.Deactivated += (s, e) => MameKeybindsTab.CancelCaptures();
+            this.Activated += (s, e) => FolderOrderTab.RefreshFromLive();
+
             // Anchor the DataContext so container UI bindings hook directly into the active settings framework
             this.DataContext = _settings;
 
@@ -122,8 +128,10 @@ namespace ArcadeStick.Views
 
         private void BtnCloseOptions_Click(object sender, RoutedEventArgs e) => this.Close();
 
+        // Does the teardown on close: ends any keybind capture and unwires the Inputs tab from the long-lived WGIService
         private void OptionsWindow_Closed(object? sender, EventArgs e)
         {
+            MameKeybindsTab.CancelCaptures();
             InputsTab.UnwireLiveDiagnostics();
         }
     }

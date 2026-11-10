@@ -11,9 +11,10 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="FOLDER ORDER" 
+        <TextBlock Grid.Row="0" Text="FOLDER ORDER"
                    FontWeight="Bold" Margin="0,0,0,8"
                    FontSize="{DynamicResource Global.Font.Header.Size}"
                    Foreground="{DynamicResource Global.Font.Header.Color}"/>
@@ -122,5 +123,15 @@
                      Style="{StaticResource ChromeListBoxStyle}" FontWeight="Bold" Padding="5"/>
         </Grid>
         <!-- [END SECTION: Folder Order List + Controls] -->
+
+        <!-- [SECTION: Changed Folders Notice] -->
+        <!-- Shown by FolderOrderTabControl.RefreshFromLive when folders changed in the main window while this list has
+             unapplied moves; Apply Changes then asks to reload first instead of applying the stale list. -->
+        <TextBlock x:Name="TxtFolderOrderChanged" Grid.Row="4" TextWrapping="Wrap" Margin="0,10,0,0"
+                   Visibility="Collapsed" FontWeight="SemiBold"
+                   FontSize="{DynamicResource Global.Font.Standard.Size}"
+                   Foreground="{DynamicResource Global.Font.Standard.Color}"
+                   Text="The folders changed in the main window after this list was loaded. Apply Changes will ask to reload the list first."/>
+        <!-- [END SECTION: Changed Folders Notice] -->
     </Grid>
 </UserControl>

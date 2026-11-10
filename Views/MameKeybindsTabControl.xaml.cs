@@ -233,6 +233,7 @@ namespace ArcadeStick.Views
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    if (_capturingPortType == null) return; // queued before a cancel or finish: dropped
                     if (ArcadeStick.Services.MameKeybindService.GetMameCode(flag) == null) return;
                     _captureGamepadFlags.Add(flag);
                     RestartDebounce();
@@ -271,6 +272,7 @@ namespace ArcadeStick.Views
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
+                    if (_capturingPortType == null) return; // queued before a cancel or finish: dropped
                     if (!_captureAcceptsSticks) return; // this row doesn't accept stick input at all (buttons, UI hotkeys, etc.)
                     var code = ArcadeStick.Services.MameKeybindService.GetStickDirectionCode(stick, direction);
                     if (code == null || _capturedStickCode != null) return; // already have one, ignore further stick input this capture
@@ -324,6 +326,15 @@ namespace ArcadeStick.Views
             RenderRow(portType);
 
             _capturingPortType = null;
+        }
+
+        // Does the cancel of any running digital or analog capture, keeping every slot already captured. The Options window
+        // calls it when it loses activation or closes, so a controller press can never land in a capture and a main window
+        // action at once, and no capture handler outlives the window.
+        public void CancelCaptures()
+        {
+            CancelActiveCapture();
+            CancelAnalogCapture();
         }
 
         private void CancelActiveCapture()

@@ -568,20 +568,6 @@ namespace ArcadeStick.ViewModels
 
         public bool IsGameSelected => SelectedGame != null;
 
-        private bool _isOptionsWindowOpen;
-        public bool IsOptionsWindowOpen
-        {
-            get => _isOptionsWindowOpen;
-            set
-            {
-                if (_isOptionsWindowOpen != value)
-                {
-                    _isOptionsWindowOpen = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
         private bool _hasActiveMedia = true;
         public bool HasActiveMedia
         {

@@ -12,9 +12,11 @@ namespace ArcadeStick.Views
 
         // [SECTION: Constructor & Initialization]
         // Anchors DataContext to the live ConfigurationSettings (same object MainViewModel uses), matching
-        // OptionsWindow's pattern. Scalar checkboxes/slider bind directly via TwoWay bindings in XAML;
-        // the region and player-count rows represent list membership, which plain bindings can't express,
-        // so those are loaded manually here and read back manually on Apply.
+        // OptionsWindow's pattern. The two scalar checkboxes (auto sorting, revisions) take their starting
+        // value through OneTime bindings in XAML, so nothing reaches the live settings before Apply (the
+        // window is modeless, and a main window tree rebuild must not pick up an unapplied value); the
+        // region and player-count rows represent list membership, which plain bindings can't express,
+        // so those are loaded manually here. Every control is read back on Apply.
         public SortingWindow(MainViewModel viewModel)
         {
             InitializeComponent();
@@ -144,9 +146,9 @@ namespace ArcadeStick.Views
         // [END SECTION: Constructor & Initialization]
 
         // [SECTION: Apply Button Handler]
-        // Reads every control's current state directly (rather than relying on the scalar TwoWay
-        // bindings having already pushed into _settings) and hands it all to MainViewModel in one call,
-        // which persists to disk and rebuilds the tree exactly once.
+        // Reads every control's current state directly (the scalar bindings are OneTime and never push
+        // into _settings) and hands it all to MainViewModel in one call, which persists to disk and
+        // rebuilds the tree exactly once.
         private void BtnApplyFilters_Click(object sender, RoutedEventArgs e)
         {
             var regions = new List<string>();

@@ -38,7 +38,6 @@ namespace ArcadeStick
         private WGIService? _gamepadService;
         private RomCopyService? _romCopyService;
         private bool _isTogglingMouseSupport;
-        private bool _isOptionsWindowOpen;
 
         // FFmpeg game-preview player: owns the runtime and the presenter that draws into
         // VideoPreviewLayer.PreviewVideoSurface. Created right after the view model in the constructor.
@@ -1260,14 +1259,14 @@ namespace ArcadeStick
 
         // [SECTION: Gamepad Input Handling]
         // Subscribes to WGIService events and routes directional/button input into tree navigation and launch actions.
+        // The service polls while any app window is active (the Options diagnostics and keybind capture need that), so
+        // every action here checks IsActive on the UI thread and runs only while this window is the active one.
         private void InitializeGamepadInput()
         {
             _gamepadService = new WGIService(_viewModel.Configuration);
 
             _gamepadService.GamepadDirectionTriggered += direction =>
             {
-                if (_isOptionsWindowOpen) return;
-
                 if (direction == "Up") HandleGamepadMovement(GamepadAction.Up);
                 else if (direction == "Down") HandleGamepadMovement(GamepadAction.Down);
                 else if (direction == "Left") HandleGamepadButton(GamepadAction.Left);
@@ -1276,22 +1275,25 @@ namespace ArcadeStick
 
             _gamepadService.GamepadButtonDownTriggered += button =>
             {
-                if (_isOptionsWindowOpen) return;
-
                 if (button == Windows.Gaming.Input.GamepadButtons.A)
                 {
                     HandleGamepadButton(GamepadAction.Select);
                 }
                 else if (button == Windows.Gaming.Input.GamepadButtons.Y)
                 {
-                    if (_viewModel.SelectedGame != null)
+                    Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        Dispatcher.BeginInvoke(new Action(() => _viewModel.ToggleFavorite(_viewModel.SelectedGame, jumpToFavorite: false)));
-                    }
+                        if (!IsActive || _viewModel.SelectedGame == null) return;
+                        _viewModel.ToggleFavorite(_viewModel.SelectedGame, jumpToFavorite: false);
+                    }));
                 }
                 else if (button == Windows.Gaming.Input.GamepadButtons.Menu)
                 {
-                    Dispatcher.BeginInvoke(new Action(() => TriggerActiveSelectionLaunch()));
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (!IsActive) return;
+                        TriggerActiveSelectionLaunch();
+                    }));
                 }
             };
 
@@ -1303,6 +1305,7 @@ namespace ArcadeStick
         {
             Dispatcher.Invoke(() =>
             {
+                if (!IsActive) return; // another window (Options, Theme Builder) has focus
                 if (action == GamepadAction.Up) NavigateTreeRowsFlat(-1);
                 else if (action == GamepadAction.Down) NavigateTreeRowsFlat(1);
             });
@@ -1313,6 +1316,7 @@ namespace ArcadeStick
         {
             Dispatcher.Invoke(() =>
             {
+                if (!IsActive) return; // another window (Options, Theme Builder) has focus
                 if (action == GamepadAction.Back)
                 {
                     Close();
@@ -1555,8 +1559,8 @@ namespace ArcadeStick
         // [SECTION: Preview Auto-Restart]
         // When the preview reports Error for the source it is playing, it is restarted from the start after 500 ms,
         // at most 3 times per source. The count resets on every explicit play or stop, and when the preview has played
-        // 30 seconds since its last restart. No restart while a game runs, while the Options window has the preview
-        // paused, or while the preview is hidden. Each failure is logged to 4rcade5tick_files/logs/preview.log.
+        // 30 seconds since its last restart. No restart while a game runs or while the preview is hidden. Each failure is
+        // logged to 4rcade5tick_files/logs/preview.log.
         private const int MaxPreviewRestarts = 3;
         private static readonly TimeSpan PreviewRestartDelay = TimeSpan.FromMilliseconds(500);
         private static readonly TimeSpan PreviewRestartResetAfter = TimeSpan.FromSeconds(30);
@@ -1635,7 +1639,6 @@ namespace ArcadeStick
             if (!_previewAutoRestartEnabled) return "auto-restart disabled";
             if (_previewPlayer == null || !_previewPlayer.IsAvailable) return "player unavailable";
             if (_gameBeingLaunched != null) return "game running";
-            if (_isOptionsWindowOpen) return "Options window open";
             if (VideoPreviewLayer.Visibility != Visibility.Visible || VideoPreviewLayer.PreviewVideoSurface.Visibility != Visibility.Visible) return "preview hidden";
             return null;
         }
@@ -1675,10 +1678,10 @@ namespace ArcadeStick
             if (IsPreviewSupposedToPlay()) StartActivePreview(_previewSourcePath!);
         }
 
-        // Does the check for a preview that should be playing now: asked to play, no game running, Options closed, layer and surface shown
+        // Does the check for a preview that should be playing now: asked to play, no game running, layer and surface shown
         private bool IsPreviewSupposedToPlay()
         {
-            return _previewSourcePath != null && _gameBeingLaunched == null && !_isOptionsWindowOpen
+            return _previewSourcePath != null && _gameBeingLaunched == null
                 && VideoPreviewLayer.Visibility == Visibility.Visible && VideoPreviewLayer.PreviewVideoSurface.Visibility == Visibility.Visible;
         }
 
@@ -3006,33 +3009,40 @@ namespace ArcadeStick
         // [END SECTION: Keyboard Shortcuts]
 
         // [SECTION: Options Window]
-        // Opens the Options window modally, pauses video playback while it's open, wires live gamepad
-        // diagnostics, and refreshes theme bindings + the video preview once it closes.
+        // One modeless Options window (Ctrl+O, the gear and the hamburger item all come here): the main window stays usable
+        // and the video preview keeps playing while it is open. Opening it again restores and activates the open one. Owner
+        // stays this window for now (independent ownership comes with the window ownership pass).
+        private Views.OptionsWindow? _optionsWindow;
+
+        // Does the open of the one Options window, or the restore and activate of the one already open
         private void OpenOptionsWindow()
         {
-            // The boot splash video is intentionally left untouched here - no Pause() on open, no
-            // restart on close. It was previously paused/resumed around the Options dialog, but the
-            // resulting reload cascade (via RefreshThemeBindings() below re-raising IsBootSplashVideo)
-            // caused a hang with the old video player. Letting it keep playing uninterrupted avoids the
-            // stop/restart calls entirely for the common case where nothing about it actually changed.
-            _previewPlayer?.Pause();
+            if (_optionsWindow != null)
+            {
+                if (_optionsWindow.WindowState == WindowState.Minimized) _optionsWindow.WindowState = WindowState.Normal;
+                _optionsWindow.Activate();
+                return;
+            }
 
-            _isOptionsWindowOpen = true;
-            _viewModel.IsOptionsWindowOpen = true;
-
-            var adjustmentsPanel = new Views.OptionsWindow(_viewModel) { Owner = this };
+            var optionsWindow = new Views.OptionsWindow(_viewModel) { Owner = this };
 
             if (_gamepadService != null)
             {
-                adjustmentsPanel.WireLiveDiagnostics(_gamepadService);
+                optionsWindow.WireLiveDiagnostics(_gamepadService);
                 _gamepadService.TriggerDiagnosticsUpdate();
             }
 
-            adjustmentsPanel.ShowDialog();
-            BringToFrontAfterChildClose();
+            optionsWindow.Closed += OptionsWindow_Closed;
+            _optionsWindow = optionsWindow;
+            optionsWindow.Show();
+        }
 
-            _isOptionsWindowOpen = false;
-            _viewModel.IsOptionsWindowOpen = false;
+        // Does the cleanup after the Options window closes: forgets the instance, repaints the main buttons' resting colors
+        // and brings the launcher forward (the Options window tears down its own diagnostics and capture handlers)
+        private void OptionsWindow_Closed(object? sender, EventArgs e)
+        {
+            if (sender is Window closed) closed.Closed -= OptionsWindow_Closed;
+            _optionsWindow = null;
 
             // TEMP TEST: commented out to check whether this is still needed now that buttons were
             // rewired to their own plain Theme* properties, or whether it's the source of the residual
@@ -3040,9 +3050,7 @@ namespace ArcadeStick
             // _viewModel.RefreshThemeBindings();
             RefreshMainButtonsRestingColors();
 
-            // Resume rather than reload - the active player was paused (not stopped) on open, so Play() with
-            // no arguments just continues from where it left off instead of restarting from the beginning
-            _previewPlayer?.Resume();
+            BringToFrontAfterChildClose();
         }
 
         // Footer gear icon click handler - opens the Options window
@@ -3053,14 +3061,41 @@ namespace ArcadeStick
         // [END SECTION: Options Window]
 
         // [SECTION: Sorting Window]
-        // Opens the Sorting window modally - structure mode (custom folders vs. catver-derived
-        // categories) plus region/revision/player-count/rating filters, applied via a single Apply
-        // button rather than live per-checkbox like the old SORT checkbox was.
+        // One modeless Sorting and Filter Options window - structure mode (custom folders vs. catver-derived
+        // categories) plus region/revision/player-count/rating filters, applied via a single Apply button.
+        // The sort button and the hamburger item both come here; opening it again restores and activates the
+        // open one. Owner stays this window for now (independent ownership comes with the window ownership pass).
+        private Views.SortingWindow? _sortingWindow;
+
+        // Does the open of the one Sorting window, or the restore and activate of the one already open
+        private void OpenSortingWindow()
+        {
+            if (_sortingWindow != null)
+            {
+                if (_sortingWindow.WindowState == WindowState.Minimized) _sortingWindow.WindowState = WindowState.Normal;
+                _sortingWindow.Activate();
+                return;
+            }
+
+            var sortingWindow = new Views.SortingWindow(_viewModel) { Owner = this };
+            sortingWindow.Closed += SortingWindow_Closed;
+            _sortingWindow = sortingWindow;
+            sortingWindow.Show();
+        }
+
+        // Does the cleanup after the Sorting window closes: forgets the instance and brings the launcher forward (the window
+        // unsubscribes from the view model itself)
+        private void SortingWindow_Closed(object? sender, EventArgs e)
+        {
+            if (sender is Window closed) closed.Closed -= SortingWindow_Closed;
+            _sortingWindow = null;
+            BringToFrontAfterChildClose();
+        }
+
+        // Sort button click handler - opens the Sorting window
         private void BtnOpenSortingGear_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var sortingWindow = new Views.SortingWindow(_viewModel) { Owner = this };
-            sortingWindow.ShowDialog();
-            BringToFrontAfterChildClose();
+            OpenSortingWindow();
         }
         // [END SECTION: Sorting Window]
 
@@ -3717,12 +3752,7 @@ namespace ArcadeStick
         // open modal windows / change window state.
         private void HamburgerSortingMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Dispatcher.BeginInvoke(new Action(() =>
-            {
-                var sortingWindow = new Views.SortingWindow(_viewModel) { Owner = this };
-                sortingWindow.ShowDialog();
-                BringToFrontAfterChildClose();
-            }));
+            Dispatcher.BeginInvoke(new Action(() => OpenSortingWindow()));
         }
 
         private void HamburgerOptionsMenuItem_Click(object sender, RoutedEventArgs e)
@@ -3742,8 +3772,8 @@ namespace ArcadeStick
         }
 
         // Non-modal and single-instance: if Theme Builder is already open, bring it forward instead of
-        // creating a second one. Owner = this closes it automatically with the main window. Unlike the
-        // Options window, this deliberately does not pause video or block gamepad input.
+        // creating a second one. Owner = this closes it automatically with the main window. Like the
+        // Options window, it does not pause video; gamepad actions run only while the main window is active.
         private Views.ThemeBuilderWindow? _themeBuilderWindow;
 
         // The Theme Builder window's tab to show when it is opened or activated

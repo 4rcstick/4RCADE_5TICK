@@ -27,7 +27,7 @@
 
                         <!-- [SECTION: Structure Mode] -->
                         <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="EnableAutoSortCheckBox" Content="Enable Auto Sorting (Built-in Categories)"
-                                  IsChecked="{Binding IsCategorySortEnabled, Mode=TwoWay}"
+                                  IsChecked="{Binding IsCategorySortEnabled, Mode=OneTime}"
                                   Foreground="{DynamicResource Global.Font.Standard.Color}"
                                   FontSize="{DynamicResource Global.Font.Standard.Size}"
                                   Margin="0,0,0,4"/>
@@ -120,7 +120,7 @@
                                            Foreground="{DynamicResource Global.Font.SubHeader.Color}"
                                            FontSize="{DynamicResource Global.Font.SubHeader.Size}"/>
                                 <CheckBox Style="{StaticResource ChromeCheckBoxStyle}" x:Name="IncludeRevisionsCheckBox" Content="Include Revisions"
-                                          IsChecked="{Binding SortIncludeRevisions, Mode=TwoWay}"
+                                          IsChecked="{Binding SortIncludeRevisions, Mode=OneTime}"
                                           IsEnabled="{Binding IsChecked, ElementName=EnableFiltersCheckBox}"
                                           Foreground="{DynamicResource Global.Font.Standard.Color}"
                                           FontSize="{DynamicResource Global.Font.Standard.Size}"/>

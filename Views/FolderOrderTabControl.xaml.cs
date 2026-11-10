@@ -16,20 +16,31 @@ namespace ArcadeStick.Views
         private ObservableCollection<string> _subfolderCategories = new();
         private string? _selectedRootHeader;
 
+        // The orders as last loaded from the live tree and order file (the root list, and the selected root's subfolders).
+        // The lists differ from these only by the user's unapplied moves; the live state differs from these when folders
+        // changed in the main window (or through Sorting) after loading.
+        private List<string> _loadedRoots = new();
+        private List<string> _loadedSubs = new();
+
         public FolderOrderTabControl()
         {
             InitializeComponent();
         }
 
         // [SECTION: Load - Discover & Merge Folder Order]
-        // Discovers all current top-level folder headers from the live tree (excluding FAVORITES, which
-        // isn't user-orderable), merges them against the saved order in folder_order.cfg/virtual_order.cfg,
-        // and appends any newly discovered folders (not yet in the saved order) alphabetically at the end.
+        // Stores the view model and settings, then loads both lists from the live tree (LoadFromLive)
         public void Initialize(ArcadeStick.ViewModels.MainViewModel viewModel, ArcadeStick.Models.ConfigurationSettings settings)
         {
             _viewModel = viewModel;
             _settings = settings;
+            LoadFromLive(null);
+        }
 
+        // Returns the current root order: every top-level folder header from the live tree (excluding FAVORITES, MOST PLAYED
+        // and RECENTLY PLAYED, which aren't user-orderable), merged against the saved order in folder_order.cfg /
+        // virtual_order.cfg, with any folder not yet in the saved order appended alphabetically at the end
+        private List<string> BuildRootOrder()
+        {
             var discoveredRoots = new HashSet<string>();
             if (_viewModel?.TreeNodesCollection != null)
             {
@@ -43,25 +54,89 @@ namespace ArcadeStick.Views
                 }
             }
 
-            var orderedRoots = DiscoverAndMergeOrder(discoveredRoots, string.Empty);
+            return DiscoverAndMergeOrder(discoveredRoots, string.Empty);
+        }
+
+        // Returns the current subfolder order of one root from the live tree and the order file (empty when it has none)
+        private List<string> BuildSubOrder(string rootHeader)
+        {
+            var rootNode = _viewModel?.TreeNodesCollection?.FirstOrDefault(n =>
+                n.HeaderText.Equals(rootHeader, StringComparison.OrdinalIgnoreCase));
+
+            var discoveredSubsList = rootNode?.SubFolders
+                .Select(sf => sf.HeaderText.Trim().ToUpper())
+                .Where(h => !string.IsNullOrEmpty(h))
+                .ToList() ?? new List<string>();
+
+            return discoveredSubsList.Count == 0 ? new List<string>() : DiscoverAndMergeOrder(discoveredSubsList, rootHeader);
+        }
+
+        // Does the (re)load of both lists from the live state, dropping any unapplied moves; selects selectRoot when it still
+        // exists, otherwise the first root, and hides the changed-folders notice
+        private void LoadFromLive(string? selectRoot)
+        {
+            var orderedRoots = BuildRootOrder();
+            _loadedRoots = orderedRoots.ToList();
 
             _folderCategories = new ObservableCollection<string>(orderedRoots);
             LstFolderOrder.ItemsSource = _folderCategories;
 
             _selectedRootHeader = null;
             _subfolderCategories = new ObservableCollection<string>();
+            _loadedSubs = new List<string>();
             LstSubfolderOrder.ItemsSource = _subfolderCategories;
             SetSubfolderControlsEnabled(false);
 
-            if (LstFolderOrder.Items.Count > 0) LstFolderOrder.SelectedIndex = 0;
+            int selectIndex = selectRoot == null ? -1 : _folderCategories.IndexOf(selectRoot);
+            if (selectIndex >= 0) LstFolderOrder.SelectedIndex = selectIndex;
+            else if (LstFolderOrder.Items.Count > 0) LstFolderOrder.SelectedIndex = 0;
+
+            TxtFolderOrderChanged.Visibility = Visibility.Collapsed;
         }
         // [END SECTION: Load - Discover & Merge Folder Order]
+
+        // [SECTION: Live Refresh]
+        // The Options window is modeless, so folders can be created, renamed, deleted or regrouped (Sorting) in the main
+        // window while this tab holds its lists. Unapplied moves are never dropped silently and a stale list is never applied.
+
+        // Returns true when the user has moved anything since the lists were loaded
+        private bool HasUnappliedMoves() =>
+            !_folderCategories.SequenceEqual(_loadedRoots) || !_subfolderCategories.SequenceEqual(_loadedSubs);
+
+        // Returns true when the live folders or order file no longer match what the lists were loaded from
+        private bool HasExternalChange()
+        {
+            if (!BuildRootOrder().SequenceEqual(_loadedRoots)) return true;
+            return _selectedRootHeader != null && !BuildSubOrder(_selectedRootHeader).SequenceEqual(_loadedSubs);
+        }
+
+        // Does the catch-up when the Options window is activated: with no outside change nothing happens; with no unapplied
+        // moves the lists simply reload (keeping the selected root); with both, the lists are kept and the notice shows
+        public void RefreshFromLive()
+        {
+            if (_settings == null || _viewModel == null) return;
+
+            if (!HasExternalChange())
+            {
+                TxtFolderOrderChanged.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            if (!HasUnappliedMoves())
+            {
+                LoadFromLive(_selectedRootHeader);
+                return;
+            }
+
+            TxtFolderOrderChanged.Visibility = Visibility.Visible;
+        }
+        // [END SECTION: Live Refresh]
 
         // [SECTION: Shared Discover & Merge Helper]
         // Merges a set of currently-discovered folder headers against the saved order file's entries for
         // a given parent path (empty = root level, a root header = that root's direct subfolders),
         // appending anything not yet listed alphabetically at the end. Shared by both the root-level list
-        // (Initialize) and the subfolder-level list (LstFolderOrder_SelectionChanged).
+        // (BuildRootOrder) and the subfolder-level list (BuildSubOrder).
         private List<string> DiscoverAndMergeOrder(IEnumerable<string> discoveredHeaders, string parentPathUpper)
         {
             string configDirectory = _settings.GetConfigPath();
@@ -102,6 +177,7 @@ namespace ArcadeStick.Views
         private void LstFolderOrder_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _selectedRootHeader = LstFolderOrder.SelectedItem as string;
+            _loadedSubs = new List<string>();
 
             if (string.IsNullOrEmpty(_selectedRootHeader))
             {
@@ -111,15 +187,9 @@ namespace ArcadeStick.Views
                 return;
             }
 
-            var rootNode = _viewModel?.TreeNodesCollection?.FirstOrDefault(n =>
-                n.HeaderText.Equals(_selectedRootHeader, StringComparison.OrdinalIgnoreCase));
+            var orderedSubs = BuildSubOrder(_selectedRootHeader);
 
-            var discoveredSubsList = rootNode?.SubFolders
-                .Select(sf => sf.HeaderText.Trim().ToUpper())
-                .Where(h => !string.IsNullOrEmpty(h))
-                .ToList() ?? new List<string>();
-
-            if (discoveredSubsList.Count == 0)
+            if (orderedSubs.Count == 0)
             {
                 _subfolderCategories = new ObservableCollection<string>();
                 LstSubfolderOrder.ItemsSource = _subfolderCategories;
@@ -127,7 +197,7 @@ namespace ArcadeStick.Views
                 return;
             }
 
-            var orderedSubs = DiscoverAndMergeOrder(discoveredSubsList, _selectedRootHeader);
+            _loadedSubs = orderedSubs.ToList();
             _subfolderCategories = new ObservableCollection<string>(orderedSubs);
             LstSubfolderOrder.ItemsSource = _subfolderCategories;
             SetSubfolderControlsEnabled(true);
@@ -171,12 +241,36 @@ namespace ArcadeStick.Views
         // replaces the entire root-level group wholesale (safe - the left list is always the complete
         // discovered set) and replaces only the currently-selected root's subfolder group, leaving every
         // other root's subfolder group untouched. Triggers a live tree rebuild so the Game List panel
-        // immediately reflects the new order.
+        // immediately reflects the new order. Lists loaded before an outside folder change are never applied: with
+        // unapplied moves it asks to reload first (No keeps the moves and saves nothing), without them it just reloads.
         private void BtnSaveFolderOrder_Click(object sender, RoutedEventArgs e)
         {
+            if (HasExternalChange())
+            {
+                if (HasUnappliedMoves())
+                {
+                    var answer = MessageBox.Show(
+                        "The folders changed in the main window after this list was loaded, so this order can't be applied as it is.\n\nReload the current folders? Your unapplied order changes will be discarded.",
+                        "Folder Order", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+                    if (answer != MessageBoxResult.Yes)
+                    {
+                        TxtFolderOrderChanged.Visibility = Visibility.Visible;
+                        return;
+                    }
+                }
+
+                LoadFromLive(_selectedRootHeader);
+                return;
+            }
+
             try
             {
                 _viewModel?.SaveFolderOrderBulk(_folderCategories.ToList(), _selectedRootHeader, _subfolderCategories.ToList());
+
+                // What was just applied is the new loaded state
+                _loadedRoots = _folderCategories.ToList();
+                _loadedSubs = _subfolderCategories.ToList();
+                TxtFolderOrderChanged.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
             {
