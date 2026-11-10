@@ -123,6 +123,11 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore]
         public int SavedThemeHeight { get; set; } = 0;
 
+        // Returns a detached shallow copy for writing settings.json (MemberwiseClone: no constructor, no boot.cfg read). The
+        // caller replaces the members it changes (Layouts, Info, the active size, the Global values) with values of its own,
+        // so the live object and its lists are never written to; members it leaves alone are shared and only read.
+        public ConfigurationSettings CloneForPersistence() => (ConfigurationSettings)MemberwiseClone();
+
         // Deep copies layouts so the snapshot never shares objects with the live, editable layouts.
         public static List<ThemeLayout> CloneLayouts(IEnumerable<ThemeLayout> source)
         {

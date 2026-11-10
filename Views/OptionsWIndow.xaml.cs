@@ -73,13 +73,11 @@ namespace ArcadeStick.Views
         // [END SECTION: Options Window Binding Refresh]
 
         // [SECTION: Settings Persistence]
-        // Serializes the full ConfigurationSettings object to settings.json in 4rcade5tick_files.
+        // Writes settings.json through the view model's shared writer, so an open Theme Builder's unsaved edits are never
+        // written by an Options save. Throws on failure (Save reports it).
         private void PersistSettingsToDisk()
         {
-            string configFilePath = Path.Combine(_settings.GetArcadeStickFilesPath(), "settings.json");
-            var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
-            string jsonString = System.Text.Json.JsonSerializer.Serialize(_settings, jsonOptions);
-            File.WriteAllText(configFilePath, jsonString);
+            _viewModel.WriteSettingsFile();
         }
         // [END SECTION: Settings Persistence]
 

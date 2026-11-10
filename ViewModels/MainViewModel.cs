@@ -350,23 +350,42 @@ namespace ArcadeStick.ViewModels
             }
         }
 
-        // Serializes the full ConfigurationSettings object to settings.json - same approach as
-        // OptionsWindow.PersistSettingsToDisk, duplicated here since several main-window-level controls
-        // (category sort toggle, Sorting window, RomCopyPathWindow) save independently of the Options
-        // window's Save button. Public so those callers can persist without routing through a command.
+        // [SECTION: Settings Persistence]
+        // The shared writer for every settings.json save that is not a Theme Builder commit: the category toggle, Sorting
+        // Apply, Options Save and System Paths, preview sound, Smart fullscreen, hamburger theme and size switches, the
+        // fullscreen entry size on close and the ROM copy path. While the Theme Builder is open it sets
+        // PersistenceSnapshotProvider, and these saves write its last saved state (layouts, active size, Global values,
+        // Theme Info) instead of its unsaved edits; everything else is the live value. The builder's own commits (Save
+        // Adjustments, Save Changes, Load, New Theme, Delete, Browser loads) use its own writer and write the live state.
+
+        // Set by an open Theme Builder (cleared when it closes): returns a detached copy of the settings with its last saved
+        // state in place of its unsaved edits. Null when no builder is open, so the live settings are written.
+        public Func<ConfigurationSettings>? PersistenceSnapshotProvider { get; set; }
+
+        // Does the write of settings.json from the live settings, or from the open builder's snapshot; throws on failure,
+        // for callers that report it (Options Save)
+        public void WriteSettingsFile()
+        {
+            var toWrite = PersistenceSnapshotProvider?.Invoke() ?? Configuration;
+            string configFilePath = Path.Combine(Configuration.GetArcadeStickFilesPath(), "settings.json");
+            var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
+            string jsonString = System.Text.Json.JsonSerializer.Serialize(toWrite, jsonOptions);
+            File.WriteAllText(configFilePath, jsonString);
+        }
+
+        // Does the same write for callers with no error reporting (a failure is ignored, as before). Public so main-window
+        // controls can persist without routing through a command.
         public void PersistConfigurationToDisk()
         {
             try
             {
-                string configFilePath = Path.Combine(Configuration.GetArcadeStickFilesPath(), "settings.json");
-                var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
-                string jsonString = System.Text.Json.JsonSerializer.Serialize(Configuration, jsonOptions);
-                File.WriteAllText(configFilePath, jsonString);
+                WriteSettingsFile();
             }
             catch
             {
             }
         }
+        // [END SECTION: Settings Persistence]
 
         // Single entry point for the Sorting window's Apply button - writes every filter field into
         // Configuration, persists once, and rebuilds the tree once, rather than each field triggering

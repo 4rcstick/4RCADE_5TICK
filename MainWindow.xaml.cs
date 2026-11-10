@@ -3735,8 +3735,10 @@ namespace ArcadeStick
                     RunThemeSwitch(() =>
                     {
                         if (!_viewModel.LoadTheme(themeName)) return false;
-                        _viewModel.PersistConfigurationToDisk();
+                        // The builder's restore point moves to the loaded theme first: with the builder open, the shared
+                        // writer saves that restore point, and before the move it still held the previous theme
                         _themeBuilderWindow?.RefreshAfterExternalThemeSwitch();
+                        _viewModel.PersistConfigurationToDisk();
                         return true;
                     });
                 }
@@ -3818,7 +3820,9 @@ namespace ArcadeStick
 
         // Does the active-size switch shared by the Layout size pick, the F11 entry-size restore and the Theme Builder open's
         // adopt: takes the size from the theme's saved copy when the working layouts lack it, writes the active size, re-applies
-        // the layout, saves settings.json unless persist is false (the adopt) and refreshes the Theme Builder
+        // the layout, refreshes the Theme Builder (its size restore point moves to the new size) and then saves settings.json
+        // unless persist is false (the adopt). The refresh comes first because, with the builder open, the shared writer saves
+        // the restore point: the new active size is written, the builder's unsaved edits are not.
         private void SwitchActiveLayoutSize(int width, int height, bool persist = true)
         {
             var config = _viewModel.Configuration;
@@ -3837,8 +3841,8 @@ namespace ArcadeStick
             config.ActiveResolutionWidth = width;
             config.ActiveResolutionHeight = height;
             ApplyLayout();
-            if (persist) _viewModel.PersistConfigurationToDisk();
             _themeBuilderWindow?.RefreshAfterExternalSizeSwitch();
+            if (persist) _viewModel.PersistConfigurationToDisk();
         }
         // [END SECTION: Hamburger Theme & Layout Size Submenus]
 

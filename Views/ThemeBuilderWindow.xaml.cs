@@ -128,8 +128,14 @@ namespace ArcadeStick.Views
             _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
             _infoAtLastSave = _settings.Info.Clone();
 
+            // While open, saves that are not builder commits write the restore point instead of the unsaved edits
+            _viewModel.PersistenceSnapshotProvider = BuildCommittedSettingsForPersistence;
+
             Closed += (s, e) =>
             {
+                // Live values go back to the restore point below, so the shared writer needs no snapshot any more
+                _viewModel.PersistenceSnapshotProvider = null;
+
                 // Put back the last saved layouts so abandoned edits don't linger on the main window
                 _settings.Layouts = _layoutsAtLastSave;
                 _settings.ActiveResolutionWidth = _resolutionWidthAtLastSave;
@@ -197,15 +203,54 @@ namespace ArcadeStick.Views
             AdvancedTab.ClearBannerPreview();
         }
 
-        // Called by MainWindow after the layout size is switched from the hamburger menu. Only the Advanced
-        // tab is reloaded (Global values are not per size). Only the size restore point moves, so closing
-        // won't snap the window back to the old size.
+        // Called by MainWindow after the layout size is switched from the hamburger menu (or F11's entry-size restore). Only the
+        // Advanced tab is reloaded (Global values are not per size). Only the size restore point moves, so closing won't snap
+        // the window back to the old size and unsaved edits stay uncommitted. When the restore point has no layout at the new
+        // size, it takes a clean copy (CopyLayoutForRestorePoint), so the active size never points at a missing layout.
         public void RefreshAfterExternalSizeSwitch()
         {
             AdvancedTab.ReloadFromSettings();
             _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
             _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
+            if (!_layoutsAtLastSave.Any(l => l.Width == _resolutionWidthAtLastSave && l.Height == _resolutionHeightAtLastSave))
+            {
+                var copy = CopyLayoutForRestorePoint(_resolutionWidthAtLastSave, _resolutionHeightAtLastSave);
+                if (copy != null) _layoutsAtLastSave.Add(copy);
+            }
             ThemeBrowser.RefreshActiveMarks(); // the Browser's highlight follows the new active size
+        }
+
+        // Returns a deep copy of the layout at one size for the restore point: the theme's saved copy (SavedThemeLayouts, never
+        // edited) when it has that size, otherwise the working copy (a size that exists only in the working layouts), or null
+        private ArcadeStick.Models.ThemeLayout? CopyLayoutForRestorePoint(int width, int height)
+        {
+            var source = _settings.SavedThemeLayouts.FirstOrDefault(l => l.Width == width && l.Height == height)
+                ?? _settings.Layouts.FirstOrDefault(l => l.Width == width && l.Height == height);
+            return source == null ? null : ArcadeStick.Models.ConfigurationSettings.CloneLayouts(new[] { source }).First();
+        }
+
+        // Returns the settings the shared writer saves while the builder is open (MainViewModel.PersistenceSnapshotProvider): a
+        // detached copy of the live settings with the restore point's layouts, active size, Global values and Theme Info, so
+        // an Options, Sorting, sound or other unrelated save never writes unsaved builder edits. The restore point moves only
+        // on Save Adjustments, Save Changes, a theme load and (size only) an outside size switch, exactly what the builder's
+        // close-without-saving puts back. Nothing live is written to and no change notification fires.
+        private ArcadeStick.Models.ConfigurationSettings BuildCommittedSettingsForPersistence()
+        {
+            var committed = _settings.CloneForPersistence();
+            committed.Layouts = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_layoutsAtLastSave);
+            committed.ActiveResolutionWidth = _resolutionWidthAtLastSave;
+            committed.ActiveResolutionHeight = _resolutionHeightAtLastSave;
+
+            // Safety net (RefreshAfterExternalSizeSwitch normally covers it): the active size always has a layout
+            if (!committed.Layouts.Any(l => l.Width == _resolutionWidthAtLastSave && l.Height == _resolutionHeightAtLastSave))
+            {
+                var copy = CopyLayoutForRestorePoint(_resolutionWidthAtLastSave, _resolutionHeightAtLastSave);
+                if (copy != null) committed.Layouts.Add(copy);
+            }
+
+            ArcadeStick.Services.GlobalThemeResources.RestoreSnapshot(_globalAtLastSave, committed, ArcadeStick.Services.GlobalArea.All);
+            committed.Info = _infoAtLastSave.Clone();
+            return committed;
         }
 
         // Called by MainWindow right after creating the builder when its open adopted Smart fullscreen's shown size as the
@@ -346,7 +391,9 @@ namespace ArcadeStick.Views
         // [END SECTION: Window Binding Refresh]
 
         // [SECTION: Settings Persistence]
-        // Serializes the full ConfigurationSettings object to settings.json in 4rcade5tick_files.
+        // Serializes the full live ConfigurationSettings object to settings.json in 4rcade5tick_files. Used only for the
+        // builder's own commits (Save Adjustments, the Themes Manager's load / save / create / delete, Browser loads), which
+        // write the live state on purpose; every other save goes through MainViewModel.WriteSettingsFile and its snapshot.
         private void PersistSettingsToDisk()
         {
             string configFilePath = Path.Combine(_settings.GetArcadeStickFilesPath(), "settings.json");
