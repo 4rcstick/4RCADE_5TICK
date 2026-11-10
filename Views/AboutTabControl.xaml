@@ -4,16 +4,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:local="clr-namespace:ArcadeStick.Views"
-             mc:Ignorable="d" 
+             xmlns:services="clr-namespace:ArcadeStick.Services"
+             mc:Ignorable="d"
              d:DesignHeight="550" d:DesignWidth="620">
-    <Grid Margin="15">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+    <Grid Margin="15,0,2,2">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}" services:ScrollbarClearance.Enabled="True">
             <StackPanel>
 
                 <!-- [SECTION: About Header / Legal / Donate] -->
                 <!-- Colors here are intentionally hardcoded (not theme-bound) so this text stays readable
                      regardless of the active theme - see project notes on About tab text colors. -->
-                <Border Background="#FAF7F2" CornerRadius="4" Padding="10" Margin="0,0,0,15">
+                <Border Background="#FAF7F2" CornerRadius="4" Padding="10" Margin="0,15,15,15">
                     <StackPanel>
                         <TextBlock Text="ABOUT" 
                                    FontWeight="Bold" Margin="0,0,0,8"

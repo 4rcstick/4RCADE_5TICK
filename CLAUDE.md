@@ -127,6 +127,7 @@ Closing without saving restores layouts to the last saved snapshot; anything sto
 
 ### Scrollbar overrides (themes.md 3.24)
 - The Games List and Game Info scrollbars can override `Global.Scroll.*` by putting the same keys, with the same types, in `GamesListHost` and `GameInfoLayer.PartInfoBody` resources, through `GlobalThemeResources.ApplyScrollOverride` only. Never copy the scrollbar template, and never put these keys anywhere else.
+- **Scrollbar clearance (themes.md 3.27):** a new scrollbar inside a `TabContentBorder` host (Options, Theme Builder, Filter) opts in with `services:ScrollbarClearance.Enabled="True"`, which keeps its track off the rounded corner live (bar margin only). A container margin around the ScrollViewer counts as an existing gap (a 2 px margin already meets the baseline), so keep layout margins as they are, but never add a hand-tuned gap to clear the rounded corner. MainWindow scrollbars never opt in. Do not edit the shared scrollbar templates for clearance.
 - The Scrollbars layer is settings-only (`IsSettingsOnly`): it is pinned below the Main Window Background, draws nothing and takes no Z (`NormalizeZ` and `MoveSelectedLayer` skip it). A new non-positionable layer must not pick up the Main Window Background's fill values in `BuildDefaultLayout`.
 
 ### Layer list marker and separator (decision 77)

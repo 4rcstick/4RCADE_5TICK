@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
              xmlns:local="clr-namespace:ArcadeStick.Views"
+             xmlns:services="clr-namespace:ArcadeStick.Services"
              mc:Ignorable="d">
 
     <!-- The shared control styles this tab uses (PickerPopupGridStyle, GLLabelStyle, GLTextBoxStyle, GLCheckBoxStyle,
@@ -311,7 +312,7 @@
                     <!-- [SECTION: Position Tab] -->
                     <!-- Header: "POSITION & SIZE" on every layer, single and group pages alike. -->
                     <TabItem x:Name="TabPosition" Header="POSITION &amp; SIZE">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
 
                                 <!-- Visibility slot, above the position / size row: Hide this layer on single layers that can be
@@ -379,7 +380,7 @@
                          control, 2 to 4 the second (or blur and depth on a shadow row); column 5 lets the divider span the tab.
                          UseLayoutRounding keeps each shadow toggle level with its Blur / Depth labels. -->
                     <TabItem x:Name="TabGLFolders" Header="FOLDERS" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <Grid Margin="10" UseLayoutRounding="True">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
@@ -532,7 +533,7 @@
                     <!-- Same layout as the Folders tab, with the hover color (color only, no shadow) alone on the last row in place
                          of the arrow and nudge. -->
                     <TabItem x:Name="TabGLGameTitles" Header="GAME TITLES" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <Grid Margin="10" UseLayoutRounding="True">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
@@ -685,7 +686,7 @@
                          widths. Label values live on the SearchLabel entry, box values on the SearchBox entry. Same column grid as
                          the Games List tabs; column 5 lets the divider span the tab. -->
                     <TabItem x:Name="TabSBSearch" Header="SEARCH" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <Grid Margin="10" UseLayoutRounding="True">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
@@ -862,7 +863,7 @@
                          size and color columns; only its hex box is wider) | hover background, so Background and Hover BG start
                          at the same x with matching gaps. Border is on the BORDER tab. -->
                     <TabItem x:Name="TabSBButtons" Header="BUTTONS" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <Grid Margin="10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="52"/>
@@ -936,7 +937,7 @@
                     <!-- [SECTION: Game Info - Title Tab] -->
                     <!-- Game title text, stored on the Game Title entry (Text* fields). Every control carries its block key in Tag and uses the shared GI handler set. -->
                     <TabItem x:Name="TabGITitle" Header="TITLE" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Title: Font header with Bold beside it; font combo; size / color; compact drop shadow -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
@@ -1022,7 +1023,7 @@
                     <!-- [SECTION: Game Info - Publisher Tab] -->
                     <!-- Publisher / year / clone of / rating / play stats text, stored on the Publisher Block entry (Text* fields). -->
                     <TabItem x:Name="TabGIPublisher" Header="PUBLISHER" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Publisher: Font header with Bold beside it and the Alignment header, both combos on one row; size / color;
                                      compact drop shadow. Column 5 gives the Font / Alignment row the full pane width so the Alignment
@@ -1124,7 +1125,7 @@
                     <!-- [SECTION: Game Info - Info Tab] -->
                     <!-- Navigation Arrows and Dots (on the Game Info Nav entry), then section headers (SectionHeader* fields) and body text (Text* fields, the body's right margin included), both on the Game Info entry. The Specs / Credits page uses these styles too. -->
                     <TabItem x:Name="TabGIInfo" Header="GAME INFO" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Navigation Arrows and Dots (the Game Info Nav entry): size / color; compact drop shadow -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
@@ -1370,7 +1371,7 @@
 
                     <!-- [SECTION: Game Info - Previews Tab] -->
                     <TabItem x:Name="TabGIPreviews" Header="ARTWORK PREVIEWS" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Artwork previews: compact drop shadow (a glow is a shadow with depth 0 and a bright color) -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
@@ -1417,7 +1418,7 @@
                          compact box shadow (BoxShadow*). Border: color, size, radius (drawn inside the box). Hover States: text, fill and
                          border colors on one row. A divider between each section. -->
                     <TabItem x:Name="TabGIPlayButton" Header="PLAY BUTTON" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Text: Font header with Bold; font combo; size / color; button text and vertical nudge; compact drop shadow.
                                      Column 5 gives the button text row the full pane width so the nudge label is never clipped. -->
@@ -1674,7 +1675,7 @@
                     <!-- The star that adds or removes the selected game from Favorites, stored on the FavoritesStar entry. Size and the
                          solid star use the GI block system (block "FavStar", Text* fields); the outline star has its own controls (Outline* fields). -->
                     <TabItem x:Name="TabGIFavStar" Header="FAVORITES STAR" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Star size (shared by both states): the label to the left of its box -->
                                 <StackPanel Orientation="Horizontal">
@@ -1796,7 +1797,7 @@
                     <!-- [SECTION: Shape Layer - Content Tab] -->
                     <!-- Shape and custom layers' CONTENT tab (formerly BACKGROUND): the file, its opacity, then the fill color. -->
                     <TabItem x:Name="TabShapeBackground" Header="CONTENT" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- File label with the circled ? glyph (LayersHelpGlyphStyle). The supported-formats tooltip is local to
                                      the glyph, with the same dark look as the Layers help (ChromeTooltip* brushes). It omits JPEG on
@@ -1861,7 +1862,7 @@
                     <!-- The splash file shown while no game is selected, stored in the Splash Image entry's ImagePath
                          (empty = no splash). Sits before the Border tab so the order is Position, Image, Border. -->
                     <TabItem x:Name="TabSplashImage" Header="IMAGE" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Header with the circled ? glyph (same look as the shape Content tab's file help) -->
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
@@ -1907,7 +1908,7 @@
                          row; message; max text size per state; color; compact drop shadow. Column 5 gives the Font / Alignment
                          row the full pane width so the Alignment combo and Wrap text are never clipped. -->
                     <TabItem x:Name="TabRGText" Header="TEXT" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <Grid Margin="10" UseLayoutRounding="True">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
@@ -2021,7 +2022,7 @@
                          alpha note; then the Background color state combo that picks which state's color the row above edits.
                          State switches only the color, never the file. -->
                     <TabItem x:Name="TabRGBackground" Header="CONTENT" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Header with the circled ? glyph (same look as the shape Content tab's file help) -->
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
@@ -2084,7 +2085,7 @@
                          ImagePath (empty = the built-in no_preview.png), then the fill behind and around the video (the letterbox
                          bars, BgColorHex). Declared before the shared Border tab so the order is Position & Size, Fallback Image, Border. -->
                     <TabItem x:Name="TabVideoFallback" Header="FALLBACK IMAGE" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Header with the circled ? glyph (same look as the shape Content tab's file help) -->
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
@@ -2152,7 +2153,7 @@
 
                     <!-- [SECTION: Shape Layer - Border Tab] -->
                     <TabItem x:Name="TabShapeBorder" Header="BORDER" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                             <!-- Random Game Display only: which state's border the fields below edit (session-only) -->
                             <StackPanel x:Name="PnlRGBorderState" Orientation="Horizontal" Margin="0,0,0,12" Visibility="Collapsed">
@@ -2218,7 +2219,7 @@
 
                     <!-- [SECTION: Marquee - Logo Tab] -->
                     <TabItem x:Name="TabMarqueeLogo" Header="LOGO" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Header with the circled ? glyph (same look as the shape Content tab's file help) -->
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
@@ -2264,7 +2265,7 @@
                          and text margin; the title's compact drop shadow (BannerShadow*); background; the card's border.
                          Preview text marquee is session-only. -->
                     <TabItem x:Name="TabMarqueeBanner" Header="TEXT MARQUEE" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <Grid Margin="10" UseLayoutRounding="True">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="110"/>
@@ -2424,7 +2425,7 @@
                     <!-- The shared logo and marquee image shadow (block "Marquee"), last in the Marquee tab order: the toggle, the
                          target combo with its hint, then color / blur / depth. The toggle keeps its own row (not the compact recipe). -->
                     <TabItem x:Name="TabMarqueeShadow" Header="SHADOW" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <Grid Margin="0,0,0,0">
                                     <Grid.ColumnDefinitions>
@@ -2482,7 +2483,7 @@
                          mp4 stored in the entry's ImagePath; empty = the color only), the Disable flag (solid background color only),
                          then the background color (BgColorHex). -->
                     <TabItem x:Name="TabMainBgImage" Header="IMAGE OR VIDEO" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <!-- Header with the circled ? glyph (same look as the shape Content tab's file help) -->
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
@@ -2542,7 +2543,7 @@
                          80px label column (sized for "Dragging:") so the controls sit closer to their labels; box, swatch and hex
                          widths are unchanged. Controls are listed by name in BuildScrollbarFieldTable (code-behind). -->
                     <TabItem x:Name="TabScrollGamesList" Header="GAMES LIST" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <CheckBox x:Name="ChkScrGLUseGlobal" Content="Use global scrollbar" HorizontalAlignment="Left" Margin="0,0,0,12"
                                           Style="{StaticResource GLCheckBoxStyle}" Click="ChkScrUseGlobal_Click"/>
@@ -2638,7 +2639,7 @@
                     <!-- Same as the Games List tab, for Game Info: one override covers all four page scrollers (Game Info, Trivia,
                          Tips & Tricks, Specs & Credits). -->
                     <TabItem x:Name="TabScrollGameInfo" Header="GAME INFO" Visibility="Collapsed">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
                                 <CheckBox x:Name="ChkScrGIUseGlobal" Content="Use global scrollbar" HorizontalAlignment="Left" Margin="0,0,0,12"
                                           Style="{StaticResource GLCheckBoxStyle}" Click="ChkScrUseGlobal_Click"/>
@@ -2778,7 +2779,8 @@
                  scaled display; the description fills what is left (height set from code-behind, never under its minimum)
                  so it scrolls on its own. -->
             <ScrollViewer Grid.Column="2" x:Name="PnlThemeInfo" Visibility="Collapsed" VerticalScrollBarVisibility="Auto"
-                          Style="{StaticResource ArcadeDarkScrollViewerThemed}" SizeChanged="ThemeInfoLayout_SizeChanged">
+                          Style="{StaticResource ArcadeDarkScrollViewerThemed}" SizeChanged="ThemeInfoLayout_SizeChanged"
+                          services:ScrollbarClearance.Enabled="True">
                 <StackPanel>
                     <StackPanel x:Name="PnlThemeInfoTop" SizeChanged="ThemeInfoLayout_SizeChanged">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">

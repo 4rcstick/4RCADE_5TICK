@@ -24,7 +24,6 @@ namespace ArcadeStick.Views
         private const double SidePadding = 15;               // left and right padding of the tab, as the Theme Builder tab content
         private const double InstructionLineBottomGap = 10;   // gap between the instruction line and the divider
         private const double DividerToListGap = 10;           // gap between the divider and the first entry (scrolls with the list)
-        private const double ScrollEdgeGap = 3;              // distance from the scrollbar and the scroll region to the inside edge of the right and bottom borders
         private const double RowPaddingVertical = 12;        // padding above and below each entry's content, around the dividers
         private const double ColumnGap = 16;                 // gap between the thumbnail column and the text column
         private const double LineGap = 4;                    // gap between the text lines of an entry
@@ -76,8 +75,12 @@ namespace ArcadeStick.Views
             InitializeComponent();
             RootGrid.Margin = new Thickness(SidePadding);
             TxtInstruction.Margin = new Thickness(0, 0, 0, InstructionLineBottomGap);
-            ScrollEntries.Margin = new Thickness(0, 0, -(SidePadding - ScrollEdgeGap), -(SidePadding - ScrollEdgeGap));
-            PnlEntries.Margin = new Thickness(0, DividerToListGap, SidePadding - ScrollEdgeGap, SidePadding - ScrollEdgeGap);
+            // The scroll region reaches out to the scrollbar baseline gutter from the inside of the right and bottom borders, and
+            // the list pads back in by the same amount, so the text and the last entry still end SidePadding from the frame.
+            // The scrollbar's extra corner clearance comes from ScrollbarClearance (themes.md 3.27).
+            double reach = SidePadding - ScrollbarClearance.BaselineGutter;
+            ScrollEntries.Margin = new Thickness(0, 0, -reach, -reach);
+            PnlEntries.Margin = new Thickness(0, DividerToListGap, reach, reach);
             Unloaded += (_, _) => _savedOffset = ScrollEntries.VerticalOffset;
         }
 

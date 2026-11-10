@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ArcadeStick"
+        xmlns:services="clr-namespace:ArcadeStick.Services"
         Title="4RCADE 5TICK Sorting and Filter Options" Height="610" Width="500"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource Global.Options.Bg}"
@@ -21,7 +22,7 @@
 
             <!-- [SECTION: Tab Page] -->
             <TabItem Header="SORTING AND FILTER OPTIONS">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}" services:ScrollbarClearance.Enabled="True">
                     <StackPanel Margin="15">
 
                         <!-- [SECTION: Structure Mode] -->

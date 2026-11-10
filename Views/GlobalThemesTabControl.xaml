@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+             xmlns:services="clr-namespace:ArcadeStick.Services"
              mc:Ignorable="d">
 
     <!-- The Global tab: theme-wide (not per resolution) flat values on ConfigurationSettings, published as app
@@ -32,7 +33,7 @@
             <!-- [SECTION: Fonts Tab] -->
             <!-- Header, Sub-Header, Standard and Sub-Text: size (6 to 72) and color. -->
             <TabItem x:Name="TabGlobalFonts" Header="FONTS" Tag="Fonts">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}" services:ScrollbarClearance.Enabled="True">
                     <StackPanel Margin="10">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -126,7 +127,7 @@
             <!-- Window background, content area background, separator color, and the tab frame's border size (0 to 50),
                  color and corner radius (0 to 200). -->
             <TabItem x:Name="TabGlobalBackgrounds" Header="BACKGROUNDS" Tag="Backgrounds">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}" services:ScrollbarClearance.Enabled="True">
                     <StackPanel Margin="10">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -217,7 +218,7 @@
             <!-- [SECTION: Tabs Tab] -->
             <!-- Tab headers: font size (6 to 72), then font and background color for the resting, hover and active (selected) states. -->
             <TabItem x:Name="TabGlobalTabs" Header="TABS" Tag="Tabs">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}" services:ScrollbarClearance.Enabled="True">
                     <StackPanel Margin="10">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -324,7 +325,7 @@
             <!-- [SECTION: Buttons Tab] -->
             <!-- Action buttons: font size (6 to 72), font and background color resting and on hover, then border color, size (0 to 50) and radius (0 to 200). -->
             <TabItem x:Name="TabGlobalButtons" Header="BUTTONS" Tag="Buttons">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}" services:ScrollbarClearance.Enabled="True">
                     <StackPanel Margin="10">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -441,7 +442,7 @@
             <!-- [SECTION: Scrollbars Tab] -->
             <!-- Scrollbar width (2 to 40), the thumb color resting, on hover and while dragged, and the track background resting and on hover. -->
             <TabItem x:Name="TabGlobalScrollbars" Header="SCROLLBARS" Tag="Scrollbars">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}" services:ScrollbarClearance.Enabled="True">
                     <StackPanel Margin="10">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -538,7 +539,7 @@
             <!-- [SECTION: Context Menus Tab] -->
             <!-- Context menus and the hamburger menu: font and background color resting and on hover, the icon color, and the border color (also the separator lines). -->
             <TabItem x:Name="TabGlobalContextMenus" Header="CONTEXT MENUS" Tag="ContextMenus">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewer}" services:ScrollbarClearance.Enabled="True">
                     <StackPanel Margin="10">
                         <Grid>
                             <Grid.ColumnDefinitions>
