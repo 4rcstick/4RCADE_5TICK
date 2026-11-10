@@ -66,6 +66,11 @@ namespace ArcadeStick.Views
         // Nothing is written to disk here - Save Adjustments / Save Changes still do that.
         public event Action? LayoutChanged;
 
+        // Raised after this tab switched the active size itself (combo, Theme sizes buttons, Apply, a size created or
+        // removed), so the other views can follow. Never raised by a reload (ReloadFromSettings), so an outside switch
+        // refreshing this tab does not echo back.
+        public event Action? ActiveSizeChanged;
+
         // Recomputes the guides from the selected layer's pending rect and the show/center/color preferences.
         // Null only when there is nothing to draw: no usable selection, or both toggles off.
         public void RaiseGuides()
@@ -4551,6 +4556,7 @@ namespace ArcadeStick.Views
             }
 
             RebuildLayerList(selectedId);
+            ActiveSizeChanged?.Invoke();
         }
 
         // [SECTION: Custom Resolutions]
@@ -4677,6 +4683,7 @@ namespace ArcadeStick.Views
             _loading = false;
 
             RebuildLayerList(selectedId);
+            ActiveSizeChanged?.Invoke();
         }
 
         // Apply (the Add button, or Enter in the boxes): switches to the typed size and commits it at once, so it joins the combo

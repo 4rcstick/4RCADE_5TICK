@@ -517,9 +517,13 @@ namespace ArcadeStick.Views
         // [END SECTION: Theme Serialization Logic]
 
         // [SECTION: New Theme]
-        // Set by the Theme Builder window: shows the Theme Saved flash and nothing else. A template creation changes nothing
-        // live before its load, so it must not run _themeSavedCallback, which moves the restore points.
-        public Action? ThemeCreatedFlash;
+        // Set by the Theme Builder window: shows the Theme Saved flash and sends the saved-themes notice, nothing else. A
+        // template creation changes nothing live before its load, so it must not run _themeSavedCallback, which moves the
+        // restore points.
+        public Action? ThemeCreated;
+
+        // Set by the Theme Builder window: runs after a theme was deleted, so the saved-themes notice reaches the other views
+        public Action? ThemeDeleted;
 
         // Opens the New Theme menu under the button: Copy Current Theme, then, if there are valid templates, a separator, a
         // Templates heading (BuilderMenuHeadingStyle: not clickable, never highlighted) and the templates. The Windows
@@ -631,7 +635,7 @@ namespace ArcadeStick.Views
                 return;
             }
 
-            ThemeCreatedFlash?.Invoke();
+            ThemeCreated?.Invoke();
 
             string stillLoaded = string.IsNullOrWhiteSpace(previousTheme) ? "" : $" '{previousTheme}' is still the loaded theme.";
             LoadCreatedTheme(
@@ -833,6 +837,7 @@ namespace ArcadeStick.Views
                 return;
             }
 
+            bool deleted = false; // the zip is in Themes\Deleted (a later settings.json failure still counts)
             try
             {
                 string themesDir = Path.Combine(_settings.GetArcadeStickFilesPath(), "Themes");
@@ -844,6 +849,7 @@ namespace ArcadeStick.Views
                 ArcadeStick.Services.ThemeFolderSwap.CleanStaleFolders(stagingRoot, Path.Combine(themesDir, "Extracted"));
                 _viewModel.ReleaseThemeFiles();
                 ArcadeStick.Services.ThemeFileStore.DeleteTheme(themeFile, extractDir, stagingRoot, deletedDir, selectedTheme);
+                deleted = true;
 
                 if (isLoadedTheme)
                 {
@@ -876,6 +882,7 @@ namespace ArcadeStick.Views
             {
                 _viewModel.RefreshThemeBindings();
                 RefreshThemeList();
+                if (deleted) ThemeDeleted?.Invoke();
             }
             catch (Exception ex)
             {

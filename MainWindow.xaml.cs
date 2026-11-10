@@ -3737,7 +3737,7 @@ namespace ArcadeStick
                         if (!_viewModel.LoadTheme(themeName)) return false;
                         // The builder's restore point moves to the loaded theme first: with the builder open, the shared
                         // writer saves that restore point, and before the move it still held the previous theme
-                        _themeBuilderWindow?.RefreshAfterExternalThemeSwitch();
+                        NotifyActiveThemeOrSizeChanged(themeChanged: true);
                         _viewModel.PersistConfigurationToDisk();
                         return true;
                     });
@@ -3757,8 +3757,8 @@ namespace ArcadeStick
         // decides once, after the load. doLoad returns true when the theme loaded. A theme-only load (hamburger theme item,
         // Theme Builder Load, New Theme) follows the theme switch rules (HandleThemeSwitchForFullscreen); explicitSize (a Theme
         // Browser resolution button, where the user picked the size) follows the size pick rules instead
-        // (HandleExplicitSizeLoadForFullscreen).
-        public void RunThemeSwitch(Func<bool> doLoad, bool explicitSize = false)
+        // (HandleExplicitSizeLoadForFullscreen). Returns true when the theme loaded.
+        public bool RunThemeSwitch(Func<bool> doLoad, bool explicitSize = false)
         {
             var config = _viewModel.Configuration;
             (int Width, int Height) previousSize = (config.ActiveResolutionWidth, config.ActiveResolutionHeight);
@@ -3774,10 +3774,11 @@ namespace ArcadeStick
                 _deferBuilderDrop = false;
             }
 
-            if (!loaded) return;
+            if (!loaded) return false;
 
             if (explicitSize) HandleExplicitSizeLoadForFullscreen(previousSize);
             else HandleThemeSwitchForFullscreen(); // the new theme's sizes decide the fullscreen layout
+            return true;
         }
 
         // Does the Smart fullscreen part of a Theme Browser load, whose size the user picked: the size pick rules
@@ -3841,7 +3842,7 @@ namespace ArcadeStick
             config.ActiveResolutionWidth = width;
             config.ActiveResolutionHeight = height;
             ApplyLayout();
-            _themeBuilderWindow?.RefreshAfterExternalSizeSwitch();
+            NotifyActiveThemeOrSizeChanged(themeChanged: false);
             if (persist) _viewModel.PersistConfigurationToDisk();
         }
         // [END SECTION: Hamburger Theme & Layout Size Submenus]
@@ -3959,6 +3960,33 @@ namespace ArcadeStick
             if (startTab == ThemeBuilderStartTab.Browser) window.ShowBrowserTab();
             else window.ShowBuilderTab();
         }
+
+        // [SECTION: Window Coordination]
+        // The two notices that keep the open workspace windows in step with the one live theme and size state (themes.md 3.28).
+        // They only refresh views: no load, save, size switch or fullscreen change runs from here, and nothing they call
+        // raises a notice again.
+
+        // Does the notice after the active theme or size changed. fromBuilder false (a change made in the Main Window or the
+        // Theme Browser): the open Theme Builder reloads through its outside-switch refresh (a theme reloads its tabs and moves
+        // the restore point; a size reloads the Advanced tab and moves only the size restore point). fromBuilder true (the
+        // builder made the change and already shows it): only the Browser's active marks follow, so the builder is never
+        // reloaded and its unsaved edits stay as they are.
+        public void NotifyActiveThemeOrSizeChanged(bool themeChanged, bool fromBuilder = false)
+        {
+            if (_themeBuilderWindow == null) return;
+
+            if (fromBuilder) _themeBuilderWindow.RefreshBrowserActiveMarks();
+            else if (themeChanged) _themeBuilderWindow.RefreshAfterExternalThemeSwitch();
+            else _themeBuilderWindow.RefreshAfterExternalSizeSwitch();
+        }
+
+        // Does the notice after the saved theme zips changed (Save Changes, a created or deleted theme, the new-size and
+        // size-removal auto-saves): the Browser re-reads its catalog only while it is showing; a hidden one refreshes when shown
+        public void NotifySavedThemesChanged()
+        {
+            _themeBuilderWindow?.RefreshBrowserCatalogIfShown();
+        }
+        // [END SECTION: Window Coordination]
 
         private void HamburgerFullscreenMenuItem_Click(object sender, RoutedEventArgs e)
         {

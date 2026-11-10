@@ -39,7 +39,8 @@ namespace ArcadeStick.Views
 
             ThemesManager.Initialize(_viewModel, _settings, PersistSettingsToDisk, RefreshAfterThemeLoad);
             ThemesManager.SetThemeSavedCallback(OnThemeSaved);
-            ThemesManager.ThemeCreatedFlash = ShowThemeSavedFlash;
+            ThemesManager.ThemeCreated = OnThemeCreated;
+            ThemesManager.ThemeDeleted = () => _main.NotifySavedThemesChanged();
             AdvancedTab.Initialize(_settings);
 
             // A genuinely new size and a removed size save the loaded theme (themes.md 3.1): the Advanced tab asks these
@@ -111,8 +112,16 @@ namespace ArcadeStick.Views
             // Size switches (Resolutions buttons, size combo) follow the same Smart fullscreen pick rules as the hamburger Layout size
             AdvancedTab.SizePickRunner = run => _main.RunSizePick(run);
 
-            // Load Theme follows the same Smart fullscreen theme switch rules as the hamburger theme switch
-            ThemesManager.ThemeLoadRunner = load => _main.RunThemeSwitch(load);
+            // A size switch made here (combo, Theme sizes buttons, Apply, a size created or removed) is already shown by the
+            // builder: the notice only lets the other views follow, never reloads the builder (themes.md 3.28)
+            AdvancedTab.ActiveSizeChanged += () => _main.NotifyActiveThemeOrSizeChanged(themeChanged: false, fromBuilder: true);
+
+            // Load Theme follows the same Smart fullscreen theme switch rules as the hamburger theme switch. A load that finished
+            // (Load, or a new theme's load) has already refreshed the builder, so the notice is the builder-made kind.
+            ThemesManager.ThemeLoadRunner = load =>
+            {
+                if (_main.RunThemeSwitch(load)) _main.NotifyActiveThemeOrSizeChanged(themeChanged: true, fromBuilder: true);
+            };
 
             // Restore point for closing without saving: the layouts and Global values as of window open / last Save Adjustments.
             _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
@@ -175,8 +184,9 @@ namespace ArcadeStick.Views
             _infoAtLastSave = _settings.Info.Clone();
         }
 
-        // Called by MainWindow after the theme is switched from the hamburger menu. Reloads the manager row and tabs and
-        // moves the close-without-saving restore point to the newly loaded theme.
+        // Called by MainWindow (NotifyActiveThemeOrSizeChanged) after the theme is switched outside the builder: the hamburger
+        // menu or a Theme Browser load. Reloads the manager row and tabs and moves the close-without-saving restore point to
+        // the newly loaded theme.
         public void RefreshAfterExternalThemeSwitch()
         {
             ThemesManager.ReloadFromSettings();
@@ -262,6 +272,32 @@ namespace ArcadeStick.Views
             ArcadeStick.Services.ThemeThumbnailStore.RemoveUnusedFolders(_settings, _infoAtLastSave);
             AdvancedTab.RefreshThemeInfo();
             ShowThemeSavedFlash();
+            _main.NotifySavedThemesChanged(); // Save Changes, Copy Current Theme and both size auto-saves end here
+        }
+
+        // Does the work after a theme was created from a template (the Themes Manager's created callback): the "Theme Saved"
+        // flash and the saved-themes notice. Nothing else: the new theme's load that follows moves the restore point.
+        private void OnThemeCreated()
+        {
+            ShowThemeSavedFlash();
+            _main.NotifySavedThemesChanged();
+        }
+
+        // Called by MainWindow (NotifyActiveThemeOrSizeChanged) after a change the builder made itself: the Browser's
+        // highlight and active marker follow, with no zip read; nothing else in the builder is reloaded
+        public void RefreshBrowserActiveMarks()
+        {
+            ThemeBrowser.RefreshActiveMarks();
+        }
+
+        // Called by MainWindow (NotifySavedThemesChanged) after the saved theme zips changed: re-reads the catalog only while
+        // THEME BROWSER is the selected tab; a hidden Browser refreshes when it is next shown (SelectionChanged)
+        public void RefreshBrowserCatalogIfShown()
+        {
+            if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBrowser))
+            {
+                ThemeBrowser.RefreshCatalog();
+            }
         }
 
         // [SECTION: New Size Auto-Save]
@@ -409,6 +445,7 @@ namespace ArcadeStick.Views
             GlobalTab.ReloadFromSettings();
             AdvancedTab.RefreshThemeInfo();
             _main.ApplyLayoutNow();
+            _main.NotifyActiveThemeOrSizeChanged(themeChanged: false, fromBuilder: true); // the source size is active again
 
             string details = error != null ? $"\n\nDetails: {error}" : "";
             MessageBox.Show($"{notDoneText} The theme file was not changed, and your unsaved changes are back as they were.{details}",
@@ -468,7 +505,8 @@ namespace ArcadeStick.Views
                         return false;
                     }
 
-                    RefreshAfterExternalThemeSwitch();
+                    // A Browser load is not a builder edit: the builder reloads through the outside theme switch refresh
+                    _main.NotifyActiveThemeOrSizeChanged(themeChanged: true);
 
                     try
                     {
