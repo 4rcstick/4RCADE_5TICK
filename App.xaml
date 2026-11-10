@@ -3,7 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ArcadeStick"
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-             StartupUri="MainWindow.xaml">
+             StartupUri="MainWindow.xaml"
+             ShutdownMode="OnMainWindowClose">
+    <!-- ShutdownMode: the workspace windows (Options, Sorting, Theme Builder) have no owner. MainWindow_Closing closes them
+         first; OnMainWindowClose is the backstop so a window left open can never keep the process alive. -->
     <Application.Resources>
         <!-- [SECTION: Chrome Palette] -->
         <!-- The fixed (not themeable) colors of the app's input chrome: text boxes, combo boxes and their dropdowns,

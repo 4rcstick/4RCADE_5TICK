@@ -56,6 +56,42 @@ namespace ArcadeStick.Services
             if (left != window.Left) window.Left = left;
             if (top != window.Top) window.Top = top;
         }
+
+        // [SECTION: Workspace Window Placement]
+        // Workspace windows (Options, Sorting, Theme Builder) have no owner, so CenterOwner no longer applies. Call once,
+        // before the first Show: centers the window (its XAML Width / Height, capped to the work area) on the work area of
+        // the monitor the anchor (the main window) is on, in the anchor's DIPs. Activating an open window never calls this,
+        // and the window does not follow the anchor when it moves. KeepInWorkArea still corrects the window once shown
+        // (mixed-DPI monitor setups are untested).
+        public static void CenterOnMonitorOf(Window window, Window anchor)
+        {
+            if (double.IsNaN(window.Width) || double.IsNaN(window.Height) || !TryGetWorkAreaDips(anchor, out Rect workArea)) return;
+
+            double width = Math.Min(window.Width, workArea.Width);
+            double height = Math.Min(window.Height, workArea.Height);
+            window.WindowStartupLocation = WindowStartupLocation.Manual;
+            window.Left = workArea.Left + ((workArea.Width - width) / 2);
+            window.Top = workArea.Top + ((workArea.Height - height) / 2);
+        }
+
+        private const uint SwpNoSize = 0x0001;
+        private const uint SwpNoMove = 0x0002;
+        private const uint SwpNoActivate = 0x0010;
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool SetWindowPos(IntPtr hwnd, IntPtr insertAfter, int x, int y, int width, int height, uint flags);
+
+        // Does the z-order move of a shown window to just below the anchor, without activating, moving or sizing it (used
+        // when windows hidden for a game come back, so they never cover the main window)
+        public static void PlaceBehind(Window window, Window anchor)
+        {
+            IntPtr hwnd = new WindowInteropHelper(window).Handle;
+            IntPtr anchorHwnd = new WindowInteropHelper(anchor).Handle;
+            if (hwnd == IntPtr.Zero || anchorHwnd == IntPtr.Zero) return;
+            SetWindowPos(hwnd, anchorHwnd, 0, 0, 0, 0, SwpNoSize | SwpNoMove | SwpNoActivate);
+        }
+        // [END SECTION: Workspace Window Placement]
     }
     // [END SECTION: Window Fit]
 }

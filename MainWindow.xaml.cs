@@ -119,6 +119,7 @@ namespace ArcadeStick
             _viewModel.ThemeBindingsRefreshed += ApplyGlobalThemeResources;
             _viewModel.ThemeExtractionStarting += ReleaseCustomLayers;
             _viewModel.GameLaunchCompleted += ResumeMainBgVideo;
+            _viewModel.GameLaunchCompleted += RestoreWorkspaceWindowsAfterGame;
 
             // Position every layer from the active layout right away (the first ThemeBindingsRefreshed
             // may have fired inside MainViewModel's constructor, before this subscription existed).
@@ -442,10 +443,10 @@ namespace ArcadeStick
             // Theme Builder on screen in Smart fullscreen shows only the active size. When the active size changes outside a size
             // pick or theme switch (custom size Add, Remove Size), rerun the size test on it:
             // ApplySmartFullscreen sets a new display override or ends Smart fullscreen, and both refresh the theme bindings,
-            // which runs ApplyLayout again in full, so this call returns. Gated on IsVisible (the builder's close is handled by
-            // its Closed handler in OpenThemeBuilderWindow). Skipped while RunSizePick or RunThemeSwitch runs
-            // (_deferBuilderDrop): their handlers decide right after the switch.
-            if (_smartFullscreenActive && _themeBuilderWindow?.IsVisible == true && !SmartLayoutMatchesActiveSize() && !_deferBuilderDrop)
+            // which runs ApplyLayout again in full, so this call returns. Gated on IsThemeBuilderOnScreen (visible, or hidden only
+            // for a game; the builder's close is handled by its Closed handler in OpenThemeBuilderWindow). Skipped while
+            // RunSizePick or RunThemeSwitch runs (_deferBuilderDrop): their handlers decide right after the switch.
+            if (_smartFullscreenActive && IsThemeBuilderOnScreen && !SmartLayoutMatchesActiveSize() && !_deferBuilderDrop)
             {
                 ApplySmartFullscreen();
                 return;
@@ -2809,7 +2810,8 @@ namespace ArcadeStick
         // on a timing race not happening.
         private Models.GameItem? _gameBeingLaunched;
 
-        // Stops the video preview and hands off to the LaunchGameCommand for the currently selected game
+        // Stops the video preview, hides the visible workspace windows (back on GameLaunchCompleted) and hands off to the
+        // LaunchGameCommand for the currently selected game
         private void TriggerActiveSelectionLaunch()
         {
             if (_viewModel.SelectedGame != null && _viewModel.LaunchGameCommand.CanExecute(this))
@@ -2818,6 +2820,7 @@ namespace ArcadeStick
 
                 StopActivePreview();
                 PauseMainBgVideo();
+                HideWorkspaceWindowsForGame();
                 _viewModel.LaunchGameCommand.Execute(this);
             }
         }
@@ -3010,8 +3013,8 @@ namespace ArcadeStick
 
         // [SECTION: Options Window]
         // One modeless Options window (Ctrl+O, the gear and the hamburger item all come here): the main window stays usable
-        // and the video preview keeps playing while it is open. Opening it again restores and activates the open one. Owner
-        // stays this window for now (independent ownership comes with the window ownership pass).
+        // and the video preview keeps playing while it is open. Opening it again restores and activates the open one. It has
+        // no owner (an independent top-level window, see Workspace Window Lifecycle).
         private Views.OptionsWindow? _optionsWindow;
 
         // Does the open of the one Options window, or the restore and activate of the one already open
@@ -3024,7 +3027,8 @@ namespace ArcadeStick
                 return;
             }
 
-            var optionsWindow = new Views.OptionsWindow(_viewModel) { Owner = this };
+            var optionsWindow = new Views.OptionsWindow(_viewModel);
+            Services.WindowFit.CenterOnMonitorOf(optionsWindow, this);
 
             if (_gamepadService != null)
             {
@@ -3032,13 +3036,14 @@ namespace ArcadeStick
                 _gamepadService.TriggerDiagnosticsUpdate();
             }
 
+            TrackWorkspaceClose(optionsWindow);
             optionsWindow.Closed += OptionsWindow_Closed;
             _optionsWindow = optionsWindow;
             optionsWindow.Show();
         }
 
-        // Does the cleanup after the Options window closes: forgets the instance, repaints the main buttons' resting colors
-        // and brings the launcher forward (the Options window tears down its own diagnostics and capture handlers)
+        // Does the cleanup after the Options window closes: forgets the instance and repaints the main buttons' resting colors
+        // (the Options window tears down its own diagnostics and capture handlers; TrackWorkspaceClose handles focus)
         private void OptionsWindow_Closed(object? sender, EventArgs e)
         {
             if (sender is Window closed) closed.Closed -= OptionsWindow_Closed;
@@ -3049,8 +3054,6 @@ namespace ArcadeStick
             // memory growth on Options close. Re-enable if anything stops updating live after this test.
             // _viewModel.RefreshThemeBindings();
             RefreshMainButtonsRestingColors();
-
-            BringToFrontAfterChildClose();
         }
 
         // Footer gear icon click handler - opens the Options window
@@ -3064,7 +3067,7 @@ namespace ArcadeStick
         // One modeless Sorting and Filter Options window - structure mode (custom folders vs. catver-derived
         // categories) plus region/revision/player-count/rating filters, applied via a single Apply button.
         // The sort button and the hamburger item both come here; opening it again restores and activates the
-        // open one. Owner stays this window for now (independent ownership comes with the window ownership pass).
+        // open one. It has no owner (an independent top-level window, see Workspace Window Lifecycle).
         private Views.SortingWindow? _sortingWindow;
 
         // Does the open of the one Sorting window, or the restore and activate of the one already open
@@ -3077,19 +3080,20 @@ namespace ArcadeStick
                 return;
             }
 
-            var sortingWindow = new Views.SortingWindow(_viewModel) { Owner = this };
+            var sortingWindow = new Views.SortingWindow(_viewModel);
+            Services.WindowFit.CenterOnMonitorOf(sortingWindow, this);
+            TrackWorkspaceClose(sortingWindow);
             sortingWindow.Closed += SortingWindow_Closed;
             _sortingWindow = sortingWindow;
             sortingWindow.Show();
         }
 
-        // Does the cleanup after the Sorting window closes: forgets the instance and brings the launcher forward (the window
-        // unsubscribes from the view model itself)
+        // Does the cleanup after the Sorting window closes: forgets the instance (the window unsubscribes from the view model
+        // itself; TrackWorkspaceClose handles focus)
         private void SortingWindow_Closed(object? sender, EventArgs e)
         {
             if (sender is Window closed) closed.Closed -= SortingWindow_Closed;
             _sortingWindow = null;
-            BringToFrontAfterChildClose();
         }
 
         // Sort button click handler - opens the Sorting window
@@ -3101,7 +3105,8 @@ namespace ArcadeStick
 
         // [SECTION: Child Window Re-activation]
         // Closing an owned window can leave the launcher behind other programs' windows. Deferred to Background
-        // priority so it runs after the close and its own activation churn have finished. Not Topmost.
+        // priority so it runs after the close and its own activation churn have finished. Not Topmost. Used by the
+        // modal task dialogs (Manage Custom Folders, ROM copy path); workspace windows use TrackWorkspaceClose.
         // Does the restore / Activate / Focus on this window after a child window closes
         public void BringToFrontAfterChildClose()
         {
@@ -3113,6 +3118,96 @@ namespace ArcadeStick
             }));
         }
         // [END SECTION: Child Window Re-activation]
+
+        // [SECTION: Workspace Window Lifecycle]
+        // Options, Sorting and the Theme Builder are independent top-level windows (no owner, one instance each, own
+        // minimize and taskbar button). This window stays the app's lifetime authority: its close closes them first
+        // (MainWindow_Closing), and App.xaml's ShutdownMode OnMainWindowClose is the backstop. A launch hides the visible
+        // ones and brings them back afterwards.
+        private bool _isShuttingDown; // set by the first Closing pass; close handlers never activate this window after it
+
+        // Returns the open workspace windows (Options, Sorting, Theme Builder)
+        private List<Window> GetOpenWorkspaceWindows()
+        {
+            var windows = new List<Window>();
+            if (_optionsWindow != null) windows.Add(_optionsWindow);
+            if (_sortingWindow != null) windows.Add(_sortingWindow);
+            if (_themeBuilderWindow != null) windows.Add(_themeBuilderWindow);
+            return windows;
+        }
+
+        // Does the focus hand-back for a workspace window's close (the conditional replacement for BringToFrontAfterChildClose
+        // and its 2026-10-22 fix): remembers whether the window was the active one when it started closing; after the close
+        // settles, activates this window only if it was, nothing of this app is active now (Windows may have handed activation
+        // to another program, which left the launcher behind), this window is visible and not minimized, and no shutdown or
+        // game launch is running. A window closed while the user was in another program, or while another workspace window
+        // took over, changes nothing.
+        private void TrackWorkspaceClose(Window window)
+        {
+            bool wasActive = false;
+            window.Closing += (s, e) => wasActive = window.IsActive;
+            window.Closed += (s, e) =>
+            {
+                if (!wasActive) return;
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+                {
+                    if (_isShuttingDown || _gameBeingLaunched != null || !IsVisible || WindowState == WindowState.Minimized) return;
+                    if (Application.Current.Windows.Cast<Window>().Any(w => w.IsActive)) return;
+                    Activate();
+                }));
+            };
+        }
+
+        // Does the close of every open workspace window at shutdown (each Closed handler clears its field; the Theme Builder
+        // puts back its restore point, discarding unsaved edits, before anything here writes settings.json)
+        private void CloseWorkspaceWindows()
+        {
+            foreach (var window in GetOpenWorkspaceWindows()) window.Close();
+        }
+
+        // The workspace windows a launch hid, brought back by RestoreWorkspaceWindowsAfterGame
+        private readonly List<Window> _workspaceHiddenForGame = new();
+
+        // Does the hide before a launch: every visible, not minimized workspace window (minimized ones stay as they are).
+        // Hiding saves and discards nothing; the Theme Builder keeps counting as on screen (IsThemeBuilderOnScreen).
+        private void HideWorkspaceWindowsForGame()
+        {
+            foreach (var window in GetOpenWorkspaceWindows())
+            {
+                if (!window.IsVisible || window.WindowState == WindowState.Minimized) continue;
+                _workspaceHiddenForGame.Add(window);
+                window.Hide();
+            }
+        }
+
+        // Does the return after the game (GameLaunchCompleted, which also follows a failed or refused launch): shows the
+        // windows the launch hid that are still open, without activating them and placed just below this window, so this
+        // window keeps the focus the launch service gave it. Never creates a window.
+        private void RestoreWorkspaceWindowsAfterGame()
+        {
+            if (_workspaceHiddenForGame.Count == 0) return;
+
+            var open = GetOpenWorkspaceWindows();
+            bool builderRestored = false;
+            foreach (var window in _workspaceHiddenForGame)
+            {
+                if (!open.Contains(window)) continue;
+                window.ShowActivated = false;
+                window.Show();
+                window.ShowActivated = true;
+                Services.WindowFit.PlaceBehind(window, this);
+                builderRestored |= ReferenceEquals(window, _themeBuilderWindow);
+            }
+            _workspaceHiddenForGame.Clear();
+
+            // As when the builder opens: the fractional fallback never applies while it is on screen
+            if (builderRestored && _smartFullscreenFromFallback) ApplySmartFullscreen();
+        }
+
+        // Returns true while the Theme Builder is on screen for Smart fullscreen's size rules: visible, or only hidden for a game
+        private bool IsThemeBuilderOnScreen =>
+            _themeBuilderWindow != null && (_themeBuilderWindow.IsVisible || _workspaceHiddenForGame.Contains(_themeBuilderWindow));
+        // [END SECTION: Workspace Window Lifecycle]
 
         // [SECTION: Preview Player Shutdown]
         // The first Closing is cancelled while the FFmpeg player stops and joins its workers (the native DLLs
@@ -3133,6 +3228,13 @@ namespace ArcadeStick
             e.Cancel = true;
             if (_isClosingPreviewPlayer) return;
             _isClosingPreviewPlayer = true;
+
+            // Workspace windows close first, while this window is still whole: the Theme Builder puts back its restore point
+            // (discarding unsaved edits) before the real close's PersistFullscreenEntrySizeOnClose can write settings.json,
+            // and no close handler activates this window from here on
+            _isShuttingDown = true;
+            CloseWorkspaceWindows();
+
             IsEnabled = false;
 
             try
@@ -3339,7 +3441,7 @@ namespace ArcadeStick
             // size, which may have only a working layout); otherwise every size saved in the theme, with the fractional fallback
             var config = _viewModel.Configuration;
             var dpi = VisualTreeHelper.GetDpi(this);
-            bool builderOnScreen = _themeBuilderWindow?.IsVisible == true;
+            bool builderOnScreen = IsThemeBuilderOnScreen;
             var sizes = builderOnScreen
                 ? new List<(int Width, int Height)> { (config.ActiveResolutionWidth, config.ActiveResolutionHeight) }
                 : config.SavedThemeLayouts.Select(l => (l.Width, l.Height)).Distinct().ToList();
@@ -3772,8 +3874,9 @@ namespace ArcadeStick
         }
 
         // Non-modal and single-instance: if Theme Builder is already open, bring it forward instead of
-        // creating a second one. Owner = this closes it automatically with the main window. Like the
-        // Options window, it does not pause video; gamepad actions run only while the main window is active.
+        // creating a second one. No owner: it gets this window through its constructor, and MainWindow_Closing
+        // closes it at shutdown. Like the Options window, it does not pause video; gamepad actions run only
+        // while the main window is active.
         private Views.ThemeBuilderWindow? _themeBuilderWindow;
 
         // The Theme Builder window's tab to show when it is opened or activated
@@ -3807,11 +3910,13 @@ namespace ArcadeStick
                 SwitchActiveLayoutSize(_viewModel.DisplayLayoutWidth, _viewModel.DisplayLayoutHeight, persist: false);
             }
 
-            _themeBuilderWindow = new Views.ThemeBuilderWindow(_viewModel) { Owner = this };
+            _themeBuilderWindow = new Views.ThemeBuilderWindow(_viewModel, this);
+            Services.WindowFit.CenterOnMonitorOf(_themeBuilderWindow, this);
             if (sizeBeforeAdopt is (int adoptWidth, int adoptHeight)) _themeBuilderWindow.SetSizeRestorePoint(adoptWidth, adoptHeight);
 
-            // Owner is set, so the tab's selection logic can reach this window; before Show, so it opens on that tab
+            // The builder already holds this window, so the tab's selection logic can reach it; before Show, so it opens on that tab
             ShowThemeBuilderTab(_themeBuilderWindow, startTab);
+            TrackWorkspaceClose(_themeBuilderWindow);
 
             // The active size just before the builder's own Closed handler puts back its restore point
             (int Width, int Height) sizeBeforeClose = default;
@@ -3828,6 +3933,9 @@ namespace ArcadeStick
             _themeBuilderWindow.Closed += (s, e) =>
             {
                 _themeBuilderWindow = null;
+
+                // Shutdown: the snapshot restore already ran; no Smart fullscreen rerun on a closing window
+                if (_isShuttingDown) return;
 
                 var config = _viewModel.Configuration;
                 if (sizeBeforeClose != (config.ActiveResolutionWidth, config.ActiveResolutionHeight)) _smartFullscreenAutoEntered = false;

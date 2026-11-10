@@ -8,6 +8,9 @@ namespace ArcadeStick.Views
     {
         private readonly ArcadeStick.Models.ConfigurationSettings _settings;
         private readonly ArcadeStick.ViewModels.MainViewModel _viewModel;
+        // The launcher window: the builder has no owner, so it reaches the guides, grid, previews, live layout, size picks,
+        // theme switches and thumbnail capture through this reference
+        private readonly MainWindow _main;
 
         private System.Collections.Generic.List<ArcadeStick.Models.ThemeLayout> _layoutsAtLastSave = new();
         private int _resolutionWidthAtLastSave;
@@ -23,10 +26,12 @@ namespace ArcadeStick.Views
         // Anchors DataContext to the live ConfigurationSettings (same as OptionsWindow, so the window
         // inherits the exact same theme bindings), then hands the Themes Manager row the persist/refresh
         // callbacks it needs to save settings.json and re-evaluate this window's bindings independently.
-        public ThemeBuilderWindow(ArcadeStick.ViewModels.MainViewModel viewModel)
+        // main is the launcher window (the builder is an independent window with no owner).
+        public ThemeBuilderWindow(ArcadeStick.ViewModels.MainViewModel viewModel, MainWindow main)
         {
             InitializeComponent();
             ArcadeStick.Services.WindowFit.KeepInWorkArea(this); // never taller than the monitor's work area
+            _main = main;
             _viewModel = viewModel;
             _settings = viewModel.Configuration;
 
@@ -50,7 +55,7 @@ namespace ArcadeStick.Views
             });
             ThemesManager.ThemeCreatedFlash = ShowThemeSavedFlash;
             AdvancedTab.Initialize(_settings);
-            AdvancedTab.ThumbnailCaptureRunner = () => (Owner as MainWindow)?.CaptureThemeThumbnail();
+            AdvancedTab.ThumbnailCaptureRunner = () => _main.CaptureThemeThumbnail();
             GlobalTab.Initialize(_settings);
             ThemeBrowser.Initialize(_settings); // before the tab handler below can call RefreshCatalog
             ThemeBrowser.LoadRequested += LoadThemeFromBrowser;
@@ -65,7 +70,7 @@ namespace ArcadeStick.Views
             AdvancedTab.GuidesChanged += info =>
             {
                 if (!ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBuilderPage)) info = null;
-                (Owner as MainWindow)?.ShowGuides(info);
+                _main.ShowGuides(info);
             };
 
             ThemeBuilderTabControl.SelectionChanged += (s, e) =>
@@ -80,8 +85,8 @@ namespace ArcadeStick.Views
                 }
                 else
                 {
-                    (Owner as MainWindow)?.ShowGuides(null);
-                    (Owner as MainWindow)?.SetBackgroundGrid(false, 0); // hidden, not unchecked: it returns with THEME BUILDER
+                    _main.ShowGuides(null);
+                    _main.SetBackgroundGrid(false, 0); // hidden, not unchecked: it returns with THEME BUILDER
                     AdvancedTab.StopPreviews(); // leaving THEME BUILDER turns the card and banner previews off
 
                     // The Browser refreshes once each time it is shown (ShowBrowserTab covers an already selected tab)
@@ -97,32 +102,24 @@ namespace ArcadeStick.Views
             AdvancedTab.GridChanged += (on, spacing, offsetX, offsetY) =>
             {
                 bool onBuilder = ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBuilderPage);
-                (Owner as MainWindow)?.SetBackgroundGrid(on && onBuilder, spacing, offsetX, offsetY);
+                _main.SetBackgroundGrid(on && onBuilder, spacing, offsetX, offsetY);
             };
 
             // Random Game Display card preview: forwarded to the main window like the guides
-            AdvancedTab.RandomPreviewChanged += (on, fromSplash) => (Owner as MainWindow)?.SetRandomCardPreview(on, fromSplash);
+            AdvancedTab.RandomPreviewChanged += (on, fromSplash) => _main.SetRandomCardPreview(on, fromSplash);
 
             // Marquee banner preview: forwarded the same way
-            AdvancedTab.BannerPreviewChanged += on => (Owner as MainWindow)?.SetBannerPreview(on);
+            AdvancedTab.BannerPreviewChanged += on => _main.SetBannerPreview(on);
 
             // Live layout: every committed Advanced edit re-applies the layout on the main window.
             // Nothing is written to disk here - only Save Adjustments / Save Changes do that.
-            AdvancedTab.LayoutChanged += () => (Owner as MainWindow)?.ApplyLayoutNow();
+            AdvancedTab.LayoutChanged += () => _main.ApplyLayoutNow();
 
             // Size switches (Resolutions buttons, size combo) follow the same Smart fullscreen pick rules as the hamburger Layout size
-            AdvancedTab.SizePickRunner = run =>
-            {
-                if (Owner is MainWindow m) m.RunSizePick(run);
-                else run();
-            };
+            AdvancedTab.SizePickRunner = run => _main.RunSizePick(run);
 
             // Load Theme follows the same Smart fullscreen theme switch rules as the hamburger theme switch
-            ThemesManager.ThemeLoadRunner = load =>
-            {
-                if (Owner is MainWindow m) m.RunThemeSwitch(load);
-                else load();
-            };
+            ThemesManager.ThemeLoadRunner = load => _main.RunThemeSwitch(load);
 
             // Restore point for closing without saving: the layouts and Global values as of window open / last Save Adjustments.
             _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
@@ -146,15 +143,13 @@ namespace ArcadeStick.Views
                 _settings.Info = _infoAtLastSave;
                 _settings.PendingThemeThumbnail = null;
 
-                var main = Owner as MainWindow;
-                main?.ShowGuides(null);
-                main?.SetBackgroundGrid(false, 0); // closing hides the grid and gives the wallpaper back
-                main?.SetRandomCardPreview(false, false); // closing turns the card and banner previews off
-                main?.SetBannerPreview(false);
-                main?.ApplyLayoutNow();
+                _main.ShowGuides(null);
+                _main.SetBackgroundGrid(false, 0); // closing hides the grid and gives the wallpaper back
+                _main.SetRandomCardPreview(false, false); // closing turns the card and banner previews off
+                _main.SetBannerPreview(false);
+                _main.ApplyLayoutNow();
 
-                // Closing can leave the launcher behind other programs' windows
-                main?.BringToFrontAfterChildClose();
+                // Focus after the close is MainWindow's conditional hand-back (TrackWorkspaceClose), not a forced activate
             };
         }
 
@@ -280,8 +275,7 @@ namespace ArcadeStick.Views
                 };
 
                 // explicitSize: the user picked this size, so the size pick rules decide fullscreen (not the theme switch rules)
-                if (Owner is MainWindow m) m.RunThemeSwitch(load, explicitSize: true);
-                else load();
+                _main.RunThemeSwitch(load, explicitSize: true);
             }
             catch (ArcadeStick.Services.ThemeLoadException ex)
             {
