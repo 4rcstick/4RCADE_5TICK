@@ -3388,11 +3388,13 @@ namespace ArcadeStick
 
         // Does a size pick (hamburger Layout size, Theme Builder Resolutions button or size combo) with the Smart fullscreen pick
         // rules in HandleLayoutSizePickForFullscreen. The handler is skipped only when nothing changed: same active size and
-        // no Smart fullscreen showing another size.
+        // no Smart fullscreen showing another size. A workspace window that started the pick gets the focus back if a
+        // fullscreen change took it (RestoreWorkspaceFocus).
         public void RunSizePick(Action doSwitch)
         {
             var config = _viewModel.Configuration;
             (int Width, int Height) previousSize = (config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+            var activeWorkspace = GetActiveWorkspaceWindow();
 
             _deferBuilderDrop = true;
             try
@@ -3408,6 +3410,25 @@ namespace ArcadeStick
             if (!sizeChanged && (!_smartFullscreenActive || SmartLayoutMatchesActiveSize())) return;
 
             HandleLayoutSizePickForFullscreen(config.ActiveResolutionWidth, config.ActiveResolutionHeight, previousSize);
+            RestoreWorkspaceFocus(activeWorkspace);
+        }
+
+        // Returns the workspace window (Options, Sorting, Theme Builder, Theme Browser) that is active now, or null (this
+        // window, another program, or nothing of this app)
+        private Window? GetActiveWorkspaceWindow() => GetOpenWorkspaceWindows().FirstOrDefault(w => w.IsActive);
+
+        // Does the focus hand-back after RunSizePick / RunThemeSwitch: EnterFullscreen and ExitFullscreen set WindowState,
+        // which Windows applies with a show call that also activates this window and brings it to the front, covering the
+        // workspace window the user was working in. When that happened (this window is active now and previous is not),
+        // previous is activated again, but only if it is still open, visible and not minimized, and not during shutdown.
+        // Nothing happens when this window started the operation (previous is null) or nothing displaced previous.
+        private void RestoreWorkspaceFocus(Window? previous)
+        {
+            if (previous == null || _isShuttingDown || previous.IsActive || !IsActive) return;
+            if (!GetOpenWorkspaceWindows().Contains(previous)) return;
+            if (!previous.IsVisible || previous.WindowState == WindowState.Minimized) return;
+
+            previous.Activate();
         }
 
         // Returns true when the smart layout on screen is the active resolution (so Theme Builder edits are visible)
@@ -3758,11 +3779,13 @@ namespace ArcadeStick
         // decides once, after the load. doLoad returns true when the theme loaded. A theme-only load (hamburger theme item,
         // Theme Builder Load, New Theme) follows the theme switch rules (HandleThemeSwitchForFullscreen); explicitSize (a Theme
         // Browser resolution button, where the user picked the size) follows the size pick rules instead
-        // (HandleExplicitSizeLoadForFullscreen). Returns true when the theme loaded.
+        // (HandleExplicitSizeLoadForFullscreen). A workspace window that started the load gets the focus back if a fullscreen
+        // change took it (RestoreWorkspaceFocus). Returns true when the theme loaded.
         public bool RunThemeSwitch(Func<bool> doLoad, bool explicitSize = false)
         {
             var config = _viewModel.Configuration;
             (int Width, int Height) previousSize = (config.ActiveResolutionWidth, config.ActiveResolutionHeight);
+            var activeWorkspace = GetActiveWorkspaceWindow(); // gets the focus back if a fullscreen change takes it
 
             bool loaded;
             _deferBuilderDrop = true;
@@ -3779,6 +3802,7 @@ namespace ArcadeStick
 
             if (explicitSize) HandleExplicitSizeLoadForFullscreen(previousSize);
             else HandleThemeSwitchForFullscreen(); // the new theme's sizes decide the fullscreen layout
+            RestoreWorkspaceFocus(activeWorkspace);
             return true;
         }
 
