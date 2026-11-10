@@ -219,18 +219,24 @@ namespace ArcadeStick.Views
             SaveThemeCore(themeName, isNewTheme: false, themeName);
         }
 
-        // Writes memory to the named theme and returns true once its zip is written: builds a ThemeSettings DTO from _settings,
+        // What a save did: NotSaved (cancelled, or failed before the zip swap, so nothing on disk or in memory changed), Saved
+        // (everything finished), or SavedIncomplete (the zip was swapped in, then a later step such as the settings.json
+        // write failed: the theme file and memory hold the new theme, settings.json may not)
+        public enum ThemeSaveOutcome { NotSaved, Saved, SavedIncomplete }
+
+        // Writes memory to the named theme and returns how far it got (ThemeSaveOutcome): builds a ThemeSettings DTO from _settings,
         // bundles every layout entry's ImagePath into a staging assets/ folder (rewriting the DTO's copies of those paths to
         // archive-relative paths), asks before saving with missing files, then writes a temp zip, verifies it and swaps it in,
         // keeping the old zip as <name>.zip.bak. DANGER: any new flat theme property must be added to this DTO too (and to
         // ThemeSettings and LoadTheme). The info block's thumbnail is bundled the same way. Nothing live changes until the
         // swap succeeds, so a failed or cancelled save leaves everything as it was. The caller has already checked the name.
-        private bool SaveThemeCore(string themeName, bool isNewTheme, string dropdown)
+        private ThemeSaveOutcome SaveThemeCore(string themeName, bool isNewTheme, string dropdown)
         {
             string loadedTheme = _viewModel.LoadedThemeName;
             string stagingDir = Path.Combine(Path.GetTempPath(), $"4rcstick_theme_{Guid.NewGuid():N}");
             string? tempZip = null;
             bool zipWritten = false; // from here on the theme is saved, whatever a later refresh does
+            bool completed = false; // every step after the swap finished too
 
             try
             {
@@ -367,7 +373,7 @@ namespace ArcadeStick.Views
                 if (missingAssets.Count > 0 && !ConfirmSaveWithMissingAssets(missingAssets))
                 {
                     ArcadeStick.Services.ThemeLog.Write("Save", themeName, dropdown, loadedTheme, "cancelled", $"Missing: {string.Join(", ", missingAssets)}");
-                    return false;
+                    return ThemeSaveOutcome.NotSaved;
                 }
 
                 var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
@@ -424,6 +430,7 @@ namespace ArcadeStick.Views
                 CboThemePresets.SelectedItem = themeName;
                 _persistToDisk?.Invoke();
                 _themeSavedCallback?.Invoke();
+                completed = true;
             }
             catch (Exception ex)
             {
@@ -461,8 +468,39 @@ namespace ArcadeStick.Views
                 }
             }
 
-            return zipWritten;
+            if (!zipWritten) return ThemeSaveOutcome.NotSaved;
+            return completed ? ThemeSaveOutcome.Saved : ThemeSaveOutcome.SavedIncomplete;
         }
+
+        // [SECTION: New Size Auto-Save]
+        // Returns why the loaded theme can't be saved by a new-size auto-save (no theme loaded, or its zip is gone or its name is
+        // refused), or null when it can. Never creates a theme: the auto-save only writes over the loaded theme's existing zip.
+        public string? GetLoadedThemeSaveProblem()
+        {
+            string loadedTheme = _viewModel.LoadedThemeName;
+            if (string.IsNullOrWhiteSpace(loadedTheme))
+                return "No saved theme is loaded, so the new size can't be created. Load a theme first.";
+
+            try
+            {
+                if (!File.Exists(_settings.GetThemePath(loadedTheme)))
+                    return $"The theme file for '{loadedTheme}' couldn't be found, so the new size can't be created. Load a theme first.";
+            }
+            catch (ArcadeStick.Services.ThemePathException ex)
+            {
+                return $"'{loadedTheme}' can't be saved, so the new size can't be created.\n\nDetails: {ex.Reason}";
+            }
+            return null;
+        }
+
+        // Does the new-size auto-save: saves memory over the loaded theme through the normal Save path (SaveThemeCore: the
+        // missing-files question, the safe zip swap, settings.json, the saved callback and its flash) and returns the outcome
+        public ThemeSaveOutcome SaveLoadedTheme()
+        {
+            string loadedTheme = _viewModel.LoadedThemeName;
+            return SaveThemeCore(loadedTheme, isNewTheme: false, loadedTheme);
+        }
+        // [END SECTION: New Size Auto-Save]
 
         // Asks whether to save without the files that could not be found (No is the default), listing at most 8 of them
         private static bool ConfirmSaveWithMissingAssets(List<string> missingAssets)
@@ -543,7 +581,7 @@ namespace ArcadeStick.Views
 
             string previousTheme = _viewModel.LoadedThemeName;
             string dropdown = CboThemePresets.SelectedItem as string ?? "";
-            if (!SaveThemeCore(themeName, isNewTheme: true, dropdown)) return;
+            if (SaveThemeCore(themeName, isNewTheme: true, dropdown) == ThemeSaveOutcome.NotSaved) return;
 
             string copiedFrom = string.IsNullOrWhiteSpace(previousTheme) ? "-" : previousTheme;
             LoadCreatedTheme(

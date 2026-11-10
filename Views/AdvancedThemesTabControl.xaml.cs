@@ -1091,9 +1091,10 @@ namespace ArcadeStick.Views
 
         // "New size layout" prompt built in code like the name prompt (new-size-scaler.md): shows the sizes, the factors and,
         // when they differ, an aspect ratio warning, with one radio button per LayoutScaler choice. The remembered choice is
-        // preselected unless the ratio is far off (then "keep"). Returns the choice, or null if cancelled. OK on a close ratio
-        // remembers the choice in memory only (Save Adjustments writes settings.json); OK on a far-off ratio leaves it alone.
-        private string? PromptForNewSizeScale(int oldWidth, int oldHeight, int newWidth, int newHeight)
+        // preselected unless the ratio is far off (then "keep"). autoSaveWarning (a genuinely new size) adds the note that OK
+        // saves the theme and discards unsaved changes. Returns the choice, or null if cancelled (nothing changed). OK on a close
+        // ratio remembers the choice in memory (the next settings.json write keeps it); OK on a far-off ratio leaves it alone.
+        private string? PromptForNewSizeScale(int oldWidth, int oldHeight, int newWidth, int newHeight, bool autoSaveWarning = false)
         {
             var factors = LayoutScaler.GetFactors(oldWidth, oldHeight, newWidth, newHeight);
             bool farOff = LayoutScaler.IsFarOffRatio(oldWidth, oldHeight, newWidth, newHeight);
@@ -1133,6 +1134,17 @@ namespace ArcadeStick.Views
                 radioPanel.Children.Add(radio);
             }
             panel.Children.Add(radioPanel);
+
+            // The auto-save note, between the choices and the buttons, in the Standard font with a bold "Note:"
+            if (autoSaveWarning)
+            {
+                var note = MakePromptLine("");
+                note.Inlines.Clear();
+                note.Inlines.Add(new System.Windows.Documents.Bold(new System.Windows.Documents.Run("Note: ")));
+                note.Inlines.Add(new System.Windows.Documents.Run("Creating a new resolution will automatically save the theme and discard any unsaved changes. To keep your current changes, click Cancel and save them first."));
+                note.Margin = new Thickness(0, 0, 0, 12);
+                panel.Children.Add(note);
+            }
 
             var okButton = MakePromptButton("OK");
             okButton.IsDefault = true;
@@ -4329,6 +4341,63 @@ namespace ArcadeStick.Views
         // ScaleNewSizeCopy). Null copies 1:1, as before the scaler.
         private string? _newSizeScaleChoice;
 
+        // [SECTION: New Size Auto-Save]
+        // Set by the Theme Builder window. A genuinely new size (no working layout, and not saved in the close restore point or
+        // the theme file) is a theme save: the prompt warns, then AutoSaveNewSizeRunner discards the unsaved edits, runs the
+        // copy, saves the loaded theme and puts everything back if the save does not happen (themes.md 3.1). A size removed
+        // but still saved keeps the old in-memory path. Null runners (no builder) keep the old path everywhere.
+        public Func<int, int, bool>? IsSavedSize;
+        public Func<bool>? CanAutoSaveNewSize;
+        public Func<int, int, Action, bool>? AutoSaveNewSizeRunner;
+
+        // The editing state a failed new-size auto-save puts back beside the settings: the pending size and the selected row
+        public sealed record NewSizeEditState(ResolutionPreset? PendingSize, string? SelectedId);
+
+        // Returns true when creating width x height (a size with no working layout) is a theme save, not the old in-memory copy
+        private bool IsAutoSavedNewSize(int width, int height) =>
+            AutoSaveNewSizeRunner != null && !(IsSavedSize?.Invoke(width, height) ?? false);
+
+        // Does the check before the prompt for an auto-saved size: false (with the reason shown by the builder) when the loaded theme can't be saved
+        private bool ConfirmAutoSaveAvailable() => CanAutoSaveNewSize?.Invoke() ?? true;
+
+        // Returns the pending size and the selected row, for the builder's undo copy
+        public NewSizeEditState CaptureNewSizeEditState() =>
+            new(_pendingSize, (LstLayers.SelectedItem as LayerListItem)?.Id);
+
+        // Does the reload after the builder replaced the settings for a new-size auto-save (the discard, or the rollback):
+        // re-reads them, then puts back the given pending size and selected row
+        public void ReloadForNewSizeAutoSave(NewSizeEditState state)
+        {
+            ReloadFromSettings();
+            _pendingSize = state.PendingSize;
+
+            _loading = true;
+            RebuildResolutionCombo(_currentLayout.Width, _currentLayout.Height);
+            _loading = false;
+            RebuildLayerList(state.SelectedId);
+        }
+
+        // Does the creation of a genuinely new size, shared by the three entry points: the copy (SwitchToResolution, from the
+        // restored layout) runs inside the builder's auto-save, through RunSizePick when throughSizePick (the combo and the
+        // Theme sizes row) or directly (Apply, as before). A failed save leaves the size unchanged, so RunSizePick finishes no
+        // switch. Returns true when the theme file now holds the new size.
+        private bool CreateAutoSavedSize(int width, int height, string choice, bool throughSizePick)
+        {
+            bool created = false;
+            Action create = () => created = AutoSaveNewSizeRunner!(width, height, () => SwitchToResolution(width, height));
+            RunNewSizeSwitch(choice, throughSizePick ? () => RunSizePick(create) : create);
+
+            if (created)
+            {
+                // The combo and the Remove Size button follow the new size (the saved callback already kept a pending size)
+                _loading = true;
+                RebuildResolutionCombo(_currentLayout.Width, _currentLayout.Height);
+                _loading = false;
+            }
+            return created;
+        }
+        // [END SECTION: New Size Auto-Save]
+
         // Returns true when no working layout exists at width x height, so switching there creates a new size
         private bool IsNewSize(int width, int height) =>
             !_settings.Layouts.Any(l => l.Width == width && l.Height == height);
@@ -4345,8 +4414,18 @@ namespace ArcadeStick.Views
                 if (_currentLayout == null || !IsNewSize(preset.Width, preset.Height)) return;
                 if (preset.Width == _currentLayout.Width && preset.Height == _currentLayout.Height) return;
 
-                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, preset.Width, preset.Height);
+                bool autoSave = IsAutoSavedNewSize(preset.Width, preset.Height);
+                if (autoSave && !ConfirmAutoSaveAvailable()) return;
+
+                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, preset.Width, preset.Height, autoSave);
                 if (choice == null) return;
+
+                // A genuinely new size: the shared auto-save creation selects the combo itself (SwitchToResolution)
+                if (autoSave)
+                {
+                    CreateAutoSavedSize(preset.Width, preset.Height, choice, throughSizePick: true);
+                    return;
+                }
 
                 _loading = true;
                 CboResolution.SelectedItem = preset;
@@ -4616,9 +4695,27 @@ namespace ArcadeStick.Views
             // A size with no layout asks the "New size layout" prompt first; Cancel leaves the entry row and any pending size as they were
             if (IsNewSize(w, h))
             {
-                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, w, h);
+                bool autoSave = IsAutoSavedNewSize(w, h);
+                if (autoSave && !ConfirmAutoSaveAvailable()) return;
+
+                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, w, h, autoSave);
                 if (choice == null) return;
-                RunNewSizeSwitch(choice, () => SwitchToResolution(w, h));
+
+                if (autoSave)
+                {
+                    // Not created (the save did not happen and the session was put back): the entry row stays open with the typed size
+                    if (!CreateAutoSavedSize(w, h, choice, throughSizePick: false))
+                    {
+                        PnlCustomRes.Visibility = Visibility.Visible;
+                        TxtCustomWidth.Text = w.ToString();
+                        TxtCustomHeight.Text = h.ToString();
+                        return;
+                    }
+                }
+                else
+                {
+                    RunNewSizeSwitch(choice, () => SwitchToResolution(w, h));
+                }
             }
             else
             {
@@ -4775,11 +4872,23 @@ namespace ArcadeStick.Views
                 _loading = false;
             });
 
-            // A size removed but not saved has no working layout, so it is a new size: ask the "New size layout" prompt first
+            // A size removed but not saved has no working layout, so it is a new size: ask the "New size layout" prompt first.
+            // These buttons list the theme file's sizes, which count as saved, so this keeps the old in-memory path; the
+            // auto-save branch only guards the rule in one place.
             if (IsNewSize(size.Width, size.Height))
             {
-                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, size.Width, size.Height);
+                bool autoSave = IsAutoSavedNewSize(size.Width, size.Height);
+                if (autoSave && !ConfirmAutoSaveAvailable()) return;
+
+                string? choice = PromptForNewSizeScale(_currentLayout.Width, _currentLayout.Height, size.Width, size.Height, autoSave);
                 if (choice == null) return;
+
+                if (autoSave)
+                {
+                    CreateAutoSavedSize(size.Width, size.Height, choice, throughSizePick: true);
+                    return;
+                }
+
                 RunNewSizeSwitch(choice, doPick);
                 return;
             }

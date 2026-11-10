@@ -38,23 +38,14 @@ namespace ArcadeStick.Views
             this.DataContext = _settings;
 
             ThemesManager.Initialize(_viewModel, _settings, PersistSettingsToDisk, RefreshAfterThemeLoad);
-            ThemesManager.SetThemeSavedCallback(() =>
-            {
-                AdvancedTab.RefreshSavedSizes();
-                // Save Changes wrote the theme zip (which includes the current size), so a pending size is now kept
-                AdvancedTab.CommitPendingSize();
-                // what was just saved becomes the close restore point
-                _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
-                _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
-                _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
-                _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
-                _infoAtLastSave = _settings.Info.Clone();
-                ArcadeStick.Services.ThemeThumbnailStore.RemoveUnusedFolders(_settings, _infoAtLastSave);
-                AdvancedTab.RefreshThemeInfo();
-                ShowThemeSavedFlash();
-            });
+            ThemesManager.SetThemeSavedCallback(OnThemeSaved);
             ThemesManager.ThemeCreatedFlash = ShowThemeSavedFlash;
             AdvancedTab.Initialize(_settings);
+
+            // A genuinely new size saves the loaded theme (themes.md 3.1): the Advanced tab asks these three
+            AdvancedTab.IsSavedSize = IsSavedSize;
+            AdvancedTab.CanAutoSaveNewSize = CanAutoSaveNewSize;
+            AdvancedTab.AutoSaveNewSizeRunner = RunNewSizeAutoSave;
             AdvancedTab.ThumbnailCaptureRunner = () => _main.CaptureThemeThumbnail();
             GlobalTab.Initialize(_settings);
             ThemeBrowser.Initialize(_settings); // before the tab handler below can call RefreshCatalog
@@ -252,6 +243,132 @@ namespace ArcadeStick.Views
             committed.Info = _infoAtLastSave.Clone();
             return committed;
         }
+
+        // Does the work after a theme save (the Themes Manager's saved callback): the Theme sizes row, a pending size kept, the
+        // close restore point moved to what was just saved, the Theme Info view and the "Theme Saved" flash
+        private void OnThemeSaved()
+        {
+            AdvancedTab.RefreshSavedSizes();
+            // Save Changes wrote the theme zip (which includes the current size), so a pending size is now kept
+            AdvancedTab.CommitPendingSize();
+            // what was just saved becomes the close restore point
+            _layoutsAtLastSave = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_settings.Layouts);
+            _resolutionWidthAtLastSave = _settings.ActiveResolutionWidth;
+            _resolutionHeightAtLastSave = _settings.ActiveResolutionHeight;
+            _globalAtLastSave = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
+            _infoAtLastSave = _settings.Info.Clone();
+            ArcadeStick.Services.ThemeThumbnailStore.RemoveUnusedFolders(_settings, _infoAtLastSave);
+            AdvancedTab.RefreshThemeInfo();
+            ShowThemeSavedFlash();
+        }
+
+        // [SECTION: New Size Auto-Save]
+        // Returns true when width x height is a size already saved: in the close restore point (Save Adjustments included) or
+        // in the theme file. Such a size, removed but not saved, is restored the old way, with no auto-save.
+        private bool IsSavedSize(int width, int height) =>
+            _layoutsAtLastSave.Any(l => l.Width == width && l.Height == height)
+            || _settings.SavedThemeLayouts.Any(l => l.Width == width && l.Height == height);
+
+        // Does the check before the New size layout prompt: true when the loaded theme can be saved; otherwise says why the
+        // size can't be created and returns false (nothing has changed)
+        private bool CanAutoSaveNewSize()
+        {
+            string? problem = ThemesManager.GetLoadedThemeSaveProblem();
+            if (problem == null) return true;
+
+            MessageBox.Show(problem, "Size Not Created", MessageBoxButton.OK, MessageBoxImage.Information);
+            return false;
+        }
+
+        // Does a genuinely new size (newWidth x newHeight) as a theme save: keeps an undo copy of the editing session, puts back
+        // the close restore point (layouts, Global values, Theme Info; the pending thumbnail dropped) at the current size,
+        // runs createSize (the Advanced tab's copy and scale from that restored layout), then saves the loaded theme. Saved:
+        // the saved callback has moved the restore point. Saved but incomplete (the zip was swapped in, a later step such as
+        // the settings.json write failed): memory already matches the new zip, so the restore point moves to it too and
+        // nothing is rolled back. Not saved (missing-files No, or a failure before the swap, so disk is unchanged): the undo
+        // copy goes back. Returns true when the theme file now holds the new size.
+        private bool RunNewSizeAutoSave(int newWidth, int newHeight, Action createSize)
+        {
+            int sourceWidth = _settings.ActiveResolutionWidth;
+            int sourceHeight = _settings.ActiveResolutionHeight;
+
+            // The restored layouts, checked before anything changes: the source size must have a saved layout
+            var restoredLayouts = ArcadeStick.Models.ConfigurationSettings.CloneLayouts(_layoutsAtLastSave);
+            if (!restoredLayouts.Any(l => l.Width == sourceWidth && l.Height == sourceHeight))
+            {
+                var themeCopy = _settings.SavedThemeLayouts.FirstOrDefault(l => l.Width == sourceWidth && l.Height == sourceHeight);
+                if (themeCopy == null)
+                {
+                    MessageBox.Show($"The {sourceWidth} x {sourceHeight} layout has never been saved, so it can't be the source of a new size. Save the theme first, or switch to a saved size.",
+                        "Size Not Created", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return false;
+                }
+                restoredLayouts.Add(ArcadeStick.Models.ConfigurationSettings.CloneLayouts(new[] { themeCopy }).First());
+            }
+
+            // Undo copy: discarding replaces these objects without changing them, so keeping the references is enough
+            var undoLayouts = _settings.Layouts;
+            var undoGlobal = ArcadeStick.Services.GlobalThemeResources.CaptureSnapshot(_settings);
+            var undoInfo = _settings.Info;
+            var undoThumbnail = _settings.PendingThemeThumbnail;
+            var undoEditState = AdvancedTab.CaptureNewSizeEditState();
+
+            // Discard the unsaved edits: the restore point at the current size (the active size stays the source)
+            _settings.Layouts = restoredLayouts;
+            ArcadeStick.Services.GlobalThemeResources.RestoreSnapshot(_globalAtLastSave, _settings, ArcadeStick.Services.GlobalArea.All);
+            ArcadeStick.Services.GlobalThemeResources.Apply(_settings);
+            _settings.Info = _infoAtLastSave.Clone();
+            _settings.PendingThemeThumbnail = null;
+            AdvancedTab.ReloadForNewSizeAutoSave(undoEditState with { PendingSize = null });
+            GlobalTab.ReloadFromSettings();
+            AdvancedTab.RefreshThemeInfo();
+
+            var outcome = ThemesManagerControl.ThemeSaveOutcome.NotSaved;
+            string? error = null;
+            try
+            {
+                createSize();
+                outcome = ThemesManager.SaveLoadedTheme();
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+            }
+
+            if (outcome == ThemesManagerControl.ThemeSaveOutcome.Saved) return true;
+
+            if (outcome == ThemesManagerControl.ThemeSaveOutcome.SavedIncomplete)
+            {
+                // The save already reported it; keep the restore point with the zip so later saves and a close agree with it
+                try
+                {
+                    OnThemeSaved();
+                }
+                catch
+                {
+                }
+                return true;
+            }
+
+            // Not saved: nothing on disk changed, so the editing session goes back exactly as it was
+            _settings.Layouts = undoLayouts;
+            _settings.ActiveResolutionWidth = sourceWidth;
+            _settings.ActiveResolutionHeight = sourceHeight;
+            ArcadeStick.Services.GlobalThemeResources.RestoreSnapshot(undoGlobal, _settings, ArcadeStick.Services.GlobalArea.All);
+            ArcadeStick.Services.GlobalThemeResources.Apply(_settings);
+            _settings.Info = undoInfo;
+            _settings.PendingThemeThumbnail = undoThumbnail;
+            AdvancedTab.ReloadForNewSizeAutoSave(undoEditState);
+            GlobalTab.ReloadFromSettings();
+            AdvancedTab.RefreshThemeInfo();
+            _main.ApplyLayoutNow();
+
+            string details = error != null ? $"\n\nDetails: {error}" : "";
+            MessageBox.Show($"The {newWidth} x {newHeight} size was not created. The theme file was not changed, and your unsaved changes are back as they were.{details}",
+                "Size Not Created", MessageBoxButton.OK, MessageBoxImage.Information);
+            return false;
+        }
+        // [END SECTION: New Size Auto-Save]
 
         // Called by MainWindow right after creating the builder when its open adopted Smart fullscreen's shown size as the
         // active size: closing without saving goes back to the size active before that adopt. Only the size restore point
