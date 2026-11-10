@@ -353,7 +353,7 @@ namespace ArcadeStick.ViewModels
         // [SECTION: Settings Persistence]
         // The shared writer for every settings.json save that is not a Theme Builder commit: the category toggle, Sorting
         // Apply, Options Save and System Paths, preview sound, Smart fullscreen, hamburger theme and size switches, Theme
-        // Browser loads (both Browsers, after the load has moved the builder's restore point to the loaded theme), the
+        // Browser loads (after the load has moved the builder's restore point to the loaded theme), the
         // fullscreen entry size on close and the ROM copy path. While the Theme Builder is open it sets
         // PersistenceSnapshotProvider, and these saves write its last saved state (layouts, active size, Global values,
         // Theme Info) instead of its unsaved edits; everything else is the live value. The builder's own commits (Save

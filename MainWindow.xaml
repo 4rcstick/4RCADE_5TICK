@@ -173,7 +173,7 @@
                     <TextBlock Text="&#xE790;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
-            <!-- Opens or activates the same Theme Builder window on its THEME BROWSER tab (no shortcut) -->
+            <!-- Opens or activates the standalone Theme Browser window (no shortcut) -->
             <MenuItem Header="Theme Browser" Click="HamburgerThemeBrowserMenuItem_Click">
                 <MenuItem.Icon>
                     <TextBlock Text="&#xE8B9;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>

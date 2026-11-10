@@ -3,10 +3,10 @@
 namespace ArcadeStick.Views
 {
     // The standalone Theme Browser (window management Pass 6, themes.md 3.29): a modeless workspace window with no owner,
-    // opened and tracked by MainWindow.OpenThemeBrowserWindow like Options and Sorting. It hosts the same
-    // ThemeBrowserControl as the Theme Builder's THEME BROWSER tab and its own ThemePreviewOverlay; it holds no load,
-    // catalog or preview logic of its own. A resolution button goes to MainWindow.LoadThemeFromBrowser, the one load path
-    // both Browsers share, and MainWindow's notices keep its marks and catalog current.
+    // opened and tracked by MainWindow.OpenThemeBrowserWindow like Options and Sorting, and the only Theme Browser (the
+    // Builder's tab was removed in Pass 7). It hosts ThemeBrowserControl and its own ThemePreviewOverlay; it holds no load,
+    // catalog or preview logic of its own. A resolution button goes to MainWindow.LoadThemeFromBrowser, and MainWindow's
+    // notices keep its marks and catalog current.
     public partial class ThemeBrowserWindow : Window
     {
         private readonly MainWindow _main;

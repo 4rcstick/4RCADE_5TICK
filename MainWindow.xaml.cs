@@ -3870,7 +3870,7 @@ namespace ArcadeStick
 
         private void HamburgerThemeBuilderMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Dispatcher.BeginInvoke(new Action(() => OpenThemeBuilderWindow(ThemeBuilderStartTab.Builder)));
+            Dispatcher.BeginInvoke(new Action(() => OpenThemeBuilderWindow()));
         }
 
         // Opens or activates the standalone Theme Browser window, after the hamburger menu has closed
@@ -3910,11 +3910,11 @@ namespace ArcadeStick
             _themeBrowserWindow = null;
         }
 
-        // Does a Browser load, the one path both Browsers use (the standalone window and the Builder's THEME BROWSER tab): the
+        // Does a Theme Browser load (the window's resolution buttons; the one load path for a Browser click): the
         // saved theme at the chosen size in one step (LoadTheme with a target size), through RunThemeSwitch with explicitSize,
         // so Smart fullscreen follows the size pick rules (an exact 1x fit goes fullscreen, anything else windowed). Unsaved
         // Builder edits are dropped without a prompt, as Load does. Inside the load, the outside theme notice refreshes the
-        // Builder (its restore point moves to the loaded theme) and both Browsers' marks; settings.json is then written once
+        // Builder (its restore point moves to the loaded theme) and the Browser's marks; settings.json is then written once
         // through the shared writer in its own try/catch, so a failed write is reported and logged but still lets the
         // fullscreen handling run. A failed load saves nothing, keeps the previous theme, and refreshes the catalogs so a
         // vanished or broken theme drops out. The click on the active theme at the active size never gets here.
@@ -3977,11 +3977,9 @@ namespace ArcadeStick
         // while the main window is active.
         private Views.ThemeBuilderWindow? _themeBuilderWindow;
 
-        // The Theme Builder window's tab to show when it is opened or activated
-        private enum ThemeBuilderStartTab { Builder, Browser }
-
-        // Does the open or activate of the one Theme Builder window on the given tab (Builder for Ctrl+T and the Theme Builder item)
-        private void OpenThemeBuilderWindow(ThemeBuilderStartTab startTab = ThemeBuilderStartTab.Builder)
+        // Does the open or activate of the one Theme Builder window on its THEME BUILDER tab (Ctrl+T and the Theme Builder
+        // item); an open one is restored, activated and switched back to THEME BUILDER (from GLOBAL)
+        private void OpenThemeBuilderWindow()
         {
             if (_themeBuilderWindow != null)
             {
@@ -3990,7 +3988,7 @@ namespace ArcadeStick
                     _themeBuilderWindow.WindowState = WindowState.Normal;
                 }
                 _themeBuilderWindow.Activate();
-                ShowThemeBuilderTab(_themeBuilderWindow, startTab);
+                _themeBuilderWindow.ShowBuilderTab();
                 return;
             }
 
@@ -4012,8 +4010,8 @@ namespace ArcadeStick
             Services.WindowFit.CenterOnMonitorOf(_themeBuilderWindow, this);
             if (sizeBeforeAdopt is (int adoptWidth, int adoptHeight)) _themeBuilderWindow.SetSizeRestorePoint(adoptWidth, adoptHeight);
 
-            // The builder already holds this window, so the tab's selection logic can reach it; before Show, so it opens on that tab
-            ShowThemeBuilderTab(_themeBuilderWindow, startTab);
+            // The builder already holds this window, so the tab's selection logic can reach it; before Show, so it opens on THEME BUILDER
+            _themeBuilderWindow.ShowBuilderTab();
             TrackWorkspaceClose(_themeBuilderWindow);
 
             // The active size just before the builder's own Closed handler puts back its restore point
@@ -4051,43 +4049,33 @@ namespace ArcadeStick
             if (_smartFullscreenFromFallback) ApplySmartFullscreen();
         }
 
-        // Does the tab pick on the Theme Builder window (by tab, never by index)
-        private static void ShowThemeBuilderTab(Views.ThemeBuilderWindow window, ThemeBuilderStartTab startTab)
-        {
-            if (startTab == ThemeBuilderStartTab.Browser) window.ShowBrowserTab();
-            else window.ShowBuilderTab();
-        }
-
         // [SECTION: Window Coordination]
         // The two notices that keep the open workspace windows in step with the one live theme and size state (themes.md 3.28).
         // They only refresh views: no load, save, size switch or fullscreen change runs from here, and nothing they call
         // raises a notice again.
 
-        // Does the notice after the active theme or size changed. fromBuilder false (a change made in the Main Window or the
-        // Theme Browser): the open Theme Builder reloads through its outside-switch refresh (a theme reloads its tabs and moves
-        // the restore point; a size reloads the Advanced tab and moves only the size restore point). fromBuilder true (the
-        // builder made the change and already shows it): only the Browser's active marks follow, so the builder is never
-        // reloaded and its unsaved edits stay as they are.
-        // The standalone Theme Browser window always follows with its active marks (no zip read), whether or not the Builder
-        // is open.
+        // Does the notice after the active theme or size changed. The Theme Browser window always follows with its active
+        // marks (no zip read), whether or not the Builder is open. fromBuilder false (a change made in the Main Window or the
+        // Theme Browser): the open Theme Builder also reloads through its outside-switch refresh (a theme reloads its tabs and
+        // moves the restore point; a size reloads the Advanced tab and moves only the size restore point). fromBuilder true
+        // (the builder made the change and already shows it): the builder is never reloaded and its unsaved edits stay as
+        // they are.
         public void NotifyActiveThemeOrSizeChanged(bool themeChanged, bool fromBuilder = false)
         {
             _themeBrowserWindow?.RefreshActiveMarks();
 
-            if (_themeBuilderWindow == null) return;
+            if (fromBuilder || _themeBuilderWindow == null) return;
 
-            if (fromBuilder) _themeBuilderWindow.RefreshBrowserActiveMarks();
-            else if (themeChanged) _themeBuilderWindow.RefreshAfterExternalThemeSwitch();
+            if (themeChanged) _themeBuilderWindow.RefreshAfterExternalThemeSwitch();
             else _themeBuilderWindow.RefreshAfterExternalSizeSwitch();
         }
 
         // Does the notice after the saved theme zips changed (Save Changes, a created or deleted theme, the new-size and
-        // size-removal auto-saves) and after a failed Browser load: the standalone Browser window re-reads its catalog
-        // (only changed zips are read again), the Builder's tab only while it is showing (a hidden tab refreshes when shown)
+        // size-removal auto-saves) and after a failed Browser load: the Theme Browser window re-reads its catalog (only
+        // changed zips are read again)
         public void NotifySavedThemesChanged()
         {
             _themeBrowserWindow?.RefreshCatalog();
-            _themeBuilderWindow?.RefreshBrowserCatalogIfShown();
         }
         // [END SECTION: Window Coordination]
 

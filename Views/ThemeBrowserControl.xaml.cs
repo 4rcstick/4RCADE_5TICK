@@ -13,8 +13,8 @@ using ArcadeStick.Services;
 
 namespace ArcadeStick.Views
 {
-    // The Theme Browser's content, hosted by the standalone ThemeBrowserWindow and (until Pass 7) the Theme Builder's THEME
-    // BROWSER tab: the scrolling catalog of installed themes, read from their saved zips by
+    // The Theme Browser's content, hosted by ThemeBrowserWindow: the scrolling catalog of installed themes, read from their
+    // saved zips by
     // ThemeCatalogReader, one two-column entry per theme (thumbnail left, name, resolutions, author and description right).
     // A resolution button asks the host to load that theme at that size (LoadRequested). Every color and size is a Global
     // resource, so the Browser restyles live; the layout numbers are in the constants block below.
@@ -40,7 +40,7 @@ namespace ArcadeStick.Views
         // The entries the list shows now, in order (the cache's shared instances)
         private List<ThemeCatalogEntry> _shownEntries = new();
         private bool _listBuilt;
-        // The scroll offset when the tab was last left, re-applied on the next show
+        // The scroll offset saved when the control unloads, used by a refresh that runs before the list is loaded
         private double _savedOffset;
 
         // Raised by a resolution button with the theme name and the size to load. The host window passes it to
@@ -92,16 +92,17 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: Catalog Refresh]
-        // Does the catalog refresh each time the tab is shown: reads the catalog through the cache and rebuilds the list only
-        // when the entries changed (instances or order). The scroll position is kept either way, and the active marks are
-        // refreshed every time (a skipped rebuild would otherwise leave them stale after a theme swap).
+        // Does the catalog refresh (window open, a saved-themes notice, a failed load or preview): reads the catalog through
+        // the cache and rebuilds the list only when the entries changed (instances or order). The scroll position is kept
+        // either way, and the active marks are refreshed every time (a skipped rebuild would otherwise leave them stale after
+        // a theme swap).
         public void RefreshCatalog()
         {
             if (_settings == null) return;
 
             var entries = ThemeCatalogReader.BuildCatalog(_settings, out _);
 
-            // Shown already (ShowBrowserTab on a selected tab): the live offset; coming back to the tab: the one saved on leaving
+            // Loaded: the live offset; not loaded yet (the first refresh, before the window shows): the saved one
             double offset = ScrollEntries.IsLoaded ? ScrollEntries.VerticalOffset : _savedOffset;
 
             if (!_listBuilt || !IsSameList(entries))

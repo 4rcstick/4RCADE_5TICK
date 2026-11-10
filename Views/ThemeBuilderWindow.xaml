@@ -11,9 +11,6 @@
         BorderBrush="{StaticResource ChromeBorder}"
         BorderThickness="1">
 
-    <!-- Root: the window content, then the Theme Browser's preview overlay above all of it (outer margin, tabs and bottom
-         buttons), collapsed until a thumbnail is clicked -->
-    <Grid>
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -26,10 +23,10 @@
 
             <!-- [SECTION: Tab Pages] -->
             <!-- THEME BUILDER: the Themes Manager row (load, save, delete) on top, then the layer list and
-                 per-layer property tabs. Code-behind compares the selected tab's Content to ThemeBuilderPage.
-                 THEME BROWSER: ThemeBrowserControl (a placeholder until the catalog arrives); selected through
-                 ShowBuilderTab / ShowBrowserTab, never by index.
-                 GLOBAL: the theme-wide values (not per resolution). -->
+                 per-layer property tabs. Code-behind compares the selected tab's Content to ThemeBuilderPage and
+                 selects it through ShowBuilderTab, never by index.
+                 GLOBAL: the theme-wide values (not per resolution).
+                 The Theme Browser is its own window (ThemeBrowserWindow), not a tab here. -->
 
             <TabItem x:Name="TabThemeBuilder" Header="THEME BUILDER">
                 <Grid x:Name="ThemeBuilderPage">
@@ -42,10 +39,6 @@
                     <Separator Grid.Row="1" Background="{DynamicResource Global.Options.Separator}" Margin="15,10,15,0"/>
                     <views:AdvancedThemesTabControl x:Name="AdvancedTab" Grid.Row="2"/>
                 </Grid>
-            </TabItem>
-
-            <TabItem x:Name="TabThemeBrowser" Header="THEME BROWSER">
-                <views:ThemeBrowserControl x:Name="ThemeBrowser"/>
             </TabItem>
 
             <TabItem Header="GLOBAL">
@@ -79,10 +72,5 @@
                     Padding="15,6"/>
         </StackPanel>
         <!-- [END SECTION: Save / Close Button Row] -->
-    </Grid>
-
-    <!-- [SECTION: Theme Preview Overlay] -->
-    <views:ThemePreviewOverlay x:Name="PreviewOverlay"/>
-    <!-- [END SECTION: Theme Preview Overlay] -->
     </Grid>
 </Window>

@@ -51,17 +51,6 @@ namespace ArcadeStick.Views
             AdvancedTab.AutoSaveSizeRemovalRunner = RunSizeRemovalAutoSave;
             AdvancedTab.ThumbnailCaptureRunner = () => _main.CaptureThemeThumbnail();
             GlobalTab.Initialize(_settings);
-            ThemeBrowser.Initialize(_settings); // before the tab handler below can call RefreshCatalog
-            // The tab's Browser shares the standalone Browser window's load path and preview call (themes.md 3.29)
-            ThemeBrowser.LoadRequested += (name, width, height) => _main.LoadThemeFromBrowser(name, width, height);
-            ThemeBrowser.PreviewRequested += entry =>
-            {
-                if (!PreviewOverlay.TryShow(entry.ZipPath)) ThemeBrowser.RefreshCatalog();
-            };
-
-            // The preview never outlives the window's focus: losing activation or closing dismisses it first
-            Deactivated += (s, e) => PreviewOverlay.Hide();
-            Closing += (s, e) => PreviewOverlay.Hide();
 
             // Alignment guides: forward the Advanced tab's guide info to the main window, but only while the
             // THEME BUILDER tab (ThemeBuilderPage) is selected. Cleared when switching to another tab or closing.
@@ -86,12 +75,6 @@ namespace ArcadeStick.Views
                     _main.ShowGuides(null);
                     _main.SetBackgroundGrid(false, 0); // hidden, not unchecked: it returns with THEME BUILDER
                     AdvancedTab.StopPreviews(); // leaving THEME BUILDER turns the card and banner previews off
-
-                    // The Browser refreshes once each time it is shown (ShowBrowserTab covers an already selected tab)
-                    if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBrowser))
-                    {
-                        ThemeBrowser.RefreshCatalog();
-                    }
                 }
             };
 
@@ -195,7 +178,6 @@ namespace ArcadeStick.Views
         {
             ThemesManager.ReloadFromSettings();
             RefreshAfterThemeLoad();
-            ThemeBrowser.RefreshActiveMarks(); // the Browser's highlight and active marker follow the new theme and size
         }
 
         // Called by MainWindow when a real spin ended the card preview, so the checkbox unchecks
@@ -224,7 +206,6 @@ namespace ArcadeStick.Views
                 var copy = CopyLayoutForRestorePoint(_resolutionWidthAtLastSave, _resolutionHeightAtLastSave);
                 if (copy != null) _layoutsAtLastSave.Add(copy);
             }
-            ThemeBrowser.RefreshActiveMarks(); // the Browser's highlight follows the new active size
         }
 
         // Returns a deep copy of the layout at one size for the restore point: the theme's saved copy (SavedThemeLayouts, never
@@ -285,23 +266,6 @@ namespace ArcadeStick.Views
         {
             ShowThemeSavedFlash();
             _main.NotifySavedThemesChanged();
-        }
-
-        // Called by MainWindow (NotifyActiveThemeOrSizeChanged) after a change the builder made itself: the Browser's
-        // highlight and active marker follow, with no zip read; nothing else in the builder is reloaded
-        public void RefreshBrowserActiveMarks()
-        {
-            ThemeBrowser.RefreshActiveMarks();
-        }
-
-        // Called by MainWindow (NotifySavedThemesChanged) after the saved theme zips changed: re-reads the catalog only while
-        // THEME BROWSER is the selected tab; a hidden Browser refreshes when it is next shown (SelectionChanged)
-        public void RefreshBrowserCatalogIfShown()
-        {
-            if (ReferenceEquals((ThemeBuilderTabControl.SelectedItem as System.Windows.Controls.TabItem)?.Content, ThemeBrowser))
-            {
-                ThemeBrowser.RefreshCatalog();
-            }
         }
 
         // [SECTION: New Size Auto-Save]
@@ -474,18 +438,6 @@ namespace ArcadeStick.Views
         {
             if (ReferenceEquals(ThemeBuilderTabControl.SelectedItem, TabThemeBuilder)) return;
             ThemeBuilderTabControl.SelectedItem = TabThemeBuilder;
-        }
-
-        // Does the switch to THEME BROWSER: selecting it lets the SelectionChanged handler refresh the catalog; an already
-        // selected tab gets no SelectionChanged, so it refreshes here instead (never both)
-        public void ShowBrowserTab()
-        {
-            if (ReferenceEquals(ThemeBuilderTabControl.SelectedItem, TabThemeBrowser))
-            {
-                ThemeBrowser.RefreshCatalog();
-                return;
-            }
-            ThemeBuilderTabControl.SelectedItem = TabThemeBrowser;
         }
         // [END SECTION: Tab Selection]
 

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:services="clr-namespace:ArcadeStick.Services">
     <!-- [SECTION: Theme Browser Layout] -->
-    <!-- The THEME BROWSER tab: a stationary instruction line and a 2 px divider under it, then the scrolling catalog of
+    <!-- The Theme Browser window's content: a stationary instruction line and a 2 px divider under it, then the scrolling catalog of
          theme entries built in code-behind (ThemeBrowserControl.xaml.cs). Every color and size is a Global resource; the
          padding and the gaps around the divider come from the constants block in code-behind. The scroll region reaches out to
          ScrollbarClearance.BaselineGutter from the inside of the right and bottom borders (negative margins set in the
