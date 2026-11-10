@@ -7,7 +7,8 @@ using ArcadeStick.Services;
 
 namespace ArcadeStick.Views
 {
-    // The Theme Browser's enlarged thumbnail preview over a dimmed Theme Builder window. While open nothing underneath can
+    // The Theme Browser's enlarged thumbnail preview over its dimmed host window (the Theme Builder or the standalone Theme
+    // Browser window; each hosts its own instance as the last child of its root Grid). While open nothing underneath can
     // be used: every mouse button press is swallowed and captured, and the matching release (or a lost capture) closes it;
     // the wheel is swallowed; every key and typed character is swallowed at the window, and Escape closes it on its
     // release. Opening and closing load and save nothing, and keyboard focus goes back where it was.
@@ -39,6 +40,18 @@ namespace ArcadeStick.Views
         }
 
         // [SECTION: Open and Close]
+        // Does a thumbnail click from either Browser host: reads the theme's saved thumbnail at full size from its zip
+        // (ThemeCatalogReader.ReadFullThumbnail, no lock kept) and shows it. Returns false, opening nothing, when the zip is
+        // gone or unreadable or has no usable thumbnail; the host then refreshes its catalog.
+        public bool TryShow(string zipPath)
+        {
+            var image = ThemeCatalogReader.ReadFullThumbnail(zipPath);
+            if (image == null) return false;
+
+            Show(image);
+            return true;
+        }
+
         // Does the open: shows the image at its own pixel size fitted into the pop-out box (never upscaled, so its DPI
         // setting does not matter), dims the window, blocks its keyboard input and takes keyboard focus
         public void Show(BitmapSource image)

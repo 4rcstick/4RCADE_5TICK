@@ -13,7 +13,8 @@ using ArcadeStick.Services;
 
 namespace ArcadeStick.Views
 {
-    // The THEME BROWSER tab's content: the scrolling catalog of installed themes, read from their saved zips by
+    // The Theme Browser's content, hosted by the standalone ThemeBrowserWindow and (until Pass 7) the Theme Builder's THEME
+    // BROWSER tab: the scrolling catalog of installed themes, read from their saved zips by
     // ThemeCatalogReader, one two-column entry per theme (thumbnail left, name, resolutions, author and description right).
     // A resolution button asks the host to load that theme at that size (LoadRequested). Every color and size is a Global
     // resource, so the Browser restyles live; the layout numbers are in the constants block below.
@@ -42,15 +43,15 @@ namespace ArcadeStick.Views
         // The scroll offset when the tab was last left, re-applied on the next show
         private double _savedOffset;
 
-        // Raised by a resolution button with the theme name and the size to load. ThemeBuilderWindow does the load; this
-        // control holds no load logic.
+        // Raised by a resolution button with the theme name and the size to load. The host window passes it to
+        // MainWindow.LoadThemeFromBrowser, the one load path; this control holds no load logic.
         public event Action<string, int, int>? LoadRequested;
 
         // True from a load request until the dispatcher is idle again, so clicks queued during the (blocking) load are ignored
         private bool _loadBusy;
 
-        // Raised by a left click (press and release on the same thumbnail) with that entry. ThemeBuilderWindow reads the
-        // full-size thumbnail and opens the preview; this control holds no preview logic.
+        // Raised by a left click (press and release on the same thumbnail) with that entry. The host window opens the preview
+        // through its own ThemePreviewOverlay (TryShow); this control holds no preview logic.
         public event Action<ThemeCatalogEntry>? PreviewRequested;
 
         // The thumbnail tile the left button went down on, so a click opens a preview only when released on the same tile

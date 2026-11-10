@@ -3120,19 +3120,20 @@ namespace ArcadeStick
         // [END SECTION: Child Window Re-activation]
 
         // [SECTION: Workspace Window Lifecycle]
-        // Options, Sorting and the Theme Builder are independent top-level windows (no owner, one instance each, own
+        // Options, Sorting, the Theme Builder and the Theme Browser are independent top-level windows (no owner, one instance each, own
         // minimize and taskbar button). This window stays the app's lifetime authority: its close closes them first
         // (MainWindow_Closing), and App.xaml's ShutdownMode OnMainWindowClose is the backstop. A launch hides the visible
         // ones and brings them back afterwards.
         private bool _isShuttingDown; // set by the first Closing pass; close handlers never activate this window after it
 
-        // Returns the open workspace windows (Options, Sorting, Theme Builder)
+        // Returns the open workspace windows (Options, Sorting, Theme Builder, Theme Browser)
         private List<Window> GetOpenWorkspaceWindows()
         {
             var windows = new List<Window>();
             if (_optionsWindow != null) windows.Add(_optionsWindow);
             if (_sortingWindow != null) windows.Add(_sortingWindow);
             if (_themeBuilderWindow != null) windows.Add(_themeBuilderWindow);
+            if (_themeBrowserWindow != null) windows.Add(_themeBrowserWindow);
             return windows;
         }
 
@@ -3872,11 +3873,103 @@ namespace ArcadeStick
             Dispatcher.BeginInvoke(new Action(() => OpenThemeBuilderWindow(ThemeBuilderStartTab.Builder)));
         }
 
-        // Opens or activates the shared Theme Builder window on its THEME BROWSER tab, after the hamburger menu has closed
+        // Opens or activates the standalone Theme Browser window, after the hamburger menu has closed
         private void HamburgerThemeBrowserMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Dispatcher.BeginInvoke(new Action(() => OpenThemeBuilderWindow(ThemeBuilderStartTab.Browser)));
+            Dispatcher.BeginInvoke(new Action(OpenThemeBrowserWindow));
         }
+
+        // [SECTION: Theme Browser Window]
+        // One modeless standalone Theme Browser (window management Pass 6): no owner, one instance, opened again it is
+        // restored and activated. A workspace window like Options and Sorting (shutdown, game hide and restore, focus
+        // hand-back). It holds no logic: loads come to LoadThemeFromBrowser, and the notices below keep it current.
+        private Views.ThemeBrowserWindow? _themeBrowserWindow;
+
+        // Does the open of the one Theme Browser window, or the restore and activate of the one already open
+        private void OpenThemeBrowserWindow()
+        {
+            if (_themeBrowserWindow != null)
+            {
+                if (_themeBrowserWindow.WindowState == WindowState.Minimized) _themeBrowserWindow.WindowState = WindowState.Normal;
+                _themeBrowserWindow.Activate();
+                return;
+            }
+
+            var browserWindow = new Views.ThemeBrowserWindow(_viewModel, this);
+            Services.WindowFit.CenterOnMonitorOf(browserWindow, this);
+            TrackWorkspaceClose(browserWindow);
+            browserWindow.Closed += ThemeBrowserWindow_Closed;
+            _themeBrowserWindow = browserWindow;
+            browserWindow.Show();
+        }
+
+        // Does the cleanup after the Theme Browser window closes: forgets the instance (TrackWorkspaceClose handles focus)
+        private void ThemeBrowserWindow_Closed(object? sender, EventArgs e)
+        {
+            if (sender is Window closed) closed.Closed -= ThemeBrowserWindow_Closed;
+            _themeBrowserWindow = null;
+        }
+
+        // Does a Browser load, the one path both Browsers use (the standalone window and the Builder's THEME BROWSER tab): the
+        // saved theme at the chosen size in one step (LoadTheme with a target size), through RunThemeSwitch with explicitSize,
+        // so Smart fullscreen follows the size pick rules (an exact 1x fit goes fullscreen, anything else windowed). Unsaved
+        // Builder edits are dropped without a prompt, as Load does. Inside the load, the outside theme notice refreshes the
+        // Builder (its restore point moves to the loaded theme) and both Browsers' marks; settings.json is then written once
+        // through the shared writer in its own try/catch, so a failed write is reported and logged but still lets the
+        // fullscreen handling run. A failed load saves nothing, keeps the previous theme, and refreshes the catalogs so a
+        // vanished or broken theme drops out. The click on the active theme at the active size never gets here.
+        public void LoadThemeFromBrowser(string themeName, int width, int height)
+        {
+            bool zipMissing = false;
+            try
+            {
+                Func<bool> load = () =>
+                {
+                    if (!_viewModel.LoadTheme(themeName, (width, height)))
+                    {
+                        zipMissing = true;
+                        return false;
+                    }
+
+                    // A Browser load is not a Builder edit: the Builder reloads through the outside theme switch refresh
+                    NotifyActiveThemeOrSizeChanged(themeChanged: true);
+
+                    try
+                    {
+                        _viewModel.WriteSettingsFile();
+                    }
+                    catch (Exception persistEx)
+                    {
+                        Services.ThemeLog.Write("Load", themeName, "-", _viewModel.LoadedThemeName, "ok", $"Loaded, but settings.json could not be saved: {persistEx.Message}");
+                        MessageBox.Show($"'{themeName}' was loaded, but the setting couldn't be saved. It will not be remembered the next time you start the app.\n\nDetails: {persistEx.Message}",
+                            "Theme Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                    return true;
+                };
+
+                // explicitSize: the user picked this size, so the size pick rules decide fullscreen (not the theme switch rules)
+                RunThemeSwitch(load, explicitSize: true);
+            }
+            catch (Services.ThemeLoadException ex)
+            {
+                MessageBox.Show(ex.Message, "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                NotifySavedThemesChanged();
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error reading theme properties: {ex.Message}", "Processing Failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                NotifySavedThemesChanged();
+                return;
+            }
+
+            if (zipMissing)
+            {
+                MessageBox.Show($"'{themeName}' couldn't be found. It may have been moved or deleted.", "Theme Not Loaded", MessageBoxButton.OK, MessageBoxImage.Warning);
+                NotifySavedThemesChanged();
+            }
+        }
+        // [END SECTION: Theme Browser Window]
 
         // Non-modal and single-instance: if Theme Builder is already open, bring it forward instead of
         // creating a second one. No owner: it gets this window through its constructor, and MainWindow_Closing
@@ -3943,7 +4036,11 @@ namespace ArcadeStick
                 if (_isShuttingDown) return;
 
                 var config = _viewModel.Configuration;
-                if (sizeBeforeClose != (config.ActiveResolutionWidth, config.ActiveResolutionHeight)) _smartFullscreenAutoEntered = false;
+                if (sizeBeforeClose != (config.ActiveResolutionWidth, config.ActiveResolutionHeight))
+                {
+                    _smartFullscreenAutoEntered = false;
+                    NotifyActiveThemeOrSizeChanged(themeChanged: false); // the restore put back an earlier size: the Browser follows
+                }
 
                 if (config.SmartFullscreen && IsFullscreen) ApplySmartFullscreen();
             };
@@ -3971,8 +4068,12 @@ namespace ArcadeStick
         // the restore point; a size reloads the Advanced tab and moves only the size restore point). fromBuilder true (the
         // builder made the change and already shows it): only the Browser's active marks follow, so the builder is never
         // reloaded and its unsaved edits stay as they are.
+        // The standalone Theme Browser window always follows with its active marks (no zip read), whether or not the Builder
+        // is open.
         public void NotifyActiveThemeOrSizeChanged(bool themeChanged, bool fromBuilder = false)
         {
+            _themeBrowserWindow?.RefreshActiveMarks();
+
             if (_themeBuilderWindow == null) return;
 
             if (fromBuilder) _themeBuilderWindow.RefreshBrowserActiveMarks();
@@ -3981,9 +4082,11 @@ namespace ArcadeStick
         }
 
         // Does the notice after the saved theme zips changed (Save Changes, a created or deleted theme, the new-size and
-        // size-removal auto-saves): the Browser re-reads its catalog only while it is showing; a hidden one refreshes when shown
+        // size-removal auto-saves) and after a failed Browser load: the standalone Browser window re-reads its catalog
+        // (only changed zips are read again), the Builder's tab only while it is showing (a hidden tab refreshes when shown)
         public void NotifySavedThemesChanged()
         {
+            _themeBrowserWindow?.RefreshCatalog();
             _themeBuilderWindow?.RefreshBrowserCatalogIfShown();
         }
         // [END SECTION: Window Coordination]
