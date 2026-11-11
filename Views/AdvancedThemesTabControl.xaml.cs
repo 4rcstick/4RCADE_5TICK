@@ -383,11 +383,7 @@ namespace ArcadeStick.Views
             TabsLayer.Visibility = Visibility.Collapsed;
             PnlMultiSelect.Visibility = Visibility.Visible;
 
-            BtnRenameLayer.Visibility = Visibility.Collapsed;
-            BtnResetLayer.Visibility = Visibility.Collapsed;
-            BtnRemoveLayer.Visibility = Visibility.Collapsed;
-            BtnLayerUp.IsEnabled = false;
-            BtnLayerDown.IsEnabled = false;
+            ApplyLayerToolbarState(null);
 
             bool canMove = GetMultiMoveEntries().Count > 0;
             _loading = true;
@@ -401,14 +397,30 @@ namespace ArcadeStick.Views
             RaiseGuides();
         }
 
-        // Does the undo of the multi-mode page before a single selection (or none) is shown
+        // Does the undo of the multi-mode page before a single selection (or none) is shown (the toolbar state is set by the
+        // caller's branch through ApplyLayerToolbarState)
         private void EndMultiSelectionPage()
         {
             PnlMultiSelect.Visibility = Visibility.Collapsed;
             TabsLayer.Visibility = Visibility.Visible;
-            BtnLayerUp.IsEnabled = true;
-            BtnLayerDown.IsEnabled = true;
         }
+
+        // [SECTION: Layer Toolbar State]
+        // Does the Layer Toolbar for the selection: unitKey is the single selected row's key, or null for no row or several.
+        // Rename shows on renamable single layers (CanRename) and Remove on custom layers; both collapse otherwise. Reset Layer
+        // is always shown and enabled only for one row. Up and Down are enabled only for one row (pinned rows keep them enabled
+        // and MoveSelectedLayer ignores them, as before). Add is never touched.
+        private void ApplyLayerToolbarState(string? unitKey)
+        {
+            bool single = unitKey != null;
+            bool isGroup = single && GetGroup(unitKey!) != null;
+            BtnRenameLayer.Visibility = single && !isGroup && LayerRegistry.CanRename(unitKey!) ? Visibility.Visible : Visibility.Collapsed;
+            BtnRemoveLayer.Visibility = single && !isGroup && LayerRegistry.IsCustomId(unitKey!) ? Visibility.Visible : Visibility.Collapsed;
+            BtnResetLayer.IsEnabled = single;
+            BtnLayerUp.IsEnabled = single;
+            BtnLayerDown.IsEnabled = single;
+        }
+        // [END SECTION: Layer Toolbar State]
 
         private void MultiNudge_KeyDown(object sender, KeyEventArgs e)
         {
@@ -1020,19 +1032,9 @@ namespace ArcadeStick.Views
             {
                 Id = LayerRegistry.CustomIdPrefix + Guid.NewGuid().ToString("N"),
                 Name = layerName,
-                ImagePath = "",
-                X = LayerRegistry.NewLayerX,
-                Y = LayerRegistry.NewLayerY,
-                Width = LayerRegistry.NewLayerWidth,
-                Height = LayerRegistry.NewLayerHeight,
-                Z = topZ + 1,
-                Visible = true,
-                VisibilityMode = LayerRegistry.DefaultVisibilityMode,
-                BgColorHex = LayerRegistry.DefaultShapeBgColorHex,
-                BorderSize = LayerRegistry.DefaultShapeBorderSize,
-                BorderColorHex = LayerRegistry.DefaultShapeBorderColorHex,
-                CornerRadius = LayerRegistry.DefaultShapeCornerRadius
+                Z = topZ + 1
             };
+            LayerRegistry.ApplyNewCustomLayerDefaults(entry);
 
             _currentLayout.Layers.Add(entry);
             NormalizeZ(GetAscendingOrder());
@@ -1447,7 +1449,7 @@ namespace ArcadeStick.Views
             // A group row shows every part's fields at once on its own page
             if (SingleSelectedLayer is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition selectedGroup)
             {
-                BtnRenameLayer.Visibility = Visibility.Collapsed;
+                ApplyLayerToolbarState(groupItem.Id);
                 ShowThemeInfoView(false);
                 LoadGroupIntoFields(selectedGroup);
                 return;
@@ -1455,6 +1457,8 @@ namespace ArcadeStick.Views
 
             if (SingleSelectedLayer is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry)
             {
+                // No row selected: the toolbar no longer hides with the fields panel, so it is set here
+                ApplyLayerToolbarState(null);
                 PnlLayerFields.Visibility = Visibility.Collapsed;
                 ShowThemeInfoView(true);
                 RaiseGuides();
@@ -1473,18 +1477,13 @@ namespace ArcadeStick.Views
 
             _loading = true;
             PnlLayerFields.Visibility = Visibility.Visible;
-            bool isCustom = LayerRegistry.IsCustomId(entry.Id);
             TxtLayerName.Text = GetLayerDisplayName(entry.Id);
-            BtnRemoveLayer.Visibility = isCustom ? Visibility.Visible : Visibility.Collapsed;
-            // Rename: shape layers and custom layers only
-            BtnRenameLayer.Visibility = LayerRegistry.CanRename(entry.Id) ? Visibility.Visible : Visibility.Collapsed;
+            ApplyLayerToolbarState(entry.Id);
 
             PnlRectFields.Visibility = positionable ? Visibility.Visible : Visibility.Collapsed;
             bool isShape = LayerRegistry.IsBoxId(entry.Id);
             ChkLayerHidden.Visibility = (positionable && canHide && !isShape) ? Visibility.Visible : Visibility.Collapsed;
             PnlVisibilityMode.Visibility = isShape ? Visibility.Visible : Visibility.Collapsed;
-            // Reset Layer: every built-in layer, including the Main Window Background (it restores the wallpaper settings)
-            BtnResetLayer.Visibility = !isCustom ? Visibility.Visible : Visibility.Collapsed;
             ChkLayerHidden.IsEnabled = canHide;
 
             TxtLayerX.Text = Fmt(entry.X);
@@ -1509,8 +1508,6 @@ namespace ArcadeStick.Views
 
             ChkLayerHidden.Visibility = Visibility.Collapsed;
             PnlVisibilityMode.Visibility = Visibility.Collapsed;
-            BtnRemoveLayer.Visibility = Visibility.Collapsed;
-            BtnResetLayer.Visibility = Visibility.Visible;
             PnlGroupParts.Visibility = Visibility.Visible;
             ChkGroupMove.Visibility = group.AllowGroupMove ? Visibility.Visible : Visibility.Collapsed;
 
@@ -4976,61 +4973,529 @@ namespace ArcadeStick.Views
             return resolved;
         }
 
-        // Restores one layer to the active theme's saved values for the active resolution (GetRestoreLayout), then renumbers Z so the
-        // stacking order stays unique.
+        // [SECTION: Reset Layer]
+        // Reset Layer (themes.md 3.30): restores the selected row (one layer, or every part of a group) from a saved state.
+        // M is the working layout. J (Saved Adjustments) is the layouts in settings.json, read from the file on each click so
+        // only values really written count. Z (Saved Theme) is SavedThemeLayouts, used only while a theme is loaded. Each saved
+        // state is resolved on a copy at the active size; a state with no layout at this size, or without the row's custom
+        // layer, is absent (never registry defaults). One scope (ApplyResetScope) is used both to compare and to restore, so the
+        // chooser never lists a change it would not make. Saved states equal to M drop out and equal ones merge: none left =
+        // nothing changes (a flash says so), one = restored at once, two = the chooser. A custom layer with no saved state goes
+        // back to the new layer defaults. The Scrollbars row keeps its own rule (3.24). Z order is never restored: NormalizeZ
+        // renumbers in the current order. Reset Layout and Restore Defaults do not use this section.
+        private const string FlashFromTheme = "Layer restored from saved theme";
+        private const string FlashFromAdjustments = "Layer restored from saved adjustments";
+        private const string FlashToDefaults = "Layer restored to defaults";
+        private const string FlashMatchesTheme = "Layer already matches saved theme";
+        private const string FlashMatchesAdjustments = "Layer already matches saved adjustments";
+        private const string FlashMatchesDefaults = "Layer already matches defaults";
+        private const string FlashNoSavedState = "No saved state for this layer";
+        private const int ResetPreviewMaxLines = 5;
+
+        // Raised with a short message for the builder's top-right flash (ThemeBuilderWindow.ShowBuilderFlash)
+        public event Action<string>? FlashRequested;
+
+        // Set by the Theme Builder window: the theme whose values are in memory (MainViewModel.LoadedThemeName), empty when none
+        public Func<string>? LoadedThemeNameProvider;
+
+        private enum ResetSource { Adjustments, Theme, Defaults }
+
+        // One restorable state for the row: where it came from and a resolved copy of every part's entry (never shared with M)
+        private sealed record ResetCandidate(ResetSource Source, Dictionary<string, LayerLayoutEntry> Entries);
+
+        // What a reset would do: the states that differ from M (zero, one or two) and the flash text when none does
+        private sealed record ResetPlan(List<ResetCandidate> Alternatives, string NoChangeMessage);
+
+        // Every LayerLayoutEntry value property except Id and Z, in declaration order: the values the scope compares
+        private static readonly System.Reflection.PropertyInfo[] ResetCompareProperties = typeof(LayerLayoutEntry)
+            .GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .Where(p => p.CanRead && p.CanWrite && p.Name != nameof(LayerLayoutEntry.Id) && p.Name != nameof(LayerLayoutEntry.Z))
+            .OrderBy(p => p.MetadataToken)
+            .ToArray();
+
+        // Does the reset: commits a pending field edit, then builds the plan and restores, asks, or only flashes
         private void BtnResetLayer_Click(object sender, RoutedEventArgs e)
         {
-            // The Scrollbars row resets to "use global" with its custom values cleared, not to the saved theme (themes.md 3.24)
-            if (SingleSelectedLayer?.Id == LayerRegistry.Scrollbars) { ResetScrollbarsRowToGlobal(); RebuildLayerList(LayerRegistry.Scrollbars); return; }
+            // Focus moves to the button first, so a field still being typed in commits (LostFocus) before anything is compared,
+            // and no field keeps focus to re-apply an old value after the fields reload
+            (sender as UIElement)?.Focus();
+            if (_loading || SingleSelectedLayer is not LayerListItem selected) return;
 
-            // A group resets every one of its parts
-            if (SingleSelectedLayer is LayerListItem groupItem && GetGroup(groupItem.Id) is LayerGroupDefinition resetGroup)
+            // The Scrollbars row goes back to "use global" with its custom values cleared, never to a saved state (themes.md 3.24)
+            if (selected.Id == LayerRegistry.Scrollbars)
             {
-                var groupRestore = GetRestoreLayout(_currentLayout.Width, _currentLayout.Height);
-                foreach (string partId in resetGroup.PartIds)
-                {
-                    var partEntry = GetEntry(partId);
-                    var partDefault = groupRestore.Layers.FirstOrDefault(l => l.Id == partId);
-                    if (partEntry == null || partDefault == null) continue;
-
-                    partEntry.X = partDefault.X;
-                    partEntry.Y = partDefault.Y;
-                    partEntry.Width = partDefault.Width;
-                    partEntry.Height = partDefault.Height;
-                    partEntry.Visible = partDefault.Visible;
-
-                    // Style values too (the Search & Buttons label, box and shared button style live on its parts)
-                    partEntry.CopyStyleFrom(partDefault);
-
-                    // The Random Game Display group's shared file lives on its first part (its style, message included,
-                    // comes back through CopyStyleFrom above)
-                    if (partId == LayerRegistry.RandomGameDisplay) partEntry.ImagePath = partDefault.ImagePath;
-                }
-
-                NormalizeZ(GetAscendingOrder());
-                RebuildLayerList(groupItem.Id);
+                ResetScrollbarsRowToGlobal();
+                RebuildLayerList(LayerRegistry.Scrollbars);
+                FlashRequested?.Invoke(FlashToDefaults);
                 return;
             }
 
-            if (SingleSelectedLayer is not LayerListItem selected || GetEntry(selected.Id) is not LayerLayoutEntry entry) return;
+            var partIds = GetUnitEntries(selected.Id).Select(entry => entry.Id).ToList();
+            if (partIds.Count == 0) return;
 
-            var restore = GetRestoreLayout(_currentLayout.Width, _currentLayout.Height);
-            var defEntry = restore.Layers.FirstOrDefault(l => l.Id == entry.Id);
-            if (defEntry == null) return;
+            var plan = BuildResetPlan(selected.Id, partIds);
+            if (plan.Alternatives.Count == 0)
+            {
+                FlashRequested?.Invoke(plan.NoChangeMessage);
+                return;
+            }
 
-            entry.X = defEntry.X;
-            entry.Y = defEntry.Y;
-            entry.Width = defEntry.Width;
-            entry.Height = defEntry.Height;
-            entry.Visible = defEntry.Visible;
-            if (!LayerRegistry.IsCustomId(entry.Id)) entry.ImagePath = defEntry.ImagePath;
-            entry.CopyStyleFrom(defEntry);
+            ResetCandidate chosen = plan.Alternatives[0];
+            if (plan.Alternatives.Count > 1)
+            {
+                var layoutBefore = _currentLayout;
+                string themeName = LoadedThemeNameProvider?.Invoke() ?? "";
+                var picked = PromptForResetSource(GetResetTitle(selected.Id), partIds, plan.Alternatives, themeName);
+                if (picked == null) return;
+
+                // The chooser is modal to the builder only, so the main window may have switched the theme or size meanwhile:
+                // restore only when the row, the layout and the picked state are still what the chooser showed
+                if (!ReferenceEquals(_currentLayout, layoutBefore) || SingleSelectedLayer?.Id != selected.Id) return;
+                var fresh = BuildResetPlan(selected.Id, partIds).Alternatives.FirstOrDefault(c => c.Source == picked.Source);
+                if (fresh == null || CandidatesDiffer(fresh, picked)) return;
+                chosen = fresh;
+            }
+
+            // A restored file in the loaded theme's working folder that is missing there is extracted from the theme zip first,
+            // so the main window can show it when the layout repaints below
+            var missingFiles = EnsureThemeAssetsExtracted(chosen);
+
+            foreach (string id in partIds)
+            {
+                if (GetEntry(id) is LayerLayoutEntry entry && chosen.Entries.TryGetValue(id, out var source)) ApplyResetScope(entry, source);
+            }
 
             NormalizeZ(GetAscendingOrder());
             RebuildLayerList(selected.Id);
+            FlashRequested?.Invoke(chosen.Source switch
+            {
+                ResetSource.Theme => FlashFromTheme,
+                ResetSource.Adjustments => FlashFromAdjustments,
+                _ => FlashToDefaults
+            });
+
+            if (missingFiles.Count > 0)
+            {
+                MessageBox.Show("The layer was restored, but these files could not be found or extracted from the theme, so they will not show:\n\n"
+                    + string.Join("\n", missingFiles.Select(f => "- " + f)),
+                    "Reset Layer", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
-        // The restore point for the resets: the active theme's saved layout for this resolution (as of the
+        // Does the asset check before a restore: each restored ImagePath that sits in the loaded theme's working folder
+        // (Themes\Extracted\<theme>, where LoadTheme and the startup snapshot point the zip's assets/ paths) but is missing on
+        // disk is extracted from the loaded theme's zip, from the entry at the same relative path (assets/<file>). Only that one
+        // file is written, never over an existing file (an existing file is left as it is, even if older than the zip), and the
+        // zip is opened read-only and closed at once. Returns the stored paths still missing (no theme loaded, entry absent,
+        // or the extraction failed); other paths are not touched.
+        private List<string> EnsureThemeAssetsExtracted(ResetCandidate candidate)
+        {
+            var stillMissing = new List<string>();
+            var wanted = candidate.Entries.Values
+                .Select(e => e.ImagePath)
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(p => (Stored: p, Full: NormalizeLayerPath(p)))
+                .Where(p => !System.IO.File.Exists(p.Full))
+                .ToList();
+            if (wanted.Count == 0) return stillMissing;
+
+            string themeName = LoadedThemeNameProvider?.Invoke() ?? "";
+            string workingFolder;
+            string zipPath;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(themeName)) throw new InvalidOperationException("No theme is loaded.");
+                string themesDir = System.IO.Path.Combine(_settings.GetArcadeStickFilesPath(), "Themes");
+                workingFolder = System.IO.Path.GetFullPath(ArcadeStick.Services.ThemePaths.WorkingFolder(themesDir, themeName));
+                zipPath = ArcadeStick.Services.ThemePaths.Zip(themesDir, themeName);
+            }
+            catch
+            {
+                stillMissing.AddRange(wanted.Select(p => p.Stored));
+                return stillMissing;
+            }
+
+            string prefix = workingFolder.EndsWith(System.IO.Path.DirectorySeparatorChar) ? workingFolder : workingFolder + System.IO.Path.DirectorySeparatorChar;
+            foreach (var (stored, full) in wanted)
+            {
+                // Only a file of this theme's working folder maps to a zip entry; any other missing path stays as stored
+                string relative = full.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? full[prefix.Length..].Replace('\\', '/') : "";
+                bool restored = relative.StartsWith("assets/", StringComparison.OrdinalIgnoreCase) && TryExtractThemeAsset(zipPath, relative, full);
+                if (!restored) stillMissing.Add(stored);
+            }
+            return stillMissing;
+        }
+
+        // Does the one-file extraction: copies the zip entry named entryPath (case-insensitive) to a temp file beside target,
+        // then renames it into place without overwriting. False when the zip or entry is missing or anything fails.
+        private static bool TryExtractThemeAsset(string zipPath, string entryPath, string target)
+        {
+            string temp = target + ".tmp-" + Guid.NewGuid().ToString("N");
+            try
+            {
+                if (!System.IO.File.Exists(zipPath)) return false;
+                using (var zip = System.IO.Compression.ZipFile.OpenRead(zipPath))
+                {
+                    var entry = zip.Entries.FirstOrDefault(e => string.Equals(e.FullName.Replace('\\', '/'), entryPath, StringComparison.OrdinalIgnoreCase));
+                    if (entry == null) return false;
+
+                    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target)!);
+                    System.IO.Compression.ZipFileExtensions.ExtractToFile(entry, temp);
+                }
+
+                if (System.IO.File.Exists(target)) return true; // appeared meanwhile: keep it
+                System.IO.File.Move(temp, target);
+                return true;
+            }
+            catch
+            {
+                return System.IO.File.Exists(target);
+            }
+            finally
+            {
+                try
+                {
+                    if (System.IO.File.Exists(temp)) System.IO.File.Delete(temp);
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        // Does the plan: J and Z at the active size, dropping each that matches M; J equal to Z merges into one (named after the
+        // theme). A custom layer with neither state uses the new layer defaults; a built-in layer with neither changes nothing.
+        private ResetPlan BuildResetPlan(string unitKey, List<string> partIds)
+        {
+            var adjustments = BuildResetCandidate(ResetSource.Adjustments, ReadPersistedLayouts(), partIds);
+            string loadedTheme = LoadedThemeNameProvider?.Invoke() ?? "";
+            var theme = string.IsNullOrWhiteSpace(loadedTheme) ? null : BuildResetCandidate(ResetSource.Theme, _settings.SavedThemeLayouts, partIds);
+
+            if (adjustments == null && theme == null)
+            {
+                if (!LayerRegistry.IsCustomId(unitKey)) return new ResetPlan(new List<ResetCandidate>(), FlashNoSavedState);
+
+                var defaults = BuildDefaultsCandidate(partIds);
+                var defaultList = DiffersFromCurrent(defaults) ? new List<ResetCandidate> { defaults } : new List<ResetCandidate>();
+                return new ResetPlan(defaultList, FlashMatchesDefaults);
+            }
+
+            var alternatives = new List<ResetCandidate>();
+            if (adjustments != null && DiffersFromCurrent(adjustments)) alternatives.Add(adjustments);
+            if (theme != null && DiffersFromCurrent(theme))
+            {
+                if (adjustments != null && alternatives.Count == 1 && !CandidatesDiffer(adjustments, theme)) alternatives[0] = theme;
+                else alternatives.Add(theme);
+            }
+
+            return new ResetPlan(alternatives, theme != null ? FlashMatchesTheme : FlashMatchesAdjustments);
+        }
+
+        // Does a candidate from a saved layout list: null when it has no layout at the active size or lacks any part (a custom
+        // layer that state never had). Resolved on a deep copy, so registry defaults fill only built-in layers that saved layout
+        // lacks, which is how it would load.
+        private ResetCandidate? BuildResetCandidate(ResetSource source, IEnumerable<ThemeLayout>? layouts, List<string> partIds)
+        {
+            int width = _currentLayout.Width;
+            int height = _currentLayout.Height;
+            var saved = layouts?.FirstOrDefault(l => l.Width == width && l.Height == height);
+            if (saved == null) return null;
+
+            var resolved = LayerRegistry.ResolveLayout(ConfigurationSettings.CloneLayouts(new[] { saved }).First(), width, height);
+            var entries = new Dictionary<string, LayerLayoutEntry>();
+            foreach (string id in partIds)
+            {
+                var entry = resolved.Layers.FirstOrDefault(l => l.Id == id);
+                if (entry == null) return null;
+                entries[id] = entry;
+            }
+            return new ResetCandidate(source, entries);
+        }
+
+        // Does the defaults candidate for a custom layer with no saved state: the new layer values, keeping Id, Name and Z
+        private ResetCandidate BuildDefaultsCandidate(List<string> partIds)
+        {
+            var entries = new Dictionary<string, LayerLayoutEntry>();
+            foreach (string id in partIds)
+            {
+                var current = GetEntry(id);
+                var entry = new LayerLayoutEntry { Id = id, Name = current?.Name ?? "", Z = current?.Z ?? 0 };
+                LayerRegistry.ApplyNewCustomLayerDefaults(entry);
+                entries[id] = entry;
+            }
+            return new ResetCandidate(ResetSource.Defaults, entries);
+        }
+
+        // Does the read of the layouts saved in settings.json (J): null when the file can't be read, has no layouts, or was
+        // written for another theme than the active one. Read-only; nothing live is touched.
+        private List<ThemeLayout>? ReadPersistedLayouts()
+        {
+            try
+            {
+                string path = System.IO.Path.Combine(_settings.GetArcadeStickFilesPath(), "settings.json");
+                if (!System.IO.File.Exists(path)) return null;
+
+                using var document = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(path));
+                var root = document.RootElement;
+                if (root.TryGetProperty(nameof(ConfigurationSettings.ActiveThemeName), out var themeElement)
+                    && themeElement.ValueKind == System.Text.Json.JsonValueKind.String
+                    && !string.Equals(themeElement.GetString() ?? "", _settings.ActiveThemeName ?? "", StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                if (!root.TryGetProperty(nameof(ConfigurationSettings.Layouts), out var layoutsElement)) return null;
+                return System.Text.Json.JsonSerializer.Deserialize<List<ThemeLayout>>(layoutsElement.GetRawText());
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Does the reset scope copy: rect, Visible, ImagePath and every CopyStyleFrom field, plus Name on custom layers (their
+        // names are per size). Id and Z never change, and a built-in shape layer's Name (shared across sizes) is left alone.
+        private static void ApplyResetScope(LayerLayoutEntry target, LayerLayoutEntry source)
+        {
+            target.X = source.X;
+            target.Y = source.Y;
+            target.Width = source.Width;
+            target.Height = source.Height;
+            target.Visible = source.Visible;
+            target.ImagePath = source.ImagePath;
+            target.CopyStyleFrom(source);
+            if (LayerRegistry.IsCustomId(target.Id)) target.Name = source.Name;
+        }
+
+        // Does the scoped comparison of one part: the names of the properties that differ after ApplyResetScope (ImagePath
+        // through NormalizeLayerPath), empty when they match. The Id of the first entry decides the scope for both.
+        private List<string> GetResetDifferences(LayerLayoutEntry first, LayerLayoutEntry second)
+        {
+            var a = new LayerLayoutEntry { Id = first.Id };
+            ApplyResetScope(a, first);
+            var b = new LayerLayoutEntry { Id = first.Id };
+            ApplyResetScope(b, second);
+
+            var differences = new List<string>();
+            foreach (var property in ResetCompareProperties)
+            {
+                bool same = property.Name == nameof(LayerLayoutEntry.ImagePath)
+                    ? string.Equals(NormalizeLayerPath(a.ImagePath), NormalizeLayerPath(b.ImagePath), StringComparison.OrdinalIgnoreCase)
+                    : Equals(property.GetValue(a), property.GetValue(b));
+                if (!same) differences.Add(property.Name);
+            }
+            return differences;
+        }
+
+        // Does the check: true when restoring the candidate would change any part of M
+        private bool DiffersFromCurrent(ResetCandidate candidate) =>
+            candidate.Entries.Any(pair => GetEntry(pair.Key) is LayerLayoutEntry current && GetResetDifferences(current, pair.Value).Count > 0);
+
+        // Does the check: true when two candidates would restore different values for any part
+        private bool CandidatesDiffer(ResetCandidate first, ResetCandidate second) =>
+            first.Entries.Any(pair => !second.Entries.TryGetValue(pair.Key, out var other) || GetResetDifferences(pair.Value, other).Count > 0);
+
+        // Does the path form used only for comparing: the full path (a relative path is relative to the MAME folder, as the theme
+        // save resolves it), so only syntax and case differences are ignored. An original file and its extracted theme copy are
+        // still different paths: nothing records that they are the same picture (themes.md 3.30).
+        private string NormalizeLayerPath(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return "";
+            try
+            {
+                string full = System.IO.Path.IsPathRooted(path) ? path : System.IO.Path.Combine(_settings.GetMamePath(), path);
+                return System.IO.Path.GetFullPath(full);
+            }
+            catch
+            {
+                return path.Trim();
+            }
+        }
+
+        // Does the name in the chooser's title: the group's name, or the layer's display name
+        private string GetResetTitle(string unitKey) => GetGroup(unitKey)?.DisplayName ?? GetLayerDisplayName(unitKey);
+
+        // Shows the chooser for two saved states (Saved Adjustments, Saved Theme, Cancel), each with up to ResetPreviewMaxLines
+        // of what restoring it would change compared with the working values, and its file's last modified time when readable.
+        // Returns the picked candidate, or null when cancelled (Cancel, Escape or closing the window).
+        private ResetCandidate? PromptForResetSource(string title, List<string> partIds, List<ResetCandidate> alternatives, string themeName)
+        {
+            ResetCandidate? picked = null;
+
+            var panel = new StackPanel { Margin = new Thickness(14) };
+            var intro = MakePromptLine("Two different saved states are available for this layer. Choose which version to restore.");
+            intro.Margin = new Thickness(0, 0, 0, 12);
+            panel.Children.Add(intro);
+
+            var prompt = new Window
+            {
+                Title = $"Reset Layer — {title}",
+                Content = panel,
+                Width = 480,
+                SizeToContent = SizeToContent.Height,
+                ResizeMode = ResizeMode.NoResize,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this),
+                ShowInTaskbar = false
+            };
+            prompt.SetResourceReference(Window.BackgroundProperty, "ChromeWindowBg");
+
+            Button? firstChoice = null;
+            foreach (var candidate in alternatives)
+            {
+                string label = candidate.Source == ResetSource.Theme ? $"Saved Theme ({themeName}.zip)" : "Saved Adjustments (settings.json)";
+                var button = MakePromptButton(label);
+                button.Width = double.NaN;
+                button.Padding = new Thickness(10, 3, 10, 3);
+                button.HorizontalAlignment = HorizontalAlignment.Left;
+                button.Click += (s, args) =>
+                {
+                    picked = candidate;
+                    prompt.DialogResult = true;
+                };
+                firstChoice ??= button;
+                panel.Children.Add(button);
+
+                if (GetResetSourceModified(candidate.Source, themeName) is string modified)
+                {
+                    var stamp = MakePromptLine(modified);
+                    stamp.Margin = new Thickness(12, 4, 0, 2);
+                    stamp.SetResourceReference(TextBlock.ForegroundProperty, ArcadeStick.Services.GlobalThemeResources.FontSubTextColor);
+                    stamp.SetResourceReference(TextBlock.FontSizeProperty, ArcadeStick.Services.GlobalThemeResources.FontSubTextSize);
+                    panel.Children.Add(stamp);
+                }
+
+                var lines = GetResetPreviewLines(partIds, candidate);
+                var list = new StackPanel { Margin = new Thickness(12, 4, 0, 14) };
+                foreach (string line in lines.Take(ResetPreviewMaxLines)) list.Children.Add(MakePromptLine("• " + line));
+                int more = lines.Count - ResetPreviewMaxLines;
+                if (more > 0) list.Children.Add(MakePromptLine($"+ {more} more {(more == 1 ? "property" : "properties")} will be restored"));
+                panel.Children.Add(list);
+            }
+
+            var cancelButton = MakePromptButton("Cancel");
+            cancelButton.IsCancel = true;
+            cancelButton.HorizontalAlignment = HorizontalAlignment.Right;
+            panel.Children.Add(cancelButton);
+
+            prompt.Loaded += (s, args) => firstChoice?.Focus();
+            return prompt.ShowDialog() == true ? picked : null;
+        }
+
+        // Does the "File last modified" line for a source (settings.json, or the loaded theme's zip), or null when unreadable.
+        // It is the file's time, not the time this layer was saved.
+        private string? GetResetSourceModified(ResetSource source, string themeName)
+        {
+            try
+            {
+                string path = source == ResetSource.Theme
+                    ? _settings.GetThemePath(themeName)
+                    : System.IO.Path.Combine(_settings.GetArcadeStickFilesPath(), "settings.json");
+                if (!System.IO.File.Exists(path)) return null;
+                return $"File last modified: {System.IO.File.GetLastWriteTime(path):yyyy-MM-dd HH:mm}";
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Does the chooser's change lines for one candidate, in order: image files, custom names, position, size and visibility,
+        // then style values in declaration order. Each line is current → restored; a group's lines start with the part's name.
+        private List<string> GetResetPreviewLines(List<string> partIds, ResetCandidate candidate)
+        {
+            bool isGroup = GetGroup(UnitKey(partIds[0])) != null;
+            var images = new List<string>();
+            var names = new List<string>();
+            var layout = new List<string>();
+            var styles = new List<string>();
+
+            foreach (string id in partIds)
+            {
+                if (GetEntry(id) is not LayerLayoutEntry current || !candidate.Entries.TryGetValue(id, out var restored)) continue;
+                var differences = GetResetDifferences(current, restored);
+                if (differences.Count == 0) continue;
+
+                string prefix = isGroup ? $"{LayerRegistry.GetDefinition(id)?.DisplayName ?? id}: " : "";
+                bool Changed(string name) => differences.Contains(name);
+
+                if (Changed(nameof(LayerLayoutEntry.ImagePath)))
+                    images.Add($"{prefix}Image: {FormatResetFile(current.ImagePath)} → {FormatResetFile(restored.ImagePath)}");
+                if (Changed(nameof(LayerLayoutEntry.Name)))
+                    names.Add($"{prefix}Name: {current.Name} → {restored.Name}");
+                if (Changed(nameof(LayerLayoutEntry.X)) || Changed(nameof(LayerLayoutEntry.Y)))
+                    layout.Add($"{prefix}Position: {Fmt(current.X)}, {Fmt(current.Y)} → {Fmt(restored.X)}, {Fmt(restored.Y)}");
+                if (Changed(nameof(LayerLayoutEntry.Width)) || Changed(nameof(LayerLayoutEntry.Height)))
+                    layout.Add($"{prefix}Size: {Fmt(current.Width)} x {Fmt(current.Height)} → {Fmt(restored.Width)} x {Fmt(restored.Height)}");
+                if (Changed(nameof(LayerLayoutEntry.Visible)))
+                    layout.Add($"{prefix}Visibility: {(current.Visible ? "Shown" : "Hidden")} → {(restored.Visible ? "Shown" : "Hidden")}");
+
+                var layoutNames = new[] { nameof(LayerLayoutEntry.ImagePath), nameof(LayerLayoutEntry.Name), nameof(LayerLayoutEntry.X), nameof(LayerLayoutEntry.Y),
+                    nameof(LayerLayoutEntry.Width), nameof(LayerLayoutEntry.Height), nameof(LayerLayoutEntry.Visible) };
+                foreach (var property in ResetCompareProperties.Where(p => Changed(p.Name) && !layoutNames.Contains(p.Name)))
+                {
+                    styles.Add($"{prefix}{HumanizeResetProperty(property.Name)}: {FormatResetValue(property.GetValue(current))} → {FormatResetValue(property.GetValue(restored))}");
+                }
+            }
+
+            return images.Concat(names).Concat(layout).Concat(styles).ToList();
+        }
+
+        // Does a file name for the chooser, or "No image assigned" for an empty path
+        private static string FormatResetFile(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return "No image assigned";
+            try
+            {
+                return System.IO.Path.GetFileName(path);
+            }
+            catch
+            {
+                return path;
+            }
+        }
+
+        // Does a short display of a style value: On / Off, numbers as the fields show them, "default" for an unset value
+        private static string FormatResetValue(object? value)
+        {
+            string text = value switch
+            {
+                null => "default",
+                bool flag => flag ? "On" : "Off",
+                double number => Fmt(number),
+                _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? ""
+            };
+            return text.Length > 28 ? text[..27] + "…" : text;
+        }
+
+        // Does a readable label from a property name ("FolderSelectedBgColorHex" → "Folder selected background color")
+        private static string HumanizeResetProperty(string name)
+        {
+            if (name.EndsWith("Hex", StringComparison.Ordinal)) name = name[..^3];
+            var words = new List<string>();
+            var word = new System.Text.StringBuilder();
+            foreach (char c in name)
+            {
+                if (char.IsUpper(c) && word.Length > 0)
+                {
+                    words.Add(word.ToString());
+                    word.Clear();
+                }
+                word.Append(c);
+            }
+            if (word.Length > 0) words.Add(word.ToString());
+
+            var labels = words.Select((w, i) =>
+            {
+                string text = w == "Bg" ? "background" : w.ToLowerInvariant();
+                return i == 0 ? char.ToUpperInvariant(text[0]) + text[1..] : text;
+            });
+            return string.Join(" ", labels);
+        }
+        // [END SECTION: Reset Layer]
+
+        // The restore point for Reset Layout: the active theme's saved layout for this resolution (as of the
         // last theme load or Save Changes), with registry defaults filling anything the theme never saved.
         private ThemeLayout GetRestoreLayout(int width, int height)
         {

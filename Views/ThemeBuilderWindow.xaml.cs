@@ -50,6 +50,10 @@ namespace ArcadeStick.Views
             AdvancedTab.CanAutoSaveSizeRemoval = CanAutoSaveSizeRemoval;
             AdvancedTab.AutoSaveSizeRemovalRunner = RunSizeRemovalAutoSave;
             AdvancedTab.ThumbnailCaptureRunner = () => _main.CaptureThemeThumbnail();
+
+            // Reset Layer: Saved Theme counts only while a theme is loaded, and its messages use the top-right flash
+            AdvancedTab.LoadedThemeNameProvider = () => _viewModel.LoadedThemeName;
+            AdvancedTab.FlashRequested += ShowBuilderFlash;
             GlobalTab.Initialize(_settings);
 
             // Alignment guides: forward the Advanced tab's guide info to the main window, but only while the
@@ -442,9 +446,14 @@ namespace ArcadeStick.Views
         // [END SECTION: Tab Selection]
 
         // [SECTION: Theme Saved Flash]
-        // Shows the "Theme Saved" text beside the tab headers for 2 seconds (a repeat save restarts the timer)
-        private void ShowThemeSavedFlash()
+        // Does the "Theme Saved" flash (Save Changes, Copy Current Theme, a template creation)
+        private void ShowThemeSavedFlash() => ShowBuilderFlash("Theme Saved");
+
+        // Shows a short message beside the tab headers for 2 seconds (a repeat restarts the timer). Used by the theme saves and
+        // by Reset Layer (AdvancedThemesTabControl.FlashRequested); one box and one timer for both.
+        private void ShowBuilderFlash(string message)
         {
+            TxtThemeSavedFlash.Text = message;
             BrdThemeSavedFlash.Visibility = Visibility.Visible;
 
             _themeSavedFlashTimer?.Stop();

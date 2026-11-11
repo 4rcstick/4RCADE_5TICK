@@ -48,8 +48,8 @@
         </TabControl>
 
         <!-- [SECTION: Theme Saved Flash] -->
-        <!-- Transient "Theme Saved" confirmation at the right end of the tab header strip, shown briefly by
-             ShowThemeSavedFlash after Save Changes. Its host takes a tab header's height, so the box centers on the strip;
+        <!-- Transient confirmation at the right end of the tab header strip, shown briefly by ShowBuilderFlash: "Theme Saved"
+             after Save Changes (ShowThemeSavedFlash), and the Reset Layer messages (the text is set from code). Its host takes a tab header's height, so the box centers on the strip;
              the -2 top/bottom margin lets the box (slightly taller than a header) overhang evenly instead of being clipped.
              Fixed Chrome Palette colors so it stays readable on any theme. -->
         <Grid Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" IsHitTestVisible="False"

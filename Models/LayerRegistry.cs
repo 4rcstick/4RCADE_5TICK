@@ -616,6 +616,25 @@ namespace ArcadeStick.Models
         public const int MaxCustomLayersPerResolution = 10;
         public static bool IsCustomId(string id) => id.StartsWith(CustomIdPrefix, StringComparison.Ordinal);
 
+        // Does the new custom layer values on an entry: the start rect, visible, no file, and the shape layer defaults (FileOpacity
+        // set explicitly to the value ResolveLayout would fill). Shared by Add Layer and Reset Layer's "restore to defaults" for a
+        // custom layer that has no saved version. Id, Name and Z are left to the caller.
+        public static void ApplyNewCustomLayerDefaults(LayerLayoutEntry entry)
+        {
+            entry.ImagePath = "";
+            entry.X = NewLayerX;
+            entry.Y = NewLayerY;
+            entry.Width = NewLayerWidth;
+            entry.Height = NewLayerHeight;
+            entry.Visible = true;
+            entry.VisibilityMode = DefaultVisibilityMode;
+            entry.BgColorHex = DefaultShapeBgColorHex;
+            entry.BorderSize = DefaultShapeBorderSize;
+            entry.BorderColorHex = DefaultShapeBorderColorHex;
+            entry.CornerRadius = DefaultShapeCornerRadius;
+            entry.FileOpacity = DefaultFileOpacity;
+        }
+
         public static readonly IReadOnlyList<ResolutionPreset> ResolutionPresets = new List<ResolutionPreset>
         {
             new(1280, 720),

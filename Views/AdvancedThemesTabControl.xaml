@@ -237,6 +237,7 @@
                                     <Bold>LAYER ORDER &amp; CUSTOM LAYERS</Bold><LineBreak/>
                                     <Run Text="Use the arrows beside the layer list to move layers forward or backward in the Z-order."/><LineBreak/>
                                     <Run Text="Use the + button to add a custom layer."/><LineBreak/>
+                                    <Run Text="The buttons below + rename, remove (custom layers) and reset the selected layer."/><LineBreak/>
                                     <LineBreak/>
                                     <Bold>MOVE MULTIPLE LAYERS AT ONCE</Bold><LineBreak/>
                                     <Run Text="Ctrl-click or Shift-click to select multiple layers,"/><LineBreak/>
@@ -270,18 +271,29 @@
                     </ListBox.ContextMenu>
                 </ListBox>
 
+                <!-- [SECTION: Layer Toolbar] -->
+                <!-- Up, Down, Add, then Rename and Remove (collapsed when they don't apply, so no gap is left) and Reset Layer
+                     (always shown; disabled with no or several layers selected). State set in code: ApplyLayerToolbarState.
+                     The buttons stay focusable, so clicking one commits a pending field edit (LostFocus) before its handler runs. -->
                 <StackPanel Grid.Row="1" Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Top">
-                    <Button x:Name="BtnLayerUp" Content="&#xE70E;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerUp_Click" ToolTip="Bring forward" Width="30" Height="30" Margin="0,0,0,6"
+                    <Button x:Name="BtnLayerUp" Content="&#xE70E;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerUp_Click" ToolTip="Bring forward (select one layer)" Width="30" Height="30" Margin="0,0,0,6"
+                            ToolTipService.ShowOnDisabled="True" Style="{StaticResource ThemedActionButtonStyle}"/>
+                    <Button x:Name="BtnLayerDown" Content="&#xE70D;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerDown_Click" ToolTip="Send backward (select one layer)" Width="30" Height="30" Margin="0,0,0,6"
+                            ToolTipService.ShowOnDisabled="True" Style="{StaticResource ThemedActionButtonStyle}"/>
+                    <Button x:Name="BtnAddImageLayer" Content="&#xE710;" FontFamily="Segoe MDL2 Assets" Click="BtnAddImageLayer_Click" ToolTip="Add layer" Width="30" Height="30" Margin="0,0,0,6"
                             Style="{StaticResource ThemedActionButtonStyle}"/>
-                    <Button x:Name="BtnLayerDown" Content="&#xE70D;" FontFamily="Segoe MDL2 Assets" Click="BtnLayerDown_Click" ToolTip="Send backward" Width="30" Height="30" Margin="0,0,0,6"
-                            Style="{StaticResource ThemedActionButtonStyle}"/>
-                    <Button x:Name="BtnAddImageLayer" Content="&#xE710;" FontFamily="Segoe MDL2 Assets" Click="BtnAddImageLayer_Click" ToolTip="Add layer" Width="30" Height="30"
-                            Style="{StaticResource ThemedActionButtonStyle}"/>
+                    <Button x:Name="BtnRenameLayer" Content="&#xE70F;" FontFamily="Segoe MDL2 Assets" Click="BtnRenameLayer_Click" ToolTip="Rename layer" Width="30" Height="30" Margin="0,0,0,6"
+                            Visibility="Collapsed" Style="{StaticResource ThemedActionButtonStyle}"/>
+                    <Button x:Name="BtnRemoveLayer" Content="&#xE74D;" FontFamily="Segoe MDL2 Assets" Click="BtnRemoveLayer_Click" ToolTip="Remove layer" Width="30" Height="30" Margin="0,0,0,6"
+                            Visibility="Collapsed" Style="{StaticResource ThemedActionButtonStyle}"/>
+                    <Button x:Name="BtnResetLayer" Content="&#xE72C;" FontFamily="Segoe MDL2 Assets" Click="BtnResetLayer_Click" ToolTip="Reset layer to its saved values (select one layer)" Width="30" Height="30"
+                            IsEnabled="False" ToolTipService.ShowOnDisabled="True" Style="{StaticResource ThemedActionButtonStyle}"/>
                 </StackPanel>
+                <!-- [END SECTION: Layer Toolbar] -->
             </Grid>
 
             <!-- [SECTION: Layer Property Tabs] -->
-            <!-- Selected layer: its name, a tab frame, and the layer-wide buttons pinned below it. Position is
+            <!-- Selected layer: its name and a tab frame (the layer buttons are in the Layer Toolbar beside the list). Position is
                  always present; the other tabs are shown per layer type from code-behind (ApplyLayerTabs).
                  Each tab scrolls on its own: long tabs (for example Search, Info, Position on groups and the
                  Random Game Display Text tab) show a vertical scrollbar at the current window size. -->
@@ -289,7 +301,6 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0">
@@ -2757,20 +2768,6 @@
                                Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
                 </StackPanel>
                 <!-- [END SECTION: Multi-Select Nudge] -->
-
-                <!-- Layer-wide buttons, pinned below the tab frame so they sit in the same place on every tab and layer -->
-                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                    <!-- Rename: shape layers and custom layers only (shown from code) -->
-                    <Button x:Name="BtnRenameLayer" Content="Rename" Click="BtnRenameLayer_Click" Visibility="Collapsed"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            FontWeight="SemiBold" Padding="7,3"/>
-                    <Button x:Name="BtnResetLayer" Content="Reset Layer" Click="BtnResetLayer_Click"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
-                    <Button x:Name="BtnRemoveLayer" Content="Remove Layer" Click="BtnRemoveLayer_Click" Visibility="Collapsed"
-                            Style="{StaticResource ThemedActionButtonStyle}"
-                            FontWeight="SemiBold" Padding="7,3" Margin="10,0,0,0"/>
-                </StackPanel>
             </Grid>
             <!-- [END SECTION: Layer Property Tabs] -->
 

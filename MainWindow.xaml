@@ -176,7 +176,7 @@
             <!-- Opens or activates the standalone Theme Browser window (no shortcut) -->
             <MenuItem Header="Theme Browser" Click="HamburgerThemeBrowserMenuItem_Click">
                 <MenuItem.Icon>
-                    <TextBlock Text="&#xE8B9;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+                    <TextBlock Text="&#xE8FD;" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
                 </MenuItem.Icon>
             </MenuItem>
             <MenuItem Header="Themes" Tag="ThemesMenu">
