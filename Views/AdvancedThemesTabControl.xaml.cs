@@ -3182,6 +3182,7 @@ namespace ArcadeStick.Views
         private void LoadSearchButtonsStyleFields()
         {
             PnlSBHoverBorder.Visibility = IsSearchButtonsSelected ? Visibility.Visible : Visibility.Collapsed;
+            PnlSBBorderTarget.Visibility = IsSearchButtonsSelected ? Visibility.Visible : Visibility.Collapsed;
             if (!IsSearchButtonsSelected) return;
             if (GetEntry(LayerRegistry.SearchLabel) is not LayerLayoutEntry label
                 || GetEntry(LayerRegistry.SearchBox) is not LayerLayoutEntry box
@@ -3221,7 +3222,44 @@ namespace ArcadeStick.Views
             ShowColor(SBButtonHoverBgColorPicker, TxtSBButtonHoverBgColorHex, button.HoverBgColorHex ?? LayerRegistry.DefaultButtonHoverBgColorHex);
             ShowColor(SBHoverBorderColorPicker, TxtSBHoverBorderColorHex, button.HoverBorderColorHex ?? LayerRegistry.DefaultButtonHoverBorderColorHex);
 
+            // Hover-only shadows (decision 98): Icon hover on TextShadow*, Button hover on BoxShadow* (Random Game Button entry)
+            ChkSBIconShadow.IsChecked = button.TextShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            ShowColor(SBIconShadowColorPicker, TxtSBIconShadowColorHex, button.TextShadowColorHex ?? LayerRegistry.DefaultShadowColorHex);
+            TxtSBIconShadowBlur.Text = (button.TextShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtSBIconShadowDepth.Text = (button.TextShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+            ChkSBButtonShadow.IsChecked = button.BoxShadowEnabled ?? LayerRegistry.DefaultShadowEnabled;
+            ShowColor(SBButtonShadowColorPicker, TxtSBButtonShadowColorHex, button.BoxShadowColorHex ?? LayerRegistry.DefaultShadowColorHex);
+            TxtSBButtonShadowBlur.Text = (button.BoxShadowBlur ?? LayerRegistry.DefaultShadowBlur).ToString(CultureInfo.InvariantCulture);
+            TxtSBButtonShadowDepth.Text = (button.BoxShadowDepth ?? LayerRegistry.DefaultShadowDepth).ToString(CultureInfo.InvariantCulture);
+
+            // Border target (decision 97): a missing or unknown stored value shows as Both, without writing it back
+            if (CboSBBorderTarget.Items.Count == 0)
+            {
+                foreach (var choice in BorderTargetChoices) CboSBBorderTarget.Items.Add(choice.Label);
+            }
+            string target = LayerRegistry.NormalizeBorderTarget(button.BorderTarget);
+            CboSBBorderTarget.SelectedIndex = Math.Max(0, Array.FindIndex(BorderTargetChoices, c => c.Value == target));
+
             _loading = false;
+        }
+
+        // The Search & Buttons border target combo (decision 97): stored value and the label shown for it, in combo order
+        private static readonly (string Value, string Label)[] BorderTargetChoices =
+        {
+            (LayerRegistry.BorderTargetBoth, "Both (Search box and buttons)"),
+            (LayerRegistry.BorderTargetSearchBox, "Search box only"),
+            (LayerRegistry.BorderTargetButtons, "Buttons only")
+        };
+
+        // Does the border target pick: stores it on the Random Game Button entry (the shared button style) and repaints
+        private void CboSBBorderTarget_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null || SBButtonEntry is not LayerLayoutEntry entry) return;
+            int index = CboSBBorderTarget.SelectedIndex;
+            if (index < 0 || index >= BorderTargetChoices.Length) return;
+
+            entry.BorderTarget = BorderTargetChoices[index].Value;
+            RaiseGuides();
         }
 
         // Shows a stored color in a picker and its hex box without firing the picker's change handler
@@ -3320,6 +3358,24 @@ namespace ArcadeStick.Views
             RaiseGuides();
         }
 
+        // Does the Icon hover shadow toggle (decision 98): the Random Game Button entry's TextShadowEnabled
+        private void ChkSBIconShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || SBButtonEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextShadowEnabled = ChkSBIconShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
+        // Does the Button hover shadow toggle (decision 98): the Random Game Button entry's BoxShadowEnabled
+        private void ChkSBButtonShadow_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || SBButtonEntry is not LayerLayoutEntry entry) return;
+
+            entry.BoxShadowEnabled = ChkSBButtonShadow.IsChecked == true;
+            RaiseGuides();
+        }
+
         // Color pickers and hex boxes (label, box, buttons, hover border)
         private void SBLabelColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
             ApplyPickerColor(SBLabelColorPicker, TxtSBLabelColorHex, SBLabelEntry, (en, hex) => en.TextColorHex = hex);
@@ -3371,7 +3427,18 @@ namespace ArcadeStick.Views
         private void TxtSBHoverBorderColorHex_LostFocus(object sender, RoutedEventArgs e) =>
             ApplyHexColor(SBHoverBorderColorPicker, TxtSBHoverBorderColorHex, SBButtonEntry, en => en.HoverBorderColorHex ?? LayerRegistry.DefaultButtonHoverBorderColorHex, (en, hex) => en.HoverBorderColorHex = hex);
 
-        // One shared handler pair for the number fields: the three font sizes (6-72), the label's vertical nudge (-10 to 10) and the label shadow's blur (0-30) and depth (0-20)
+        private void SBIconShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBIconShadowColorPicker, TxtSBIconShadowColorHex, SBButtonEntry, (en, hex) => en.TextShadowColorHex = hex);
+        private void TxtSBIconShadowColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBIconShadowColorPicker, TxtSBIconShadowColorHex, SBButtonEntry, en => en.TextShadowColorHex ?? LayerRegistry.DefaultShadowColorHex, (en, hex) => en.TextShadowColorHex = hex);
+
+        private void SBButtonShadowColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(SBButtonShadowColorPicker, TxtSBButtonShadowColorHex, SBButtonEntry, (en, hex) => en.BoxShadowColorHex = hex);
+        private void TxtSBButtonShadowColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(SBButtonShadowColorPicker, TxtSBButtonShadowColorHex, SBButtonEntry, en => en.BoxShadowColorHex ?? LayerRegistry.DefaultShadowColorHex, (en, hex) => en.BoxShadowColorHex = hex);
+
+        // One shared handler pair for the number fields: the three font sizes (6-72), the label's vertical nudge (-10 to 10), and the
+        // blur (0-30) and depth (0-20) of the label shadow and the two button hover shadows
         private void SBField_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Enter) return;
@@ -3403,6 +3470,15 @@ namespace ArcadeStick.Views
                 box.TextFontSize = boxSize;
             if (int.TryParse(TxtSBButtonFontSize.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int buttonSize) && buttonSize >= 6 && buttonSize <= 72)
                 button.TextFontSize = buttonSize;
+            // Hover shadows (decision 98): blur 0-30 and depth 0-20, like every drop shadow (depth 0 is a glow)
+            if (int.TryParse(TxtSBIconShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int iconBlur) && iconBlur >= 0 && iconBlur <= 30)
+                button.TextShadowBlur = iconBlur;
+            if (int.TryParse(TxtSBIconShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int iconDepth) && iconDepth >= 0 && iconDepth <= 20)
+                button.TextShadowDepth = iconDepth;
+            if (int.TryParse(TxtSBButtonShadowBlur.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int bodyBlur) && bodyBlur >= 0 && bodyBlur <= 30)
+                button.BoxShadowBlur = bodyBlur;
+            if (int.TryParse(TxtSBButtonShadowDepth.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int bodyDepth) && bodyDepth >= 0 && bodyDepth <= 20)
+                button.BoxShadowDepth = bodyDepth;
 
             // Re-display the stored values (reverts invalid input) and re-apply the layout
             LoadSelectedLayerIntoFields();

@@ -947,6 +947,8 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <!-- Normal appearance: size, color, background -->
@@ -999,6 +1001,77 @@
                                     </Border>
                                     <TextBox x:Name="TxtSBButtonHoverBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonHoverBgColorHex_LostFocus"/>
                                 </StackPanel>
+
+                                <!-- Hover-only shadows (decision 98), each the compact Drop shadow group (110 | 8 | 52 | 8 | 52) under its heading.
+                                     Icon hover: on the icon only (the Random Game Button entry's TextShadow* fields). -->
+                                <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Icon hover" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,16,0,0"/>
+                                    <CheckBox x:Name="ChkSBIconShadow" Grid.Row="1" Grid.Column="0" Content="Drop shadow" Margin="0,6,0,3" VerticalAlignment="Center"
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkSBIconShadow_Click"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkSBIconShadow}">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                            <colorpicker:PortableColorPicker x:Name="SBIconShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBIconShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtSBIconShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBIconShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="TxtSBIconShadowBlur" Grid.Row="2" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBIconShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+                                    <TextBox x:Name="TxtSBIconShadowDepth" Grid.Row="2" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBIconShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+                                </Grid>
+
+                                <!-- Button hover: on the button body only, its fill and border ring, not the icon (BoxShadow* fields) -->
+                                <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Button hover" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,16,0,0"/>
+                                    <CheckBox x:Name="ChkSBButtonShadow" Grid.Row="1" Grid.Column="0" Content="Drop shadow" Margin="0,6,0,3" VerticalAlignment="Center"
+                                              Style="{StaticResource GLSubHeaderCheckBoxStyle}" Click="ChkSBButtonShadow_Click"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Blur:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="4" Text="Depth:" Style="{StaticResource GLLabelStyle}" Margin="0,6,0,3" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" IsEnabled="{Binding IsChecked, ElementName=ChkSBButtonShadow}">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                            <colorpicker:PortableColorPicker x:Name="SBButtonShadowColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="SBButtonShadowColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtSBButtonShadowColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtSBButtonShadowColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="TxtSBButtonShadowBlur" Grid.Row="2" Grid.Column="2" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBButtonShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+                                    <TextBox x:Name="TxtSBButtonShadowDepth" Grid.Row="2" Grid.Column="4" HorizontalContentAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=ChkSBButtonShadow}"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
+                                </Grid>
                             </Grid>
                         </ScrollViewer>
                     </TabItem>
@@ -2294,6 +2367,13 @@
                                 <TextBlock Text="State:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <ComboBox x:Name="CboRGBorderState" Width="200" Height="25"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGState_SelectionChanged"/>
+                            </StackPanel>
+                            <!-- Search & Buttons only (decision 97): which parts get the border below. Both (the default, the old
+                                 look), the search box only, or the four buttons only; size 0 turns both off. Items filled from code. -->
+                            <StackPanel x:Name="PnlSBBorderTarget" Margin="0,0,0,12" Visibility="Collapsed">
+                                <TextBlock Text="Border applies to:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <ComboBox x:Name="CboSBBorderTarget" Width="220" Height="25" HorizontalAlignment="Left"
+                                          Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBBorderTarget_SelectionChanged"/>
                             </StackPanel>
                             <!-- Column 0 holds the 26px swatch, a 4px gap and the 80px hex box (the 110px color group used on
                                  the other styling tabs); Size and Radius are 52px boxes in 52px columns, each after an 8px gap,

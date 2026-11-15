@@ -395,7 +395,16 @@
         "TextColorHex": "#FF00D4FF",
         "HoverColorHex": "#FF000000",
         "HoverBgColorHex": "#FF00D4FF",
-        "HoverBorderColorHex": "#FF00D4FF"
+        "HoverBorderColorHex": "#FF00D4FF",
+        "BorderTarget": "Both",
+        "TextShadowEnabled": false,
+        "TextShadowColorHex": "#FF000000",
+        "TextShadowBlur": 3,
+        "TextShadowDepth": 1,
+        "BoxShadowEnabled": false,
+        "BoxShadowColorHex": "#FF000000",
+        "BoxShadowBlur": 3,
+        "BoxShadowDepth": 1
       },
       {
         "Id": "SortButton",
@@ -881,7 +890,16 @@
         "TextColorHex": "#FF00D4FF",
         "HoverColorHex": "#FF000000",
         "HoverBgColorHex": "#FF00D4FF",
-        "HoverBorderColorHex": "#FF00D4FF"
+        "HoverBorderColorHex": "#FF00D4FF",
+        "BorderTarget": "Both",
+        "TextShadowEnabled": false,
+        "TextShadowColorHex": "#FF000000",
+        "TextShadowBlur": 3,
+        "TextShadowDepth": 1,
+        "BoxShadowEnabled": false,
+        "BoxShadowColorHex": "#FF000000",
+        "BoxShadowBlur": 3,
+        "BoxShadowDepth": 1
       },
       {
         "Id": "SortButton",

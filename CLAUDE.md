@@ -97,7 +97,7 @@ A new field on `LayerLayoutEntry` needs all of: the property (`JsonIgnore(WhenWr
 Do not use `RelativeSource AncestorType` bindings in TreeView row templates for values; row styling is **pushed** from the view model onto `TreeCategoryNode` / `GameItem` (ancestor walks froze the UI on 30k+ row folders). The folder and game row templates each have their own selected-row trigger; keep them in their own template. Shadow effects are built once per refresh, frozen and shared; never mutate them.
 
 ### Main window buttons
-Each of the four buttons is two layers: the outer Border holds the fill, the inner ring holds the border color and icon. Hover and resting colors are set from code; a new button style value must be applied to the correct layer in both `MainButton_MouseEnter` and `ApplyMainButtonRestingColors`.
+Each of the four buttons (themes.md decision 98) is an outer Border (the positioned, transparent mouse hit region with the tooltip and handlers) holding a Grid: the body Grid (the fill Border, then the border ring Border) and the icon TextBlock on top. `GetMainButtonParts` finds the parts by that shape. Hover and resting colors and the two hover shadows (Button hover on the body, Icon hover on the icon) are set from code; a new button style value must be applied to the correct part in both `MainButton_MouseEnter` and `ApplyMainButtonRestingColors`, and the resting method must clear anything hover-only.
 
 ### Game Info and other name-keyed handlers
 The Advanced tab's Game Info (and Marquee shadow) controls are found **by name** (`GI{Block}{Control}`) with a Tag-keyed shared handler table, gated per block. Follow the existing naming exactly.

@@ -619,7 +619,9 @@ namespace ArcadeStick
             var buttonEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomButton);
             string searchButtonsStyleKey = $"{searchLabelEntry?.TextFontSize}|{searchLabelEntry?.TextColorHex}|{searchLabelEntry?.BgColorHex}|{searchLabelEntry?.TextFontFamily}|{searchLabelEntry?.TextFontWeight}|{searchLabelEntry?.TextAlign}|{searchLabelEntry?.TextShadowEnabled}|{searchLabelEntry?.TextShadowColorHex}|{searchLabelEntry?.TextShadowBlur}|{searchLabelEntry?.TextShadowDepth}|{searchLabelEntry?.TextNudgeY}"
                 + $"|{searchBoxEntry?.TextFontSize}|{searchBoxEntry?.TextColorHex}|{searchBoxEntry?.BgColorHex}"
-                + $"|{buttonEntry?.TextFontSize}|{buttonEntry?.TextColorHex}|{buttonEntry?.BgColorHex}|{buttonEntry?.HoverColorHex}|{buttonEntry?.HoverBgColorHex}|{buttonEntry?.BorderSize}|{buttonEntry?.BorderColorHex}|{buttonEntry?.HoverBorderColorHex}|{buttonEntry?.CornerRadius}";
+                + $"|{buttonEntry?.TextFontSize}|{buttonEntry?.TextColorHex}|{buttonEntry?.BgColorHex}|{buttonEntry?.HoverColorHex}|{buttonEntry?.HoverBgColorHex}|{buttonEntry?.BorderSize}|{buttonEntry?.BorderColorHex}|{buttonEntry?.HoverBorderColorHex}|{buttonEntry?.CornerRadius}|{buttonEntry?.BorderTarget}"
+                + $"|{buttonEntry?.TextShadowEnabled}|{buttonEntry?.TextShadowColorHex}|{buttonEntry?.TextShadowBlur}|{buttonEntry?.TextShadowDepth}"
+                + $"|{buttonEntry?.BoxShadowEnabled}|{buttonEntry?.BoxShadowColorHex}|{buttonEntry?.BoxShadowBlur}|{buttonEntry?.BoxShadowDepth}";
             if (searchButtonsStyleKey != _lastSearchButtonsStyleKey)
             {
                 _lastSearchButtonsStyleKey = searchButtonsStyleKey;
@@ -4187,22 +4189,37 @@ namespace ArcadeStick
 
         // [SECTION: Main Window Buttons Hover]
         // The four main window buttons (Random, Sort, Options, Hamburger) share one style, read from the
-        // Random Game Button entry. Colors are pushed from code-behind rather than XAML triggers (the same
-        // direct-push convention as the games list rows). The sender is the button's Border; its Child is
-        // the icon TextBlock. A locally set BorderBrush replaces the XAML binding, so the resting refresh
-        // sets it explicitly too. The search box borrows only the resting border, through its binding.
+        // Random Game Button entry. Colors and hover effects are pushed from code-behind rather than XAML triggers
+        // (the same direct-push convention as the games list rows). Each button (decision 98) is an outer Border (the
+        // positioned hit region, transparent) holding a Grid: the body Grid (the fill Border, then the border ring Border)
+        // and the icon TextBlock on top. A locally set BorderBrush replaces the XAML binding, so the resting refresh sets it
+        // explicitly too. The search box borrows only the resting border, through its binding. The ring's border size is
+        // bound to ThemeMainWinBtnRingBorderSize, which is 0 when the border target excludes the buttons (decision 97), so the
+        // hover border color set here can never bring back an excluded border. The Button hover shadow is set on the body
+        // and the Icon hover shadow on the icon, only while hovered, so neither shadow includes the other's pixels.
 
-        // Applies the hover colors and border to the button under the mouse
+        // The parts of one main window button (decision 98)
+        private readonly record struct MainButtonParts(Grid Body, Border Fill, Border Ring, TextBlock Icon);
+
+        // Returns a button's body, fill, ring and icon (null if the markup ever changes shape, so nothing throws)
+        private static MainButtonParts? GetMainButtonParts(Border button)
+        {
+            if (button.Child is not Grid root || root.Children.Count < 2) return null;
+            if (root.Children[0] is not Grid body || body.Children.Count < 2) return null;
+            if (body.Children[0] is not Border fill || body.Children[1] is not Border ring || root.Children[1] is not TextBlock icon) return null;
+            return new MainButtonParts(body, fill, ring, icon);
+        }
+
+        // Applies the hover colors, border and the two hover shadows to the button under the mouse
         private void MainButton_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (sender is Border button)
+            if (sender is Border button && GetMainButtonParts(button) is MainButtonParts parts)
             {
-                // The button Border carries the fill. Once a button has its inner border ring (the corner fix),
-                // the ring is the child Border and holds the border color and the icon; until then the button itself does.
-                button.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
-                var ring = button.Child as Border ?? button;
-                ring.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColorHover);
-                if (ring.Child is TextBlock icon) icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
+                parts.Fill.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColorHover);
+                parts.Ring.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColorHover);
+                parts.Icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColorHover);
+                parts.Body.Effect = _viewModel.ThemeMainWinBtnHoverEffect;
+                parts.Icon.Effect = _viewModel.ThemeMainWinBtnIconHoverEffect;
             }
             DelayedTooltip_MouseEnter(sender, e);
         }
@@ -4225,15 +4242,15 @@ namespace ArcadeStick
             ApplyMainButtonRestingColors(BtnOpenMenuHamburger);
         }
 
-        // Applies the resting background, border and icon color to one button
+        // Applies the resting fill, border and icon color to one button and clears both hover shadows
         private void ApplyMainButtonRestingColors(Border button)
         {
-            // Same rule as the hover handler: the fill is on the button, the border color and icon are on the
-            // inner border ring when the button has one, otherwise on the button itself.
-            button.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
-            var ring = button.Child as Border ?? button;
-            ring.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColor);
-            if (ring.Child is TextBlock icon) icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
+            if (GetMainButtonParts(button) is not MainButtonParts parts) return;
+            parts.Fill.Background = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBgColor);
+            parts.Ring.BorderBrush = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnBorderColor);
+            parts.Icon.Foreground = MainViewModel.SafeConvertToBrush(_viewModel.ThemeMainWinBtnColor);
+            parts.Body.Effect = null;
+            parts.Icon.Effect = null;
         }
         // [END SECTION: Main Window Buttons Hover]
 

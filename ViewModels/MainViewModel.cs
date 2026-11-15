@@ -713,6 +713,28 @@ namespace ArcadeStick.ViewModels
         public string ThemeMainWinBtnBorderColorHover => GetLayerEntry(LayerRegistry.RandomButton).HoverBorderColorHex ?? LayerRegistry.DefaultButtonHoverBorderColorHex;
         public double ThemeMainWinBtnCornerRadius => GetLayerEntry(LayerRegistry.RandomButton).CornerRadius ?? LayerRegistry.DefaultButtonCornerRadius;
 
+        // The shared border size, applied per part by the border target (decision 97): 0 for a part the target excludes, so neither
+        // the resting nor the hover border color can show there. Size 0 turns both off whatever the target.
+        private string MainWinBorderTarget => LayerRegistry.NormalizeBorderTarget(GetLayerEntry(LayerRegistry.RandomButton).BorderTarget);
+        public double ThemeSearchBoxBorderSize => MainWinBorderTarget == LayerRegistry.BorderTargetButtons ? 0 : ThemeMainWinBtnBorderSize;
+        public double ThemeMainWinBtnRingBorderSize => MainWinBorderTarget == LayerRegistry.BorderTargetSearchBox ? 0 : ThemeMainWinBtnBorderSize;
+
+        // The two hover-only shadows (decision 98), read by MainWindow on mouse enter (null when off): Icon hover from the Random
+        // Game Button entry's TextShadow* fields (on the icon), Button hover from its BoxShadow* fields (on the body: fill and ring)
+        public System.Windows.Media.Effects.Effect? ThemeMainWinBtnIconHoverEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.RandomButton));
+        public System.Windows.Media.Effects.Effect? ThemeMainWinBtnHoverEffect
+        {
+            get
+            {
+                var entry = GetLayerEntry(LayerRegistry.RandomButton);
+                return BuildShadowEffect(
+                    entry.BoxShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
+                    entry.BoxShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
+                    entry.BoxShadowBlur ?? LayerRegistry.DefaultShadowBlur,
+                    entry.BoxShadowDepth ?? LayerRegistry.DefaultShadowDepth);
+            }
+        }
+
         // Re-raises the Search & Buttons forwarders after their entry values changed (a lighter path than
         // RefreshThemeBindings, used by MainWindow.ApplyLayout's style key).
         public void RefreshSearchButtonBindings()
@@ -737,6 +759,8 @@ namespace ArcadeStick.ViewModels
             OnPropertyChanged(nameof(ThemeMainWinBtnBorderColor));
             OnPropertyChanged(nameof(ThemeMainWinBtnBorderColorHover));
             OnPropertyChanged(nameof(ThemeMainWinBtnCornerRadius));
+            OnPropertyChanged(nameof(ThemeSearchBoxBorderSize));
+            OnPropertyChanged(nameof(ThemeMainWinBtnRingBorderSize));
         }
         // [END SECTION: Search & Buttons Forwarders]
 

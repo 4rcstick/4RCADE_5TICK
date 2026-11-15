@@ -199,6 +199,11 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? HoverBorderColorHex { get; set; }
 
+        // RandomButton entry only (decision 97): which parts get the shared Search & Buttons border, "Both" (the search box and
+        // the four buttons), "SearchBox" or "Buttons". Unknown or missing reads as Both. Size, color, radius and hover color stay shared.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? BorderTarget { get; set; }
+
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool? TextShadowEnabled { get; set; }
 
@@ -426,6 +431,7 @@ namespace ArcadeStick.Models
             HoverColorHex = source.HoverColorHex;
             HoverBgColorHex = source.HoverBgColorHex;
             HoverBorderColorHex = source.HoverBorderColorHex;
+            BorderTarget = source.BorderTarget;
             TextShadowEnabled = source.TextShadowEnabled;
             TextShadowColorHex = source.TextShadowColorHex;
             TextShadowBlur = source.TextShadowBlur;
@@ -891,8 +897,23 @@ namespace ArcadeStick.Models
                 if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = DefaultButtonBorderColorHex;
                 entry.CornerRadius ??= DefaultButtonCornerRadius;
                 if (string.IsNullOrWhiteSpace(entry.HoverBorderColorHex)) entry.HoverBorderColorHex = DefaultButtonHoverBorderColorHex;
+                if (!IsBorderTarget(entry.BorderTarget)) entry.BorderTarget = DefaultBorderTarget;
+
+                // Hover-only shadows (decision 98), off by default: Icon hover on TextShadow*, Button hover on BoxShadow*
+                FillTextShadowDefaults(entry);
+                entry.BoxShadowEnabled ??= DefaultShadowEnabled;
+                if (string.IsNullOrWhiteSpace(entry.BoxShadowColorHex)) entry.BoxShadowColorHex = DefaultShadowColorHex;
+                entry.BoxShadowBlur ??= DefaultShadowBlur;
+                entry.BoxShadowDepth ??= DefaultShadowDepth;
             }
         }
+
+        // Does the border target check: true for one of the three stored values (anything else reads as Both)
+        public static bool IsBorderTarget(string? target) =>
+            target == BorderTargetBoth || target == BorderTargetSearchBox || target == BorderTargetButtons;
+
+        // Returns the stored border target, or Both when it is missing or unknown (a theme saved before the setting existed)
+        public static string NormalizeBorderTarget(string? target) => IsBorderTarget(target) ? target! : DefaultBorderTarget;
 
         // Fills any missing Game Info style value from defaults. Title text on GameTitle, publisher text on
         // PublisherBlock, body text (Text*, its right margin included) and section headers (SectionHeader*) on GameInfoBody, and each nav's
@@ -1283,6 +1304,12 @@ namespace ArcadeStick.Models
         public const string DefaultPublisherAlign = "Right"; // the old hard-coded look
 
         // Marquee shadow target (LayerLayoutEntry.ShadowTarget): which marquee images the shadow applies to
+        // Search & Buttons border target (decision 97): Both keeps the old look (the search box and the four buttons)
+        public const string BorderTargetBoth = "Both";
+        public const string BorderTargetSearchBox = "SearchBox";
+        public const string BorderTargetButtons = "Buttons";
+        public const string DefaultBorderTarget = BorderTargetBoth;
+
         public const string ShadowTargetBoth = "Both";
         public const string ShadowTargetLogo = "Logo";
         public const string ShadowTargetMarquees = "Marquees";
