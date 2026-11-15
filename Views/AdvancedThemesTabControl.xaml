@@ -423,7 +423,7 @@
                                     <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <CheckBox x:Name="ChkGLFolderBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLFolderBold_Click"/>
                                 </StackPanel>
-                                <ComboBox x:Name="CboGLFolderFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="170" Height="25" HorizontalAlignment="Left"
+                                <ComboBox x:Name="CboGLFolderFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="190" Height="25" HorizontalAlignment="Left"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLFolderFont_SelectionChanged"/>
 
                                 <!-- Normal state: size, color (side by side) -->
@@ -576,7 +576,7 @@
                                     <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <CheckBox x:Name="ChkGLGameBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLGameBold_Click"/>
                                 </StackPanel>
-                                <ComboBox x:Name="CboGLGameFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="170" Height="25" HorizontalAlignment="Left"
+                                <ComboBox x:Name="CboGLGameFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="190" Height="25" HorizontalAlignment="Left"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLGameFont_SelectionChanged"/>
 
                                 <!-- Normal state: size, color (side by side) -->
@@ -725,15 +725,13 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Label: Font (with Bold beside its header) and Alignment, both combos on one row. Same columns as the
-                                     size / color / background row beneath (52 | 8 | 110 | 8 | 110): Font spans the size and color
-                                     columns (0 to 170, ending at the Color hex's right edge), Alignment fills the Background column (x 178). -->
+                                <!-- Label: Font (with Bold beside its header) and Alignment, both combos on one row (the Publisher
+                                     row's shape): Font 0 to 190 (the font combo width, so the longest family name fits), Alignment at
+                                     x 198, 20px right of the Background column beneath. -->
                                 <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Label" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="52"/>
-                                        <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="190"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
@@ -741,14 +739,14 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
+                                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="ChkSBLabelBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkSBLabelBold_Click"/>
                                     </StackPanel>
-                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
-                                    <ComboBox x:Name="CboSBLabelFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Width="170" Height="25" HorizontalAlignment="Left"
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
+                                    <ComboBox x:Name="CboSBLabelFont" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelFont_SelectionChanged"/>
-                                    <ComboBox x:Name="CboSBLabelAlign" Grid.Row="1" Grid.Column="4" Width="110" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="CboSBLabelAlign" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelAlign_SelectionChanged"/>
                                 </Grid>
 
@@ -976,7 +974,7 @@
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="GITitleBold" Tag="Title" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="GITitleFont" Tag="Title" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="170" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="GITitleFont" Tag="Title" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="190" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
 
                                     <!-- Size, color (side by side) -->
@@ -1059,10 +1057,11 @@
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Publisher, Year, Rating" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
                                     <!-- Font (with Bold beside its header) and Alignment of all five publisher lines (Left / Center / Right);
-                                         the Font combo ends at 170 and the Alignment combo starts at the Depth edge (x 178) -->
+                                         the Font combo ends at 190 (the font combo width, so the longest family name fits) and the
+                                         Alignment combo starts at x 198 -->
                                     <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="170"/>
+                                            <ColumnDefinition Width="190"/>
                                             <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -1075,7 +1074,7 @@
                                             <CheckBox x:Name="GIPublisherBold" Tag="Publisher" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                         </StackPanel>
                                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
-                                        <ComboBox x:Name="GIPublisherFont" Tag="Publisher" Grid.Row="1" Grid.Column="0" Width="170" Height="25" HorizontalAlignment="Left"
+                                        <ComboBox x:Name="GIPublisherFont" Tag="Publisher" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
                                                   Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
                                         <ComboBox x:Name="GIPublisherAlign" Tag="Publisher" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
                                                   Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIAlign_SelectionChanged"/>
@@ -1235,7 +1234,7 @@
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="GIInfoHeaderBold" Tag="InfoHeader" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="GIInfoHeaderFont" Tag="InfoHeader" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="170" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="GIInfoHeaderFont" Tag="InfoHeader" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="190" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
 
                                     <!-- Size, color (side by side) -->
@@ -1316,7 +1315,7 @@
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="GIInfoBodyBold" Tag="InfoBody" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="GIInfoBodyFont" Tag="InfoBody" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="170" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="GIInfoBodyFont" Tag="InfoBody" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="190" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
 
                                     <!-- Size, color (side by side) -->
@@ -1459,7 +1458,7 @@
                                         <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="GIPlayButtonBold" Tag="PlayButton" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="GIPlayButtonFont" Tag="PlayButton" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="170" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="GIPlayButtonFont" Tag="PlayButton" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="190" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
 
                                     <!-- Size, color (side by side) -->
@@ -1942,11 +1941,12 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Font (with Bold beside its header) and Alignment (with Wrap text beside its header; wrap at the box
-                                     width, shared by both states), both combos on one row. Unequal columns: 170 for Font, Auto for
-                                     Alignment (as wide as its header and checkbox, at least the 110 combo), which starts at x 178. -->
+                                     width, shared by both states), both combos on one row. Unequal columns: 190 for Font (the font
+                                     combo width, so the longest family name fits), Auto for Alignment (as wide as its header and
+                                     checkbox, at least the 110 combo), which starts at x 198. -->
                                 <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="170"/>
+                                        <ColumnDefinition Width="190"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
@@ -1962,7 +1962,7 @@
                                         <TextBlock Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                         <CheckBox x:Name="ChkRGWrap" Content="Wrap text" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGWrap_Click"/>
                                     </StackPanel>
-                                    <ComboBox x:Name="CboRGFont" Grid.Row="1" Grid.Column="0" Width="170" Height="25" HorizontalAlignment="Left"
+                                    <ComboBox x:Name="CboRGFont" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGFont_SelectionChanged"/>
                                     <ComboBox x:Name="CboRGAlign" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGAlign_SelectionChanged"/>
@@ -2305,13 +2305,13 @@
                                 <CheckBox x:Name="ChkBannerPreview" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Content="Preview text marquee"
                                           Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerPreview_Click"/>
 
-                                <!-- Font header with Bold beside it, the font combo beneath (170 wide, so it ends at the Max size box's
-                                     right edge below) -->
+                                <!-- Font header with Bold beside it, the font combo beneath (190 wide, the font combo width, so the
+                                     longest family name fits; it runs 20px past the Max size box's right edge below) -->
                                 <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,10,0,3">
                                     <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
                                     <CheckBox x:Name="ChkBannerBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerBold_Click"/>
                                 </StackPanel>
-                                <ComboBox x:Name="CboBannerFont" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" Width="170" Height="25" HorizontalAlignment="Left"
+                                <ComboBox x:Name="CboBannerFont" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" Width="190" Height="25" HorizontalAlignment="Left"
                                           Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboBannerFont_SelectionChanged"/>
 
                                 <!-- Color, then max size (6 to 200, inside the card's 400x100 reference box); the max size box sits in

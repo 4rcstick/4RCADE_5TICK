@@ -294,6 +294,23 @@
             </Setter>
         </Style>
 
+        <!-- A non-selectable divider row inside a ChromeComboBoxStyle dropdown (the font family groups). Set explicitly on a
+             ComboBoxItem built in code, so the combo's ItemContainerStyle does not replace it; disabled, so mouse, arrow
+             keys and the wheel skip it; empty search text, so typing never lands on it. -->
+        <Style x:Key="ChromeComboBoxDividerItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="IsEnabled" Value="False"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="TextSearch.Text" Value=""/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border Height="1" Margin="4,3,4,3" Background="{StaticResource ChromeBorder}" SnapsToDevicePixels="True"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ChromeComboBoxStyle" TargetType="ComboBox">
             <Setter Property="Background" Value="{StaticResource ChromeBg}"/>
             <Setter Property="Foreground" Value="{StaticResource ChromeText}"/>

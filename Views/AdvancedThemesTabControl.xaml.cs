@@ -302,6 +302,19 @@ namespace ArcadeStick.Views
                 entry.Z = z;
             }
         }
+
+        // Does the one-time fill of a font family combo: the registry's groups in order, a non-selectable divider row
+        // between groups. Only the family names are strings, so SelectedItem stays a family name.
+        private void FillFontCombo(ComboBox combo)
+        {
+            if (combo.Items.Count > 0) return;
+            var dividerStyle = (Style)FindResource("ChromeComboBoxDividerItemStyle");
+            for (int i = 0; i < LayerRegistry.AvailableFontGroups.Count; i++)
+            {
+                if (i > 0) combo.Items.Add(new ComboBoxItem { Style = dividerStyle });
+                foreach (string font in LayerRegistry.AvailableFontGroups[i]) combo.Items.Add(font);
+            }
+        }
         // [END SECTION: Layout Helpers]
 
         // [SECTION: Layer List]
@@ -2323,10 +2336,7 @@ namespace ArcadeStick.Views
             finally { _suppressGLColorSync = false; }
 
             // Font dropdown: filled once from the registry's font list, then set to the saved family
-            if (CboGLFolderFont.Items.Count == 0)
-            {
-                foreach (string font in LayerRegistry.AvailableFonts) CboGLFolderFont.Items.Add(font);
-            }
+            FillFontCombo(CboGLFolderFont);
             string family = string.IsNullOrWhiteSpace(entry.FolderFontFamily) ? LayerRegistry.DefaultFontFamily : entry.FolderFontFamily;
             CboGLFolderFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
             ChkGLFolderBold.IsChecked = entry.FolderBold ?? LayerRegistry.DefaultFolderBold;
@@ -2355,10 +2365,7 @@ namespace ArcadeStick.Views
             catch { }
             finally { _suppressGLColorSync = false; }
 
-            if (CboGLGameFont.Items.Count == 0)
-            {
-                foreach (string font in LayerRegistry.AvailableFonts) CboGLGameFont.Items.Add(font);
-            }
+            FillFontCombo(CboGLGameFont);
             string gameFamily = string.IsNullOrWhiteSpace(entry.GameFontFamily) ? LayerRegistry.DefaultFontFamily : entry.GameFontFamily;
             CboGLGameFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(gameFamily) ? gameFamily : LayerRegistry.DefaultFontFamily;
             ChkGLGameBold.IsChecked = entry.GameBold ?? LayerRegistry.DefaultGameBold;
@@ -3079,10 +3086,7 @@ namespace ArcadeStick.Views
 
             _loading = true;
 
-            if (CboSBLabelFont.Items.Count == 0)
-            {
-                foreach (string font in LayerRegistry.AvailableFonts) CboSBLabelFont.Items.Add(font);
-            }
+            FillFontCombo(CboSBLabelFont);
             string family = string.IsNullOrWhiteSpace(label.TextFontFamily) ? LayerRegistry.DefaultFontFamily : label.TextFontFamily;
             CboSBLabelFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
             ChkSBLabelBold.IsChecked = label.TextBold ?? LayerRegistry.DefaultSearchLabelBold;
@@ -3341,10 +3345,7 @@ namespace ArcadeStick.Views
 
             TxtRGMessage.Text = entry.TextMessage ?? LayerRegistry.DefaultRandomDisplayMessage;
 
-            if (CboRGFont.Items.Count == 0)
-            {
-                foreach (string font in LayerRegistry.AvailableFonts) CboRGFont.Items.Add(font);
-            }
+            FillFontCombo(CboRGFont);
             string family = string.IsNullOrWhiteSpace(entry.TextFontFamily) ? LayerRegistry.DefaultFontFamily : entry.TextFontFamily;
             CboRGFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
             ChkRGBold.IsChecked = entry.TextBold ?? LayerRegistry.DefaultRandomDisplayBold;
@@ -3575,10 +3576,7 @@ namespace ArcadeStick.Views
 
             _loading = true;
 
-            if (CboBannerFont.Items.Count == 0)
-            {
-                foreach (string font in LayerRegistry.AvailableFonts) CboBannerFont.Items.Add(font);
-            }
+            FillFontCombo(CboBannerFont);
             string family = string.IsNullOrWhiteSpace(entry.TextFontFamily) ? LayerRegistry.DefaultFontFamily : entry.TextFontFamily;
             CboBannerFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
             ChkBannerBold.IsChecked = entry.TextBold ?? LayerRegistry.DefaultBannerBold;
@@ -4008,10 +4006,7 @@ namespace ArcadeStick.Views
 
                 if (def.HasFont && GIControl<ComboBox>(block, "Font") is ComboBox fontCombo && GIControl<CheckBox>(block, "Bold") is CheckBox boldCheck)
                 {
-                    if (fontCombo.Items.Count == 0)
-                    {
-                        foreach (string font in LayerRegistry.AvailableFonts) fontCombo.Items.Add(font);
-                    }
+                    FillFontCombo(fontCombo);
                     string family = string.IsNullOrWhiteSpace(style.FontFamily) ? def.DefaultFamily : style.FontFamily;
                     fontCombo.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : def.DefaultFamily;
                     boldCheck.IsChecked = style.Bold ?? def.DefaultBold;

@@ -1282,15 +1282,36 @@ namespace ArcadeStick.Models
         public const string DefaultStarSolidColorHex = "#FFFFD60A";
         public const string DefaultStarOutlineColorHex = "#FFA0A0A2";
 
-        // Windows core fonts offered in the Advanced tab's font dropdown (all ship with Windows 10 and 11).
-        // Segoe UI is also the fallback when a theme has no saved family.
-        public static readonly IReadOnlyList<string> AvailableFonts = new List<string>
+        // Windows 10 standard desktop fonts offered in the Advanced tab's font dropdowns, in display order: Sans Serif,
+        // Serif, Monospace, alphabetical inside each group (the dropdown draws a divider between groups, no headings).
+        // Script and decorative faces sit with the group their letterforms match: the handwriting faces (Ink Free,
+        // MV Boli, Segoe Print, Segoe Script) and Comic Sans MS have no serifs, so Sans Serif; Gabriola is a
+        // calligraphic face with serif-like stroke endings, so Serif. Fonts are never bundled. Segoe UI is also the
+        // fallback when a theme has no saved family; a saved family that is not installed falls to WPF's own font fallback.
+        public static readonly IReadOnlyList<IReadOnlyList<string>> AvailableFontGroups = new List<IReadOnlyList<string>>
         {
-            "Segoe UI", "Arial", "Bahnschrift",
-            "Georgia", "Times New Roman", "Palatino Linotype",
-            "Impact", "Arial Black", "Segoe UI Black",
-            "Consolas", "Courier New"
+            // Sans Serif
+            new List<string>
+            {
+                "Arial", "Arial Black", "Bahnschrift", "Calibri", "Candara", "Comic Sans MS", "Corbel", "Ebrima",
+                "Franklin Gothic Medium", "Ink Free", "MV Boli", "Segoe Print", "Segoe Script", "Segoe UI",
+                "Segoe UI Black", "Tahoma", "Trebuchet MS", "Verdana"
+            },
+            // Serif
+            new List<string>
+            {
+                "Cambria", "Constantia", "Gabriola", "Georgia", "Palatino Linotype", "Sitka Banner", "Sitka Display",
+                "Sitka Heading", "Sitka Small", "Sitka Subheading", "Sitka Text", "Times New Roman"
+            },
+            // Monospace
+            new List<string>
+            {
+                "Consolas", "Courier New"
+            }
         };
+
+        // Every family in AvailableFontGroups, in display order (the saved-value check the font loaders use)
+        public static readonly IReadOnlyList<string> AvailableFonts = AvailableFontGroups.SelectMany(group => group).ToList();
     }
     // [END SECTION: Layer Registry]
 }
