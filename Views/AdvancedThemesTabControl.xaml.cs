@@ -1535,9 +1535,68 @@ namespace ArcadeStick.Views
             TxtLayerWidth.Text = Fmt(entry.Width);
             TxtLayerHeight.Text = Fmt(entry.Height);
             ChkLayerHidden.IsChecked = !entry.Visible;
+
+            // Games List only: Top Offset, Top Clip and Bottom Clip under X / Y / Width / Height
+            bool isGamesList = entry.Id == LayerRegistry.GamesList;
+            PnlGamesListInsets.Visibility = isGamesList ? Visibility.Visible : Visibility.Collapsed;
+            if (isGamesList)
+            {
+                TxtGamesListTopOffset.Text = (entry.GamesListTopOffset ?? LayerRegistry.DefaultGamesListInset).ToString(CultureInfo.InvariantCulture);
+                TxtGamesListTopClip.Text = (entry.GamesListTopClip ?? LayerRegistry.DefaultGamesListInset).ToString(CultureInfo.InvariantCulture);
+                TxtGamesListBottomClip.Text = (entry.GamesListBottomClip ?? LayerRegistry.DefaultGamesListInset).ToString(CultureInfo.InvariantCulture);
+            }
             _loading = false;
             RaiseGuides();
         }
+
+        // [SECTION: Games List Insets]
+        // Applies a Games List Top Offset / Top Clip / Bottom Clip box (Tag names the field) on Enter
+        private void GamesListInset_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && sender is TextBox box) ApplyGamesListInset(box);
+        }
+
+        // Applies a Games List Top Offset / Top Clip / Bottom Clip box on focus loss
+        private void GamesListInset_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox box) ApplyGamesListInset(box);
+        }
+
+        // Does one inset edit (decision 96): a whole number 0 to 200 is stored on the field the box's Tag names and repainted;
+        // anything else reverts to the stored value. The 40px visible-height guard is applied when drawing, never here.
+        private void ApplyGamesListInset(TextBox box)
+        {
+            if (_loading || _settings == null) return;
+            if (SingleSelectedLayer is not LayerListItem sel || sel.Id != LayerRegistry.GamesList) return;
+            if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
+
+            string field = box.Tag as string ?? "";
+            int stored = (field switch
+            {
+                "TopOffset" => entry.GamesListTopOffset,
+                "TopClip" => entry.GamesListTopClip,
+                "BottomClip" => entry.GamesListBottomClip,
+                _ => null
+            }) ?? LayerRegistry.DefaultGamesListInset;
+
+            if (int.TryParse(box.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+                && value >= LayerRegistry.MinGamesListInset && value <= LayerRegistry.MaxGamesListInset)
+            {
+                box.Text = value.ToString(CultureInfo.InvariantCulture);
+                if (value == stored) return;
+                switch (field)
+                {
+                    case "TopOffset": entry.GamesListTopOffset = value; break;
+                    case "TopClip": entry.GamesListTopClip = value; break;
+                    case "BottomClip": entry.GamesListBottomClip = value; break;
+                    default: return;
+                }
+                RaiseGuides();
+                return;
+            }
+            box.Text = stored.ToString(CultureInfo.InvariantCulture);
+        }
+        // [END SECTION: Games List Insets]
 
         // [SECTION: Group Edit Page]
         // Shows a grouped layer (Search & Buttons, Game Info, Random Game Display): one section per part, all visible
@@ -1549,6 +1608,7 @@ namespace ArcadeStick.Views
             PnlLayerFields.Visibility = Visibility.Visible;
             TxtLayerName.Text = group.DisplayName;
             PnlRectFields.Visibility = Visibility.Collapsed;
+            PnlGamesListInsets.Visibility = Visibility.Collapsed;
 
             ChkLayerHidden.Visibility = Visibility.Collapsed;
             PnlVisibilityMode.Visibility = Visibility.Collapsed;

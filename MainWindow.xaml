@@ -558,6 +558,10 @@
                                 <Setter.Value>
                                     <ControlTemplate TargetType="TreeViewItem">
                                         <StackPanel>
+                                            <!-- Games List Top Offset (decision 96): empty space above the first top-level folder row only,
+                                                 so it scrolls away with the rows (ListTopSpacer is 0 on every other row, and always 0 on
+                                                 game rows). Above the arrow / header grid, so the arrow and the row move down together. -->
+                                            <Border Height="{Binding ListTopSpacer}" IsHitTestVisible="False"/>
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="20"/>

@@ -430,6 +430,77 @@ namespace ArcadeStick
                 e?.GameInfoScrollTrackColorHex, e?.GameInfoScrollTrackHoverColorHex);
         }
 
+        // The Games List clips last applied (effective px, after the visible-height guard), and whether a Loaded hook is waiting
+        private double _gamesListTopClip;
+        private double _gamesListBottomClip;
+        private bool _gamesListInsetsPending;
+
+        // Does the Games List Top Offset, Top Clip and Bottom Clip (decision 96, themes.md 3.6). The clips are the top and bottom
+        // Margin of the content area (ScrollContentPresenter) of GameTree's own ScrollViewer: rows disappear at those fixed lines and
+        // the visible height shrinks, while the scrollbar (its own template column, full height) and GamesListHost's rect stay as they
+        // are. The shared scrollbar template is not edited or copied. The clips are reduced (Bottom Clip first, then Top Clip) so at
+        // least MinGamesListVisibleHeight of rows stays visible when the list is tall enough; the stored values are not changed. Top
+        // Offset is measured from the original top edge too: the first top-level folder row gets a spacer of Offset - Top Clip
+        // (never negative, so a smaller offset starts the first row at the clip line), which scrolls away with the rows.
+        private void ApplyGamesListInsets(Models.LayerLayoutEntry? entry)
+        {
+            static double Stored(int? value) =>
+                Math.Clamp(value ?? Models.LayerRegistry.DefaultGamesListInset, Models.LayerRegistry.MinGamesListInset, Models.LayerRegistry.MaxGamesListInset);
+
+            double top = Stored(entry?.GamesListTopClip);
+            double bottom = Stored(entry?.GamesListBottomClip);
+            double room = (entry?.Height ?? 0) - Models.LayerRegistry.MinGamesListVisibleHeight;
+            if (room <= 0)
+            {
+                top = 0;
+                bottom = 0;
+            }
+            else if (top + bottom > room)
+            {
+                double excess = top + bottom - room;
+                double fromBottom = Math.Min(bottom, excess);
+                bottom -= fromBottom;
+                top = Math.Max(0, top - (excess - fromBottom));
+            }
+            _gamesListTopClip = top;
+            _gamesListBottomClip = bottom;
+
+            _viewModel.SetGamesListTopSpacer(Math.Max(0, Stored(entry?.GamesListTopOffset) - top));
+
+            if (FindGamesListContentArea() is ScrollContentPresenter presenter)
+            {
+                SetGamesListContentMargin(presenter);
+                return;
+            }
+            if (_gamesListInsetsPending) return;
+            _gamesListInsetsPending = true;
+            GameTree.Loaded += GameTree_LoadedApplyInsets;
+        }
+
+        // Does the deferred apply once GameTree's template is built
+        private void GameTree_LoadedApplyInsets(object sender, RoutedEventArgs e)
+        {
+            GameTree.Loaded -= GameTree_LoadedApplyInsets;
+            _gamesListInsetsPending = false;
+            if (FindGamesListContentArea() is ScrollContentPresenter presenter) SetGamesListContentMargin(presenter);
+        }
+
+        // Does the margin write on the content area (only when it changed)
+        private void SetGamesListContentMargin(ScrollContentPresenter presenter)
+        {
+            var margin = new Thickness(0, _gamesListTopClip, 0, _gamesListBottomClip);
+            if (presenter.Margin != margin) presenter.Margin = margin;
+        }
+
+        // Returns the content area of GameTree's own ScrollViewer (null until its templates are built)
+        private ScrollContentPresenter? FindGamesListContentArea()
+        {
+            if (FindVisualChild<ScrollViewer>(GameTree) is not ScrollViewer scrollViewer) return null;
+            return FindVisualChild<ScrollContentPresenter>(scrollViewer) is ScrollContentPresenter presenter && presenter.TemplatedParent == scrollViewer
+                ? presenter
+                : null;
+        }
+
         // Positions every layer on LayoutCanvas from the active resolution's layout (saved entries plus
         // registry defaults for anything missing). Runs at startup and on every ThemeBindingsRefreshed,
         // so Save Adjustments and theme loads reposition live. The window itself sizes to the canvas
@@ -615,6 +686,9 @@ namespace ArcadeStick
                 _lastScrollbarOverrideKey = scrollbarOverrideKey;
                 ApplyScrollbarOverrides(scrollEntry);
             }
+
+            // Games List Top Offset, Top Clip and Bottom Clip (decision 96; each write happens only on a change)
+            ApplyGamesListInsets(gamesListEntry);
 
             LayoutCanvas.Width = width;
             LayoutCanvas.Height = height;
@@ -2864,8 +2938,10 @@ namespace ArcadeStick
                     var scrollViewer = FindVisualChild<ScrollViewer>(GameTree);
                     if (scrollViewer != null)
                     {
+                        // The row's position inside the viewport, which starts at the Top Clip line; ViewportHeight already excludes
+                        // both clips and the Top Offset spacer is inside the rows (decision 96)
                         Point relativePosition = selectedContainer.TransformToAncestor(scrollViewer).Transform(new Point(0, 0));
-                        double targetOffset = scrollViewer.VerticalOffset + relativePosition.Y
+                        double targetOffset = scrollViewer.VerticalOffset + relativePosition.Y - _gamesListTopClip
                             - (scrollViewer.ViewportHeight / 2) + (selectedContainer.ActualHeight / 2);
                         scrollViewer.ScrollToVerticalOffset(targetOffset);
                     }
@@ -4509,8 +4585,10 @@ namespace ArcadeStick
                         var scrollViewer = FindVisualChild<ScrollViewer>(GameTree);
                         if (scrollViewer != null)
                         {
+                            // The row's position inside the viewport, which starts at the Top Clip line; ViewportHeight already excludes
+                            // both clips and the Top Offset spacer is inside the rows (decision 96)
                             Point relativePosition = winnerContainer.TransformToAncestor(scrollViewer).Transform(new Point(0, 0));
-                            double targetOffset = scrollViewer.VerticalOffset + relativePosition.Y
+                            double targetOffset = scrollViewer.VerticalOffset + relativePosition.Y - _gamesListTopClip
                                 - (scrollViewer.ViewportHeight / 2) + (winnerContainer.ActualHeight / 2);
                             scrollViewer.ScrollToVerticalOffset(targetOffset);
                         }

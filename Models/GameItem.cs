@@ -180,6 +180,10 @@ namespace ArcadeStick.Models
             }
         }
 
+        // Games List Top Offset spacer height (decision 96): always 0 on game rows. It exists because game rows share the
+        // TreeViewItem template whose spacer Border binds it; only the first top-level folder row ever has a spacer.
+        public double ListTopSpacer => 0;
+
         // Drop shadow on the game title text and mouse dot, pushed from MainViewModel. Null = no shadow.
         // The same frozen effect object is shared by every game row.
         private System.Windows.Media.Effects.Effect? _gameTextEffect;

@@ -187,6 +187,8 @@ namespace ArcadeStick.ViewModels
 
             GamesCollection = new ObservableCollection<GameItem>();
             TreeNodesCollection = new ObservableCollection<TreeCategoryNode>();
+            // The Top Offset spacer follows whichever folder is first (rebuilds, search results, FAVORITES added or removed)
+            TreeNodesCollection.CollectionChanged += (_, _) => ApplyGamesListTopSpacer();
 
             RefreshCacheCommand = new RelayCommand(async _ => await InitializeDatabaseAsync());
             LaunchGameCommand = new RelayCommand(async param => await ExecuteLaunchAsync(param));
@@ -1365,6 +1367,29 @@ namespace ArcadeStick.ViewModels
             RefreshFolderColorsLive();
             ThemeBindingsRefreshed?.Invoke();
         }
+
+        // [SECTION: Games List Top Offset]
+        // The Top Offset spacer height (px) MainWindow.ApplyGamesListInsets computed: Top Offset minus the effective Top Clip, never
+        // negative (decision 96)
+        private double _gamesListTopSpacer;
+
+        // Does the spacer update from MainWindow: stores the height and re-applies it only when it changed
+        public void SetGamesListTopSpacer(double height)
+        {
+            if (_gamesListTopSpacer == height) return;
+            _gamesListTopSpacer = height;
+            ApplyGamesListTopSpacer();
+        }
+
+        // Does the spacer push (decision 96): the first top-level folder gets the spacer height, every other top-level folder 0.
+        // Runs whenever TreeNodesCollection changes, so it follows the first folder through rebuilds, search results and the
+        // FAVORITES folder being added or removed. Only sets a number on the nodes; never rebuilds the tree.
+        private void ApplyGamesListTopSpacer()
+        {
+            for (int i = 0; i < TreeNodesCollection.Count; i++)
+                TreeNodesCollection[i].ListTopSpacer = i == 0 ? _gamesListTopSpacer : 0;
+        }
+        // [END SECTION: Games List Top Offset]
 
         // Walks the existing tree in-place and reapplies the folder color from the current theme (folders with their own color file are left alone).
         // Does NOT rebuild the tree (that would lose expand state) - see project notes on RefreshFolderColorsLive.

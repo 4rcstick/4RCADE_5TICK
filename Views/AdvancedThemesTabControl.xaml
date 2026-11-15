@@ -369,6 +369,33 @@
                                     <TextBlock Grid.Row="1" Grid.Column="6" Text="Height" HorizontalAlignment="Center" Style="{StaticResource GLLabelStyle}" Margin="0,3,0,0"/>
                                 </Grid>
 
+                                <!-- Games List only (decision 96): Top Offset (space before the first row, scrolls away), Top Clip and
+                                     Bottom Clip (fixed lines where rows disappear) on one row, labels above their 52px boxes at x 0, 118
+                                     and 236 (columns 110 | 8 | 110 | 8 | *). Whole numbers 0 to 200, applied on Enter or focus loss;
+                                     invalid input reverts. The trailing * column lets the last label run past its 52px box. -->
+                                <Grid x:Name="PnlGamesListInsets" Margin="0,0,0,12" Visibility="Collapsed">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Top Offset (px)" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Top Clip (px)" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Bottom Clip (px)" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBox x:Name="TxtGamesListTopOffset" Tag="TopOffset" Grid.Row="1" Grid.Column="0" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GamesListInset_LostFocus" KeyDown="GamesListInset_KeyDown"/>
+                                    <TextBox x:Name="TxtGamesListTopClip" Tag="TopClip" Grid.Row="1" Grid.Column="2" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GamesListInset_LostFocus" KeyDown="GamesListInset_KeyDown"/>
+                                    <TextBox x:Name="TxtGamesListBottomClip" Tag="BottomClip" Grid.Row="1" Grid.Column="4" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="GamesListInset_LostFocus" KeyDown="GamesListInset_KeyDown"/>
+                                </Grid>
+
                                 <!-- Group move: for groups that allow it (Search & Buttons, Game Info), an X or Y edit on one
                                      part moves every part by the same amount. Session-only, like the ratio lock. -->
                                 <CheckBox x:Name="ChkGroupMove" Content="Move all parts together" HorizontalAlignment="Left" Margin="0,0,0,8"

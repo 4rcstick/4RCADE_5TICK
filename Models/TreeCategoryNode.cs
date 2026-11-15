@@ -71,6 +71,22 @@ namespace ArcadeStick.Models
             }
         }
 
+        // Height of the Games List Top Offset spacer above this row (decision 96). MainViewModel.ApplyGamesListTopSpacer sets it on
+        // the first top-level folder only (0 everywhere else); the row template's spacer Border binds it, so it scrolls with the rows.
+        private double _listTopSpacer;
+        public double ListTopSpacer
+        {
+            get => _listTopSpacer;
+            set
+            {
+                if (_listTopSpacer != value)
+                {
+                    _listTopSpacer = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         // Margin of the expand/collapse arrow: the template's original 2,2,0,0 with the theme's vertical
         // nudge added to the top (positive moves the arrow down).
         private System.Windows.Thickness _arrowMargin = new System.Windows.Thickness(2, 2, 0, 0);

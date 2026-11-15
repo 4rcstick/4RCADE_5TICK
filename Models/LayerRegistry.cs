@@ -55,6 +55,19 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? ArrowNudgeY { get; set; }
 
+        // Games List only (px, 0 to 200 each, decision 96), all measured from the list's original edges inside its rect; the
+        // scrollbar keeps its full track. Top Offset: space before the first row that scrolls away with the rows (a spacer on the
+        // first top-level folder row). Top Clip / Bottom Clip: fixed boundaries where the rows disappear (the content area's
+        // margin, set by MainWindow.ApplyGamesListInsets).
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GamesListTopOffset { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GamesListTopClip { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GamesListBottomClip { get; set; }
+
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? GameFontSize { get; set; }
 
@@ -371,6 +384,9 @@ namespace ArcadeStick.Models
             FolderBold = source.FolderBold; // old value, kept so an unresolved copy can still derive its weight
             ArrowColorHex = source.ArrowColorHex;
             ArrowNudgeY = source.ArrowNudgeY;
+            GamesListTopOffset = source.GamesListTopOffset;
+            GamesListTopClip = source.GamesListTopClip;
+            GamesListBottomClip = source.GamesListBottomClip;
             GameFontSize = source.GameFontSize;
             GameColorHex = source.GameColorHex;
             GameSelectedColorHex = source.GameSelectedColorHex;
@@ -751,6 +767,9 @@ namespace ArcadeStick.Models
                     entry.FolderFontWeight = DefaultFolderFontWeight;
                     entry.ArrowColorHex = DefaultArrowColorHex;
                     entry.ArrowNudgeY = DefaultArrowNudgeY;
+                    entry.GamesListTopOffset = DefaultGamesListInset;
+                    entry.GamesListTopClip = DefaultGamesListInset;
+                    entry.GamesListBottomClip = DefaultGamesListInset;
                     entry.GameFontSize = DefaultGameFontSize;
                     entry.GameColorHex = DefaultGameColorHex;
                     entry.GameSelectedColorHex = DefaultGameSelectedColorHex;
@@ -1090,6 +1109,9 @@ namespace ArcadeStick.Models
                     entry.FolderBold = null;
                     if (string.IsNullOrWhiteSpace(entry.ArrowColorHex)) entry.ArrowColorHex = DefaultArrowColorHex;
                     entry.ArrowNudgeY ??= DefaultArrowNudgeY;
+                    entry.GamesListTopOffset ??= DefaultGamesListInset;
+                    entry.GamesListTopClip ??= DefaultGamesListInset;
+                    entry.GamesListBottomClip ??= DefaultGamesListInset;
                     entry.GameFontSize ??= DefaultGameFontSize;
                     if (string.IsNullOrWhiteSpace(entry.GameColorHex)) entry.GameColorHex = DefaultGameColorHex;
                     if (string.IsNullOrWhiteSpace(entry.GameSelectedColorHex)) entry.GameSelectedColorHex = DefaultGameSelectedColorHex;
@@ -1205,6 +1227,12 @@ namespace ArcadeStick.Models
         public const int DefaultFolderFontWeight = BoldFontWeight;
         public const string DefaultArrowColorHex = "#FFA0A0A2";
         public const int DefaultArrowNudgeY = 0;
+        // Games List Top Offset, Top Clip and Bottom Clip (decision 96): whole numbers 0 to 200, 0 keeps the list as it was.
+        // The clips are reduced when drawn (Bottom Clip first) so at least MinGamesListVisibleHeight of rows stays visible.
+        public const int DefaultGamesListInset = 0;
+        public const int MinGamesListInset = 0;
+        public const int MaxGamesListInset = 200;
+        public const double MinGamesListVisibleHeight = 40;
         public const int DefaultGameFontSize = 15;
         public const string DefaultGameColorHex = "#FFA0A0A2";
         public const string DefaultGameSelectedColorHex = "#FF000000";
