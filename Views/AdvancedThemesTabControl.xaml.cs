@@ -315,6 +315,37 @@ namespace ArcadeStick.Views
                 foreach (string font in LayerRegistry.AvailableFontGroups[i]) combo.Items.Add(font);
             }
         }
+
+        // Does the weight combo fill for a family: that family's weights (FontWeightCatalog.GetChoices), the given weight added
+        // and marked with * when the family has no such face, and that weight selected. Runs under _loading, so it never
+        // writes the entry; the tooltip explains the * and shows only when a marked entry is listed.
+        private void FillWeightCombo(ComboBox combo, string family, int weight)
+        {
+            bool wasLoading = _loading;
+            _loading = true;
+            try
+            {
+                var choices = FontWeightCatalog.GetChoices(family, weight);
+                combo.Items.Clear();
+                foreach (var choice in choices) combo.Items.Add(choice);
+                combo.SelectedItem = choices.FirstOrDefault(c => c.Weight == weight);
+                combo.ToolTip = choices.Any(c => !c.Installed) ? FontWeightCatalog.NotInstalledTooltip : null;
+            }
+            finally
+            {
+                _loading = wasLoading;
+            }
+        }
+
+        // Does the family-change follow-up for a weight combo: keeps the current weight when the new family has it, else
+        // takes the nearest weight it offers (FontWeightCatalog.PickWeight), refills the combo, and returns the weight the
+        // caller stores, so a weight the new family lacks is never kept just because it was showing.
+        private int RefillWeightComboForFamily(ComboBox combo, string family, int currentWeight)
+        {
+            int weight = FontWeightCatalog.PickWeight(family, currentWeight);
+            FillWeightCombo(combo, family, weight);
+            return weight;
+        }
         // [END SECTION: Layout Helpers]
 
         // [SECTION: Layer List]
@@ -2339,7 +2370,7 @@ namespace ArcadeStick.Views
             FillFontCombo(CboGLFolderFont);
             string family = string.IsNullOrWhiteSpace(entry.FolderFontFamily) ? LayerRegistry.DefaultFontFamily : entry.FolderFontFamily;
             CboGLFolderFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
-            ChkGLFolderBold.IsChecked = entry.FolderBold ?? LayerRegistry.DefaultFolderBold;
+            FillWeightCombo(CboGLFolderWeight, family, LayerRegistry.ResolveFontWeight(entry.FolderFontWeight, entry.FolderBold, LayerRegistry.DefaultFolderFontWeight));
 
             string arrowHex = entry.ArrowColorHex ?? LayerRegistry.DefaultArrowColorHex;
             TxtGLArrowColorHex.Text = arrowHex;
@@ -2368,7 +2399,7 @@ namespace ArcadeStick.Views
             FillFontCombo(CboGLGameFont);
             string gameFamily = string.IsNullOrWhiteSpace(entry.GameFontFamily) ? LayerRegistry.DefaultFontFamily : entry.GameFontFamily;
             CboGLGameFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(gameFamily) ? gameFamily : LayerRegistry.DefaultFontFamily;
-            ChkGLGameBold.IsChecked = entry.GameBold ?? LayerRegistry.DefaultGameBold;
+            FillWeightCombo(CboGLGameWeight, gameFamily, LayerRegistry.ResolveFontWeight(entry.GameFontWeight, entry.GameBold, LayerRegistry.DefaultGameFontWeight));
 
             string gameSelHex = entry.GameSelectedColorHex ?? LayerRegistry.DefaultGameSelectedColorHex;
             TxtGLGameSelectedColorHex.Text = gameSelHex;
@@ -2594,15 +2625,21 @@ namespace ArcadeStick.Views
             if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
 
             entry.FolderFontFamily = family;
+            entry.FolderFontWeight = RefillWeightComboForFamily(CboGLFolderWeight, family,
+                LayerRegistry.ResolveFontWeight(entry.FolderFontWeight, entry.FolderBold, LayerRegistry.DefaultFolderFontWeight));
+            entry.FolderBold = null;
             RaiseGuides();
         }
 
-        private void ChkGLFolderBold_Click(object sender, RoutedEventArgs e)
+        // Does the folder weight pick: stores the chosen weight and repaints
+        private void CboGLFolderWeight_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading || _settings == null) return;
+            if (CboGLFolderWeight.SelectedItem is not FontWeightChoice choice) return;
             if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
 
-            entry.FolderBold = ChkGLFolderBold.IsChecked == true;
+            entry.FolderFontWeight = choice.Weight;
+            entry.FolderBold = null;
             RaiseGuides();
         }
         private void GLArrowColorPicker_ColorChanged(object sender, RoutedEventArgs e)
@@ -2835,15 +2872,21 @@ namespace ArcadeStick.Views
             if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
 
             entry.GameFontFamily = family;
+            entry.GameFontWeight = RefillWeightComboForFamily(CboGLGameWeight, family,
+                LayerRegistry.ResolveFontWeight(entry.GameFontWeight, entry.GameBold, LayerRegistry.DefaultGameFontWeight));
+            entry.GameBold = null;
             RaiseGuides();
         }
 
-        private void ChkGLGameBold_Click(object sender, RoutedEventArgs e)
+        // Does the game title weight pick: stores the chosen weight and repaints
+        private void CboGLGameWeight_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading || _settings == null) return;
+            if (CboGLGameWeight.SelectedItem is not FontWeightChoice choice) return;
             if (GetEntry(LayerRegistry.GamesList) is not LayerLayoutEntry entry) return;
 
-            entry.GameBold = ChkGLGameBold.IsChecked == true;
+            entry.GameFontWeight = choice.Weight;
+            entry.GameBold = null;
             RaiseGuides();
         }
         // Drop shadow controls (folder and game title). Checkbox and color apply immediately; blur and depth
@@ -3089,7 +3132,7 @@ namespace ArcadeStick.Views
             FillFontCombo(CboSBLabelFont);
             string family = string.IsNullOrWhiteSpace(label.TextFontFamily) ? LayerRegistry.DefaultFontFamily : label.TextFontFamily;
             CboSBLabelFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
-            ChkSBLabelBold.IsChecked = label.TextBold ?? LayerRegistry.DefaultSearchLabelBold;
+            FillWeightCombo(CboSBLabelWeight, family, SearchLabelWeight(label));
 
             if (CboSBLabelAlign.Items.Count == 0)
             {
@@ -3173,21 +3216,30 @@ namespace ArcadeStick.Views
         private LayerLayoutEntry? SBBoxEntry => IsSearchButtonsSelected ? GetEntry(LayerRegistry.SearchBox) : null;
         private LayerLayoutEntry? SBButtonEntry => IsSearchButtonsSelected ? GetEntry(LayerRegistry.RandomButton) : null;
 
-        // Label font, bold, alignment and shadow toggle
+        // Returns the label's weight (an old unchecked Bold was its DemiBold look, so it reads as Semibold)
+        private static int SearchLabelWeight(LayerLayoutEntry label) =>
+            LayerRegistry.ResolveFontWeight(label.TextFontWeight, label.TextBold, LayerRegistry.DefaultSearchLabelFontWeight, LayerRegistry.SemiboldFontWeight);
+
+        // Label font, weight, alignment and shadow toggle
         private void CboSBLabelFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading || _settings == null) return;
             if (CboSBLabelFont.SelectedItem is not string family || SBLabelEntry is not LayerLayoutEntry entry) return;
 
             entry.TextFontFamily = family;
+            entry.TextFontWeight = RefillWeightComboForFamily(CboSBLabelWeight, family, SearchLabelWeight(entry));
+            entry.TextBold = null;
             RaiseGuides();
         }
 
-        private void ChkSBLabelBold_Click(object sender, RoutedEventArgs e)
+        // Does the label weight pick: stores the chosen weight and repaints
+        private void CboSBLabelWeight_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading || _settings == null || SBLabelEntry is not LayerLayoutEntry entry) return;
+            if (_loading || _settings == null) return;
+            if (CboSBLabelWeight.SelectedItem is not FontWeightChoice choice || SBLabelEntry is not LayerLayoutEntry entry) return;
 
-            entry.TextBold = ChkSBLabelBold.IsChecked == true;
+            entry.TextFontWeight = choice.Weight;
+            entry.TextBold = null;
             RaiseGuides();
         }
 
@@ -3348,7 +3400,7 @@ namespace ArcadeStick.Views
             FillFontCombo(CboRGFont);
             string family = string.IsNullOrWhiteSpace(entry.TextFontFamily) ? LayerRegistry.DefaultFontFamily : entry.TextFontFamily;
             CboRGFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
-            ChkRGBold.IsChecked = entry.TextBold ?? LayerRegistry.DefaultRandomDisplayBold;
+            FillWeightCombo(CboRGWeight, family, LayerRegistry.ResolveFontWeight(entry.TextFontWeight, entry.TextBold, LayerRegistry.DefaultRandomDisplayFontWeight));
 
             ShowColor(RGTextColorPicker, TxtRGTextColorHex, entry.TextColorHex ?? LayerRegistry.DefaultRandomDisplayColorHex);
             if (CboRGAlign.Items.Count == 0)
@@ -3445,21 +3497,27 @@ namespace ArcadeStick.Views
             LoadSelectedLayerIntoFields();
         }
 
-        // Font, bold, alignment, wrap and shadow toggle
+        // Font, weight, alignment, wrap and shadow toggle
         private void CboRGFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading || _settings == null) return;
             if (CboRGFont.SelectedItem is not string family || RGEntry is not LayerLayoutEntry entry) return;
 
             entry.TextFontFamily = family;
+            entry.TextFontWeight = RefillWeightComboForFamily(CboRGWeight, family,
+                LayerRegistry.ResolveFontWeight(entry.TextFontWeight, entry.TextBold, LayerRegistry.DefaultRandomDisplayFontWeight));
+            entry.TextBold = null;
             RaiseGuides();
         }
 
-        private void ChkRGBold_Click(object sender, RoutedEventArgs e)
+        // Does the spin card weight pick: stores the chosen weight and repaints
+        private void CboRGWeight_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading || _settings == null || RGEntry is not LayerLayoutEntry entry) return;
+            if (_loading || _settings == null) return;
+            if (CboRGWeight.SelectedItem is not FontWeightChoice choice || RGEntry is not LayerLayoutEntry entry) return;
 
-            entry.TextBold = ChkRGBold.IsChecked == true;
+            entry.TextFontWeight = choice.Weight;
+            entry.TextBold = null;
             RaiseGuides();
         }
 
@@ -3579,7 +3637,7 @@ namespace ArcadeStick.Views
             FillFontCombo(CboBannerFont);
             string family = string.IsNullOrWhiteSpace(entry.TextFontFamily) ? LayerRegistry.DefaultFontFamily : entry.TextFontFamily;
             CboBannerFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
-            ChkBannerBold.IsChecked = entry.TextBold ?? LayerRegistry.DefaultBannerBold;
+            FillWeightCombo(CboBannerWeight, family, LayerRegistry.ResolveFontWeight(entry.TextFontWeight, entry.TextBold, LayerRegistry.DefaultBannerFontWeight));
 
             TxtBannerFontSize.Text = (entry.TextFontSize ?? LayerRegistry.DefaultBannerFontSize).ToString(CultureInfo.InvariantCulture);
             ShowColor(BannerColorPicker, TxtBannerColorHex, entry.TextColorHex ?? LayerRegistry.DefaultBannerColorHex);
@@ -3617,21 +3675,27 @@ namespace ArcadeStick.Views
             ChkBannerPreview.IsChecked = false;
         }
 
-        // Font, bold, wrap and shadow toggle
+        // Font, weight, wrap and shadow toggle
         private void CboBannerFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading || _settings == null) return;
             if (CboBannerFont.SelectedItem is not string family || BannerEntry is not LayerLayoutEntry entry) return;
 
             entry.TextFontFamily = family;
+            entry.TextFontWeight = RefillWeightComboForFamily(CboBannerWeight, family,
+                LayerRegistry.ResolveFontWeight(entry.TextFontWeight, entry.TextBold, LayerRegistry.DefaultBannerFontWeight));
+            entry.TextBold = null;
             RaiseGuides();
         }
 
-        private void ChkBannerBold_Click(object sender, RoutedEventArgs e)
+        // Does the Text Marquee weight pick: stores the chosen weight and repaints
+        private void CboBannerWeight_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_loading || _settings == null || BannerEntry is not LayerLayoutEntry entry) return;
+            if (_loading || _settings == null) return;
+            if (CboBannerWeight.SelectedItem is not FontWeightChoice choice || BannerEntry is not LayerLayoutEntry entry) return;
 
-            entry.TextBold = ChkBannerBold.IsChecked == true;
+            entry.TextFontWeight = choice.Weight;
+            entry.TextBold = null;
             RaiseGuides();
         }
 
@@ -3912,7 +3976,7 @@ namespace ArcadeStick.Views
         // DefaultAlign set = the block has a GI{Block}Align combo (Left / Center / Right, stored in Text* TextAlign).
         // HasShadowTarget = the block has a GI{Block}ShadowTarget combo (Both / Splash logo only / Marquees only, ShadowTarget).
         // DefaultRightMargin set = the block has a GI{Block}RightMargin box (text to scrollbar gap, stored in Text* TextRightMargin).
-        private sealed record GIBlockDef(string EntryId, bool UsesSectionHeader, bool HasFont, string DefaultFamily, bool DefaultBold,
+        private sealed record GIBlockDef(string EntryId, bool UsesSectionHeader, bool HasFont, string DefaultFamily, int DefaultWeight,
             int DefaultSize, int MinSize, int MaxSize, bool DefaultShadowEnabled, string DefaultShadowColorHex, int DefaultShadowBlur, int DefaultShadowDepth)
         {
             public string SelectUnit { get; init; } = LayerRegistry.GameInfoGroup;
@@ -3932,24 +3996,24 @@ namespace ArcadeStick.Views
 
         private static readonly Dictionary<string, GIBlockDef> GIBlocks = new()
         {
-            ["Title"] = new(LayerRegistry.GameTitle, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultTitleBold,
+            ["Title"] = new(LayerRegistry.GameTitle, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultTitleFontWeight,
                 LayerRegistry.DefaultTitleFontSize, 6, 72, LayerRegistry.DefaultTitleShadowEnabled, LayerRegistry.DefaultTitleShadowColorHex, LayerRegistry.DefaultTitleShadowBlur, LayerRegistry.DefaultTitleShadowDepth),
-            ["Publisher"] = new(LayerRegistry.PublisherBlock, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultPublisherBold,
+            ["Publisher"] = new(LayerRegistry.PublisherBlock, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultPublisherFontWeight,
                 LayerRegistry.DefaultPublisherFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { DefaultAlign = LayerRegistry.DefaultPublisherAlign },
-            ["InfoHeader"] = new(LayerRegistry.GameInfoBody, true, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultInfoHeaderBold,
+            ["InfoHeader"] = new(LayerRegistry.GameInfoBody, true, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultInfoHeaderFontWeight,
                 LayerRegistry.DefaultInfoHeaderFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
-            ["InfoBody"] = new(LayerRegistry.GameInfoBody, false, true, LayerRegistry.DefaultInfoBodyFontFamily, LayerRegistry.DefaultInfoBodyBold,
+            ["InfoBody"] = new(LayerRegistry.GameInfoBody, false, true, LayerRegistry.DefaultInfoBodyFontFamily, LayerRegistry.DefaultInfoBodyFontWeight,
                 LayerRegistry.DefaultInfoBodyFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { DefaultRightMargin = LayerRegistry.DefaultInfoBodyRightMargin },
-            ["Nav"] = new(LayerRegistry.GameInfoNav, false, false, LayerRegistry.DefaultFontFamily, false,
+            ["Nav"] = new(LayerRegistry.GameInfoNav, false, false, LayerRegistry.DefaultFontFamily, LayerRegistry.RegularFontWeight,
                 LayerRegistry.DefaultNavSize, LayerRegistry.MinNavSize, LayerRegistry.MaxNavSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
-            ["PlayButton"] = new(LayerRegistry.PlayButton, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultPlayButtonBold,
+            ["PlayButton"] = new(LayerRegistry.PlayButton, false, true, LayerRegistry.DefaultFontFamily, LayerRegistry.DefaultPlayButtonFontWeight,
                 LayerRegistry.DefaultPlayButtonFontSize, 6, 72, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
-            ["FavStar"] = new(LayerRegistry.FavoritesStar, false, false, LayerRegistry.DefaultFontFamily, false,
+            ["FavStar"] = new(LayerRegistry.FavoritesStar, false, false, LayerRegistry.DefaultFontFamily, LayerRegistry.RegularFontWeight,
                 LayerRegistry.DefaultStarSize, LayerRegistry.MinTextFontSize, LayerRegistry.MaxTextFontSize, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth),
             // Image shadows: the Image Previews (Game Info group, PREVIEWS tab) and the Marquee layer (its own SHADOW tab)
-            ["Previews"] = new(LayerRegistry.ImagePreviewsBody, false, false, LayerRegistry.DefaultFontFamily, false,
+            ["Previews"] = new(LayerRegistry.ImagePreviewsBody, false, false, LayerRegistry.DefaultFontFamily, LayerRegistry.RegularFontWeight,
                 0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true },
-            ["Marquee"] = new(LayerRegistry.MarqueePanel, false, false, LayerRegistry.DefaultFontFamily, false,
+            ["Marquee"] = new(LayerRegistry.MarqueePanel, false, false, LayerRegistry.DefaultFontFamily, LayerRegistry.RegularFontWeight,
                 0, 0, 0, LayerRegistry.DefaultShadowEnabled, LayerRegistry.DefaultShadowColorHex, LayerRegistry.DefaultShadowBlur, LayerRegistry.DefaultShadowDepth) { ShadowOnly = true, SelectUnit = LayerRegistry.MarqueePanel, HasShadowTarget = true },
         };
 
@@ -3961,7 +4025,9 @@ namespace ArcadeStick.Views
             public GIStyle(LayerLayoutEntry entry, bool usesSectionHeader) { _e = entry; _h = usesSectionHeader; }
 
             public string? FontFamily { get => _h ? _e.SectionHeaderFontFamily : _e.TextFontFamily; set { if (_h) _e.SectionHeaderFontFamily = value; else _e.TextFontFamily = value; } }
-            public bool? Bold { get => _h ? _e.SectionHeaderBold : _e.TextBold; set { if (_h) _e.SectionHeaderBold = value; else _e.TextBold = value; } }
+            public int? FontWeight { get => _h ? _e.SectionHeaderFontWeight : _e.TextFontWeight; set { if (_h) _e.SectionHeaderFontWeight = value; else _e.TextFontWeight = value; } }
+            // The old Bold checkbox value: read to derive a weight for an unresolved entry, cleared once a weight is stored
+            public bool? LegacyBold { get => _h ? _e.SectionHeaderBold : _e.TextBold; set { if (_h) _e.SectionHeaderBold = value; else _e.TextBold = value; } }
             public int? FontSize { get => _h ? _e.SectionHeaderFontSize : _e.TextFontSize; set { if (_h) _e.SectionHeaderFontSize = value; else _e.TextFontSize = value; } }
             public string? ColorHex { get => _h ? _e.SectionHeaderColorHex : _e.TextColorHex; set { if (_h) _e.SectionHeaderColorHex = value; else _e.TextColorHex = value; } }
             public bool? ShadowEnabled { get => _h ? _e.SectionHeaderShadowEnabled : _e.TextShadowEnabled; set { if (_h) _e.SectionHeaderShadowEnabled = value; else _e.TextShadowEnabled = value; } }
@@ -4004,12 +4070,12 @@ namespace ArcadeStick.Views
             {
                 if (def.SelectUnit != selectUnit || GetGIStyle(block) is not GIStyle style) continue;
 
-                if (def.HasFont && GIControl<ComboBox>(block, "Font") is ComboBox fontCombo && GIControl<CheckBox>(block, "Bold") is CheckBox boldCheck)
+                if (def.HasFont && GIControl<ComboBox>(block, "Font") is ComboBox fontCombo && GIControl<ComboBox>(block, "Weight") is ComboBox weightCombo)
                 {
                     FillFontCombo(fontCombo);
                     string family = string.IsNullOrWhiteSpace(style.FontFamily) ? def.DefaultFamily : style.FontFamily;
                     fontCombo.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : def.DefaultFamily;
-                    boldCheck.IsChecked = style.Bold ?? def.DefaultBold;
+                    FillWeightCombo(weightCombo, family, GIWeight(style, def));
                 }
 
                 if (def.DefaultAlign != null && GIControl<ComboBox>(block, "Align") is ComboBox alignCombo)
@@ -4050,13 +4116,34 @@ namespace ArcadeStick.Views
             _loading = false;
         }
 
-        // Font family, bold and shadow toggle (any block, resolved from the sender's Tag)
+        // Returns a block's weight: the saved weight, else one from its old Bold value, else the block's default
+        private static int GIWeight(GIStyle style, GIBlockDef def) => LayerRegistry.ResolveFontWeight(style.FontWeight, style.LegacyBold, def.DefaultWeight);
+
+        // Font family, weight and shadow toggle (any block, resolved from the sender's Tag). A family change refills the
+        // block's weight combo (GI{Block}Weight) and stores the weight the new family keeps.
         private void GIFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_loading || _settings == null) return;
-            if ((sender as ComboBox)?.SelectedItem is not string family || GetGIStyle(GIBlockKey(sender)) is not GIStyle style) return;
+            string? block = GIBlockKey(sender);
+            if ((sender as ComboBox)?.SelectedItem is not string family || GetGIStyle(block) is not GIStyle style || !GIBlocks.TryGetValue(block!, out var def)) return;
 
             style.FontFamily = family;
+            if (GIControl<ComboBox>(block!, "Weight") is ComboBox weightCombo)
+            {
+                style.FontWeight = RefillWeightComboForFamily(weightCombo, family, GIWeight(style, def));
+                style.LegacyBold = null;
+            }
+            RaiseGuides();
+        }
+
+        // Does the weight pick (any block, resolved from the sender's Tag): stores the chosen weight and repaints
+        private void GIWeight_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if ((sender as ComboBox)?.SelectedItem is not FontWeightChoice choice || GetGIStyle(GIBlockKey(sender)) is not GIStyle style) return;
+
+            style.FontWeight = choice.Weight;
+            style.LegacyBold = null;
             RaiseGuides();
         }
 
@@ -4078,14 +4165,6 @@ namespace ArcadeStick.Views
             if (index < 0 || index >= ShadowTargetChoices.Length) return;
 
             style.ShadowTarget = ShadowTargetChoices[index].Value;
-            RaiseGuides();
-        }
-
-        private void GIBold_Click(object sender, RoutedEventArgs e)
-        {
-            if (_loading || _settings == null || GetGIStyle(GIBlockKey(sender)) is not GIStyle style) return;
-
-            style.Bold = (sender as CheckBox)?.IsChecked == true;
             RaiseGuides();
         }
 

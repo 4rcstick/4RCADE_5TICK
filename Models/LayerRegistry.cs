@@ -40,6 +40,12 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? FolderFontFamily { get; set; }
 
+        // Font weights are OpenType numbers (100 to 950; 400 Regular, 700 Bold). The *Bold fields are the old checkbox values:
+        // read only to derive a weight for an entry saved before weights existed (LayerRegistry.ResolveFontWeight), then
+        // cleared by the registry fill-ins, so they are no longer written.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? FolderFontWeight { get; set; }
+
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool? FolderBold { get; set; }
 
@@ -66,6 +72,9 @@ namespace ArcadeStick.Models
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? GameFontFamily { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? GameFontWeight { get; set; }
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool? GameBold { get; set; }
@@ -158,6 +167,9 @@ namespace ArcadeStick.Models
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? TextFontFamily { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TextFontWeight { get; set; }
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool? TextBold { get; set; }
@@ -277,6 +289,9 @@ namespace ArcadeStick.Models
         public string? SectionHeaderFontFamily { get; set; }
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? SectionHeaderFontWeight { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public bool? SectionHeaderBold { get; set; }
 
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -352,7 +367,8 @@ namespace ArcadeStick.Models
             FolderSelectedColorHex = source.FolderSelectedColorHex;
             FolderSelectedBgColorHex = source.FolderSelectedBgColorHex;
             FolderFontFamily = source.FolderFontFamily;
-            FolderBold = source.FolderBold;
+            FolderFontWeight = source.FolderFontWeight;
+            FolderBold = source.FolderBold; // old value, kept so an unresolved copy can still derive its weight
             ArrowColorHex = source.ArrowColorHex;
             ArrowNudgeY = source.ArrowNudgeY;
             GameFontSize = source.GameFontSize;
@@ -361,6 +377,7 @@ namespace ArcadeStick.Models
             GameSelectedBgColorHex = source.GameSelectedBgColorHex;
             GameHoverColorHex = source.GameHoverColorHex;
             GameFontFamily = source.GameFontFamily;
+            GameFontWeight = source.GameFontWeight;
             GameBold = source.GameBold;
             FolderShadowEnabled = source.FolderShadowEnabled;
             FolderShadowColorHex = source.FolderShadowColorHex;
@@ -387,6 +404,7 @@ namespace ArcadeStick.Models
             TextFontSize = source.TextFontSize;
             TextColorHex = source.TextColorHex;
             TextFontFamily = source.TextFontFamily;
+            TextFontWeight = source.TextFontWeight;
             TextBold = source.TextBold;
             TextAlign = source.TextAlign;
             HoverColorHex = source.HoverColorHex;
@@ -419,6 +437,7 @@ namespace ArcadeStick.Models
             SectionHeaderFontSize = source.SectionHeaderFontSize;
             SectionHeaderColorHex = source.SectionHeaderColorHex;
             SectionHeaderFontFamily = source.SectionHeaderFontFamily;
+            SectionHeaderFontWeight = source.SectionHeaderFontWeight;
             SectionHeaderBold = source.SectionHeaderBold;
             SectionHeaderShadowEnabled = source.SectionHeaderShadowEnabled;
             SectionHeaderShadowColorHex = source.SectionHeaderShadowColorHex;
@@ -729,7 +748,7 @@ namespace ArcadeStick.Models
                     entry.FolderSelectedColorHex = DefaultFolderSelectedColorHex;
                     entry.FolderSelectedBgColorHex = DefaultFolderSelectedBgColorHex;
                     entry.FolderFontFamily = DefaultFontFamily;
-                    entry.FolderBold = DefaultFolderBold;
+                    entry.FolderFontWeight = DefaultFolderFontWeight;
                     entry.ArrowColorHex = DefaultArrowColorHex;
                     entry.ArrowNudgeY = DefaultArrowNudgeY;
                     entry.GameFontSize = DefaultGameFontSize;
@@ -738,7 +757,7 @@ namespace ArcadeStick.Models
                     entry.GameSelectedBgColorHex = DefaultGameSelectedBgColorHex;
                     entry.GameHoverColorHex = DefaultGameHoverColorHex;
                     entry.GameFontFamily = DefaultFontFamily;
-                    entry.GameBold = DefaultGameBold;
+                    entry.GameFontWeight = DefaultGameFontWeight;
                     entry.FolderShadowEnabled = DefaultShadowEnabled;
                     entry.FolderShadowColorHex = DefaultShadowColorHex;
                     entry.FolderShadowBlur = DefaultShadowBlur;
@@ -825,7 +844,10 @@ namespace ArcadeStick.Models
                 if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultSearchLabelColorHex;
                 if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultSearchLabelBgColorHex;
                 if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
-                entry.TextBold ??= DefaultSearchLabelBold;
+                // An old unchecked Bold was the label's DemiBold look, so it becomes Semibold (600); checked stays Bold
+                entry.TextFontWeight = ResolveFontWeight(entry.TextFontWeight, entry.TextBold, DefaultSearchLabelFontWeight, SemiboldFontWeight);
+                entry.TextBold = null;
+                NormalizeRetiredTextFamily(entry);
                 if (string.IsNullOrWhiteSpace(entry.TextAlign)) entry.TextAlign = DefaultSearchLabelAlign;
                 entry.TextShadowEnabled ??= DefaultShadowEnabled;
                 if (string.IsNullOrWhiteSpace(entry.TextShadowColorHex)) entry.TextShadowColorHex = DefaultShadowColorHex;
@@ -861,7 +883,9 @@ namespace ArcadeStick.Models
             if (entry.Id == GameTitle)
             {
                 if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
-                entry.TextBold ??= DefaultTitleBold;
+                entry.TextFontWeight = ResolveFontWeight(entry.TextFontWeight, entry.TextBold, DefaultTitleFontWeight);
+                entry.TextBold = null;
+                NormalizeRetiredTextFamily(entry);
                 entry.TextFontSize ??= DefaultTitleFontSize;
                 if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
                 entry.TextShadowEnabled ??= DefaultTitleShadowEnabled;
@@ -872,7 +896,9 @@ namespace ArcadeStick.Models
             else if (entry.Id == PublisherBlock)
             {
                 if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
-                entry.TextBold ??= DefaultPublisherBold;
+                entry.TextFontWeight = ResolveFontWeight(entry.TextFontWeight, entry.TextBold, DefaultPublisherFontWeight);
+                entry.TextBold = null;
+                NormalizeRetiredTextFamily(entry);
                 entry.TextFontSize ??= DefaultPublisherFontSize;
                 if (string.IsNullOrWhiteSpace(entry.TextAlign)) entry.TextAlign = DefaultPublisherAlign;
                 if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
@@ -881,7 +907,9 @@ namespace ArcadeStick.Models
             else if (entry.Id == GameInfoBody)
             {
                 if (string.IsNullOrWhiteSpace(entry.SectionHeaderFontFamily)) entry.SectionHeaderFontFamily = DefaultFontFamily;
-                entry.SectionHeaderBold ??= DefaultInfoHeaderBold;
+                entry.SectionHeaderFontWeight = ResolveFontWeight(entry.SectionHeaderFontWeight, entry.SectionHeaderBold, DefaultInfoHeaderFontWeight);
+                entry.SectionHeaderBold = null;
+                NormalizeRetiredSectionHeaderFamily(entry);
                 entry.SectionHeaderFontSize ??= DefaultInfoHeaderFontSize;
                 if (string.IsNullOrWhiteSpace(entry.SectionHeaderColorHex)) entry.SectionHeaderColorHex = DefaultGameInfoTextColorHex;
                 entry.SectionHeaderShadowEnabled ??= DefaultShadowEnabled;
@@ -890,7 +918,9 @@ namespace ArcadeStick.Models
                 entry.SectionHeaderShadowDepth ??= DefaultShadowDepth;
 
                 if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultInfoBodyFontFamily;
-                entry.TextBold ??= DefaultInfoBodyBold;
+                entry.TextFontWeight = ResolveFontWeight(entry.TextFontWeight, entry.TextBold, DefaultInfoBodyFontWeight);
+                entry.TextBold = null;
+                NormalizeRetiredTextFamily(entry);
                 entry.TextFontSize ??= DefaultInfoBodyFontSize;
                 if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultGameInfoTextColorHex;
                 entry.TextRightMargin ??= DefaultInfoBodyRightMargin;
@@ -923,7 +953,9 @@ namespace ArcadeStick.Models
                 entry.TextMessage ??= DefaultRandomDisplayMessage;
                 entry.TextWrap ??= DefaultRandomDisplayWrap;
                 if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
-                entry.TextBold ??= DefaultRandomDisplayBold;
+                entry.TextFontWeight = ResolveFontWeight(entry.TextFontWeight, entry.TextBold, DefaultRandomDisplayFontWeight);
+                entry.TextBold = null;
+                NormalizeRetiredTextFamily(entry);
                 if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultRandomDisplayColorHex;
                 if (string.IsNullOrWhiteSpace(entry.TextAlign)) entry.TextAlign = DefaultRandomDisplayAlign;
                 FillTextShadowDefaults(entry);
@@ -946,7 +978,9 @@ namespace ArcadeStick.Models
             if (entry.Id != MarqueePanel) return;
 
             if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
-            entry.TextBold ??= DefaultBannerBold;
+            entry.TextFontWeight = ResolveFontWeight(entry.TextFontWeight, entry.TextBold, DefaultBannerFontWeight);
+            entry.TextBold = null;
+            NormalizeRetiredTextFamily(entry);
             entry.TextFontSize ??= DefaultBannerFontSize;
             if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultBannerColorHex;
             entry.TextWrap ??= DefaultBannerWrap;
@@ -969,7 +1003,9 @@ namespace ArcadeStick.Models
 
             entry.ButtonText ??= DefaultPlayButtonText;
             if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
-            entry.TextBold ??= DefaultPlayButtonBold;
+            entry.TextFontWeight = ResolveFontWeight(entry.TextFontWeight, entry.TextBold, DefaultPlayButtonFontWeight);
+            entry.TextBold = null;
+            NormalizeRetiredTextFamily(entry);
             entry.TextFontSize ??= DefaultPlayButtonFontSize;
             if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultPlayButtonColorHex;
             entry.TextNudgeY ??= DefaultPlayButtonNudgeY;
@@ -1050,7 +1086,8 @@ namespace ArcadeStick.Models
                     if (string.IsNullOrWhiteSpace(entry.FolderSelectedColorHex)) entry.FolderSelectedColorHex = DefaultFolderSelectedColorHex;
                     if (string.IsNullOrWhiteSpace(entry.FolderSelectedBgColorHex)) entry.FolderSelectedBgColorHex = DefaultFolderSelectedBgColorHex;
                     if (string.IsNullOrWhiteSpace(entry.FolderFontFamily)) entry.FolderFontFamily = DefaultFontFamily;
-                    entry.FolderBold ??= DefaultFolderBold;
+                    entry.FolderFontWeight = ResolveFontWeight(entry.FolderFontWeight, entry.FolderBold, DefaultFolderFontWeight);
+                    entry.FolderBold = null;
                     if (string.IsNullOrWhiteSpace(entry.ArrowColorHex)) entry.ArrowColorHex = DefaultArrowColorHex;
                     entry.ArrowNudgeY ??= DefaultArrowNudgeY;
                     entry.GameFontSize ??= DefaultGameFontSize;
@@ -1059,7 +1096,9 @@ namespace ArcadeStick.Models
                     if (string.IsNullOrWhiteSpace(entry.GameSelectedBgColorHex)) entry.GameSelectedBgColorHex = DefaultGameSelectedBgColorHex;
                     if (string.IsNullOrWhiteSpace(entry.GameHoverColorHex)) entry.GameHoverColorHex = DefaultGameHoverColorHex;
                     if (string.IsNullOrWhiteSpace(entry.GameFontFamily)) entry.GameFontFamily = DefaultFontFamily;
-                    entry.GameBold ??= DefaultGameBold;
+                    entry.GameFontWeight = ResolveFontWeight(entry.GameFontWeight, entry.GameBold, DefaultGameFontWeight);
+                    entry.GameBold = null;
+                    NormalizeRetiredGamesListFamilies(entry);
                     entry.FolderShadowEnabled ??= DefaultShadowEnabled;
                     if (string.IsNullOrWhiteSpace(entry.FolderShadowColorHex)) entry.FolderShadowColorHex = DefaultShadowColorHex;
                     entry.FolderShadowBlur ??= DefaultShadowBlur;
@@ -1154,7 +1193,16 @@ namespace ArcadeStick.Models
         public const string DefaultFolderSelectedColorHex = "#FF000000";
         public const string DefaultFolderSelectedBgColorHex = "#FF00D4FF";
         public const string DefaultFontFamily = "Segoe UI";
-        public const bool DefaultFolderBold = true;
+
+        // Font weights (OpenType numbers) shared by every text block, and the range a stored weight is clamped to
+        public const int RegularFontWeight = 400;
+        public const int SemiboldFontWeight = 600;
+        public const int BoldFontWeight = 700;
+        public const int BlackFontWeight = 900;
+        public const int MinFontWeight = 1;
+        public const int MaxFontWeight = 999;
+
+        public const int DefaultFolderFontWeight = BoldFontWeight;
         public const string DefaultArrowColorHex = "#FFA0A0A2";
         public const int DefaultArrowNudgeY = 0;
         public const int DefaultGameFontSize = 15;
@@ -1162,7 +1210,7 @@ namespace ArcadeStick.Models
         public const string DefaultGameSelectedColorHex = "#FF000000";
         public const string DefaultGameSelectedBgColorHex = "#FF00D4FF";
         public const string DefaultGameHoverColorHex = "#FFEF44C3";
-        public const bool DefaultGameBold = true;
+        public const int DefaultGameFontWeight = BoldFontWeight;
 
         // Drop shadow defaults: off. The color, blur and depth are the starting values when someone turns it on
         // (the old built-in look: black, soft, one pixel down and to the right).
@@ -1175,7 +1223,7 @@ namespace ArcadeStick.Models
         public const int DefaultSearchLabelFontSize = 13;
         public const string DefaultSearchLabelColorHex = "#FF00D4FF";
         public const string DefaultSearchLabelBgColorHex = "#001C1C1E";
-        public const bool DefaultSearchLabelBold = false;
+        public const int DefaultSearchLabelFontWeight = SemiboldFontWeight; // the label's original DemiBold look
         public const string DefaultSearchLabelAlign = "Right";
         public const int DefaultSearchLabelNudgeY = 0;
         public const int MinTextNudgeY = -10;
@@ -1197,13 +1245,13 @@ namespace ArcadeStick.Models
         // NavIcons* defaults). The title keeps its old built-in shadow (black at 60% alpha, blur 4, depth 2) on.
         public const string DefaultGameInfoTextColorHex = "#FFFFFFFF";
         public const int DefaultTitleFontSize = 32;
-        public const bool DefaultTitleBold = true;
+        public const int DefaultTitleFontWeight = BoldFontWeight;
         public const bool DefaultTitleShadowEnabled = true;
         public const string DefaultTitleShadowColorHex = "#99000000";
         public const int DefaultTitleShadowBlur = 4;
         public const int DefaultTitleShadowDepth = 2;
         public const int DefaultPublisherFontSize = 13;
-        public const bool DefaultPublisherBold = false;
+        public const int DefaultPublisherFontWeight = RegularFontWeight;
         public const string DefaultPublisherAlign = "Right"; // the old hard-coded look
 
         // Marquee shadow target (LayerLayoutEntry.ShadowTarget): which marquee images the shadow applies to
@@ -1212,10 +1260,10 @@ namespace ArcadeStick.Models
         public const string ShadowTargetMarquees = "Marquees";
         public const string DefaultShadowTarget = ShadowTargetBoth; // the Part 1 look: logo, marquee and spin frames
         public const int DefaultInfoHeaderFontSize = 20;
-        public const bool DefaultInfoHeaderBold = true;
+        public const int DefaultInfoHeaderFontWeight = BoldFontWeight;
         public const string DefaultInfoBodyFontFamily = "Georgia";
         public const int DefaultInfoBodyFontSize = 16;
-        public const bool DefaultInfoBodyBold = false;
+        public const int DefaultInfoBodyFontWeight = RegularFontWeight;
         public const int DefaultInfoBodyRightMargin = 20; // the old hard-coded gap
         public const int MinInfoBodyRightMargin = 0;
         public const int MaxInfoBodyRightMargin = 100;
@@ -1235,7 +1283,7 @@ namespace ArcadeStick.Models
         public const string DefaultRandomDisplayMessage = "Rolling the Dice!";
         public const int MaxRandomDisplayMessageLength = 60;
         public const bool DefaultRandomDisplayWrap = false;
-        public const bool DefaultRandomDisplayBold = true;
+        public const int DefaultRandomDisplayFontWeight = BoldFontWeight;
         public const string DefaultRandomDisplayColorHex = "#FF00D4FF";
         public const string DefaultRandomDisplayAlign = "Center";
         public const string DefaultRandomDisplayBgColorHex = "#FF000000";
@@ -1247,7 +1295,7 @@ namespace ArcadeStick.Models
         // Marquee no-art banner defaults (the old look as fixed constants: the old Global Header and Main Window
         // Background defaults, a 2px border, square). The size is the max inside the card's 400x100 reference box.
         public const int DefaultBannerFontSize = 30;
-        public const bool DefaultBannerBold = true;
+        public const int DefaultBannerFontWeight = BoldFontWeight;
         public const string DefaultBannerColorHex = "#FFEF44C3";
         public const bool DefaultBannerWrap = true;
         public const string DefaultBannerBgColorHex = "#FF1C1C1E";
@@ -1265,7 +1313,7 @@ namespace ArcadeStick.Models
         public const string DefaultPlayButtonText = "PLAY";
         public const int MaxPlayButtonTextLength = 24;
         public const int DefaultPlayButtonFontSize = 16;
-        public const bool DefaultPlayButtonBold = true;
+        public const int DefaultPlayButtonFontWeight = BoldFontWeight;
         public const string DefaultPlayButtonColorHex = "#FF00D4FF";
         public const int DefaultPlayButtonNudgeY = 0;
         public const string DefaultPlayButtonBgColorHex = "#FF1C1C1E";
@@ -1293,9 +1341,9 @@ namespace ArcadeStick.Models
             // Sans Serif
             new List<string>
             {
-                "Arial", "Arial Black", "Bahnschrift", "Calibri", "Candara", "Comic Sans MS", "Corbel", "Ebrima",
+                "Arial", "Bahnschrift", "Calibri", "Candara", "Comic Sans MS", "Corbel", "Ebrima",
                 "Franklin Gothic Medium", "Ink Free", "MV Boli", "Segoe Print", "Segoe Script", "Segoe UI",
-                "Segoe UI Black", "Tahoma", "Trebuchet MS", "Verdana"
+                "Tahoma", "Trebuchet MS", "Verdana"
             },
             // Serif
             new List<string>
@@ -1312,6 +1360,63 @@ namespace ArcadeStick.Models
 
         // Every family in AvailableFontGroups, in display order (the saved-value check the font loaders use)
         public static readonly IReadOnlyList<string> AvailableFonts = AvailableFontGroups.SelectMany(group => group).ToList();
+
+        // Does the weight for one text block: the saved weight, else one derived from the old Bold checkbox (checked = Bold,
+        // unchecked = notBoldWeight: Regular, or Semibold for the search label's DemiBold look), else the block's default.
+        // Clamped to 1 to 999, the range WPF accepts.
+        public static int ResolveFontWeight(int? weight, bool? legacyBold, int defaultWeight, int notBoldWeight = RegularFontWeight)
+        {
+            int resolved = weight ?? (legacyBold is bool bold ? (bold ? BoldFontWeight : notBoldWeight) : defaultWeight);
+            return Math.Clamp(resolved, MinFontWeight, MaxFontWeight);
+        }
+
+        // Families dropped from the list because their parent family reaches the same face at Black (900) (decision 95)
+        private static readonly Dictionary<string, string> RetiredBlackFamilies = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Arial Black"] = "Arial",
+            ["Segoe UI Black"] = "Segoe UI"
+        };
+
+        // Does the retired-family check: true for a saved "Arial Black" or "Segoe UI Black", with the parent family to store
+        // instead. Those families have only their Black face, so they drew it at any weight; the parent at Black draws the same face.
+        public static bool TryMapRetiredFamily(string? family, out string parent)
+        {
+            parent = "";
+            if (string.IsNullOrWhiteSpace(family) || !RetiredBlackFamilies.TryGetValue(family.Trim(), out string? mapped)) return false;
+            parent = mapped;
+            return true;
+        }
+
+        // Does the retired-family fix on the Text* block: a retired family becomes its parent at Black (run after the weight fill)
+        private static void NormalizeRetiredTextFamily(LayerLayoutEntry entry)
+        {
+            if (!TryMapRetiredFamily(entry.TextFontFamily, out string parent)) return;
+            entry.TextFontFamily = parent;
+            entry.TextFontWeight = BlackFontWeight;
+        }
+
+        // Does the retired-family fix on the SectionHeader* block (Game Info headers)
+        private static void NormalizeRetiredSectionHeaderFamily(LayerLayoutEntry entry)
+        {
+            if (!TryMapRetiredFamily(entry.SectionHeaderFontFamily, out string parent)) return;
+            entry.SectionHeaderFontFamily = parent;
+            entry.SectionHeaderFontWeight = BlackFontWeight;
+        }
+
+        // Does the retired-family fix on the Games List folder and game title fonts
+        private static void NormalizeRetiredGamesListFamilies(LayerLayoutEntry entry)
+        {
+            if (TryMapRetiredFamily(entry.FolderFontFamily, out string folderParent))
+            {
+                entry.FolderFontFamily = folderParent;
+                entry.FolderFontWeight = BlackFontWeight;
+            }
+            if (TryMapRetiredFamily(entry.GameFontFamily, out string gameParent))
+            {
+                entry.GameFontFamily = gameParent;
+                entry.GameFontWeight = BlackFontWeight;
+            }
+        }
     }
     // [END SECTION: Layer Registry]
 }

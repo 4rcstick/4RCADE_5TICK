@@ -675,8 +675,9 @@ namespace ArcadeStick.ViewModels
                 return new FontFamily(string.IsNullOrWhiteSpace(family) ? LayerRegistry.DefaultFontFamily : family);
             }
         }
-        // Unchecked Bold keeps the label's original DemiBold look
-        public FontWeight ThemeSearchLabelFontWeight => (GetLayerEntry(LayerRegistry.SearchLabel).TextBold ?? LayerRegistry.DefaultSearchLabelBold) ? FontWeights.Bold : FontWeights.DemiBold;
+        // An old unchecked Bold was the label's DemiBold look, so it reads as Semibold
+        public FontWeight ThemeSearchLabelFontWeight => ToFontWeight(GetLayerEntry(LayerRegistry.SearchLabel).TextFontWeight, GetLayerEntry(LayerRegistry.SearchLabel).TextBold,
+            LayerRegistry.DefaultSearchLabelFontWeight, LayerRegistry.SemiboldFontWeight);
         public TextAlignment ThemeSearchLabelTextAlignment => GetLayerEntry(LayerRegistry.SearchLabel).TextAlign switch
         {
             "Left" => TextAlignment.Left,
@@ -744,13 +745,13 @@ namespace ArcadeStick.ViewModels
         public int ThemeGameNameHeaderFontSize => GetLayerEntry(LayerRegistry.GameTitle).TextFontSize ?? LayerRegistry.DefaultTitleFontSize;
         public string ThemeGameNameHeaderColor => GetLayerEntry(LayerRegistry.GameTitle).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
         public FontFamily ThemeGameNameHeaderFontFamily => ToFontFamily(GetLayerEntry(LayerRegistry.GameTitle).TextFontFamily);
-        public FontWeight ThemeGameNameHeaderFontWeight => (GetLayerEntry(LayerRegistry.GameTitle).TextBold ?? LayerRegistry.DefaultTitleBold) ? FontWeights.Bold : FontWeights.Normal;
+        public FontWeight ThemeGameNameHeaderFontWeight => ToFontWeight(GetLayerEntry(LayerRegistry.GameTitle).TextFontWeight, GetLayerEntry(LayerRegistry.GameTitle).TextBold, LayerRegistry.DefaultTitleFontWeight);
         public System.Windows.Media.Effects.Effect? ThemeGameNameHeaderEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.GameTitle));
 
         public int ThemePubYearRatingFontSize => GetLayerEntry(LayerRegistry.PublisherBlock).TextFontSize ?? LayerRegistry.DefaultPublisherFontSize;
         public string ThemePubYearRatingColor => GetLayerEntry(LayerRegistry.PublisherBlock).TextColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
         public FontFamily ThemePubYearRatingFontFamily => ToFontFamily(GetLayerEntry(LayerRegistry.PublisherBlock).TextFontFamily);
-        public FontWeight ThemePubYearRatingFontWeight => (GetLayerEntry(LayerRegistry.PublisherBlock).TextBold ?? LayerRegistry.DefaultPublisherBold) ? FontWeights.Bold : FontWeights.Normal;
+        public FontWeight ThemePubYearRatingFontWeight => ToFontWeight(GetLayerEntry(LayerRegistry.PublisherBlock).TextFontWeight, GetLayerEntry(LayerRegistry.PublisherBlock).TextBold, LayerRegistry.DefaultPublisherFontWeight);
         public System.Windows.Media.Effects.Effect? ThemePubYearRatingEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.PublisherBlock));
         public TextAlignment ThemePubYearRatingTextAlignment => GetLayerEntry(LayerRegistry.PublisherBlock).TextAlign switch
         {
@@ -762,7 +763,7 @@ namespace ArcadeStick.ViewModels
         public int ThemeInfoHeaderFontSize => GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderFontSize ?? LayerRegistry.DefaultInfoHeaderFontSize;
         public string ThemeInfoHeaderColor => GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderColorHex ?? LayerRegistry.DefaultGameInfoTextColorHex;
         public FontFamily ThemeInfoHeaderFontFamily => ToFontFamily(GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderFontFamily);
-        public FontWeight ThemeInfoHeaderFontWeight => (GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderBold ?? LayerRegistry.DefaultInfoHeaderBold) ? FontWeights.Bold : FontWeights.Normal;
+        public FontWeight ThemeInfoHeaderFontWeight => ToFontWeight(GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderFontWeight, GetLayerEntry(LayerRegistry.GameInfoBody).SectionHeaderBold, LayerRegistry.DefaultInfoHeaderFontWeight);
         public System.Windows.Media.Effects.Effect? ThemeInfoHeaderEffect
         {
             get
@@ -786,7 +787,7 @@ namespace ArcadeStick.ViewModels
                 return new FontFamily(string.IsNullOrWhiteSpace(family) ? LayerRegistry.DefaultInfoBodyFontFamily : family);
             }
         }
-        public FontWeight ThemeInfoBodyFontWeight => (GetLayerEntry(LayerRegistry.GameInfoBody).TextBold ?? LayerRegistry.DefaultInfoBodyBold) ? FontWeights.Bold : FontWeights.Normal;
+        public FontWeight ThemeInfoBodyFontWeight => ToFontWeight(GetLayerEntry(LayerRegistry.GameInfoBody).TextFontWeight, GetLayerEntry(LayerRegistry.GameInfoBody).TextBold, LayerRegistry.DefaultInfoBodyFontWeight);
         public System.Windows.Media.Effects.Effect? ThemeInfoBodyEffect => BuildTextShadowEffect(GetLayerEntry(LayerRegistry.GameInfoBody));
 
         // The body text's right margin (gap to the scrollbar or the scroll area's edge), 0 to 100. Two Thicknesses because
@@ -806,6 +807,10 @@ namespace ArcadeStick.ViewModels
         // Turns a saved font family name into a FontFamily (Segoe UI when empty)
         private static FontFamily ToFontFamily(string? family) =>
             new FontFamily(string.IsNullOrWhiteSpace(family) ? LayerRegistry.DefaultFontFamily : family);
+
+        // Turns a saved weight (or an old Bold value, or the block's default) into a FontWeight (LayerRegistry.ResolveFontWeight)
+        private static FontWeight ToFontWeight(int? weight, bool? legacyBold, int defaultWeight, int notBoldWeight = LayerRegistry.RegularFontWeight) =>
+            FontWeight.FromOpenTypeWeight(LayerRegistry.ResolveFontWeight(weight, legacyBold, defaultWeight, notBoldWeight));
 
         // Builds the drop shadow from an entry's generic TextShadow* fields (null when off)
         private static System.Windows.Media.Effects.Effect? BuildTextShadowEffect(LayerLayoutEntry entry) =>
@@ -856,7 +861,7 @@ namespace ArcadeStick.ViewModels
 
         public string ThemePlayButtonText => PlayButtonEntry.ButtonText ?? LayerRegistry.DefaultPlayButtonText;
         public FontFamily ThemePlayButtonFontFamily => ToFontFamily(PlayButtonEntry.TextFontFamily);
-        public FontWeight ThemePlayButtonFontWeight => (PlayButtonEntry.TextBold ?? LayerRegistry.DefaultPlayButtonBold) ? FontWeights.Bold : FontWeights.Normal;
+        public FontWeight ThemePlayButtonFontWeight => ToFontWeight(PlayButtonEntry.TextFontWeight, PlayButtonEntry.TextBold, LayerRegistry.DefaultPlayButtonFontWeight);
         public double ThemePlayButtonFontSize => PlayButtonEntry.TextFontSize ?? LayerRegistry.DefaultPlayButtonFontSize;
         public string ThemePlayButtonColor => PlayButtonEntry.TextColorHex ?? LayerRegistry.DefaultPlayButtonColorHex;
         public double ThemePlayButtonTextNudgeY => PlayButtonEntry.TextNudgeY ?? LayerRegistry.DefaultPlayButtonNudgeY;
@@ -967,7 +972,7 @@ namespace ArcadeStick.ViewModels
 
         public string ThemeRandomDisplayMessage => RandomDisplayEntry.TextMessage ?? LayerRegistry.DefaultRandomDisplayMessage;
         public FontFamily ThemeRandomDisplayFontFamily => ToFontFamily(RandomDisplayEntry.TextFontFamily);
-        public FontWeight ThemeRandomDisplayFontWeight => (RandomDisplayEntry.TextBold ?? LayerRegistry.DefaultRandomDisplayBold) ? FontWeights.Bold : FontWeights.Normal;
+        public FontWeight ThemeRandomDisplayFontWeight => ToFontWeight(RandomDisplayEntry.TextFontWeight, RandomDisplayEntry.TextBold, LayerRegistry.DefaultRandomDisplayFontWeight);
         public string ThemeRandomDisplayColor => RandomDisplayEntry.TextColorHex ?? LayerRegistry.DefaultRandomDisplayColorHex;
         public System.Windows.Media.Effects.Effect? ThemeRandomDisplayEffect => BuildTextShadowEffect(RandomDisplayEntry);
         public TextWrapping ThemeRandomDisplayTextWrapping => (RandomDisplayEntry.TextWrap ?? LayerRegistry.DefaultRandomDisplayWrap) ? TextWrapping.Wrap : TextWrapping.NoWrap;
@@ -1098,7 +1103,7 @@ namespace ArcadeStick.ViewModels
         private const double MarqueeBannerBoxWidth = 400;
 
         public FontFamily ThemeMarqueeBannerFontFamily => ToFontFamily(MarqueeBannerEntry.TextFontFamily);
-        public FontWeight ThemeMarqueeBannerFontWeight => (MarqueeBannerEntry.TextBold ?? LayerRegistry.DefaultBannerBold) ? FontWeights.Bold : FontWeights.Normal;
+        public FontWeight ThemeMarqueeBannerFontWeight => ToFontWeight(MarqueeBannerEntry.TextFontWeight, MarqueeBannerEntry.TextBold, LayerRegistry.DefaultBannerFontWeight);
         public double ThemeMarqueeBannerFontSize => MarqueeBannerEntry.TextFontSize ?? LayerRegistry.DefaultBannerFontSize;
         public string ThemeMarqueeBannerColor => MarqueeBannerEntry.TextColorHex ?? LayerRegistry.DefaultBannerColorHex;
         public TextWrapping ThemeMarqueeBannerTextWrapping => (MarqueeBannerEntry.TextWrap ?? LayerRegistry.DefaultBannerWrap) ? TextWrapping.Wrap : TextWrapping.NoWrap;
@@ -1376,7 +1381,7 @@ namespace ArcadeStick.ViewModels
             var arrowMargin = new Thickness(2, 2 + (gamesListEntry.ArrowNudgeY ?? LayerRegistry.DefaultArrowNudgeY), 0, 0);
             double folderFontSize = gamesListEntry.FolderFontSize ?? LayerRegistry.DefaultFolderFontSize;
             var folderFontFamily = new FontFamily(string.IsNullOrWhiteSpace(gamesListEntry.FolderFontFamily) ? LayerRegistry.DefaultFontFamily : gamesListEntry.FolderFontFamily);
-            var folderFontWeight = (gamesListEntry.FolderBold ?? LayerRegistry.DefaultFolderBold) ? FontWeights.Bold : FontWeights.Normal;
+            var folderFontWeight = ToFontWeight(gamesListEntry.FolderFontWeight, gamesListEntry.FolderBold, LayerRegistry.DefaultFolderFontWeight);
             var folderTextEffect = BuildShadowEffect(
                 gamesListEntry.FolderShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
                 gamesListEntry.FolderShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,
@@ -1429,7 +1434,7 @@ namespace ArcadeStick.ViewModels
             var gameSelectedBrush = SafeConvertToBrush(gamesListEntry.GameSelectedColorHex ?? LayerRegistry.DefaultGameSelectedColorHex);
             double gameFontSize = gamesListEntry.GameFontSize ?? LayerRegistry.DefaultGameFontSize;
             var gameFontFamily = new FontFamily(string.IsNullOrWhiteSpace(gamesListEntry.GameFontFamily) ? LayerRegistry.DefaultFontFamily : gamesListEntry.GameFontFamily);
-            var gameFontWeight = (gamesListEntry.GameBold ?? LayerRegistry.DefaultGameBold) ? FontWeights.Bold : FontWeights.Normal;
+            var gameFontWeight = ToFontWeight(gamesListEntry.GameFontWeight, gamesListEntry.GameBold, LayerRegistry.DefaultGameFontWeight);
             var gameTextEffect = BuildShadowEffect(
                 gamesListEntry.GameShadowEnabled ?? LayerRegistry.DefaultShadowEnabled,
                 gamesListEntry.GameShadowColorHex ?? LayerRegistry.DefaultShadowColorHex,

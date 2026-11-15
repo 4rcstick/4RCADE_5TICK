@@ -459,7 +459,7 @@ namespace ArcadeStick
 
             // Repaint the Games List rows only when its style values changed since the last paint
             var gamesListEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.GamesList);
-            string gamesListStyleKey = $"{gamesListEntry?.FolderFontSize}|{gamesListEntry?.FolderColorHex}|{gamesListEntry?.FolderSelectedColorHex}|{gamesListEntry?.FolderSelectedBgColorHex}|{gamesListEntry?.FolderFontFamily}|{gamesListEntry?.FolderBold}|{gamesListEntry?.ArrowColorHex}|{gamesListEntry?.ArrowNudgeY}|{gamesListEntry?.FolderShadowEnabled}|{gamesListEntry?.FolderShadowColorHex}|{gamesListEntry?.FolderShadowBlur}|{gamesListEntry?.FolderShadowDepth}|{gamesListEntry?.FolderSelectedShadowEnabled}|{gamesListEntry?.FolderSelectedShadowColorHex}|{gamesListEntry?.FolderSelectedShadowBlur}|{gamesListEntry?.FolderSelectedShadowDepth}";
+            string gamesListStyleKey = $"{gamesListEntry?.FolderFontSize}|{gamesListEntry?.FolderColorHex}|{gamesListEntry?.FolderSelectedColorHex}|{gamesListEntry?.FolderSelectedBgColorHex}|{gamesListEntry?.FolderFontFamily}|{gamesListEntry?.FolderFontWeight}|{gamesListEntry?.ArrowColorHex}|{gamesListEntry?.ArrowNudgeY}|{gamesListEntry?.FolderShadowEnabled}|{gamesListEntry?.FolderShadowColorHex}|{gamesListEntry?.FolderShadowBlur}|{gamesListEntry?.FolderShadowDepth}|{gamesListEntry?.FolderSelectedShadowEnabled}|{gamesListEntry?.FolderSelectedShadowColorHex}|{gamesListEntry?.FolderSelectedShadowBlur}|{gamesListEntry?.FolderSelectedShadowDepth}";
             if (gamesListStyleKey != _lastGamesListStyleKey)
             {
                 _lastGamesListStyleKey = gamesListStyleKey;
@@ -467,7 +467,7 @@ namespace ArcadeStick
             }
 
             // Same for the game title rows (separate key, so folder-only edits don't walk the games list)
-            string gameTitleStyleKey = $"{gamesListEntry?.GameFontSize}|{gamesListEntry?.GameColorHex}|{gamesListEntry?.GameSelectedColorHex}|{gamesListEntry?.GameSelectedBgColorHex}|{gamesListEntry?.GameHoverColorHex}|{gamesListEntry?.GameFontFamily}|{gamesListEntry?.GameBold}|{gamesListEntry?.GameShadowEnabled}|{gamesListEntry?.GameShadowColorHex}|{gamesListEntry?.GameShadowBlur}|{gamesListEntry?.GameShadowDepth}|{gamesListEntry?.GameSelectedShadowEnabled}|{gamesListEntry?.GameSelectedShadowColorHex}|{gamesListEntry?.GameSelectedShadowBlur}|{gamesListEntry?.GameSelectedShadowDepth}";
+            string gameTitleStyleKey = $"{gamesListEntry?.GameFontSize}|{gamesListEntry?.GameColorHex}|{gamesListEntry?.GameSelectedColorHex}|{gamesListEntry?.GameSelectedBgColorHex}|{gamesListEntry?.GameHoverColorHex}|{gamesListEntry?.GameFontFamily}|{gamesListEntry?.GameFontWeight}|{gamesListEntry?.GameShadowEnabled}|{gamesListEntry?.GameShadowColorHex}|{gamesListEntry?.GameShadowBlur}|{gamesListEntry?.GameShadowDepth}|{gamesListEntry?.GameSelectedShadowEnabled}|{gamesListEntry?.GameSelectedShadowColorHex}|{gamesListEntry?.GameSelectedShadowBlur}|{gamesListEntry?.GameSelectedShadowDepth}";
             if (gameTitleStyleKey != _lastGameTitleStyleKey)
             {
                 _lastGameTitleStyleKey = gameTitleStyleKey;
@@ -492,7 +492,7 @@ namespace ArcadeStick
             }
 
             // Marquee no-art banner: re-raise the shared title card's bindings only when one of its values changed
-            string marqueeBannerStyleKey = $"{marqueeEntry?.TextFontFamily}|{marqueeEntry?.TextBold}|{marqueeEntry?.TextFontSize}|{marqueeEntry?.TextColorHex}|{marqueeEntry?.TextWrap}|{marqueeEntry?.BannerTextMargin}"
+            string marqueeBannerStyleKey = $"{marqueeEntry?.TextFontFamily}|{marqueeEntry?.TextFontWeight}|{marqueeEntry?.TextFontSize}|{marqueeEntry?.TextColorHex}|{marqueeEntry?.TextWrap}|{marqueeEntry?.BannerTextMargin}"
                 + $"|{marqueeEntry?.BgColorHex}|{marqueeEntry?.BorderColorHex}|{marqueeEntry?.BorderSize}|{marqueeEntry?.CornerRadius}"
                 + $"|{marqueeEntry?.BannerShadowEnabled}|{marqueeEntry?.BannerShadowColorHex}|{marqueeEntry?.BannerShadowBlur}|{marqueeEntry?.BannerShadowDepth}";
             if (marqueeBannerStyleKey != _lastMarqueeBannerStyleKey)
@@ -546,7 +546,7 @@ namespace ArcadeStick
             var searchLabelEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SearchLabel);
             var searchBoxEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.SearchBox);
             var buttonEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomButton);
-            string searchButtonsStyleKey = $"{searchLabelEntry?.TextFontSize}|{searchLabelEntry?.TextColorHex}|{searchLabelEntry?.BgColorHex}|{searchLabelEntry?.TextFontFamily}|{searchLabelEntry?.TextBold}|{searchLabelEntry?.TextAlign}|{searchLabelEntry?.TextShadowEnabled}|{searchLabelEntry?.TextShadowColorHex}|{searchLabelEntry?.TextShadowBlur}|{searchLabelEntry?.TextShadowDepth}|{searchLabelEntry?.TextNudgeY}"
+            string searchButtonsStyleKey = $"{searchLabelEntry?.TextFontSize}|{searchLabelEntry?.TextColorHex}|{searchLabelEntry?.BgColorHex}|{searchLabelEntry?.TextFontFamily}|{searchLabelEntry?.TextFontWeight}|{searchLabelEntry?.TextAlign}|{searchLabelEntry?.TextShadowEnabled}|{searchLabelEntry?.TextShadowColorHex}|{searchLabelEntry?.TextShadowBlur}|{searchLabelEntry?.TextShadowDepth}|{searchLabelEntry?.TextNudgeY}"
                 + $"|{searchBoxEntry?.TextFontSize}|{searchBoxEntry?.TextColorHex}|{searchBoxEntry?.BgColorHex}"
                 + $"|{buttonEntry?.TextFontSize}|{buttonEntry?.TextColorHex}|{buttonEntry?.BgColorHex}|{buttonEntry?.HoverColorHex}|{buttonEntry?.HoverBgColorHex}|{buttonEntry?.BorderSize}|{buttonEntry?.BorderColorHex}|{buttonEntry?.HoverBorderColorHex}|{buttonEntry?.CornerRadius}";
             if (searchButtonsStyleKey != _lastSearchButtonsStyleKey)
@@ -561,8 +561,8 @@ namespace ArcadeStick
             string gameInfoStyleKey = string.Join("#",
                 new[] { Models.LayerRegistry.GameTitle, Models.LayerRegistry.PublisherBlock, Models.LayerRegistry.GameInfoBody, Models.LayerRegistry.GameInfoNav, Models.LayerRegistry.ImagePreviewsBody }
                     .Select(id => layout.Layers.FirstOrDefault(e => e.Id == id))
-                    .Select(e => $"{e?.TextFontFamily}|{e?.TextBold}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextAlign}|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}|{e?.TextRightMargin}"
-                        + $"|{e?.SectionHeaderFontFamily}|{e?.SectionHeaderBold}|{e?.SectionHeaderFontSize}|{e?.SectionHeaderColorHex}|{e?.SectionHeaderShadowEnabled}|{e?.SectionHeaderShadowColorHex}|{e?.SectionHeaderShadowBlur}|{e?.SectionHeaderShadowDepth}"));
+                    .Select(e => $"{e?.TextFontFamily}|{e?.TextFontWeight}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextAlign}|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}|{e?.TextRightMargin}"
+                        + $"|{e?.SectionHeaderFontFamily}|{e?.SectionHeaderFontWeight}|{e?.SectionHeaderFontSize}|{e?.SectionHeaderColorHex}|{e?.SectionHeaderShadowEnabled}|{e?.SectionHeaderShadowColorHex}|{e?.SectionHeaderShadowBlur}|{e?.SectionHeaderShadowDepth}"));
             if (gameInfoStyleKey != _lastGameInfoStyleKey)
             {
                 _lastGameInfoStyleKey = gameInfoStyleKey;
@@ -571,7 +571,7 @@ namespace ArcadeStick
 
             // Play Button: re-raise its bindings only when one of its style values changed
             var playButtonEntry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.PlayButton);
-            string playButtonStyleKey = $"{playButtonEntry?.ButtonText}|{playButtonEntry?.TextFontFamily}|{playButtonEntry?.TextBold}|{playButtonEntry?.TextFontSize}|{playButtonEntry?.TextColorHex}|{playButtonEntry?.TextNudgeY}"
+            string playButtonStyleKey = $"{playButtonEntry?.ButtonText}|{playButtonEntry?.TextFontFamily}|{playButtonEntry?.TextFontWeight}|{playButtonEntry?.TextFontSize}|{playButtonEntry?.TextColorHex}|{playButtonEntry?.TextNudgeY}"
                 + $"|{playButtonEntry?.TextShadowEnabled}|{playButtonEntry?.TextShadowColorHex}|{playButtonEntry?.TextShadowBlur}|{playButtonEntry?.TextShadowDepth}"
                 + $"|{playButtonEntry?.BgColorHex}|{playButtonEntry?.BoxShadowEnabled}|{playButtonEntry?.BoxShadowColorHex}|{playButtonEntry?.BoxShadowBlur}|{playButtonEntry?.BoxShadowDepth}"
                 + $"|{playButtonEntry?.BorderSize}|{playButtonEntry?.BorderColorHex}|{playButtonEntry?.CornerRadius}|{playButtonEntry?.HoverColorHex}|{playButtonEntry?.HoverBgColorHex}|{playButtonEntry?.HoverBorderColorHex}";
@@ -595,7 +595,7 @@ namespace ArcadeStick
             string randomDisplayStyleKey = string.Join("#",
                 new[] { Models.LayerRegistry.RandomGameDisplay, Models.LayerRegistry.RandomGameDisplaySplash }
                     .Select(id => layout.Layers.FirstOrDefault(e => e.Id == id))
-                    .Select(e => $"{e?.TextMessage}|{e?.TextWrap}|{e?.TextFontFamily}|{e?.TextBold}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextAlign}"
+                    .Select(e => $"{e?.TextMessage}|{e?.TextWrap}|{e?.TextFontFamily}|{e?.TextFontWeight}|{e?.TextFontSize}|{e?.TextColorHex}|{e?.TextAlign}"
                         + $"|{e?.TextShadowEnabled}|{e?.TextShadowColorHex}|{e?.TextShadowBlur}|{e?.TextShadowDepth}"
                         + $"|{e?.BgColorHex}|{e?.BorderSize}|{e?.BorderColorHex}|{e?.CornerRadius}"));
             if (randomDisplayStyleKey != _lastRandomDisplayStyleKey)

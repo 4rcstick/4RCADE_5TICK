@@ -418,13 +418,24 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Font header with Bold beside it, the font combo beneath -->
-                                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
-                                    <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                    <CheckBox x:Name="ChkGLFolderBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLFolderBold_Click"/>
-                                </StackPanel>
-                                <ComboBox x:Name="CboGLFolderFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="190" Height="25" HorizontalAlignment="Left"
-                                          Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLFolderFont_SelectionChanged"/>
+                                <!-- Font family and weight: headers above, combos beneath (family 0 to 190, weight 198 to 308) -->
+                                <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="190"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <ComboBox x:Name="CboGLFolderFont" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLFolderFont_SelectionChanged"/>
+                                    <ComboBox x:Name="CboGLFolderWeight" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLFolderWeight_SelectionChanged"/>
+                                </Grid>
 
                                 <!-- Normal state: size, color (side by side) -->
                                 <Grid Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
@@ -571,13 +582,24 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Font header with Bold beside it, the font combo beneath -->
-                                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
-                                    <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                    <CheckBox x:Name="ChkGLGameBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkGLGameBold_Click"/>
-                                </StackPanel>
-                                <ComboBox x:Name="CboGLGameFont" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="190" Height="25" HorizontalAlignment="Left"
-                                          Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLGameFont_SelectionChanged"/>
+                                <!-- Font family and weight: headers above, combos beneath (family 0 to 190, weight 198 to 308) -->
+                                <Grid Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="190"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <ComboBox x:Name="CboGLGameFont" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLGameFont_SelectionChanged"/>
+                                    <ComboBox x:Name="CboGLGameWeight" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboGLGameWeight_SelectionChanged"/>
+                                </Grid>
 
                                 <!-- Normal state: size, color (side by side) -->
                                 <Grid Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
@@ -725,9 +747,8 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Label: Font (with Bold beside its header) and Alignment, both combos on one row (the Publisher
-                                     row's shape): Font 0 to 190 (the font combo width, so the longest family name fits), Alignment at
-                                     x 198, 20px right of the Background column beneath. -->
+                                <!-- Label: font family and weight, headers above, combos beneath (family 0 to 190, weight 198 to 308).
+                                     Alignment sits on the vertical nudge row below. -->
                                 <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Label" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                 <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
@@ -739,15 +760,12 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
-                                        <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                        <CheckBox x:Name="ChkSBLabelBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkSBLabelBold_Click"/>
-                                    </StackPanel>
-                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <ComboBox x:Name="CboSBLabelFont" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelFont_SelectionChanged"/>
-                                    <ComboBox x:Name="CboSBLabelAlign" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelAlign_SelectionChanged"/>
+                                    <ComboBox x:Name="CboSBLabelWeight" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelWeight_SelectionChanged"/>
                                 </Grid>
 
                                 <!-- Label: size, color, background (one row; the search box row below uses the same widths) -->
@@ -790,12 +808,28 @@
                                     </StackPanel>
                                 </Grid>
 
-                                <!-- Label: vertical nudge (moves only the text, -10 to 10 px): the box, its label to the right -->
-                                <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" Margin="0,10,0,0">
-                                    <TextBox x:Name="TxtSBLabelNudge" Width="52" HorizontalContentAlignment="Center"
+                                <!-- Label: Alignment (its header above the combo, 0 to 110), then the vertical nudge (moves only the text,
+                                     -10 to 10 px) on the same row: the box in the Blur column (118 to 170), its label to the right.
+                                     The trailing * column lets the nudge label run to the pane's edge. -->
+                                <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Alignment:" Style="{StaticResource GLLabelStyle}"/>
+                                    <ComboBox x:Name="CboSBLabelAlign" Grid.Row="1" Grid.Column="0" Width="110" Height="25" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboSBLabelAlign_SelectionChanged"/>
+                                    <TextBox x:Name="TxtSBLabelNudge" Grid.Row="1" Grid.Column="2" Width="52" HorizontalContentAlignment="Center" VerticalAlignment="Center"
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="SBField_LostFocus" KeyDown="SBField_KeyDown"/>
-                                    <TextBlock Text="Vertical nudge (px)" Style="{StaticResource GLLabelStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                </StackPanel>
+                                    <TextBlock Grid.Row="1" Grid.Column="4" Text="Vertical nudge (px)" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                                </Grid>
 
                                 <!-- Label: drop shadow (standalone toggle kept; extra gap above it, no divider) -->
                                 <CheckBox x:Name="ChkSBLabelShadow" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Content="Drop shadow" Margin="0,16,0,0"
@@ -948,14 +982,16 @@
                     <TabItem x:Name="TabGITitle" Header="TITLE" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
-                                <!-- Title: Font header with Bold beside it; font combo; size / color; compact drop shadow -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
+                                <!-- Title: font family and weight; size / color; compact drop shadow. The trailing * column gives the
+                                     family / weight row (308 wide) room past the fixed columns and keeps layout rounding from widening them. -->
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -969,13 +1005,24 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Game Name Header" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
-                                    <!-- Font header with Bold beside it, the font combo beneath -->
-                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,4,0,3">
-                                        <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                        <CheckBox x:Name="GITitleBold" Tag="Title" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
-                                    </StackPanel>
-                                    <ComboBox x:Name="GITitleFont" Tag="Title" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="190" Height="25" HorizontalAlignment="Left"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                    <!-- Font family and weight: headers above, combos beneath (family 0 to 190, weight 198 to 308) -->
+                                    <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="190"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="110"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <ComboBox x:Name="GITitleFont" Tag="Title" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                        <ComboBox x:Name="GITitleWeight" Tag="Title" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIWeight_SelectionChanged"/>
+                                    </Grid>
 
                                     <!-- Size, color (side by side) -->
                                     <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
@@ -1034,9 +1081,8 @@
                     <TabItem x:Name="TabGIPublisher" Header="PUBLISHER" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
-                                <!-- Publisher: Font header with Bold beside it and the Alignment header, both combos on one row; size / color;
-                                     compact drop shadow. Column 5 gives the Font / Alignment row the full pane width so the Alignment
-                                     combo is never clipped. -->
+                                <!-- Publisher: font family and weight on one row; size / color / alignment; compact drop shadow. Column 5
+                                     gives the family / weight and size / color / alignment rows the full pane width so nothing is clipped. -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
@@ -1056,36 +1102,35 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Publisher, Year, Rating" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
-                                    <!-- Font (with Bold beside its header) and Alignment of all five publisher lines (Left / Center / Right);
-                                         the Font combo ends at 190 (the font combo width, so the longest family name fits) and the
-                                         Alignment combo starts at x 198 -->
+                                    <!-- Font family and weight of all five publisher lines: headers above, combos beneath (family 0 to 190,
+                                         weight 198 to 308) -->
                                     <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="190"/>
                                             <ColumnDefinition Width="8"/>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="110"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
-                                            <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                            <CheckBox x:Name="GIPublisherBold" Tag="Publisher" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
-                                        </StackPanel>
-                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                         <ComboBox x:Name="GIPublisherFont" Tag="Publisher" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
                                                   Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
-                                        <ComboBox x:Name="GIPublisherAlign" Tag="Publisher" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
-                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIAlign_SelectionChanged"/>
+                                        <ComboBox x:Name="GIPublisherWeight" Tag="Publisher" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIWeight_SelectionChanged"/>
                                     </Grid>
 
-                                    <!-- Size, color (side by side) -->
-                                    <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
+                                    <!-- Size, color and the Alignment of all five publisher lines (Left / Center / Right) on one row, in the
+                                         Search tab's columns (52 | 8 | 110 | 8 | 110): Alignment at x 178 -->
+                                    <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="52"/>
                                             <ColumnDefinition Width="8"/>
-                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="110"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
@@ -1093,6 +1138,9 @@
                                         </Grid.RowDefinitions>
                                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Size:" Style="{StaticResource GLLabelStyle}"/>
                                         <TextBlock Grid.Row="0" Grid.Column="2" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="4" Text="Alignment:" Style="{StaticResource GLLabelStyle}"/>
+                                        <ComboBox x:Name="GIPublisherAlign" Tag="Publisher" Grid.Row="1" Grid.Column="4" Width="110" Height="25" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIAlign_SelectionChanged"/>
                                         <TextBox x:Name="GIPublisherSize" Tag="Publisher" Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Center"
                                                  Style="{StaticResource GLTextBoxStyle}" LostFocus="GIField_LostFocus" KeyDown="GIField_KeyDown"/>
                                         <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
@@ -1208,14 +1256,16 @@
                                 <!-- Divider: Navigation Arrows and Dots / Headers -->
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
-                                <!-- Headers: Font header with Bold beside it; font combo; size / color; compact drop shadow -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
+                                <!-- Headers: font family and weight; size / color; compact drop shadow. The trailing * column gives the
+                                     family / weight row (308 wide) room past the fixed columns and keeps layout rounding from widening them. -->
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -1229,13 +1279,24 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Headers" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
-                                    <!-- Font header with Bold beside it, the font combo beneath -->
-                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,4,0,3">
-                                        <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                        <CheckBox x:Name="GIInfoHeaderBold" Tag="InfoHeader" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
-                                    </StackPanel>
-                                    <ComboBox x:Name="GIInfoHeaderFont" Tag="InfoHeader" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="190" Height="25" HorizontalAlignment="Left"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                    <!-- Font family and weight: headers above, combos beneath (family 0 to 190, weight 198 to 308) -->
+                                    <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="190"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="110"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <ComboBox x:Name="GIInfoHeaderFont" Tag="InfoHeader" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                        <ComboBox x:Name="GIInfoHeaderWeight" Tag="InfoHeader" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIWeight_SelectionChanged"/>
+                                    </Grid>
 
                                     <!-- Size, color (side by side) -->
                                     <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
@@ -1287,14 +1348,17 @@
                                 <!-- Divider: Headers / Body Text -->
                                 <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
 
-                                <!-- Body: Font header with Bold beside it; font combo; size / color; compact drop shadow; gap to scrollbar -->
-                                <Grid Margin="0,0,0,0" UseLayoutRounding="True" HorizontalAlignment="Left">
+                                <!-- Body: font family and weight; size / color; compact drop shadow; gap to scrollbar. The trailing *
+                                     column gives the family / weight row (308 wide) room past the fixed columns and keeps layout rounding
+                                     from widening them. -->
+                                <Grid Margin="0,0,0,0" UseLayoutRounding="True">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
                                         <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -1310,13 +1374,24 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Body Text" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
-                                    <!-- Font header with Bold beside it, the font combo beneath -->
-                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,4,0,3">
-                                        <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                        <CheckBox x:Name="GIInfoBodyBold" Tag="InfoBody" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
-                                    </StackPanel>
-                                    <ComboBox x:Name="GIInfoBodyFont" Tag="InfoBody" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="190" Height="25" HorizontalAlignment="Left"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                    <!-- Font family and weight: headers above, combos beneath (family 0 to 190, weight 198 to 308) -->
+                                    <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="190"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="110"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <ComboBox x:Name="GIInfoBodyFont" Tag="InfoBody" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                        <ComboBox x:Name="GIInfoBodyWeight" Tag="InfoBody" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIWeight_SelectionChanged"/>
+                                    </Grid>
 
                                     <!-- Size, color (side by side) -->
                                     <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
@@ -1430,8 +1505,8 @@
                     <TabItem x:Name="TabGIPlayButton" Header="PLAY BUTTON" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
                             <StackPanel Margin="10">
-                                <!-- Text: Font header with Bold; font combo; size / color; button text and vertical nudge; compact drop shadow.
-                                     Column 5 gives the button text row the full pane width so the nudge label is never clipped. -->
+                                <!-- Text: font family and weight; size / color; button text and vertical nudge; compact drop shadow.
+                                     Column 5 gives the family / weight and button text rows the full pane width so nothing is clipped. -->
                                 <Grid Margin="0,0,0,0" UseLayoutRounding="True">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110"/>
@@ -1453,13 +1528,24 @@
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Text="Text" FontWeight="Bold" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
 
-                                    <!-- Font header with Bold beside it, the font combo beneath -->
-                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,4,0,3">
-                                        <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                        <CheckBox x:Name="GIPlayButtonBold" Tag="PlayButton" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="GIBold_Click"/>
-                                    </StackPanel>
-                                    <ComboBox x:Name="GIPlayButtonFont" Tag="PlayButton" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" Width="190" Height="25" HorizontalAlignment="Left"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                    <!-- Font family and weight: headers above, combos beneath (family 0 to 190, weight 198 to 308) -->
+                                    <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,4,0,0" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="190"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="110"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                        <ComboBox x:Name="GIPlayButtonFont" Tag="PlayButton" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIFont_SelectionChanged"/>
+                                        <ComboBox x:Name="GIPlayButtonWeight" Tag="PlayButton" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                                  Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="GIWeight_SelectionChanged"/>
+                                    </Grid>
 
                                     <!-- Size, color (side by side) -->
                                     <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="5" HorizontalAlignment="Left">
@@ -1940,38 +2026,45 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Font (with Bold beside its header) and Alignment (with Wrap text beside its header; wrap at the box
-                                     width, shared by both states), both combos on one row. Unequal columns: 190 for Font (the font
-                                     combo width, so the longest family name fits), Auto for Alignment (as wide as its header and
-                                     checkbox, at least the 110 combo), which starts at x 198. -->
+                                <!-- Font family and weight: headers above, combos beneath (family 0 to 190, weight 198 to 308) -->
                                 <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="190"/>
                                         <ColumnDefinition Width="8"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
-                                        <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                        <CheckBox x:Name="ChkRGBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGBold_Click"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,0,0,3">
-                                        <TextBlock Text="Alignment:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                        <CheckBox x:Name="ChkRGWrap" Content="Wrap text" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGWrap_Click"/>
-                                    </StackPanel>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
                                     <ComboBox x:Name="CboRGFont" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
                                               Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGFont_SelectionChanged"/>
-                                    <ComboBox x:Name="CboRGAlign" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
-                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGAlign_SelectionChanged"/>
+                                    <ComboBox x:Name="CboRGWeight" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGWeight_SelectionChanged"/>
                                 </Grid>
 
-                                <!-- Message (max 60 characters; applies on Enter or focus loss) -->
-                                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Text="Message (leave empty for no text):" Style="{StaticResource GLLabelStyle}"/>
-                                <TextBox x:Name="TxtRGMessage" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5" MaxLength="60"
-                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGMessage_LostFocus" KeyDown="TxtRGMessage_KeyDown"/>
+                                <!-- Message (max 60 characters, scrolls sideways when longer than the box; applies on Enter or focus loss),
+                                     190 wide like the family combo, with Alignment to its right. The first column is at least 206 and
+                                     grows with the message label (198px at the default Sub-Header size), so "Alignment:" never runs into
+                                     it; Alignment sits at x 206 at default fonts. -->
+                                <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="206"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Message (leave empty for no text):" Style="{StaticResource GLLabelStyle}" Margin="0,10,8,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Alignment:" Style="{StaticResource GLLabelStyle}"/>
+                                    <TextBox x:Name="TxtRGMessage" Grid.Row="1" Grid.Column="0" Width="190" HorizontalAlignment="Left" MaxLength="60"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGMessage_LostFocus" KeyDown="TxtRGMessage_KeyDown"/>
+                                    <ComboBox x:Name="CboRGAlign" Grid.Row="1" Grid.Column="1" Width="110" Height="25" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRGAlign_SelectionChanged"/>
+                                </Grid>
 
                                 <!-- Max text size per state (6 to 200): the text shrinks below it only when it does not fit. One shared
                                      heading, each state's box on the left with its label to the right. -->
@@ -1989,9 +2082,11 @@
                                     </StackPanel>
                                 </StackPanel>
 
-                                <!-- Color, on its own row -->
+                                <!-- Color, with Wrap text on the same row at x 178 (wrap at the box width, shared by both states; it
+                                     moved here from the Alignment header when the weight combo took that space). The row spans the
+                                     trailing * column so the checkbox label is never clipped. -->
                                 <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="5" Text="Color:" Style="{StaticResource GLLabelStyle}"/>
-                                <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal">
+                                <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal">
                                     <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
                                             <colorpicker:PortableColorPicker x:Name="RGTextColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RGTextColorPicker_ColorChanged">
                                                 <colorpicker:PortableColorPicker.Resources>
@@ -2000,6 +2095,7 @@
                                             </colorpicker:PortableColorPicker>
                                         </Border>
                                     <TextBox x:Name="TxtRGTextColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRGTextColorHex_LostFocus"/>
+                                    <CheckBox x:Name="ChkRGWrap" Content="Wrap text" Margin="68,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkRGWrap_Click"/>
                                 </StackPanel>
 
                                 <!-- Drop shadow, compact (color, blur and depth are enabled while the toggle is on) -->
@@ -2305,14 +2401,25 @@
                                 <CheckBox x:Name="ChkBannerPreview" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Content="Preview text marquee"
                                           Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerPreview_Click"/>
 
-                                <!-- Font header with Bold beside it, the font combo beneath (190 wide, the font combo width, so the
-                                     longest family name fits; it runs 20px past the Max size box's right edge below) -->
-                                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" UseLayoutRounding="True" Margin="0,10,0,3">
-                                    <TextBlock Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
-                                    <CheckBox x:Name="ChkBannerBold" Content="Bold" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkBannerBold_Click"/>
-                                </StackPanel>
-                                <ComboBox x:Name="CboBannerFont" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" Width="190" Height="25" HorizontalAlignment="Left"
-                                          Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboBannerFont_SelectionChanged"/>
+                                <!-- Font family and weight: headers above, combos beneath (family 0 to 190, the font combo width, so the
+                                     longest family name fits; weight 198 to 308) -->
+                                <Grid Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="6" Margin="0,10,0,0" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="190"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <ComboBox x:Name="CboBannerFont" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboBannerFont_SelectionChanged"/>
+                                    <ComboBox x:Name="CboBannerWeight" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboBannerWeight_SelectionChanged"/>
+                                </Grid>
 
                                 <!-- Color, then max size (6 to 200, inside the card's 400x100 reference box); the max size box sits in
                                      the drop shadow row's Blur column (x 118, 52 wide). The trailing * column lets the "Max size:" label
