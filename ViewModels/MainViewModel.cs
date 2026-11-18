@@ -186,6 +186,8 @@ namespace ArcadeStick.ViewModels
             _isCategorySortEnabled = Configuration.IsCategorySortEnabled;
 
             GamesCollection = new ObservableCollection<GameItem>();
+            // Any change to the game list makes the Random Video Previews pool stale, even with the same ROM names (new objects)
+            GamesCollection.CollectionChanged += (_, _) => _gamesCollectionVersion++;
             TreeNodesCollection = new ObservableCollection<TreeCategoryNode>();
             // The Top Offset spacer follows whichever folder is first (rebuilds, search results, FAVORITES added or removed)
             TreeNodesCollection.CollectionChanged += (_, _) => ApplyGamesListTopSpacer();
@@ -2176,6 +2178,37 @@ namespace ArcadeStick.ViewModels
             };
         }
 
+        // [SECTION: Random Video Previews Pool]
+        // The Random Video Previews layer draws from the same filtered Game Pool the GAME POOL count shows (themes.md 3.31). Each
+        // UpdateLiveTreeDisplay computes that set; it is published only when the ROM names or the game list itself changed, so a
+        // search, a launch or another rebuild with the same pool starts no new scan. MainWindow scans for videos in the background.
+        private int _gamesCollectionVersion;
+        private int _publishedPoolCollectionVersion = -1;
+        private HashSet<string>? _publishedPoolRomNames;
+
+        // The Game Pool's games at the last publish (a fresh list each time, never changed afterwards); null before the first
+        public IReadOnlyList<GameItem>? RandomPreviewPoolGames { get; private set; }
+
+        // Raised on the UI thread when RandomPreviewPoolGames changed
+        public event Action? RandomPreviewPoolChanged;
+
+        // Does the publish: stores the pool's games and raises RandomPreviewPoolChanged, unless the pool is the one published last
+        private void PublishRandomPreviewPool(HashSet<string> visibleRomNames)
+        {
+            if (_publishedPoolRomNames != null && _publishedPoolCollectionVersion == _gamesCollectionVersion
+                && _publishedPoolRomNames.SetEquals(visibleRomNames)) return;
+
+            _publishedPoolRomNames = new HashSet<string>(visibleRomNames, StringComparer.OrdinalIgnoreCase);
+            _publishedPoolCollectionVersion = _gamesCollectionVersion;
+            RandomPreviewPoolGames = GamesCollection.Where(g => visibleRomNames.Contains(g.RomName)).ToList();
+            RandomPreviewPoolChanged?.Invoke();
+        }
+
+        // Does the videos folder path the normal preview lookup uses (the Options value, or "videos")
+        public string GetPreviewVideosFolder() =>
+            Configuration.GetMediaCategoryPath(string.IsNullOrWhiteSpace(Configuration.VideosPath) ? "videos" : Configuration.VideosPath);
+        // [END SECTION: Random Video Previews Pool]
+
         // [SECTION: Play Random Game - Pool & Spin Generation]
         // Minimum eligible pool size before a spin is allowed to start - below this, filler frames would
         // repeat too heavily to feel like a real randomizer. Caller (die click handler) checks this via
@@ -2730,8 +2763,12 @@ namespace ArcadeStick.ViewModels
                 // Total filtered ROM pool, independent of which structure mode (virtual category vs custom
                 // folder) is currently rendering it - both branches already funnel through this same
                 // eligibility/dedup source, so it's the single correct number regardless of toggle state.
-                int filteredGameCount = _sortService.ResolveVisibleFamilyMembers(GamesCollection, sortFilterOptions).Count;
+                var gamePoolRomNames = _sortService.ResolveVisibleFamilyMembers(GamesCollection, sortFilterOptions);
+                int filteredGameCount = gamePoolRomNames.Count;
                 FilteredGameCountText = $"{filteredGameCount:N0}";
+
+                // The same set is the Random Video Previews pool; it is republished only when it really changed
+                PublishRandomPreviewPool(gamePoolRomNames);
 
                 string configDir = Configuration.GetConfigPath();
                 string playlistsDir = Path.Combine(configDir, "playlists");

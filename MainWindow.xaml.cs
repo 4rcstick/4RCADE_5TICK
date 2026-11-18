@@ -107,6 +107,14 @@ namespace ArcadeStick
             VideoPreviewLayer.SetSoundEnabled(_viewModel.Configuration.PreviewSoundEnabled);
             StateChanged += MainWindow_StateChanged;
 
+            // Random Video Previews: its own FFmpeg player (same PreviewPlayerHost, separate instance) drawing into the splash-only
+            // layer, fed by the filtered Game Pool (see the Random Video Previews Player section)
+            _rvpPlayer = new ArcadeStick.Playback.PreviewPlayerHost(
+                _viewModel.Configuration.GetFfmpegRuntimeDirectory(), RandomVideoPreviewsLayer.PreviewVideoSurface);
+            _rvpPlayer.StateChanged += RandomPreviewPlayer_StateChanged;
+            _viewModel.RandomPreviewPoolChanged += RebuildRandomPreviewPool;
+            if (_viewModel.RandomPreviewPoolGames != null) RebuildRandomPreviewPool();
+
             _romCopyService = new RomCopyService(_viewModel.Configuration);
 
             _viewModel.GameLaunchCompleted += RefreshVideoPreview;
@@ -120,6 +128,7 @@ namespace ArcadeStick
             _viewModel.ThemeExtractionStarting += ReleaseCustomLayers;
             _viewModel.GameLaunchCompleted += ResumeMainBgVideo;
             _viewModel.GameLaunchCompleted += RestoreWorkspaceWindowsAfterGame;
+            _viewModel.GameLaunchCompleted += EvaluateRandomPreviews;
 
             // Position every layer from the active layout right away (the first ThemeBindingsRefreshed
             // may have fired inside MainViewModel's constructor, before this subscription existed).
@@ -813,30 +822,296 @@ namespace ArcadeStick
         }
 
         // [SECTION: Random Video Previews Frame]
-        // Random Video Previews (random-video-previews-handoff.md): placement, outer frame and letterbox color, from its entry on
-        // every ApplyLayout. Splash-only display is fixed in the control (hidden whenever a game is selected); the entry's
-        // Visible flag (Hide this layer) and the eligible-video gate decide whether it shows on the splash screen at all.
-        // With no eligible video the whole layer is hidden, frame included (decision D6).
-        // Pass 1 placeholder: true until the eligible video pool (Pass 2) sets it, so the frame can be placed and checked.
-        private bool _randomPreviewsHasVideos = true;
+        // Random Video Previews (random-video-previews-handoff.md, themes.md 3.31): placement, outer frame and letterbox color,
+        // from its entry on every ApplyLayout. Splash-only display is fixed in the control (hidden whenever a game is selected);
+        // the entry's Visible flag (Hide this layer) and whether anything can play decide whether it shows on the splash screen
+        // at all. With no eligible video the whole layer is hidden, frame included (decision D6). A style or position change
+        // never restarts the video; the player follows the layer through EvaluateRandomPreviews.
+        private bool _rvpEntryVisible; // the active layout's Hide this layer flag, inverted
 
         // Does the Random Video Previews placement and styling: the ring rule (X / Y the ring's outer corner, Width / Height the
-        // video area), the frame, the letterbox color, and the visibility from Hide this layer and the eligible-video gate
+        // video area), the frame, the letterbox color, the decode size, then the visibility and the player's start or stop
         private void ApplyRandomVideoPreviewsFrame(Models.ThemeLayout layout)
         {
             var entry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomVideoPreviews);
-            if (entry == null)
+            _rvpEntryVisible = entry?.Visible == true;
+            if (entry != null)
             {
-                RandomVideoPreviewsLayer.Visibility = Visibility.Collapsed;
+                PlaceOutsideBorder(RandomVideoPreviewsLayer, entry, entry.BorderSize ?? 0);
+                RandomVideoPreviewsLayer.ApplyBorder(entry.BorderSize ?? 0, entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
+                RandomVideoPreviewsLayer.ApplyBackground(entry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
+                UpdateRandomPreviewTargetSize(entry);
+            }
+
+            // A changed Videos folder (Options Save refreshes the theme bindings, which runs this) rescans the current pool
+            if (_viewModel.RandomPreviewPoolGames != null
+                && !string.Equals(_viewModel.GetPreviewVideosFolder(), _rvpScanFolder, StringComparison.OrdinalIgnoreCase))
+            {
+                RebuildRandomPreviewPool();
+            }
+
+            UpdateRandomPreviewsVisibility();
+            EvaluateRandomPreviews();
+        }
+
+        // Does the layer's visibility: shown when Hide this layer is off and a video plays or can play (decision D6)
+        private void UpdateRandomPreviewsVisibility()
+        {
+            bool hasContent = _rvpCurrent != null || _rvpSequencer.HasCandidates;
+            RandomVideoPreviewsLayer.Visibility = _rvpEntryVisible && hasContent ? Visibility.Visible : Visibility.Collapsed;
+        }
+        // [END SECTION: Random Video Previews Frame]
+
+        // [SECTION: Random Video Previews Player]
+        // Its own PreviewPlayerHost (the normal Video Preview's player is untouched). The eligible pool is rebuilt in the
+        // background when the Game Pool changes (RandomPreviewPoolChanged, versioned: only the newest scan is used) and adopted at
+        // the next rotation, so the current video always finishes its time. Each video shows for the entry's RotationSeconds,
+        // looping if it is shorter (the player loops on its own); the countdown pauses while the pointer is over the layer or a
+        // sound-on minimize paused the video, and resumes with the time it had left. No debounce, no transition: the next video
+        // replaces the current one directly. A failed video is skipped and left out until the next pool. Leaving the splash
+        // screen stops it; every return starts the next game from 0 with a fresh countdown (shuffle progress is kept).
+        private ArcadeStick.Playback.PreviewPlayerHost? _rvpPlayer;
+        private readonly Services.RandomPreviewSequencer _rvpSequencer = new();
+        private int _rvpScanVersion;                                // the newest eligibility scan; older results are dropped
+        private string? _rvpScanFolder;                             // the videos folder the newest scan used
+        private Services.RandomPreviewCandidate? _rvpCurrent;       // the game on screen, null when stopped
+        private Services.RandomPreviewCandidate? _rvpLast;          // the last game shown, kept across stops for no-repeat
+        private string? _rvpSourcePath;                             // full path of the current video
+        private readonly System.Diagnostics.Stopwatch _rvpCountdown = new();
+        private TimeSpan _rvpDuration;
+        private DispatcherTimer? _rvpTimer;
+        private bool _rvpMinimizePaused;                            // a sound-on minimize paused the video (and the countdown)
+
+        // Does the background eligibility scan of the newest Game Pool, then adopts it if no newer scan started meanwhile
+        private async void RebuildRandomPreviewPool()
+        {
+            var games = _viewModel.RandomPreviewPoolGames;
+            if (games == null) return;
+            string folder = _viewModel.GetPreviewVideosFolder();
+            _rvpScanFolder = folder;
+            int version = ++_rvpScanVersion;
+
+            List<Services.RandomPreviewCandidate> eligible;
+            try
+            {
+                eligible = await Task.Run(() => Services.RandomPreviewPool.BuildEligible(games, folder));
+            }
+            catch (Exception exception)
+            {
+                System.Diagnostics.Debug.WriteLine($"RandomPreviews: eligibility scan failed: {exception.Message}");
+                eligible = new List<Services.RandomPreviewCandidate>();
+            }
+            if (version != _rvpScanVersion || _isShuttingDown) return;
+
+            _rvpSequencer.SetPool(eligible);
+            UpdateRandomPreviewsVisibility();
+            EvaluateRandomPreviews();
+        }
+
+        // Does the start / stop decision: plays only on the splash screen, with the layer not hidden, no game running and the
+        // player loaded. Stops when that no longer holds; starts the next game when it holds and nothing plays yet.
+        private void EvaluateRandomPreviews()
+        {
+            if (_viewModel == null || _rvpPlayer == null) return;
+
+            bool allowed = _rvpPlayer.IsAvailable && !_isShuttingDown && !_viewModel.IsGameSelected
+                && _rvpEntryVisible && _gameBeingLaunched == null;
+            if (!allowed)
+            {
+                if (_rvpCurrent != null) StopRandomPreviews();
+                return;
+            }
+            if (_rvpCurrent != null) return;
+
+            var next = _rvpSequencer.Next(_rvpLast, GetRandomPreviewsOrder());
+            if (next == null)
+            {
+                UpdateRandomPreviewsVisibility();
+                return;
+            }
+            PlayRandomPreview(next);
+
+            // The pointer may already rest over the layer as the splash appears: refresh IsMouseOver without waiting for a move
+            Dispatcher.BeginInvoke(new Action(Mouse.Synchronize), DispatcherPriority.Background);
+        }
+
+        // Does one video start: from 0 with the shared Preview sound setting, and a fresh countdown read from the entry now
+        private void PlayRandomPreview(Services.RandomPreviewCandidate candidate)
+        {
+            _rvpCurrent = candidate;
+            _rvpLast = candidate;
+            _rvpSourcePath = System.IO.Path.GetFullPath(candidate.VideoPath);
+            _rvpMinimizePaused = false;
+
+            UpdateRandomPreviewTargetSize(null);
+            RandomVideoPreviewsLayer.PreviewVideoSurface.Visibility = Visibility.Visible;
+            _rvpPlayer?.Play(candidate.VideoPath, _viewModel.Configuration.PreviewSoundEnabled);
+            RestartRandomPreviewCountdown();
+            UpdateRandomPreviewsVisibility();
+        }
+
+        // Does the move to the next game when the countdown ends (or the current video failed). With one game left it keeps
+        // looping that video with a new countdown, without reloading it; with none it stops and the layer hides.
+        private void AdvanceRandomPreview()
+        {
+            if (_rvpCurrent is not Services.RandomPreviewCandidate current) return;
+
+            var next = _rvpSequencer.Next(current, GetRandomPreviewsOrder());
+            if (next == null)
+            {
+                StopRandomPreviews();
+                return;
+            }
+            if (string.Equals(next.Game.RomName, current.Game.RomName, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(next.VideoPath, current.VideoPath, StringComparison.OrdinalIgnoreCase))
+            {
+                RestartRandomPreviewCountdown();
+                return;
+            }
+            PlayRandomPreview(next);
+        }
+
+        // Does the stop: no countdown, no current game, the player stopped and its surface hidden
+        private void StopRandomPreviews()
+        {
+            _rvpTimer?.Stop();
+            _rvpCountdown.Reset();
+            _rvpCurrent = null;
+            _rvpSourcePath = null;
+            _rvpMinimizePaused = false;
+            _rvpPlayer?.Stop();
+            RandomVideoPreviewsLayer.PreviewVideoSurface.Visibility = Visibility.Collapsed;
+            UpdateRandomPreviewsVisibility();
+        }
+
+        // Does a fresh countdown: the entry's RotationSeconds (5 to 300) read now, so an edit applies from the next video
+        private void RestartRandomPreviewCountdown()
+        {
+            int seconds = GetRandomPreviewsEntry()?.RotationSeconds ?? Models.LayerRegistry.DefaultRotationSeconds;
+            _rvpDuration = TimeSpan.FromSeconds(Math.Clamp(seconds, Models.LayerRegistry.MinRotationSeconds, Models.LayerRegistry.MaxRotationSeconds));
+            _rvpCountdown.Reset();
+
+            if (_rvpTimer == null)
+            {
+                _rvpTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(100) };
+                _rvpTimer.Tick += RandomPreviewTimer_Tick;
+            }
+            _rvpTimer.Start();
+        }
+
+        // Does the countdown tick: held while the pointer is over the layer or a minimize paused the video (the video itself
+        // keeps playing on hover), otherwise counting on from where it stopped; advances when the time is up
+        private void RandomPreviewTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_rvpCurrent == null)
+            {
+                _rvpTimer?.Stop();
+                _rvpCountdown.Reset();
                 return;
             }
 
-            PlaceOutsideBorder(RandomVideoPreviewsLayer, entry, entry.BorderSize ?? 0);
-            RandomVideoPreviewsLayer.ApplyBorder(entry.BorderSize ?? 0, entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
-            RandomVideoPreviewsLayer.ApplyBackground(entry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
-            RandomVideoPreviewsLayer.Visibility = entry.Visible && _randomPreviewsHasVideos ? Visibility.Visible : Visibility.Collapsed;
+            if (_rvpMinimizePaused || RandomVideoPreviewsLayer.IsMouseOver)
+            {
+                _rvpCountdown.Stop();
+                return;
+            }
+            _rvpCountdown.Start();
+            if (_rvpCountdown.Elapsed >= _rvpDuration) AdvanceRandomPreview();
         }
-        // [END SECTION: Random Video Previews Frame]
+
+        // Does the failure rule: an Error for the current video logs it, leaves that game out until the next pool, and moves on
+        // (on the next dispatcher pass, so a run of bad files never nests)
+        private void RandomPreviewPlayer_StateChanged(object? sender, ArcadeStick.Playback.PlayerStateChanged change)
+        {
+            if (change.State != ArcadeStick.Playback.PlayerState.Error) return;
+            if (_rvpCurrent is not Services.RandomPreviewCandidate failed || _rvpSourcePath == null
+                || !string.Equals(change.SourcePath, _rvpSourcePath, StringComparison.OrdinalIgnoreCase)) return;
+
+            _rvpSequencer.MarkFailed(failed);
+            LogRandomPreviewFailure(change, failed);
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (ReferenceEquals(_rvpCurrent, failed)) AdvanceRandomPreview();
+            }), DispatcherPriority.Background);
+        }
+
+        // Does the failure log line in 4rcade5tick_files/logs/preview.log, tagged player=random (failures only)
+        private void LogRandomPreviewFailure(ArcadeStick.Playback.PlayerStateChanged change, Services.RandomPreviewCandidate candidate)
+        {
+            try
+            {
+                string directory = System.IO.Path.Combine(_viewModel.Configuration.GetArcadeStickFilesPath(), "logs");
+                Directory.CreateDirectory(directory);
+                string line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}  player=random  error=\"{change.Error}\"  source=\"{change.SourcePath}\"  game=\"{candidate.Game.RomName}\"  " +
+                    $"sound={(_viewModel.Configuration.PreviewSoundEnabled ? "on" : "off")}  window={(IsActive ? "active" : "inactive")},{WindowState}  retry=no (skipped until the Game Pool changes){Environment.NewLine}";
+                File.AppendAllText(System.IO.Path.Combine(directory, "preview.log"), line);
+            }
+            catch (Exception exception)
+            {
+                System.Diagnostics.Debug.WriteLine($"RandomPreviews: could not write preview.log: {exception.Message}");
+            }
+        }
+
+        // Does the Preview sound toggle's part (decision D4, same as the Video Preview): the current video restarts from 0:00 with
+        // the new sound choice; the countdown keeps its remaining time
+        private void RestartRandomPreviewForSound()
+        {
+            if (_rvpCurrent == null || _rvpPlayer == null) return;
+            _rvpMinimizePaused = false;
+            _rvpPlayer.Play(_rvpCurrent.VideoPath, _viewModel.Configuration.PreviewSoundEnabled);
+        }
+
+        // Does the minimize rule (decision D5, same as the Video Preview): with sound on, minimizing pauses the video and its
+        // countdown, and restoring resumes both; with sound off it keeps playing and rotating
+        private void UpdateRandomPreviewForWindowState()
+        {
+            if (_rvpCurrent == null || _rvpPlayer == null)
+            {
+                _rvpMinimizePaused = false;
+                return;
+            }
+
+            if (WindowState == WindowState.Minimized)
+            {
+                if (_viewModel.Configuration.PreviewSoundEnabled && !_rvpMinimizePaused)
+                {
+                    _rvpMinimizePaused = true;
+                    _rvpPlayer.Pause();
+                }
+                return;
+            }
+
+            if (!_rvpMinimizePaused) return;
+            _rvpMinimizePaused = false;
+            _rvpPlayer.Resume();
+        }
+
+        // Does the decode size from the entry (the video area plus the 1px under the frame on each side when it has a border,
+        // scaled by the screen DPI and Smart fullscreen's factor), same rule as UpdatePreviewTargetSize
+        private void UpdateRandomPreviewTargetSize(Models.LayerLayoutEntry? entry)
+        {
+            if (_rvpPlayer == null) return;
+            entry ??= GetRandomPreviewsEntry();
+            if (entry == null) return;
+
+            double borderSize = Math.Max(0, entry.BorderSize ?? 0);
+            double overlap = borderSize - Math.Max(0, borderSize - 1);
+            double width = entry.Width + (overlap * 2);
+            double height = entry.Height + (overlap * 2);
+            if (double.IsNaN(width) || double.IsNaN(height) || width < 1 || height < 1) return;
+
+            var dpi = VisualTreeHelper.GetDpi(this);
+            _rvpPlayer.SetTargetSize((int)Math.Round(width * dpi.DpiScaleX * _layoutScaleFactor), (int)Math.Round(height * dpi.DpiScaleY * _layoutScaleFactor));
+        }
+
+        // Does the lookup of the displayed layout's Random Video Previews entry
+        private Models.LayerLayoutEntry? GetRandomPreviewsEntry() =>
+            _viewModel.ResolveDisplayLayout().Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomVideoPreviews);
+
+        // Does the playback order from the entry (Shuffle unless Random)
+        private string GetRandomPreviewsOrder() =>
+            GetRandomPreviewsEntry()?.PlaybackOrder ?? Models.LayerRegistry.PlaybackOrderShuffle;
+        // [END SECTION: Random Video Previews Player]
 
         // Does the shape / custom layer box styling, same as VideoPreviewLayerControl.ApplyClip: the ring (on top) takes the
         // border, the fill and the file host are pulled in by the border minus 1px so they reach 1px under the ring, and
@@ -1529,6 +1804,10 @@ namespace ArcadeStick
             if (e.PropertyName == nameof(_viewModel.IsGameSelected))
             {
                 UpdateShapeVisibility();
+
+                // Random Video Previews plays only on the splash screen: a selection stops it at once (before the selected
+                // game's video starts after its debounce), and every return to the splash starts a fresh one
+                EvaluateRandomPreviews();
             }
 
             if (e.PropertyName == nameof(_viewModel.VideoSourcePath))
@@ -1779,6 +2058,7 @@ namespace ArcadeStick
             _viewModel.PersistConfigurationToDisk();
             _previewMinimizePausedSource = null;
             VideoPreviewLayer.SetSoundEnabled(config.PreviewSoundEnabled);
+            RestartRandomPreviewForSound();
 
             if (IsPreviewSupposedToPlay()) StartActivePreview(_previewSourcePath!);
         }
@@ -1793,6 +2073,9 @@ namespace ArcadeStick
         // Does the minimize rule, sound on only: pauses on minimize, and on restore resumes only what this minimize paused
         private void MainWindow_StateChanged(object? sender, EventArgs e)
         {
+            // Random Video Previews follows the same rule with its own state
+            UpdateRandomPreviewForWindowState();
+
             if (WindowState == WindowState.Minimized)
             {
                 if (_viewModel.Configuration.PreviewSoundEnabled && _previewMinimizePausedSource == null && IsPreviewSupposedToPlay())
@@ -3347,6 +3630,16 @@ namespace ArcadeStick
             try
             {
                 if (_previewPlayer != null) await _previewPlayer.CloseAsync();
+            }
+            catch
+            {
+            }
+
+            // The Random Video Previews player closes the same way, on its own, so one failure never skips the other
+            try
+            {
+                StopRandomPreviews();
+                if (_rvpPlayer != null) await _rvpPlayer.CloseAsync();
             }
             catch
             {
