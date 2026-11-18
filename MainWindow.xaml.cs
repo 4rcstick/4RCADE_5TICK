@@ -706,6 +706,7 @@ namespace ArcadeStick
                 { Models.LayerRegistry.GamesList, GamesListHost },
                 { Models.LayerRegistry.MarqueePanel, MarqueePanelBorder },
                 { Models.LayerRegistry.SplashImage, SplashLayer },
+                { Models.LayerRegistry.RandomVideoPreviews, RandomVideoPreviewsLayer },
                 { Models.LayerRegistry.VideoPreview, VideoPreviewLayer },
                 { Models.LayerRegistry.GameTitle, GameInfoLayer.PartTitle },
                 { Models.LayerRegistry.PublisherBlock, GameInfoLayer.PartPublisher },
@@ -760,6 +761,7 @@ namespace ArcadeStick
                 VideoPreviewLayer.ApplyBackground(videoEntry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
                 VideoPreviewLayer.ApplySoundGlyphSize(videoEntry.Height);
             }
+            ApplyRandomVideoPreviewsFrame(layout);
 
             ApplyCustomLayers(layout);
             ApplyRandomGameDisplayRect(layout);
@@ -809,6 +811,32 @@ namespace ArcadeStick
             element.Width = entry.Width + (border * 2);
             element.Height = entry.Height + (border * 2);
         }
+
+        // [SECTION: Random Video Previews Frame]
+        // Random Video Previews (random-video-previews-handoff.md): placement, outer frame and letterbox color, from its entry on
+        // every ApplyLayout. Splash-only display is fixed in the control (hidden whenever a game is selected); the entry's
+        // Visible flag (Hide this layer) and the eligible-video gate decide whether it shows on the splash screen at all.
+        // With no eligible video the whole layer is hidden, frame included (decision D6).
+        // Pass 1 placeholder: true until the eligible video pool (Pass 2) sets it, so the frame can be placed and checked.
+        private bool _randomPreviewsHasVideos = true;
+
+        // Does the Random Video Previews placement and styling: the ring rule (X / Y the ring's outer corner, Width / Height the
+        // video area), the frame, the letterbox color, and the visibility from Hide this layer and the eligible-video gate
+        private void ApplyRandomVideoPreviewsFrame(Models.ThemeLayout layout)
+        {
+            var entry = layout.Layers.FirstOrDefault(e => e.Id == Models.LayerRegistry.RandomVideoPreviews);
+            if (entry == null)
+            {
+                RandomVideoPreviewsLayer.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            PlaceOutsideBorder(RandomVideoPreviewsLayer, entry, entry.BorderSize ?? 0);
+            RandomVideoPreviewsLayer.ApplyBorder(entry.BorderSize ?? 0, entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
+            RandomVideoPreviewsLayer.ApplyBackground(entry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
+            RandomVideoPreviewsLayer.Visibility = entry.Visible && _randomPreviewsHasVideos ? Visibility.Visible : Visibility.Collapsed;
+        }
+        // [END SECTION: Random Video Previews Frame]
 
         // Does the shape / custom layer box styling, same as VideoPreviewLayerControl.ApplyClip: the ring (on top) takes the
         // border, the fill and the file host are pulled in by the border minus 1px so they reach 1px under the ring, and

@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="ArcadeStick.Views.RandomVideoPreviewsLayerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="360" d:DesignWidth="480">
+
+    <!-- Random Video Previews layer (random-video-previews-handoff.md): a splash-only video surface that fits (Uniform)
+         inside this control's rect, the letterbox background behind it (pushed in by ApplyBackground) and the outer
+         video frame drawn on top (ApplyBorder). Hidden whenever a game is selected, whatever the layer's Z or stored data.
+         The video surface's Visibility is owned by MainWindow.xaml.cs. -->
+    <!-- [SECTION: Random Video Previews Layer] -->
+    <Grid x:Name="LayerRoot">
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsGameSelected}" Value="True">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
+        <Border x:Name="MediaSlot" Background="#FF000000">
+            <Grid x:Name="MediaSlotContent" SizeChanged="MediaSlotContent_SizeChanged">
+                <!-- Video surface: the rotating player draws frames into this Image (Pass 2) -->
+                <Image x:Name="PreviewVideoSurface" x:FieldModifier="public" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                       RenderOptions.BitmapScalingMode="NearestNeighbor" Visibility="Collapsed" IsHitTestVisible="False"/>
+            </Grid>
+        </Border>
+
+        <!-- Outer video frame on top, never hit-testable -->
+        <Border x:Name="MediaSlotRing" Background="Transparent" IsHitTestVisible="False"/>
+    </Grid>
+    <!-- [END SECTION: Random Video Previews Layer] -->
+</UserControl>

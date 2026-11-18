@@ -374,6 +374,57 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? GameInfoScrollTrackHoverColorHex { get; set; }
 
+        // [SECTION: Random Video Previews Fields]
+        // Random Video Previews entry only (random-video-previews-handoff.md). Its BgColorHex is the letterbox color behind the
+        // video, its BorderSize / BorderColorHex / CornerRadius the outer video frame (outside the rect, like the Video Preview).
+        // The hover title uses TextFontFamily / TextFontWeight / TextFontSize (the maximum size) / TextColorHex / TextWrap, and
+        // the hover PLAY button ButtonText and the Hover* colors. Null on every other layer and left out of the theme file when
+        // null; FillRandomVideoPreviewsStyle fills them on this layer.
+        // RotationSeconds: how long each video shows, 5 to 300. PlaybackOrder: "Shuffle" or "Random".
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? RotationSeconds { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? PlaybackOrder { get; set; }
+
+        // Hover title: the smallest size the text may shrink to, whether it shrinks at all, the line cap (when wrapping), the
+        // color of the panel behind the text only, and the uniform padding inside that panel
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TitleMinFontSize { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public bool? TitleScaleToFit { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TitleMaxLines { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? TitleBgColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? TitlePadding { get; set; }
+
+        // Hover PLAY button: its height as a percent of the video height, its resting text, fill and border colors, border size
+        // and corner radius (the hover colors are the Hover* fields above). The font is fixed Segoe UI Bold.
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? ButtonHeightPercent { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? ButtonTextColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? ButtonBgColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? ButtonBorderColorHex { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? ButtonBorderSize { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public int? ButtonCornerRadius { get; set; }
+        // [END SECTION: Random Video Previews Fields]
+
         // [SECTION: Style Copy]
         // Copies every styling field (everything except Id, rect, Z, Visible, Name and ImagePath) from source.
         // The one place entry styling is copied: CloneLayouts, the resolution-switch copy and Reset Layer all
@@ -480,6 +531,19 @@ namespace ArcadeStick.Models
             GameInfoScrollThumbDragColorHex = source.GameInfoScrollThumbDragColorHex;
             GameInfoScrollTrackColorHex = source.GameInfoScrollTrackColorHex;
             GameInfoScrollTrackHoverColorHex = source.GameInfoScrollTrackHoverColorHex;
+            RotationSeconds = source.RotationSeconds;
+            PlaybackOrder = source.PlaybackOrder;
+            TitleMinFontSize = source.TitleMinFontSize;
+            TitleScaleToFit = source.TitleScaleToFit;
+            TitleMaxLines = source.TitleMaxLines;
+            TitleBgColorHex = source.TitleBgColorHex;
+            TitlePadding = source.TitlePadding;
+            ButtonHeightPercent = source.ButtonHeightPercent;
+            ButtonTextColorHex = source.ButtonTextColorHex;
+            ButtonBgColorHex = source.ButtonBgColorHex;
+            ButtonBorderColorHex = source.ButtonBorderColorHex;
+            ButtonBorderSize = source.ButtonBorderSize;
+            ButtonCornerRadius = source.ButtonCornerRadius;
         }
         // [END SECTION: Style Copy]
     }
@@ -550,6 +614,7 @@ namespace ArcadeStick.Models
         public const string MediaPanel = "MediaPanel";
         public const string SplashImage = "SplashImage";
         public const string VideoPreview = "VideoPreview";
+        public const string RandomVideoPreviews = "RandomVideoPreviews";
         public const string Footer = "Footer";
         public const string RandomGameDisplay = "RandomGameDisplay";
         public const string RandomGameDisplaySplash = "RandomGameDisplaySplash";
@@ -564,8 +629,8 @@ namespace ArcadeStick.Models
         public static bool IsShapeId(string id) => AllShapeIds.Contains(id);
 
         // Layers that have a Border tab (size, color, corner radius stored on the entry): the shape layers,
-        // plus the Splash Image and Video Preview layers.
-        public static bool HasBorderTab(string id) => IsShapeId(id) || IsCustomId(id) || id == SplashImage || id == VideoPreview;
+        // plus the Splash Image, Video Preview and Random Video Previews layers.
+        public static bool HasBorderTab(string id) => IsShapeId(id) || IsCustomId(id) || id == SplashImage || id == VideoPreview || id == RandomVideoPreviews;
 
         // Does the border-ring rule check: true for the layers whose Width / Height are the content size, with the ring drawn
         // around it and X / Y at the ring's outer corner
@@ -583,8 +648,9 @@ namespace ArcadeStick.Models
         public static bool IsPositionOnlyOnMismatch(string id) => GetDefinition(id)?.GroupId == SearchAndButtonsGroup;
 
         // Does the new size scaler's keep-the-shape rule: true for the layers whose Width and Height both scale by u instead of
-        // fx / fy when "scale everything" runs on a different aspect ratio, so the box keeps its own ratio (the Video Preview)
-        public static bool IsUniformSizeOnMismatch(string id) => id == VideoPreview;
+        // fx / fy when "scale everything" runs on a different aspect ratio, so the box keeps its own ratio (the Video Preview and
+        // Random Video Previews)
+        public static bool IsUniformSizeOnMismatch(string id) => id == VideoPreview || id == RandomVideoPreviews;
 
         // Layers drawn as a bordered box with a fill and an optional image or video: the shape layers and the
         // custom layers. They share one renderer, one tab set and the visibility dropdown.
@@ -700,6 +766,10 @@ namespace ArcadeStick.Models
                         new() { Id = MarqueePanel,   DisplayName = "Marquee",           X = 393, Y = 20,  Width = 867, Height = 137, Z = 40 },
 
             new() { Id = SplashImage,    DisplayName = "Splash Image",      X = 393, Y = 177, Width = 867, Height = 523, Z = 31 },
+
+            // Splash-only video rotation, centered in the Splash Image area. Listed right after the Splash Image: a theme saved
+            // without it gets the Splash Image's Z (ResolveLayout), and this order then draws it just above the splash.
+            new() { Id = RandomVideoPreviews, DisplayName = "Random Video Previews", X = 587, Y = 259, Width = 480, Height = 360, Z = 32 },
 
             new() { Id = VideoPreview,   DisplayName = "Video Preview",     X = 414, Y = 198, Width = 328, Height = 248, Z = 33 },
             
@@ -843,6 +913,9 @@ namespace ArcadeStick.Models
 
                 // Favorites Star: glyph size and each state's color and drop shadow
                 FillFavoritesStarStyle(entry);
+
+                // Random Video Previews: timing, letterbox, frame, hover title and PLAY button
+                FillRandomVideoPreviewsStyle(entry);
 
                 layout.Layers.Add(entry);
             }
@@ -1079,6 +1152,71 @@ namespace ArcadeStick.Models
             entry.OutlineShadowDepth ??= DefaultShadowDepth;
         }
 
+        // Fills the Random Video Previews entry: rotation time and order, the letterbox color, the outer frame, the hover title
+        // and the hover PLAY button. An empty saved button text is kept (it means no text); saved values are kept, a saved false
+        // included. An unknown playback order reads as Shuffle.
+        private static void FillRandomVideoPreviewsStyle(LayerLayoutEntry entry)
+        {
+            if (entry.Id != RandomVideoPreviews) return;
+
+            entry.RotationSeconds ??= DefaultRotationSeconds;
+            if (entry.PlaybackOrder != PlaybackOrderRandom) entry.PlaybackOrder = PlaybackOrderShuffle;
+            if (string.IsNullOrWhiteSpace(entry.BgColorHex)) entry.BgColorHex = DefaultVideoBgColorHex;
+            entry.BorderSize ??= 0;
+            if (string.IsNullOrWhiteSpace(entry.BorderColorHex)) entry.BorderColorHex = DefaultShapeBorderColorHex;
+            entry.CornerRadius ??= DefaultShapeCornerRadius;
+
+            if (string.IsNullOrWhiteSpace(entry.TextFontFamily)) entry.TextFontFamily = DefaultFontFamily;
+            entry.TextFontWeight = ResolveFontWeight(entry.TextFontWeight, entry.TextBold, DefaultRvpTitleFontWeight);
+            entry.TextBold = null;
+            NormalizeRetiredTextFamily(entry);
+            entry.TextFontSize ??= DefaultRvpTitleFontSize;
+            if (string.IsNullOrWhiteSpace(entry.TextColorHex)) entry.TextColorHex = DefaultRvpTitleColorHex;
+            entry.TextWrap ??= true;
+            entry.TitleMinFontSize ??= DefaultRvpTitleMinFontSize;
+            entry.TitleScaleToFit ??= true;
+            entry.TitleMaxLines ??= DefaultRvpTitleMaxLines;
+            if (string.IsNullOrWhiteSpace(entry.TitleBgColorHex)) entry.TitleBgColorHex = DefaultRvpTitleBgColorHex;
+            entry.TitlePadding ??= DefaultRvpTitlePadding;
+
+            entry.ButtonText ??= DefaultPlayButtonText;
+            entry.ButtonHeightPercent ??= DefaultRvpButtonHeightPercent;
+            if (string.IsNullOrWhiteSpace(entry.ButtonTextColorHex)) entry.ButtonTextColorHex = DefaultRvpButtonTextColorHex;
+            if (string.IsNullOrWhiteSpace(entry.ButtonBgColorHex)) entry.ButtonBgColorHex = DefaultRvpButtonBgColorHex;
+            if (string.IsNullOrWhiteSpace(entry.ButtonBorderColorHex)) entry.ButtonBorderColorHex = DefaultRvpButtonBorderColorHex;
+            entry.ButtonBorderSize ??= DefaultRvpButtonBorderSize;
+            entry.ButtonCornerRadius ??= DefaultRvpButtonCornerRadius;
+            if (string.IsNullOrWhiteSpace(entry.HoverColorHex)) entry.HoverColorHex = DefaultRvpButtonHoverColorHex;
+            if (string.IsNullOrWhiteSpace(entry.HoverBgColorHex)) entry.HoverBgColorHex = DefaultRvpButtonHoverBgColorHex;
+            if (string.IsNullOrWhiteSpace(entry.HoverBorderColorHex)) entry.HoverBorderColorHex = DefaultRvpButtonHoverBorderColorHex;
+        }
+
+        // [SECTION: Random Video Previews Defaults]
+        public const string PlaybackOrderShuffle = "Shuffle";
+        public const string PlaybackOrderRandom = "Random";
+        public const int DefaultRotationSeconds = 45;
+        public const int MinRotationSeconds = 5;
+        public const int MaxRotationSeconds = 300;
+        public const int DefaultRvpTitleFontWeight = 700;
+        public const int DefaultRvpTitleFontSize = 20;
+        public const int DefaultRvpTitleMinFontSize = 12;
+        public const string DefaultRvpTitleColorHex = "#FFFFFFFF";
+        public const int DefaultRvpTitleMaxLines = 2;
+        public const int MinRvpTitleMaxLines = 1;
+        public const int MaxRvpTitleMaxLines = 5;
+        public const string DefaultRvpTitleBgColorHex = "#99000000";
+        public const int DefaultRvpTitlePadding = 8;
+        public const int DefaultRvpButtonHeightPercent = 10;
+        public const string DefaultRvpButtonTextColorHex = "#FFFFFFFF";
+        public const string DefaultRvpButtonBgColorHex = "#B4000000";
+        public const string DefaultRvpButtonBorderColorHex = "#CCFFFFFF";
+        public const int DefaultRvpButtonBorderSize = 1;
+        public const int DefaultRvpButtonCornerRadius = 4;
+        public const string DefaultRvpButtonHoverColorHex = "#FFFFFFFF";
+        public const string DefaultRvpButtonHoverBgColorHex = "#DD333333";
+        public const string DefaultRvpButtonHoverBorderColorHex = "#FFFFFFFF";
+        // [END SECTION: Random Video Previews Defaults]
+
         // Fills one Random Game Display state's background color and border (black, unbordered, square; saved values kept)
         private static void FillRandomDisplayCardDefaults(LayerLayoutEntry entry)
         {
@@ -1114,6 +1252,14 @@ namespace ArcadeStick.Models
             {
                 var savedEntry = saved.Layers.FirstOrDefault(e => e.Id == defEntry.Id);
                 var entry = savedEntry ?? defEntry;
+
+                // A theme saved before Random Video Previews existed has its Z numbered without it: take the saved Splash Image's
+                // Z, so the registry order (right after the Splash Image) draws it just above the splash instead of on top of all
+                if (savedEntry == null && entry.Id == RandomVideoPreviews
+                    && saved.Layers.FirstOrDefault(e => e.Id == SplashImage) is LayerLayoutEntry savedSplash)
+                {
+                    entry.Z = savedSplash.Z;
+                }
 
                 var def = GetDefinition(entry.Id);
                 if (def != null && !def.CanHide) entry.Visible = true;
@@ -1200,6 +1346,9 @@ namespace ArcadeStick.Models
 
                 // Favorites Star: fill any missing style value (an older theme gets the whole part from defaults)
                 FillFavoritesStarStyle(entry);
+
+                // Random Video Previews: fill any missing value (an older theme gets the whole layer from defaults)
+                FillRandomVideoPreviewsStyle(entry);
 
                 // Main Window Background: the Disable flag and the background color fill in when missing (saved values kept)
                 if (entry.Id == MainBackground)

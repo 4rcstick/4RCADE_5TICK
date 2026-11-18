@@ -397,6 +397,21 @@
                                              Style="{StaticResource GLTextBoxStyle}" LostFocus="GamesListInset_LostFocus" KeyDown="GamesListInset_KeyDown"/>
                                 </Grid>
 
+                                <!-- [SECTION: Random Video Previews Playback Fields] -->
+                                <!-- Random Video Previews only: a divider, then the preview duration (whole seconds 5 to 300, 52px box,
+                                     applied on Enter or focus loss, invalid input reverts; a change applies from the next video) and
+                                     the playback order combo (110px, items filled from code). Collapsed on every other layer. -->
+                                <StackPanel x:Name="PnlRandomPreviewsPlayback" Margin="0,0,0,12" Visibility="Collapsed">
+                                    <Separator Background="{DynamicResource Global.Options.Separator}" Margin="0,3,0,10"/>
+                                    <TextBlock Text="Preview duration (seconds)" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBox x:Name="TxtRvpRotationSeconds" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                             Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRvpRotationSeconds_LostFocus" KeyDown="TxtRvpRotationSeconds_KeyDown"/>
+                                    <TextBlock Text="Playback order:" Style="{StaticResource GLLabelStyle}" Margin="0,12,0,3"/>
+                                    <ComboBox x:Name="CboRvpPlaybackOrder" Width="110" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRvpPlaybackOrder_SelectionChanged"/>
+                                </StackPanel>
+                                <!-- [END SECTION: Random Video Previews Playback Fields] -->
+
                                 <!-- Group move: for groups that allow it (Search & Buttons, Game Info), an X or Y edit on one
                                      part moves every part by the same amount. Session-only, like the ratio lock. -->
                                 <CheckBox x:Name="ChkGroupMove" Content="Move all parts together" HorizontalAlignment="Left" Margin="0,0,0,8"
@@ -2358,6 +2373,44 @@
                         </ScrollViewer>
                     </TabItem>
                     <!-- [END SECTION: Video Preview - Fallback Image Tab] -->
+
+                    <!-- [SECTION: Random Video Previews - Content Tab] -->
+                    <!-- The letterbox color behind the rotating video (the Random Video Previews entry's BgColorHex). No file: the
+                         videos come from the filtered Game Pool. Declared before the shared Border tab so the order is
+                         Position & Size, Content, Border. -->
+                    <TabItem x:Name="TabRvpContent" Header="CONTENT" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
+                            <StackPanel Margin="10">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                    <TextBlock Text="Background color:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                                    <Border Style="{StaticResource LayersHelpGlyphStyle}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                            ToolTipService.InitialShowDelay="300" ToolTipService.ShowDuration="60000">
+                                        <Border.ToolTip>
+                                            <ToolTip Background="{StaticResource ChromeTooltipBackground}" Foreground="{StaticResource ChromeTooltipText}"
+                                                     BorderBrush="{StaticResource ChromeTooltipBorder}" BorderThickness="1" Padding="10,8">
+                                                <TextBlock TextWrapping="NoWrap" Foreground="{StaticResource ChromeTooltipText}">
+                                                    <Run Text="Sets the background color behind the rotating videos, including letterbox areas."/><LineBreak/>
+                                                    <Run Text="When no game in the Game Pool has a video, the whole layer is hidden."/>
+                                                </TextBlock>
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Text="?" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                        <colorpicker:PortableColorPicker x:Name="RvpBgColorPicker" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpBgColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtRvpBgColorHex" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRvpBgColorHex_LostFocus"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Random Video Previews - Content Tab] -->
 
                     <!-- [SECTION: Shape Layer - Border Tab] -->
                     <TabItem x:Name="TabShapeBorder" Header="BORDER" Visibility="Collapsed">

@@ -98,6 +98,10 @@ namespace ArcadeStick.Services
             else if (entry.Id != LayerRegistry.MarqueePanel)
                 entry.TextFontSize = ScaleSize(entry.TextFontSize, u, LayerRegistry.MinTextFontSize, LayerRegistry.MaxTextFontSize);
 
+            // Random Video Previews: the hover title's minimum size follows its maximum (TextFontSize above); padding and the
+            // button border keep their values
+            entry.TitleMinFontSize = ScaleSize(entry.TitleMinFontSize, u, LayerRegistry.MinTextFontSize, LayerRegistry.MaxTextFontSize);
+
             entry.BorderSize = ScaleSize(entry.BorderSize, u, LayerRegistry.MinBorderSize, LayerRegistry.MaxBorderSize);
         }
 

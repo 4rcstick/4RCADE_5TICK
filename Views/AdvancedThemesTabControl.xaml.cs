@@ -1263,7 +1263,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoFallback, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner, TabScrollGamesList, TabScrollGameInfo };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoFallback, TabRvpContent, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner, TabScrollGamesList, TabScrollGameInfo };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -1298,6 +1298,9 @@ namespace ArcadeStick.Views
 
             // Video Preview: the fallback image with the letterbox background color, then the shared Border tab
             if (unitKey == LayerRegistry.VideoPreview) return new[] { TabVideoFallback, TabShapeBorder };
+
+            // Random Video Previews: the letterbox color, then the shared Border tab (the outer video frame)
+            if (unitKey == LayerRegistry.RandomVideoPreviews) return new[] { TabRvpContent, TabShapeBorder };
 
             // Every other layer (custom image layers included) shows Position only for now.
             return Array.Empty<TabItem>();
@@ -1479,6 +1482,15 @@ namespace ArcadeStick.Views
                 _loading = false;
             }
 
+            // Random Video Previews letterbox color (CONTENT tab): filled when that layer is selected
+            if (SingleSelectedLayer is LayerListItem rvpSel && rvpSel.Id == LayerRegistry.RandomVideoPreviews
+                && GetEntry(LayerRegistry.RandomVideoPreviews) is LayerLayoutEntry rvpEntry)
+            {
+                _loading = true;
+                ShowColor(RvpBgColorPicker, TxtRvpBgColorHex, rvpEntry.BgColorHex ?? LayerRegistry.DefaultVideoBgColorHex);
+                _loading = false;
+            }
+
             // Main Window Background image fields: filled when that layer is selected
             if (SingleSelectedLayer is LayerListItem bgSel && bgSel.Id == LayerRegistry.MainBackground
                 && GetEntry(LayerRegistry.MainBackground) is LayerLayoutEntry bgEntry)
@@ -1545,9 +1557,86 @@ namespace ArcadeStick.Views
                 TxtGamesListTopClip.Text = (entry.GamesListTopClip ?? LayerRegistry.DefaultGamesListInset).ToString(CultureInfo.InvariantCulture);
                 TxtGamesListBottomClip.Text = (entry.GamesListBottomClip ?? LayerRegistry.DefaultGamesListInset).ToString(CultureInfo.InvariantCulture);
             }
+
+            // Random Video Previews only: preview duration and playback order under X / Y / Width / Height
+            bool isRandomPreviews = entry.Id == LayerRegistry.RandomVideoPreviews;
+            PnlRandomPreviewsPlayback.Visibility = isRandomPreviews ? Visibility.Visible : Visibility.Collapsed;
+            if (isRandomPreviews) LoadRandomPreviewsPlaybackFields(entry);
             _loading = false;
             RaiseGuides();
         }
+
+        // [SECTION: Random Video Previews Playback Fields]
+        // The playback order combo's items in display order, with the value stored in the entry's PlaybackOrder
+        private static readonly (string Value, string Label)[] PlaybackOrderChoices =
+        {
+            (LayerRegistry.PlaybackOrderShuffle, "Shuffle"),
+            (LayerRegistry.PlaybackOrderRandom, "Random")
+        };
+
+        // Does the fill of the preview duration box and the playback order combo from the entry (called under _loading)
+        private void LoadRandomPreviewsPlaybackFields(LayerLayoutEntry entry)
+        {
+            TxtRvpRotationSeconds.Text = (entry.RotationSeconds ?? LayerRegistry.DefaultRotationSeconds).ToString(CultureInfo.InvariantCulture);
+            if (CboRvpPlaybackOrder.Items.Count == 0)
+            {
+                foreach (var choice in PlaybackOrderChoices) CboRvpPlaybackOrder.Items.Add(choice.Label);
+            }
+            CboRvpPlaybackOrder.SelectedIndex = entry.PlaybackOrder == LayerRegistry.PlaybackOrderRandom ? 1 : 0;
+        }
+
+        // Does the preview duration edit on Enter
+        private void TxtRvpRotationSeconds_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) ApplyRvpRotationSeconds();
+        }
+
+        // Does the preview duration edit on focus loss
+        private void TxtRvpRotationSeconds_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyRvpRotationSeconds();
+        }
+
+        // Does one preview duration edit: a whole number 5 to 300 is stored (it applies from the next video); anything else
+        // reverts to the stored value
+        private void ApplyRvpRotationSeconds()
+        {
+            if (_loading || _settings == null) return;
+            if (SingleSelectedLayer is not LayerListItem sel || sel.Id != LayerRegistry.RandomVideoPreviews) return;
+            if (GetEntry(LayerRegistry.RandomVideoPreviews) is not LayerLayoutEntry entry) return;
+
+            int stored = entry.RotationSeconds ?? LayerRegistry.DefaultRotationSeconds;
+            if (int.TryParse(TxtRvpRotationSeconds.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
+                && value >= LayerRegistry.MinRotationSeconds && value <= LayerRegistry.MaxRotationSeconds)
+            {
+                TxtRvpRotationSeconds.Text = value.ToString(CultureInfo.InvariantCulture);
+                if (value == stored) return;
+                entry.RotationSeconds = value;
+                RaiseGuides();
+                return;
+            }
+            TxtRvpRotationSeconds.Text = stored.ToString(CultureInfo.InvariantCulture);
+        }
+
+        // Does the playback order pick: stores Shuffle or Random on the entry (it applies from the next video)
+        private void CboRvpPlaybackOrder_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (SingleSelectedLayer is not LayerListItem sel || sel.Id != LayerRegistry.RandomVideoPreviews) return;
+            if (GetEntry(LayerRegistry.RandomVideoPreviews) is not LayerLayoutEntry entry) return;
+            int index = CboRvpPlaybackOrder.SelectedIndex;
+            if (index < 0 || index >= PlaybackOrderChoices.Length) return;
+
+            entry.PlaybackOrder = PlaybackOrderChoices[index].Value;
+            RaiseGuides();
+        }
+
+        // Random Video Previews letterbox color picker and hex box (same helpers and revert rules as the other colors)
+        private void RvpBgColorPicker_ColorChanged(object sender, RoutedEventArgs e) =>
+            ApplyPickerColor(RvpBgColorPicker, TxtRvpBgColorHex, GetEntry(LayerRegistry.RandomVideoPreviews), (en, hex) => en.BgColorHex = hex);
+        private void TxtRvpBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
+            ApplyHexColor(RvpBgColorPicker, TxtRvpBgColorHex, GetEntry(LayerRegistry.RandomVideoPreviews), en => en.BgColorHex ?? LayerRegistry.DefaultVideoBgColorHex, (en, hex) => en.BgColorHex = hex);
+        // [END SECTION: Random Video Previews Playback Fields]
 
         // [SECTION: Games List Insets]
         // Applies a Games List Top Offset / Top Clip / Bottom Clip box (Tag names the field) on Enter
@@ -1609,6 +1698,7 @@ namespace ArcadeStick.Views
             TxtLayerName.Text = group.DisplayName;
             PnlRectFields.Visibility = Visibility.Collapsed;
             PnlGamesListInsets.Visibility = Visibility.Collapsed;
+            PnlRandomPreviewsPlayback.Visibility = Visibility.Collapsed;
 
             ChkLayerHidden.Visibility = Visibility.Collapsed;
             PnlVisibilityMode.Visibility = Visibility.Collapsed;

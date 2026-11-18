@@ -769,6 +769,10 @@
             <!-- Splash Image layer: its own positioned element, mapped in ApplyLayout() -->
             <views:SplashLayerControl x:Name="SplashLayer" Canvas.Left="393" Canvas.Top="177" Width="867" Height="523"/>
 
+            <!-- Random Video Previews layer (splash only): right after the Splash Image, so on an equal Z (a theme saved without
+                 it takes the Splash Image's Z) it draws just above the splash. Mapped in ApplyLayout() -->
+            <views:RandomVideoPreviewsLayerControl x:Name="RandomVideoPreviewsLayer" Canvas.Left="587" Canvas.Top="259" Width="480" Height="360"/>
+
             <!-- Video Preview layer: its own positioned element, mapped in ApplyLayout() -->
             <views:VideoPreviewLayerControl x:Name="VideoPreviewLayer" Canvas.Left="414" Canvas.Top="198" Width="328" Height="248"/>
 
