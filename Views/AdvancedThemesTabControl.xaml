@@ -2412,6 +2412,266 @@
                     </TabItem>
                     <!-- [END SECTION: Random Video Previews - Content Tab] -->
 
+                    <!-- [SECTION: Random Video Previews - Title Tab] -->
+                    <!-- The hover title (the game's full title, shown above the PLAY button). Font and Weight combos (family 0 to 190,
+                         weight 198 to 308); Color with the Max / Min size boxes at x 118 and 178 (6 to 72 px; the text shrinks from Max
+                         toward Min only with Scale to fit); Wrap text and Scale to fit; Max lines (1 to 5, used when wrapping); then the
+                         hover overlay color (over the whole video, behind the title and button) and its inset from each edge (TitlePadding,
+                         0 to 50 px; 0 fills the video), with a "?" tooltip. Numbers apply on Enter or focus
+                         loss through the Tag-keyed RvpNumber handlers, colors through the Tag-keyed RvpColor handlers. -->
+                    <TabItem x:Name="TabRvpTitle" Header="TITLE" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
+                            <Grid Margin="10" UseLayoutRounding="True">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="190"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Font:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Weight:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <ComboBox x:Name="CboRvpFont" Grid.Row="1" Grid.Column="0" Width="190" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRvpFont_SelectionChanged"/>
+                                    <ComboBox x:Name="CboRvpWeight" Grid.Row="1" Grid.Column="2" Width="110" Height="25" HorizontalAlignment="Left"
+                                              Style="{StaticResource ChromeComboBoxStyle}" SelectionChanged="CboRvpWeight_SelectionChanged"/>
+                                </Grid>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Text="Max (px):" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBlock Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="2" Text="Min (px):" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                        <colorpicker:PortableColorPicker x:Name="RvpTitleColorPicker" Tag="TitleColor" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtRvpTitleColorHex" Tag="TitleColor" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpColorHex_LostFocus"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtRvpTitleMaxSize" Tag="TitleMax" Grid.Row="2" Grid.Column="2" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpNumber_LostFocus" KeyDown="RvpNumber_KeyDown"/>
+                                <TextBox x:Name="TxtRvpTitleMinSize" Tag="TitleMin" Grid.Row="2" Grid.Column="4" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpNumber_LostFocus" KeyDown="RvpNumber_KeyDown"/>
+
+                                <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="6" Orientation="Horizontal" Margin="0,10,0,0">
+                                    <CheckBox x:Name="ChkRvpTitleWrap" Content="Wrap text" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkRvpTitle_Click"/>
+                                    <CheckBox x:Name="ChkRvpTitleScale" Content="Scale to fit" Margin="20,0,0,0" VerticalAlignment="Center" Style="{StaticResource GLCheckBoxStyle}" Click="ChkRvpTitle_Click"/>
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="5" Text="Max lines (when wrapping):" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBox x:Name="TxtRvpTitleMaxLines" Tag="TitleLines" Grid.Row="5" Grid.Column="0" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpNumber_LostFocus" KeyDown="RvpNumber_KeyDown"
+                                         IsEnabled="{Binding IsChecked, ElementName=ChkRvpTitleWrap}"/>
+
+                                <Separator Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="6" Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
+
+                                <StackPanel Grid.Row="7" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,3">
+                                    <TextBlock Text="Hover overlay:" Style="{StaticResource GLLabelStyle}" Margin="0" VerticalAlignment="Center"/>
+                                    <Border Style="{StaticResource LayersHelpGlyphStyle}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                            ToolTipService.InitialShowDelay="300" ToolTipService.ShowDuration="60000">
+                                        <Border.ToolTip>
+                                            <ToolTip Background="{StaticResource ChromeTooltipBackground}" Foreground="{StaticResource ChromeTooltipText}"
+                                                     BorderBrush="{StaticResource ChromeTooltipBorder}" BorderThickness="1" Padding="10,8">
+                                                <TextBlock TextWrapping="NoWrap" Foreground="{StaticResource ChromeTooltipText}">
+                                                    <Bold>Hover overlay:</Bold><Run Text=" a translucent color over the video while the pointer is on it,"/><LineBreak/>
+                                                    <Run Text="above the playing video and behind the title and button. Use the alpha for its opacity."/><LineBreak/>
+                                                    <Bold>Inset:</Bold><Run Text=" the gap between the overlay and each edge of the video (0 fills the whole video)."/>
+                                                </TextBlock>
+                                            </ToolTip>
+                                        </Border.ToolTip>
+                                        <TextBlock Text="?" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Grid.Row="7" Grid.Column="2" Grid.ColumnSpan="4" Text="Inset (px):" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3" VerticalAlignment="Bottom"/>
+                                <StackPanel Grid.Row="8" Grid.Column="0" Orientation="Horizontal">
+                                    <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                        <colorpicker:PortableColorPicker x:Name="RvpTitleBgColorPicker" Tag="TitleBg" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpColorPicker_ColorChanged">
+                                            <colorpicker:PortableColorPicker.Resources>
+                                                <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                            </colorpicker:PortableColorPicker.Resources>
+                                        </colorpicker:PortableColorPicker>
+                                    </Border>
+                                    <TextBox x:Name="TxtRvpTitleBgColorHex" Tag="TitleBg" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpColorHex_LostFocus"/>
+                                </StackPanel>
+                                <TextBox x:Name="TxtRvpTitlePadding" Tag="TitlePadding" Grid.Row="8" Grid.Column="2" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpNumber_LostFocus" KeyDown="RvpNumber_KeyDown"/>
+                                <TextBlock Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="6" TextWrapping="Wrap" Margin="0,6,0,0"
+                                           Text="On hover this color covers the video, inset by the same amount from every edge; the title and button sit on top."
+                                           Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Random Video Previews - Title Tab] -->
+
+                    <!-- [SECTION: Random Video Previews - Play Button Tab] -->
+                    <!-- The hover PLAY button (tab header BUTTON), horizontally centered in the video and vertically centered unless the
+                         title needs room above it (font fixed Segoe UI Bold, sized from the button height). Button text
+                         (max 24 characters, Enter or focus loss), Height (% of the video height, 5 to 50); resting colors at x 0 with
+                         their hover colors at x 118 (text, background, border); Border size (0 to 50) and Radius (0 to 200) at x 118 and
+                         178. Same Tag-keyed handlers as the Title tab. -->
+                    <TabItem x:Name="TabRvpButton" Header="BUTTON" Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">
+                            <Grid Margin="10" UseLayoutRounding="True">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="52"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6" Text="Button text (max 24):" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                <TextBox x:Name="TxtRvpButtonText" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="6" Width="190" HorizontalAlignment="Left" MaxLength="24"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="TxtRvpButtonText_LostFocus" KeyDown="TxtRvpButtonText_KeyDown"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" Text="Height (% of video height):" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBox x:Name="TxtRvpButtonHeight" Tag="ButtonHeight" Grid.Row="3" Grid.Column="0" Width="52" HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpNumber_LostFocus" KeyDown="RvpNumber_KeyDown"/>
+
+                                <Separator Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="6" Background="{DynamicResource Global.Options.Separator}" Margin="0,15,0,10"/>
+
+                                <!-- Resting colors on the left, hover colors at x 118 -->
+                                <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="6" HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="8"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Text color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="2" Text="Hover text color:" Style="{StaticResource GLLabelStyle}" Margin="0,0,0,3"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                            <colorpicker:PortableColorPicker x:Name="RvpBtnTextColorPicker" Tag="BtnText" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtRvpBtnTextColorHex" Tag="BtnText" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                            <colorpicker:PortableColorPicker x:Name="RvpBtnHoverTextColorPicker" Tag="BtnHoverText" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtRvpBtnHoverTextColorHex" Tag="BtnHoverText" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpColorHex_LostFocus"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Background:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2" Text="Hover background:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                    <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                            <colorpicker:PortableColorPicker x:Name="RvpBtnBgColorPicker" Tag="BtnBg" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtRvpBtnBgColorHex" Tag="BtnBg" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="3" Grid.Column="2" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                            <colorpicker:PortableColorPicker x:Name="RvpBtnHoverBgColorPicker" Tag="BtnHoverBg" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtRvpBtnHoverBgColorHex" Tag="BtnHoverBg" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpColorHex_LostFocus"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Border color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Text="Hover border color:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                    <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                            <colorpicker:PortableColorPicker x:Name="RvpBtnBorderColorPicker" Tag="BtnBorder" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtRvpBtnBorderColorHex" Tag="BtnBorder" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpColorHex_LostFocus"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Row="5" Grid.Column="2" Orientation="Horizontal">
+                                        <Border Width="26" Height="26" Cursor="Hand" BorderBrush="{StaticResource ChromeBorder}" BorderThickness="1" SnapsToDevicePixels="True">
+                                            <colorpicker:PortableColorPicker x:Name="RvpBtnHoverBorderColorPicker" Tag="BtnHoverBorder" Width="26" Height="26" ShowAlpha="True" HexRepresentation="ARGB" ColorChanged="RvpColorPicker_ColorChanged">
+                                                <colorpicker:PortableColorPicker.Resources>
+                                                    <Style TargetType="Grid" BasedOn="{StaticResource PickerPopupGridStyle}"/>
+                                                </colorpicker:PortableColorPicker.Resources>
+                                            </colorpicker:PortableColorPicker>
+                                        </Border>
+                                        <TextBox x:Name="TxtRvpBtnHoverBorderColorHex" Tag="BtnHoverBorder" Width="80" Margin="4,0,0,0" Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpColorHex_LostFocus"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Text="Size:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBlock Grid.Row="6" Grid.Column="4" Grid.ColumnSpan="2" Text="Radius:" Style="{StaticResource GLLabelStyle}" Margin="0,10,0,3"/>
+                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Border:" Style="{StaticResource GLLabelStyle}" VerticalAlignment="Center"/>
+                                <TextBox x:Name="TxtRvpButtonBorderSize" Tag="ButtonBorder" Grid.Row="7" Grid.Column="2" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpNumber_LostFocus" KeyDown="RvpNumber_KeyDown"/>
+                                <TextBox x:Name="TxtRvpButtonRadius" Tag="ButtonRadius" Grid.Row="7" Grid.Column="4" HorizontalContentAlignment="Center"
+                                         Style="{StaticResource GLTextBoxStyle}" LostFocus="RvpNumber_LostFocus" KeyDown="RvpNumber_KeyDown"/>
+                                <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="6" TextWrapping="Wrap" Margin="0,8,0,0"
+                                           Text="Font: Segoe UI Bold, sized from the button height. PLAY launches the game whose title is shown."
+                                           Foreground="{DynamicResource Global.Font.SubText.Color}" FontSize="{DynamicResource Global.Font.SubText.Size}"/>
+                            </Grid>
+                        </ScrollViewer>
+                    </TabItem>
+                    <!-- [END SECTION: Random Video Previews - Play Button Tab] -->
+
                     <!-- [SECTION: Shape Layer - Border Tab] -->
                     <TabItem x:Name="TabShapeBorder" Header="BORDER" Visibility="Collapsed">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Style="{StaticResource ArcadeDarkScrollViewerThemed}" services:ScrollbarClearance.Enabled="True">

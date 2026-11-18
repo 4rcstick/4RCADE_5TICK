@@ -81,6 +81,10 @@ namespace ArcadeStick.Services
         // True when at least one game can still play
         public bool HasCandidates => _pool.Any(c => !_failedRoms.Contains(c.Game.RomName));
 
+        // True when a game other than "current" can play next (the NEXT control shows only then)
+        public bool HasAlternativeTo(RandomPreviewCandidate? current) =>
+            _pool.Any(c => !_failedRoms.Contains(c.Game.RomName) && !SameRom(c, current?.Game.RomName));
+
         // Does the pool swap: the new eligible list, a cleared failure list and a fresh shuffle round
         public void SetPool(List<RandomPreviewCandidate> pool)
         {

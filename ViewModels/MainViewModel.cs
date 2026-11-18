@@ -3893,6 +3893,32 @@ namespace ArcadeStick.ViewModels
         }
 
         public event Action? GameLaunchCompleted;
+
+        // Does the Random Video Previews PLAY launch: the same steps as ExecuteLaunchAsync for an explicit game instead of
+        // SelectedGame (the scraper fetch when enabled, the launch service with the gamepad, the tree rebuild), and
+        // GameLaunchCompleted even if the launch throws, so MainWindow always restores its windows and the splash preview.
+        // SelectedGame is not touched.
+        public async Task LaunchGameFromRandomPreviewsAsync(GameItem game, MainWindow mainWin)
+        {
+            try
+            {
+                if (Configuration.ScraperEnabled && Configuration.ScraperFetchOnLaunch)
+                {
+                    _ = _scraperService.FetchArtworkForGameAsync(game);
+                }
+
+                await _launchService.LaunchGameAsync(game, mainWin, mainWin.GamepadService);
+                UpdateLiveTreeDisplay();
+            }
+            catch (Exception exception)
+            {
+                System.Diagnostics.Debug.WriteLine($"RandomPreviews: launch of {game.RomName} failed: {exception.Message}");
+            }
+            finally
+            {
+                GameLaunchCompleted?.Invoke();
+            }
+        }
         // Context-menu "Get Artwork" trigger - separate from the launch trigger's own gate
         // (ScraperFetchOnContextMenu, not ScraperFetchOnLaunch), with an in-flight guard so
         // double-clicking the menu item can't queue up duplicate requests for the same game.

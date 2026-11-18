@@ -22,14 +22,46 @@
         </Grid.Style>
         <Border x:Name="MediaSlot" Background="#FF000000">
             <Grid x:Name="MediaSlotContent" SizeChanged="MediaSlotContent_SizeChanged">
-                <!-- Video surface: the rotating player draws frames into this Image (Pass 2) -->
+                <!-- Video surface: the rotating player draws frames into this Image -->
                 <Image x:Name="PreviewVideoSurface" x:FieldModifier="public" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                        RenderOptions.BitmapScalingMode="NearestNeighbor" Visibility="Collapsed" IsHitTestVisible="False"/>
+
+                <!-- Hover overlay, inside the rounded clip: a translucent fill over the video (inset from each edge by the
+                     entry's TitlePadding), then the current game's title above the PLAY button. Shown only while the pointer is
+                     over the layer; sizes and positions come from LayoutOverlay. The sound glyph sits outside this clip, above it. -->
+                <Canvas x:Name="HoverOverlay" Visibility="Collapsed">
+                    <Border x:Name="HoverFill" IsHitTestVisible="False"/>
+                    <Border x:Name="TitlePanel" IsHitTestVisible="False">
+                        <TextBlock x:Name="TitleText" TextAlignment="Center" TextTrimming="CharacterEllipsis" LineStackingStrategy="BlockLineHeight"/>
+                    </Border>
+                    <Border x:Name="PlayButtonBox" Cursor="Hand" Background="Transparent"
+                            MouseEnter="PlayButtonBox_MouseEnter" MouseLeave="PlayButtonBox_MouseLeave"
+                            MouseLeftButtonDown="PlayButtonBox_MouseLeftButtonDown" MouseLeftButtonUp="PlayButtonBox_MouseLeftButtonUp">
+                        <TextBlock x:Name="PlayButtonText" FontFamily="Segoe UI" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis" IsHitTestVisible="False"/>
+                    </Border>
+                </Canvas>
             </Grid>
         </Border>
 
         <!-- Outer video frame on top, never hit-testable -->
         <Border x:Name="MediaSlotRing" Background="Transparent" IsHitTestVisible="False"/>
+
+        <!-- Preview sound glyph, same place and look as the Video Preview's: above the ring and outside the rounded clip, at the
+             video area's bottom right. Shown on hover while a video plays; glyph, size and margin come from the code-behind. -->
+        <Border x:Name="SoundGlyphButton" Background="Transparent" Cursor="Hand" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                Visibility="Collapsed" MouseLeftButtonUp="SoundGlyphButton_MouseLeftButtonUp">
+            <TextBlock x:Name="SoundGlyphIcon" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource ChromePreviewSoundGlyph}" IsHitTestVisible="False"/>
+        </Border>
+
+        <!-- NEXT glyph, mirroring the sound glyph at the bottom left: same brush, same size rule, same edge margins, above the hover
+             overlay and outside the rounded clip. A solid skip-forward shape (triangle and bar) drawn as a Path; shown on hover while
+             a game is on screen and another game can follow. Size and margin come from the code-behind. -->
+        <Border x:Name="NextGlyphButton" Background="Transparent" Cursor="Hand" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                Visibility="Collapsed" MouseLeftButtonDown="NextGlyphButton_MouseLeftButtonDown" MouseLeftButtonUp="NextGlyphButton_MouseLeftButtonUp">
+            <Path x:Name="NextGlyphIcon" Data="M0,0 L8,5 L0,10 Z M8.6,0 L10.4,0 L10.4,10 L8.6,10 Z" Stretch="Uniform"
+                  Fill="{StaticResource ChromePreviewSoundGlyph}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+        </Border>
     </Grid>
     <!-- [END SECTION: Random Video Previews Layer] -->
 </UserControl>

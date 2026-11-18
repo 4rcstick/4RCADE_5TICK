@@ -112,6 +112,10 @@ namespace ArcadeStick
             _rvpPlayer = new ArcadeStick.Playback.PreviewPlayerHost(
                 _viewModel.Configuration.GetFfmpegRuntimeDirectory(), RandomVideoPreviewsLayer.PreviewVideoSurface);
             _rvpPlayer.StateChanged += RandomPreviewPlayer_StateChanged;
+            RandomVideoPreviewsLayer.PlayRequested += (s, e) => LaunchRandomPreviewGame();
+            RandomVideoPreviewsLayer.NextRequested += (s, e) => SkipRandomPreview();
+            RandomVideoPreviewsLayer.SoundToggleRequested += (s, e) => TogglePreviewSound();
+            RandomVideoPreviewsLayer.SetSoundEnabled(_viewModel.Configuration.PreviewSoundEnabled);
             _viewModel.RandomPreviewPoolChanged += RebuildRandomPreviewPool;
             if (_viewModel.RandomPreviewPoolGames != null) RebuildRandomPreviewPool();
 
@@ -840,6 +844,8 @@ namespace ArcadeStick
                 PlaceOutsideBorder(RandomVideoPreviewsLayer, entry, entry.BorderSize ?? 0);
                 RandomVideoPreviewsLayer.ApplyBorder(entry.BorderSize ?? 0, entry.BorderColorHex ?? Models.LayerRegistry.DefaultShapeBorderColorHex, entry.CornerRadius ?? Models.LayerRegistry.DefaultShapeCornerRadius);
                 RandomVideoPreviewsLayer.ApplyBackground(entry.BgColorHex ?? Models.LayerRegistry.DefaultVideoBgColorHex);
+                RandomVideoPreviewsLayer.ApplySoundGlyphSize(entry.Height);
+                RandomVideoPreviewsLayer.ApplyOverlayStyle(BuildRandomPreviewOverlayStyle(entry));
                 UpdateRandomPreviewTargetSize(entry);
             }
 
@@ -854,11 +860,13 @@ namespace ArcadeStick
             EvaluateRandomPreviews();
         }
 
-        // Does the layer's visibility: shown when Hide this layer is off and a video plays or can play (decision D6)
+        // Does the layer's visibility: shown when Hide this layer is off and a video plays or can play (decision D6); also tells
+        // the layer whether NEXT has a different game to move to
         private void UpdateRandomPreviewsVisibility()
         {
             bool hasContent = _rvpCurrent != null || _rvpSequencer.HasCandidates;
             RandomVideoPreviewsLayer.Visibility = _rvpEntryVisible && hasContent ? Visibility.Visible : Visibility.Collapsed;
+            RandomVideoPreviewsLayer.SetCanSkip(_rvpCurrent != null && _rvpSequencer.HasAlternativeTo(_rvpCurrent));
         }
         // [END SECTION: Random Video Previews Frame]
 
@@ -945,6 +953,9 @@ namespace ArcadeStick
 
             UpdateRandomPreviewTargetSize(null);
             RandomVideoPreviewsLayer.PreviewVideoSurface.Visibility = Visibility.Visible;
+            // The hover title is always the Game Pool entry's own title, even when the video is its clone parent's
+            RandomVideoPreviewsLayer.SetCurrentTitle(candidate.Game.DisplayTitle);
+            RandomVideoPreviewsLayer.SetPreviewPlaying(false);
             _rvpPlayer?.Play(candidate.VideoPath, _viewModel.Configuration.PreviewSoundEnabled);
             RestartRandomPreviewCountdown();
             UpdateRandomPreviewsVisibility();
@@ -971,6 +982,18 @@ namespace ArcadeStick
             PlayRandomPreview(next);
         }
 
+        // Does the NEXT click: the next game from the same sequencer (Shuffle progress and the no-immediate-repeat rule kept), from
+        // 0 with a full countdown (which stays held while the pointer is over the layer). Nothing happens when no other game can
+        // play. It never launches or selects anything.
+        private void SkipRandomPreview()
+        {
+            if (_rvpCurrent is not Services.RandomPreviewCandidate current || !_rvpSequencer.HasAlternativeTo(current)) return;
+
+            var next = _rvpSequencer.Next(current, GetRandomPreviewsOrder());
+            if (next == null || string.Equals(next.Game.RomName, current.Game.RomName, StringComparison.OrdinalIgnoreCase)) return;
+            PlayRandomPreview(next);
+        }
+
         // Does the stop: no countdown, no current game, the player stopped and its surface hidden
         private void StopRandomPreviews()
         {
@@ -981,6 +1004,8 @@ namespace ArcadeStick
             _rvpMinimizePaused = false;
             _rvpPlayer?.Stop();
             RandomVideoPreviewsLayer.PreviewVideoSurface.Visibility = Visibility.Collapsed;
+            RandomVideoPreviewsLayer.SetCurrentTitle(null);
+            RandomVideoPreviewsLayer.SetPreviewPlaying(false);
             UpdateRandomPreviewsVisibility();
         }
 
@@ -1019,19 +1044,27 @@ namespace ArcadeStick
             if (_rvpCountdown.Elapsed >= _rvpDuration) AdvanceRandomPreview();
         }
 
-        // Does the failure rule: an Error for the current video logs it, leaves that game out until the next pool, and moves on
-        // (on the next dispatcher pass, so a run of bad files never nests)
+        // Does the reaction to the player's state for the current video: Playing lets the sound glyph show on hover (as on the
+        // Video Preview); an Error logs it, leaves that game out until the next pool, and moves on (on the next dispatcher pass,
+        // so a run of bad files never nests)
         private void RandomPreviewPlayer_StateChanged(object? sender, ArcadeStick.Playback.PlayerStateChanged change)
         {
-            if (change.State != ArcadeStick.Playback.PlayerState.Error) return;
-            if (_rvpCurrent is not Services.RandomPreviewCandidate failed || _rvpSourcePath == null
+            if (_rvpCurrent is not Services.RandomPreviewCandidate current || _rvpSourcePath == null
                 || !string.Equals(change.SourcePath, _rvpSourcePath, StringComparison.OrdinalIgnoreCase)) return;
 
-            _rvpSequencer.MarkFailed(failed);
-            LogRandomPreviewFailure(change, failed);
+            if (change.State == ArcadeStick.Playback.PlayerState.Playing)
+            {
+                RandomVideoPreviewsLayer.SetPreviewPlaying(true);
+                return;
+            }
+            if (change.State != ArcadeStick.Playback.PlayerState.Error) return;
+
+            RandomVideoPreviewsLayer.SetPreviewPlaying(false);
+            _rvpSequencer.MarkFailed(current);
+            LogRandomPreviewFailure(change, current);
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (ReferenceEquals(_rvpCurrent, failed)) AdvanceRandomPreview();
+                if (ReferenceEquals(_rvpCurrent, current)) AdvanceRandomPreview();
             }), DispatcherPriority.Background);
         }
 
@@ -1058,8 +1091,58 @@ namespace ArcadeStick
         {
             if (_rvpCurrent == null || _rvpPlayer == null) return;
             _rvpMinimizePaused = false;
+            RandomVideoPreviewsLayer.SetPreviewPlaying(false);
             _rvpPlayer.Play(_rvpCurrent.VideoPath, _viewModel.Configuration.PreviewSoundEnabled);
         }
+
+        // [SECTION: Random Video Previews PLAY]
+        // PLAY launches the game whose title is on screen: the Game Pool entry itself, never the clone parent whose video may be
+        // playing. It goes through the normal launch service (validation, game logging, workspace windows hidden and restored,
+        // the tree rebuild for Recently / Most Played), without selecting the game in the Games List. After MAME exits nothing is
+        // reselected, so the splash screen stays and the next game starts fresh (RestoreGameListScrollPosition checks the flag).
+        private bool _rvpLaunchedFromSplash;
+
+        // Does the PLAY launch for the game on screen
+        private void LaunchRandomPreviewGame()
+        {
+            if (_rvpCurrent is not Services.RandomPreviewCandidate candidate || _gameBeingLaunched != null || _viewModel.IsGameSelected) return;
+
+            var game = candidate.Game;
+            _gameBeingLaunched = game;
+            _rvpLaunchedFromSplash = true;
+
+            StopRandomPreviews();
+            StopActivePreview();
+            PauseMainBgVideo();
+            HideWorkspaceWindowsForGame();
+            _ = _viewModel.LaunchGameFromRandomPreviewsAsync(game, this);
+        }
+        // [END SECTION: Random Video Previews PLAY]
+
+        // Does the hover overlay style from the entry: the title (font, weight, sizes, color, wrap, scale, lines, panel color,
+        // padding) and the PLAY button (text, height percent, resting and hover colors, border, radius), with the registry
+        // defaults for anything missing
+        private static ArcadeStick.Views.RandomPreviewOverlayStyle BuildRandomPreviewOverlayStyle(Models.LayerLayoutEntry entry) => new(
+            entry.TextFontFamily ?? Models.LayerRegistry.DefaultFontFamily,
+            Models.LayerRegistry.ResolveFontWeight(entry.TextFontWeight, entry.TextBold, Models.LayerRegistry.DefaultRvpTitleFontWeight),
+            entry.TextFontSize ?? Models.LayerRegistry.DefaultRvpTitleFontSize,
+            entry.TitleMinFontSize ?? Models.LayerRegistry.DefaultRvpTitleMinFontSize,
+            entry.TextColorHex ?? Models.LayerRegistry.DefaultRvpTitleColorHex,
+            entry.TextWrap ?? true,
+            entry.TitleScaleToFit ?? true,
+            entry.TitleMaxLines ?? Models.LayerRegistry.DefaultRvpTitleMaxLines,
+            entry.TitleBgColorHex ?? Models.LayerRegistry.DefaultRvpTitleBgColorHex,
+            entry.TitlePadding ?? Models.LayerRegistry.DefaultRvpTitlePadding,
+            entry.ButtonText ?? Models.LayerRegistry.DefaultPlayButtonText,
+            entry.ButtonHeightPercent ?? Models.LayerRegistry.DefaultRvpButtonHeightPercent,
+            entry.ButtonTextColorHex ?? Models.LayerRegistry.DefaultRvpButtonTextColorHex,
+            entry.ButtonBgColorHex ?? Models.LayerRegistry.DefaultRvpButtonBgColorHex,
+            entry.ButtonBorderColorHex ?? Models.LayerRegistry.DefaultRvpButtonBorderColorHex,
+            entry.ButtonBorderSize ?? Models.LayerRegistry.DefaultRvpButtonBorderSize,
+            entry.ButtonCornerRadius ?? Models.LayerRegistry.DefaultRvpButtonCornerRadius,
+            entry.HoverColorHex ?? Models.LayerRegistry.DefaultRvpButtonHoverColorHex,
+            entry.HoverBgColorHex ?? Models.LayerRegistry.DefaultRvpButtonHoverBgColorHex,
+            entry.HoverBorderColorHex ?? Models.LayerRegistry.DefaultRvpButtonHoverBorderColorHex);
 
         // Does the minimize rule (decision D5, same as the Video Preview): with sound on, minimizing pauses the video and its
         // countdown, and restoring resumes both; with sound off it keeps playing and rotating
@@ -2058,6 +2141,7 @@ namespace ArcadeStick
             _viewModel.PersistConfigurationToDisk();
             _previewMinimizePausedSource = null;
             VideoPreviewLayer.SetSoundEnabled(config.PreviewSoundEnabled);
+            RandomVideoPreviewsLayer.SetSoundEnabled(config.PreviewSoundEnabled);
             RestartRandomPreviewForSound();
 
             if (IsPreviewSupposedToPlay()) StartActivePreview(_previewSourcePath!);
@@ -3227,6 +3311,13 @@ namespace ArcadeStick
             var selectedGame = _gameBeingLaunched;
             _gameBeingLaunched = null;
             if (selectedGame == null) return;
+
+            // A Random Video Previews PLAY launch selected nothing: stay on the splash screen (its next game starts fresh)
+            if (_rvpLaunchedFromSplash)
+            {
+                _rvpLaunchedFromSplash = false;
+                return;
+            }
 
             _viewModel.SelectedGame = selectedGame;
 

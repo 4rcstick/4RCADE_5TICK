@@ -387,8 +387,9 @@ namespace ArcadeStick.Models
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public string? PlaybackOrder { get; set; }
 
-        // Hover title: the smallest size the text may shrink to, whether it shrinks at all, the line cap (when wrapping), the
-        // color of the panel behind the text only, and the uniform padding inside that panel
+        // Hover title: the smallest size the text may shrink to, whether it shrinks at all, the line cap (when wrapping), then the
+        // hover overlay drawn over the video behind the title and button: its color (TitleBgColorHex) and its inset from every
+        // edge of the video (TitlePadding; 0 fills the video). The names are kept from when they styled a panel behind the title.
         [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
         public int? TitleMinFontSize { get; set; }
 
@@ -1206,7 +1207,12 @@ namespace ArcadeStick.Models
         public const int MaxRvpTitleMaxLines = 5;
         public const string DefaultRvpTitleBgColorHex = "#99000000";
         public const int DefaultRvpTitlePadding = 8;
+        public const int MaxRvpTitlePadding = 50;
         public const int DefaultRvpButtonHeightPercent = 10;
+        public const int MinRvpButtonHeightPercent = 5;
+        public const int MaxRvpButtonHeightPercent = 50;
+        public const int MaxRvpButtonTextLength = 24;
+        public const int MaxRvpButtonCornerRadius = 200;
         public const string DefaultRvpButtonTextColorHex = "#FFFFFFFF";
         public const string DefaultRvpButtonBgColorHex = "#B4000000";
         public const string DefaultRvpButtonBorderColorHex = "#CCFFFFFF";

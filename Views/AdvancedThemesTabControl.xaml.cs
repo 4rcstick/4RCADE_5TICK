@@ -1263,7 +1263,7 @@ namespace ArcadeStick.Views
         // Window Background), where it would be empty. Each layer type lists the other tabs it shows; every other tab
         // is hidden. To give a layer type its own tabs: declare the TabItem in the XAML, add it to AllLayerTabs,
         // and list it for that layer in GetLayerTabs.
-        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoFallback, TabRvpContent, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner, TabScrollGamesList, TabScrollGameInfo };
+        private TabItem[] AllLayerTabs => new[] { TabGLFolders, TabGLGameTitles, TabSBSearch, TabSBButtons, TabGITitle, TabGIPublisher, TabGIInfo, TabGIPreviews, TabGIPlayButton, TabGIFavStar, TabShapeBackground, TabSplashImage, TabShapeBorder, TabVideoFallback, TabRvpContent, TabRvpTitle, TabRvpButton, TabMarqueeLogo, TabMarqueeShadow, TabMainBgImage, TabRGText, TabRGBackground, TabMarqueeBanner, TabScrollGamesList, TabScrollGameInfo };
 
         private TabItem[] GetLayerTabs(string? unitKey)
         {
@@ -1299,8 +1299,9 @@ namespace ArcadeStick.Views
             // Video Preview: the fallback image with the letterbox background color, then the shared Border tab
             if (unitKey == LayerRegistry.VideoPreview) return new[] { TabVideoFallback, TabShapeBorder };
 
-            // Random Video Previews: the letterbox color, then the shared Border tab (the outer video frame)
-            if (unitKey == LayerRegistry.RandomVideoPreviews) return new[] { TabRvpContent, TabShapeBorder };
+            // Random Video Previews: the letterbox color, the hover title, the hover PLAY button, then the shared Border tab (the
+            // outer video frame)
+            if (unitKey == LayerRegistry.RandomVideoPreviews) return new[] { TabRvpContent, TabRvpTitle, TabRvpButton, TabShapeBorder };
 
             // Every other layer (custom image layers included) shows Position only for now.
             return Array.Empty<TabItem>();
@@ -1488,6 +1489,7 @@ namespace ArcadeStick.Views
             {
                 _loading = true;
                 ShowColor(RvpBgColorPicker, TxtRvpBgColorHex, rvpEntry.BgColorHex ?? LayerRegistry.DefaultVideoBgColorHex);
+                LoadRandomPreviewsOverlayFields(rvpEntry);
                 _loading = false;
             }
 
@@ -1637,6 +1639,174 @@ namespace ArcadeStick.Views
         private void TxtRvpBgColorHex_LostFocus(object sender, RoutedEventArgs e) =>
             ApplyHexColor(RvpBgColorPicker, TxtRvpBgColorHex, GetEntry(LayerRegistry.RandomVideoPreviews), en => en.BgColorHex ?? LayerRegistry.DefaultVideoBgColorHex, (en, hex) => en.BgColorHex = hex);
         // [END SECTION: Random Video Previews Playback Fields]
+
+        // [SECTION: Random Video Previews Title and Play Button Fields]
+        // The TITLE and PLAY BUTTON tabs. Number boxes and color pairs carry a Tag naming their field; one handler pair each
+        // looks the field up (RvpNumberField, RvpColorField). Every edit is an ordinary in-memory working edit that repaints live
+        // through RaiseGuides (the layer's style is pushed on ApplyLayout and only lays out again when it changed; the video is
+        // never restarted).
+
+        // The Random Video Previews entry while that layer alone is selected, else null
+        private LayerLayoutEntry? RvpEntry =>
+            SingleSelectedLayer is LayerListItem sel && sel.Id == LayerRegistry.RandomVideoPreviews ? GetEntry(LayerRegistry.RandomVideoPreviews) : null;
+
+        // Does the number field lookup by Tag: its range, default and accessors, or null for an unknown Tag
+        private static (int Min, int Max, int Default, Func<LayerLayoutEntry, int?> Get, Action<LayerLayoutEntry, int> Set)? RvpNumberField(string? key) => key switch
+        {
+            "TitleMax" => (LayerRegistry.MinTextFontSize, LayerRegistry.MaxTextFontSize, LayerRegistry.DefaultRvpTitleFontSize, e => e.TextFontSize, (e, v) => e.TextFontSize = v),
+            "TitleMin" => (LayerRegistry.MinTextFontSize, LayerRegistry.MaxTextFontSize, LayerRegistry.DefaultRvpTitleMinFontSize, e => e.TitleMinFontSize, (e, v) => e.TitleMinFontSize = v),
+            "TitleLines" => (LayerRegistry.MinRvpTitleMaxLines, LayerRegistry.MaxRvpTitleMaxLines, LayerRegistry.DefaultRvpTitleMaxLines, e => e.TitleMaxLines, (e, v) => e.TitleMaxLines = v),
+            "TitlePadding" => (0, LayerRegistry.MaxRvpTitlePadding, LayerRegistry.DefaultRvpTitlePadding, e => e.TitlePadding, (e, v) => e.TitlePadding = v),
+            "ButtonHeight" => (LayerRegistry.MinRvpButtonHeightPercent, LayerRegistry.MaxRvpButtonHeightPercent, LayerRegistry.DefaultRvpButtonHeightPercent, e => e.ButtonHeightPercent, (e, v) => e.ButtonHeightPercent = v),
+            "ButtonBorder" => (LayerRegistry.MinBorderSize, LayerRegistry.MaxBorderSize, LayerRegistry.DefaultRvpButtonBorderSize, e => e.ButtonBorderSize, (e, v) => e.ButtonBorderSize = v),
+            "ButtonRadius" => (0, LayerRegistry.MaxRvpButtonCornerRadius, LayerRegistry.DefaultRvpButtonCornerRadius, e => e.ButtonCornerRadius, (e, v) => e.ButtonCornerRadius = v),
+            _ => null
+        };
+
+        // Does the color field lookup by Tag: its picker, hex box, default and accessors, or null for an unknown Tag
+        private (ColorPicker.PortableColorPicker Picker, TextBox Hex, string Default, Func<LayerLayoutEntry, string?> Get, Action<LayerLayoutEntry, string> Set)? RvpColorField(string? key) => key switch
+        {
+            "TitleColor" => (RvpTitleColorPicker, TxtRvpTitleColorHex, LayerRegistry.DefaultRvpTitleColorHex, e => e.TextColorHex, (e, v) => e.TextColorHex = v),
+            "TitleBg" => (RvpTitleBgColorPicker, TxtRvpTitleBgColorHex, LayerRegistry.DefaultRvpTitleBgColorHex, e => e.TitleBgColorHex, (e, v) => e.TitleBgColorHex = v),
+            "BtnText" => (RvpBtnTextColorPicker, TxtRvpBtnTextColorHex, LayerRegistry.DefaultRvpButtonTextColorHex, e => e.ButtonTextColorHex, (e, v) => e.ButtonTextColorHex = v),
+            "BtnBg" => (RvpBtnBgColorPicker, TxtRvpBtnBgColorHex, LayerRegistry.DefaultRvpButtonBgColorHex, e => e.ButtonBgColorHex, (e, v) => e.ButtonBgColorHex = v),
+            "BtnBorder" => (RvpBtnBorderColorPicker, TxtRvpBtnBorderColorHex, LayerRegistry.DefaultRvpButtonBorderColorHex, e => e.ButtonBorderColorHex, (e, v) => e.ButtonBorderColorHex = v),
+            "BtnHoverText" => (RvpBtnHoverTextColorPicker, TxtRvpBtnHoverTextColorHex, LayerRegistry.DefaultRvpButtonHoverColorHex, e => e.HoverColorHex, (e, v) => e.HoverColorHex = v),
+            "BtnHoverBg" => (RvpBtnHoverBgColorPicker, TxtRvpBtnHoverBgColorHex, LayerRegistry.DefaultRvpButtonHoverBgColorHex, e => e.HoverBgColorHex, (e, v) => e.HoverBgColorHex = v),
+            "BtnHoverBorder" => (RvpBtnHoverBorderColorPicker, TxtRvpBtnHoverBorderColorHex, LayerRegistry.DefaultRvpButtonHoverBorderColorHex, e => e.HoverBorderColorHex, (e, v) => e.HoverBorderColorHex = v),
+            _ => null
+        };
+
+        private static readonly string[] RvpColorKeys = { "TitleColor", "TitleBg", "BtnText", "BtnBg", "BtnBorder", "BtnHoverText", "BtnHoverBg", "BtnHoverBorder" };
+
+        // Does the fill of both tabs from the entry (called under _loading)
+        private void LoadRandomPreviewsOverlayFields(LayerLayoutEntry entry)
+        {
+            FillFontCombo(CboRvpFont);
+            string family = string.IsNullOrWhiteSpace(entry.TextFontFamily) ? LayerRegistry.DefaultFontFamily : entry.TextFontFamily;
+            CboRvpFont.SelectedItem = LayerRegistry.AvailableFonts.Contains(family) ? family : LayerRegistry.DefaultFontFamily;
+            FillWeightCombo(CboRvpWeight, family, LayerRegistry.ResolveFontWeight(entry.TextFontWeight, entry.TextBold, LayerRegistry.DefaultRvpTitleFontWeight));
+
+            ChkRvpTitleWrap.IsChecked = entry.TextWrap ?? true;
+            ChkRvpTitleScale.IsChecked = entry.TitleScaleToFit ?? true;
+            TxtRvpButtonText.Text = entry.ButtonText ?? LayerRegistry.DefaultPlayButtonText;
+
+            var numberBoxes = new[] { TxtRvpTitleMaxSize, TxtRvpTitleMinSize, TxtRvpTitleMaxLines, TxtRvpTitlePadding, TxtRvpButtonHeight, TxtRvpButtonBorderSize, TxtRvpButtonRadius };
+            foreach (var box in numberBoxes)
+            {
+                if (RvpNumberField(box.Tag as string) is { } field) box.Text = (field.Get(entry) ?? field.Default).ToString(CultureInfo.InvariantCulture);
+            }
+            foreach (string key in RvpColorKeys)
+            {
+                if (RvpColorField(key) is { } field) ShowColor(field.Picker, field.Hex, field.Get(entry) ?? field.Default);
+            }
+        }
+
+        // Does a number edit on Enter
+        private void RvpNumber_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && sender is TextBox box) ApplyRvpNumber(box);
+        }
+
+        // Does a number edit on focus loss
+        private void RvpNumber_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox box) ApplyRvpNumber(box);
+        }
+
+        // Does one number edit: a whole number in the field's range is stored and repainted; anything else reverts
+        private void ApplyRvpNumber(TextBox box)
+        {
+            if (_loading || _settings == null || RvpEntry is not LayerLayoutEntry entry) return;
+            if (RvpNumberField(box.Tag as string) is not { } field) return;
+
+            int stored = field.Get(entry) ?? field.Default;
+            if (int.TryParse(box.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) && value >= field.Min && value <= field.Max)
+            {
+                box.Text = value.ToString(CultureInfo.InvariantCulture);
+                if (value == stored) return;
+                field.Set(entry, value);
+                RaiseGuides();
+                return;
+            }
+            box.Text = stored.ToString(CultureInfo.InvariantCulture);
+        }
+
+        // Does a color picker change (same helper and rules as the other colors)
+        private void RvpColorPicker_ColorChanged(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement el || RvpColorField(el.Tag as string) is not { } field) return;
+            ApplyPickerColor(field.Picker, field.Hex, RvpEntry, field.Set);
+        }
+
+        // Does a typed hex color (invalid input reverts)
+        private void RvpColorHex_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (sender is not FrameworkElement el || RvpColorField(el.Tag as string) is not { } field) return;
+            ApplyHexColor(field.Picker, field.Hex, RvpEntry, en => field.Get(en) ?? field.Default, field.Set);
+        }
+
+        // Does the title font pick: stores the family and the nearest weight it offers
+        private void CboRvpFont_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboRvpFont.SelectedItem is not string family || RvpEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextFontFamily = family;
+            entry.TextFontWeight = RefillWeightComboForFamily(CboRvpWeight, family,
+                LayerRegistry.ResolveFontWeight(entry.TextFontWeight, entry.TextBold, LayerRegistry.DefaultRvpTitleFontWeight));
+            entry.TextBold = null;
+            RaiseGuides();
+        }
+
+        // Does the title weight pick
+        private void CboRvpWeight_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading || _settings == null) return;
+            if (CboRvpWeight.SelectedItem is not FontWeightChoice choice || RvpEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextFontWeight = choice.Weight;
+            entry.TextBold = null;
+            RaiseGuides();
+        }
+
+        // Does the Wrap text and Scale to fit checkboxes
+        private void ChkRvpTitle_Click(object sender, RoutedEventArgs e)
+        {
+            if (_loading || _settings == null || RvpEntry is not LayerLayoutEntry entry) return;
+
+            entry.TextWrap = ChkRvpTitleWrap.IsChecked == true;
+            entry.TitleScaleToFit = ChkRvpTitleScale.IsChecked == true;
+            RaiseGuides();
+        }
+
+        // Does the button text on Enter
+        private void TxtRvpButtonText_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            ApplyRvpButtonText();
+        }
+
+        // Does the button text on focus loss
+        private void TxtRvpButtonText_LostFocus(object sender, RoutedEventArgs e)
+        {
+            ApplyRvpButtonText();
+        }
+
+        // Does the button text edit: trimmed, at most 24 characters; empty is kept (a button with no text)
+        private void ApplyRvpButtonText()
+        {
+            if (_loading || _settings == null || RvpEntry is not LayerLayoutEntry entry) return;
+
+            string text = TxtRvpButtonText.Text.Trim();
+            if (text.Length > LayerRegistry.MaxRvpButtonTextLength) text = text.Substring(0, LayerRegistry.MaxRvpButtonTextLength);
+            TxtRvpButtonText.Text = text;
+            if (text == entry.ButtonText) return;
+            entry.ButtonText = text;
+            RaiseGuides();
+        }
+        // [END SECTION: Random Video Previews Title and Play Button Fields]
 
         // [SECTION: Games List Insets]
         // Applies a Games List Top Offset / Top Clip / Bottom Clip box (Tag names the field) on Enter
